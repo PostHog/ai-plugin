@@ -4,14 +4,18 @@
   "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from Gemini CLI",
   "mcpServers": {
     "posthog": {
-      "url": "https://mcp.posthog.com/mcp"
+      "command": "npx",
+      "args": [
+        "mcp-remote@latest",
+        "${POSTHOG_MCP_URL:-https://mcp.posthog.com/mcp}"
+      ]
     }
   },
   "contextFileName": "GEMINI.md",
   "settings": [
     {
       "name": "PostHog MCP URL",
-      "description": "Custom MCP endpoint URL. Set this for EU Cloud (https://mcp-eu.posthog.com/mcp) or self-hosted instances. Leave empty for default US Cloud.",
+      "description": "PostHog MCP endpoint URL (default: https://mcp.posthog.com/mcp). Set a custom URL if you are self-hosting PostHog.",
       "envVar": "POSTHOG_MCP_URL"
     }
   ]

@@ -1,3 +1,6 @@
+# Auto-generated from logs.md — do not edit manually.
+# Regenerate via: scripts/generate-gemini-commands.sh
+
 prompt = """
 
 # Logs

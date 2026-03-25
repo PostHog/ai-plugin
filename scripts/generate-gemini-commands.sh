@@ -24,6 +24,9 @@ for md_file in "$COMMANDS_DIR"/*.md; do
 
   # Write TOML command file
   cat > "$toml_file" <<TOML
+# Auto-generated from ${name}.md — do not edit manually.
+# Regenerate via: scripts/generate-gemini-commands.sh
+
 prompt = """
 ${body}
 

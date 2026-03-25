@@ -87,17 +87,6 @@ This plugin provides access to 27+ PostHog tools across these categories:
 > Show me the top 10 pages by pageviews
 ```
 
-## EU Cloud
-
-If your PostHog project is on EU Cloud, set the `POSTHOG_MCP_URL` environment variable:
-
-```bash
-# Add to your ~/.zshrc or ~/.bashrc
-export POSTHOG_MCP_URL="https://mcp-eu.posthog.com/mcp"
-```
-
-Then restart your editor or open a new terminal session.
-
 ## Self-hosted
 
 For self-hosted PostHog instances, set the `POSTHOG_MCP_URL` environment variable to point to your instance:
