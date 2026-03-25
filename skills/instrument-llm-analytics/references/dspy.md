@@ -30,7 +30,7 @@
 
     Required
 
-    Set your PostHog project token and host as environment variables, then configure LiteLLM to use PostHog as a callback handler. You can find your API key in [your project settings](https://app.posthog.com/settings/project).
+    Set your PostHog project token and host as environment variables, then configure LiteLLM to use PostHog as a callback handler. You can find your project token in [your project settings](https://app.posthog.com/settings/project).
 
     ```python
     import os
@@ -43,7 +43,7 @@
     litellm.success_callback = ["posthog"]
     litellm.failure_callback = ["posthog"]
     # Configure DSPy to use an LLM
-    lm = dspy.LM("openai/gpt-4o-mini", api_key="your_openai_api_key")
+    lm = dspy.LM("openai/gpt-5-mini", api_key="your_openai_api_key")
     dspy.configure(lm=lm)
     ```
 

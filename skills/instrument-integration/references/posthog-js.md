@@ -1,6 +1,6 @@
 # PostHog JavaScript Web SDK
 
-**SDK Version:** 1.360.2
+**SDK Version:** 1.363.4
 
 Posthog-js allows you to automatically capture usage and send events to PostHog.
 
@@ -1257,7 +1257,7 @@ if (posthog.has_opted_out_capturing()) {
 
 Checks whether the PostHog library is currently capturing events.
 Usually this means that the user has not opted out of capturing, but the exact behaviour can be controlled by some config options.
-Additionally, if the cookieless_mode is set to 'on_reject', we will capture events in cookieless mode if the user has explicitly opted out.
+Additionally, if the cookieless_mode is set to `'on_reject'`, we will capture events in cookieless mode if the user has explicitly opted out.
 
 ### Returns
 

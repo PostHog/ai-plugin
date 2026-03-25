@@ -48,7 +48,7 @@
     kernel = Kernel()
     kernel.add_service(
         OpenAIChatCompletion(
-            ai_model_id="gpt-4o-mini",
+            ai_model_id="gpt-5-mini",
             async_client=openai_client,
         )
     )

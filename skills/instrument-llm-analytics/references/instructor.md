@@ -111,7 +111,7 @@
         name: str
         age: int
     user = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-5-mini",
         response_model=UserInfo,
         messages=[
             {"role": "user", "content": "John Doe is 30 years old."}
@@ -131,7 +131,7 @@
       age: z.number(),
     })
     const user = await client.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-mini',
       response_model: { schema: UserInfo, name: 'UserInfo' },
       messages: [
         { role: 'user', content: 'John Doe is 30 years old.' }

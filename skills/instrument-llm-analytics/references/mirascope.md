@@ -59,7 +59,7 @@
     Use Mirascope as normal, passing the wrapped client to the call decorator. PostHog automatically captures an `$ai_generation` event for each LLM call.
 
     ```python
-    @call(model="openai/gpt-4o-mini", client=openai_client)
+    @call(model="openai/gpt-5-mini", client=openai_client)
     def recommend_book(genre: str):
         return f"Recommend a {genre} book."
     response = recommend_book(

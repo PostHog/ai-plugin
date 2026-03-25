@@ -39,7 +39,7 @@
 
     Required
 
-    Configure PostHog by setting your project token and host as well as adding `posthog` to your LiteLLM callback handlers. You can find your API key in [your project settings](https://app.posthog.com/settings/project).
+    Configure PostHog by setting your project token and host as well as adding `posthog` to your LiteLLM callback handlers. You can find your project token in [your project settings](https://app.posthog.com/settings/project).
 
     PostHog AI
 
@@ -61,9 +61,9 @@
     ```yaml
     # config.yaml
     model_list:
-    - model_name: gpt-4o-mini
+    - model_name: gpt-5-mini
       litellm_params:
-        model: gpt-4o-mini
+        model: gpt-5-mini
     litellm_settings:
       success_callback: ["posthog"]
       failure_callback: ["posthog"]  # Optional: also log failures
@@ -86,7 +86,7 @@
 
     ```python
     response = litellm.completion(
-        model="gpt-4o-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "user", "content": "Tell me a fun fact about hedgehogs"}
         ],
@@ -105,7 +105,7 @@
     litellm --config config.yaml
     # Make a request to the proxy
     curl -X POST http://localhost:4000/chat/completions                                       -H "Content-Type: application/json"                                       -d '{
-        "model": "gpt-4o-mini",
+        "model": "gpt-5-mini",
         "messages": [
           {"role": "user", "content": "Tell me a fun fact about hedgehogs"}
         ],

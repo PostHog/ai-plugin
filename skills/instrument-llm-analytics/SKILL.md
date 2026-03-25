@@ -7,7 +7,7 @@ description: >-
   installed.
 metadata:
   author: PostHog
-  version: 1.9.3
+  version: 1.9.4
 ---
 
 # Add PostHog LLM analytics
@@ -76,7 +76,7 @@ STEP 6: Set up environment variables.
 - `references/dspy.md` - Dspy llm analytics installation - docs
 - `references/langgraph.md` - Langgraph llm analytics installation - docs
 - `references/pydantic-ai.md` - Pydantic ai llm analytics installation - docs
-- `references/vercel-ai.md` - Vercel ai llm analytics installation - docs
+- `references/vercel-ai.md` - Vercel ai SDK llm analytics installation - docs
 - `references/litellm.md` - Litellm llm analytics installation - docs
 - `references/instructor.md` - Instructor llm analytics installation - docs
 - `references/semantic-kernel.md` - Semantic kernel llm analytics installation - docs

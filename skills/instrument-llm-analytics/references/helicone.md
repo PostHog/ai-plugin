@@ -54,7 +54,7 @@
 
     Required
 
-    We call Helicone through the OpenAI client and generate a response. We'll use PostHog's OpenAI provider to capture all the details of the call. Initialize PostHog with your PostHog project API key and host from [your project settings](https://app.posthog.com/settings/project), then pass the PostHog client along with the Helicone config (the base URL and API key) to our OpenAI wrapper.
+    We call Helicone through the OpenAI client and generate a response. We'll use PostHog's OpenAI provider to capture all the details of the call. Initialize PostHog with your PostHog project token and host from [your project settings](https://app.posthog.com/settings/project), then pass the PostHog client along with the Helicone config (the base URL and API key) to our OpenAI wrapper.
 
     PostHog AI
 
@@ -113,7 +113,7 @@
 
     ```python
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "user", "content": "Tell me a fun fact about hedgehogs"}
         ],
@@ -130,7 +130,7 @@
 
     ```typescript
     const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-5-mini",
         messages: [{ role: "user", content: "Tell me a fun fact about hedgehogs" }],
         posthogDistinctId: "user_123", // optional
         posthogTraceId: "trace_123", // optional

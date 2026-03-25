@@ -130,6 +130,7 @@
 
     | Action | Description |
     | --- | --- |
+    | [Why you need logs](/docs/logs/basics.md) | What logs show you that nothing else does |
     | [Search logs](/docs/logs/search.md) | Use the search interface to find specific log entries |
     | Filter by level | Filter by INFO, WARN, ERROR, etc. |
     | [Link session replay](/docs/logs/link-session-replay.md) | Connect logs to users and session replays by passing posthogDistinctId and sessionId |

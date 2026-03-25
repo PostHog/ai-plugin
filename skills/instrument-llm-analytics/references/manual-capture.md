@@ -19,7 +19,7 @@
                 "properties": {
                     "distinct_id": "user_123",
                     "$ai_trace_id": "trace_id_here",
-                    "$ai_model": "gpt-4o-mini",
+                    "$ai_model": "gpt-5-mini",
                     "$ai_provider": "openai",
                     "$ai_input": [{"role": "user", "content": "Tell me a fun fact about hedgehogs"}],
                     "$ai_input_tokens": 10,
@@ -58,7 +58,7 @@
         event: '$ai_generation',
         properties: {
             $ai_trace_id: 'trace_id_here',
-            $ai_model: 'gpt-4o-mini',
+            $ai_model: 'gpt-5-mini',
             $ai_provider: 'openai',
             $ai_input: [{ role: 'user', content: 'Tell me a fun fact about hedgehogs' }],
             $ai_input_tokens: 10,
@@ -97,7 +97,7 @@
         event='$ai_generation',
         properties={
             '$ai_trace_id': 'trace_id_here',
-            '$ai_model': 'gpt-4o-mini',
+            '$ai_model': 'gpt-5-mini',
             '$ai_provider': 'openai',
             '$ai_input': [{'role': 'user', 'content': 'Tell me a fun fact about hedgehogs'}],
             '$ai_input_tokens': 10,
@@ -138,7 +138,7 @@
         Event:      "$ai_generation",
         Properties: map[string]interface{}{
             "$ai_trace_id":        "trace_id_here",
-            "$ai_model":           "gpt-4o-mini",
+            "$ai_model":           "gpt-5-mini",
             "$ai_provider":        "openai",
             "$ai_input_tokens":    10,
             "$ai_output_tokens":   20,
@@ -177,7 +177,7 @@
         event: '$ai_generation',
         properties: {
         '$ai_trace_id' => 'trace_id_here',
-        '$ai_model' => 'gpt-4o-mini',
+        '$ai_model' => 'gpt-5-mini',
         '$ai_provider' => 'openai',
         '$ai_input_tokens' => 10,
         '$ai_output_tokens' => 20,
@@ -217,7 +217,7 @@
         'event' => '$ai_generation',
         'properties' => [
             '$ai_trace_id' => 'trace_id_here',
-            '$ai_model' => 'gpt-4o-mini',
+            '$ai_model' => 'gpt-5-mini',
             '$ai_provider' => 'openai',
             '$ai_input_tokens' => 10,
             '$ai_output_tokens' => 20,

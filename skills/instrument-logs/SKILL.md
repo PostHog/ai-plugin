@@ -7,7 +7,7 @@ description: >-
   configured.
 metadata:
   author: PostHog
-  version: 1.9.3
+  version: 1.9.4
 ---
 
 # Add PostHog log capture
@@ -66,7 +66,7 @@ STEP 7: Set up environment variables.
 - `references/best-practices.md` - Logging best practices - docs
 - `references/troubleshooting.md` - Logs troubleshooting - docs
 - `references/link-session-replay.md` - Link session replay - docs
-- `references/debugging-with-mcp.md` - Debugging with mcp - docs
+- `references/debug-logs-mcp.md` - Debug logs with mcp - docs
 
 Each platform reference contains specific OTLP configuration, SDK setup, and integration patterns. Find the one matching the user's stack.
 

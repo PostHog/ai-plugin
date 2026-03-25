@@ -6,7 +6,7 @@ description: >-
   Also handles initial PostHog SDK setup if not yet installed.
 metadata:
   author: PostHog
-  version: 1.9.3
+  version: 1.9.4
 ---
 
 # Add PostHog feature flags
