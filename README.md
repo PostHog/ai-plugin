@@ -14,6 +14,12 @@ claude plugin install posthog
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add manually in Cursor Settings > Plugins.
 
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/PostHog/ai-plugin
+```
+
 ### Manual installation
 
 1. Clone and install the plugin:

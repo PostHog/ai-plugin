@@ -1,0 +1,33 @@
+prompt = """
+
+# Workspace
+
+Use the PostHog MCP tools to help the user with organizations, projects, and definitions:
+
+## Organizations
+
+1. To list all organizations, use `posthog_organizations_get`
+2. To switch to a different organization, use `posthog_switch_organization`
+3. To get details about the current organization, use `posthog_organization_details_get`
+
+## Projects
+
+1. To list all projects in the current organization, use `posthog_projects_get`
+2. To switch to a different project, use `posthog_switch_project`
+
+## Event and Property Definitions
+
+1. To list all event definitions, use `posthog_event_definitions_list`
+2. To list all properties (or properties for a specific event), use `posthog_properties_list`
+
+## Example prompts
+
+- "What organizations do I have access to?"
+- "Switch to the production project"
+- "List all event definitions"
+- "What properties are available for the signup event?"
+- "Show me details about the current organization"
+- "What projects are in this organization?"
+
+User request: {{args}}
+"""
