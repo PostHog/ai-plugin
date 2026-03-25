@@ -34,14 +34,14 @@
 
     Required
 
-    Add your PostHog API key and host to your `.env.local` file and to your hosting provider (e.g. Vercel, Netlify). These values need to start with `NEXT_PUBLIC_` to be accessible on the client-side.
+    Add your PostHog project token and host to your `.env.local` file and to your hosting provider (e.g. Vercel, Netlify). These values need to start with `NEXT_PUBLIC_` to be accessible on the client-side.
 
     .env.local
 
     PostHog AI
 
     ```bash
-    NEXT_PUBLIC_POSTHOG_KEY=<ph_project_token>
+    NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=<ph_project_token>
     NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
     ```
 
@@ -63,7 +63,7 @@
 
     ```typescript
     import posthog from 'posthog-js'
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
         api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
         defaults: '2026-01-30'
     })
@@ -85,7 +85,7 @@
     import { PostHogProvider as PHProvider } from 'posthog-js/react'
     export function PostHogProvider({ children }: { children: React.ReactNode }) {
       useEffect(() => {
-        posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY as string, {
+        posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN as string, {
           api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
           defaults: '2026-01-30'
         })
@@ -136,7 +136,7 @@
     import type { AppProps } from 'next/app'
     export default function App({ Component, pageProps }: AppProps) {
       useEffect(() => {
-        posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY as string, {
+        posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN as string, {
           api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
           defaults: '2026-01-30',
           loaded: (posthog) => {
@@ -366,7 +366,7 @@
     export function getPostHogServer() {
       if (!posthogInstance) {
         posthogInstance = new PostHog(
-          process.env.NEXT_PUBLIC_TOKEN,
+          process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
           {
             host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
             flushAt: 1,

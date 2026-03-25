@@ -9,7 +9,9 @@ This guide walks you through an example integration of PostHog using vanilla Rea
 Using React with a framework like Next.js, Remix, or React Router requires additional setup. Follow their respective guides instead:
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/frameworks/nextjs.svg)Next.js](/docs/libraries/next-js.md)
+
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/remix_letter_glowing_49183adce2.svg)Remix](/docs/libraries/remix.md)
+
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/rr_logo_light_970950178e.svg)React Router](/docs/libraries/react-router.md)
 
 ## Beta: integration via LLM

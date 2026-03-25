@@ -45,7 +45,7 @@
         posthog_client=posthog
     )
     model = OpenAIServerModel(
-        model_id="gpt-4o-mini",
+        model_id="gpt-5-mini",
         client=openai_client,
     )
     ```

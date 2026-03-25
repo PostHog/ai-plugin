@@ -7,7 +7,7 @@ description: >-
   installed.
 metadata:
   author: PostHog
-  version: 1.9.3
+  version: 1.9.4
 ---
 
 # Add PostHog error tracking

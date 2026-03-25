@@ -1,5 +1,7 @@
 # Getting started with logs - Docs
 
+> **New to logging?** Read [Why you need logs](/docs/logs/basics.md) first for a primer on what logs show you that nothing else does.
+
 ## Install and configure logging
 
 PostHog logs is a powerful logging solution that works with the OpenTelemetry Protocol (OTLP). You don't need any vendor specific SDKs – just use standard OpenTelemetry libraries.

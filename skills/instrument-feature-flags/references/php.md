@@ -22,7 +22,7 @@
 
     Required
 
-    Initialize the PostHog client with your API key and host:
+    Initialize the PostHog client with your project token and host:
 
     PHP
 

@@ -1,7 +1,7 @@
 {
   "name": "posthog",
   "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from Claude Code",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "PostHog",
     "email": "hey@posthog.com",
@@ -10,5 +10,14 @@
   "homepage": "https://posthog.com/docs/model-context-protocol",
   "repository": "https://github.com/PostHog/ai-plugin",
   "license": "MIT",
-  "keywords": ["analytics", "feature-flags", "experiments", "error-tracking", "a/b-testing", "surveys", "dashboards", "llm-analytics"]
+  "keywords": [
+    "analytics",
+    "feature-flags",
+    "experiments",
+    "error-tracking",
+    "a/b-testing",
+    "surveys",
+    "dashboards",
+    "llm-analytics"
+  ]
 }
