@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   sync-skills:
@@ -105,12 +106,39 @@ jobs:
 
           echo "commit_message=chore: sync skills ($VERSIONS)" >> "$GITHUB_OUTPUT"
 
+      - name: Create sync branch
+        if: steps.check.outputs.has_changes == 'true'
+        id: branch
+        run: |
+          BRANCH="chore/sync-skills-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+          git push origin "$BRANCH"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "base=$BASE_REF" >> "$GITHUB_OUTPUT"
+        env:
+          BASE_REF: ${{ github.event.inputs.ref || github.ref_name }}
+
       - name: Commit and push
         if: steps.check.outputs.has_changes == 'true'
         uses: planetscale/ghcommit-action@25309d8005ac7c3bcd61d3fe19b69e0fe47dbdde # v0.2.20
         with:
           commit_message: ${{ steps.check.outputs.commit_message }}
           repo: ${{ github.repository }}
-          branch: ${{ github.event.inputs.ref || github.ref_name }}
+          branch: ${{ steps.branch.outputs.branch }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Create PR with auto-merge
+        if: steps.check.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_MESSAGE: ${{ steps.check.outputs.commit_message }}
+          BASE_REF: ${{ steps.branch.outputs.base }}
+          HEAD_REF: ${{ steps.branch.outputs.branch }}
+        run: |
+          PR_URL=$(gh pr create \
+            --base "$BASE_REF" \
+            --head "$HEAD_REF" \
+            --title "$COMMIT_MESSAGE" \
+            --body "Automated skill sync from PostHog release and context-mill.")
+          gh pr merge "$PR_URL" --auto --squash
