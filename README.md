@@ -14,6 +14,12 @@ claude plugin install posthog
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add manually in Cursor Settings > Plugins.
 
+### Codex
+
+```bash
+codex plugin install posthog
+```
+
 ### Gemini CLI
 
 ```bash

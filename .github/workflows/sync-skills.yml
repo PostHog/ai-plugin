@@ -87,7 +87,7 @@ jobs:
           echo "has_changes=true" >> "$GITHUB_OUTPUT"
 
           # Bump patch version in plugin manifests
-          for f in .claude-plugin/plugin.json .cursor-plugin/plugin.json gemini-extension.json; do
+          for f in .claude-plugin/plugin.json .cursor-plugin/plugin.json .codex-plugin/plugin.json gemini-extension.json; do
             if [ -f "$f" ]; then
               jq '.version |= (split(".") | .[2] = (.[2] | tonumber + 1 | tostring) | join("."))' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
             fi
