@@ -63,6 +63,7 @@ jobs:
             mkdir -p "skills/$skill_name"
             unzip -q -o "$inner_zip" -d "skills/$skill_name"
             find "skills/$skill_name" -name 'SKILL.md' -type f -exec sed -i 's/^\(name: *\)omnibus-/\1/' {} +
+            find "skills/$skill_name" -name 'SKILL.md' -type f -exec sed -i '/^  version: .*/d' {} +
           done < <(find "$tmp_cm" -name 'omnibus-*.zip' -type f)
           rm -rf "$tmp_cm"
 
