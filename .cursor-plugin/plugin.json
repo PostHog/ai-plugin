@@ -1,7 +1,7 @@
 {
   "name": "posthog",
   "displayName": "PostHog",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from Cursor",
   "author": {
     "name": "PostHog",

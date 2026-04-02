@@ -1,6 +1,6 @@
 {
   "name": "posthog",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from Codex",
   "author": {
     "name": "PostHog",
@@ -28,7 +28,10 @@
     "longDescription": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from Codex. Query your data, manage flags, run A/B tests, and debug errors without leaving your editor.",
     "developerName": "PostHog",
     "category": "Productivity",
-    "capabilities": ["Read", "Write"],
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
     "websiteURL": "https://posthog.com",
     "privacyPolicyURL": "https://posthog.com/privacy",
     "termsOfServiceURL": "https://posthog.com/terms",

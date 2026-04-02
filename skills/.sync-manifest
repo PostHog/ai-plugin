@@ -1,6 +1,8 @@
 analyzing-experiment-session-replays
 auditing-experiments-flags
 cleaning-up-stale-feature-flags
+exploring-llm-clusters
+exploring-llm-traces
 instrument-error-tracking
 instrument-feature-flags
 instrument-integration

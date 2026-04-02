@@ -6,7 +6,6 @@ description: >-
   are captured. Also handles initial PostHog SDK setup if not yet installed.
 metadata:
   author: PostHog
-  version: 1.9.4
 ---
 
 # Add PostHog product analytics events

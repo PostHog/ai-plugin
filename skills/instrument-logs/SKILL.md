@@ -7,7 +7,6 @@ description: >-
   configured.
 metadata:
   author: PostHog
-  version: 1.9.4
 ---
 
 # Add PostHog log capture
