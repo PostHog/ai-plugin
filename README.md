@@ -1,4 +1,4 @@
-# PostHog AI Plugin
+# PostHog AI plugin
 
 Official PostHog plugin for AI clients. Access your analytics, feature flags, experiments, and error tracking directly from your AI coding tool.
 
@@ -6,9 +6,19 @@ Official PostHog plugin for AI clients. Access your analytics, feature flags, ex
 
 ### Claude Code
 
-```bash
-claude plugin install posthog
-```
+1. Install the plugin:
+    ```bash
+    claude plugin install posthog
+    ```
+
+2. Authenticate via OAuth:
+    ```bash
+    # Just enter Claude Code anywhere
+    claude
+    # Then, use the /mcp command within Claude, select plugin:posthog:posthog, and press Enter
+    /mcp
+    ```
+    Then follow the browser prompts to log into PostHog.
 
 ### Cursor
 
@@ -26,19 +36,19 @@ codex plugin install posthog
 gemini extensions install https://github.com/PostHog/ai-plugin
 ```
 
-### Manual installation
+## How to develop
 
 1. Clone and install the plugin:
-```bash
-git clone https://github.com/PostHog/ai-plugin
-claude --plugin-dir ./ai-plugin
-```
+    ```bash
+    git clone https://github.com/PostHog/ai-plugin
+    claude --plugin-dir ./ai-plugin
+    ```
 
 2. Authenticate via OAuth:
-```
-/mcp
-```
-Then follow the browser prompts to log in to PostHog.
+    ```
+    /mcp
+    ```
+    Then follow the browser prompts to log into PostHog.
 
 ## Features
 
@@ -68,7 +78,7 @@ This plugin provides access to 27+ PostHog tools across these categories:
 - `/posthog:search` - Search across all PostHog entities
 - `/posthog:workspace` - Manage organizations and projects
 
-## Example Usage
+## Example usage
 
 ```
 > What feature flags do I have?
