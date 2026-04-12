@@ -14,7 +14,7 @@ When enabled, every Claude Code session is automatically sent to PostHog's LLM A
 
 ## Configuration
 
-The user needs to set these environment variables (in their shell profile or Claude Code settings):
+Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Set them via environment variables — either in your shell profile or in Claude Code's settings.json `env` block.
 
 ### Required
 
@@ -26,24 +26,18 @@ The user needs to set these environment variables (in their shell profile or Cla
 - `POSTHOG_HOST` — PostHog instance URL (default: `https://us.i.posthog.com`, use `https://eu.i.posthog.com` for EU)
 - `POSTHOG_LLMA_PRIVACY_MODE` — Set to `true` to redact prompt/output content (tokens and costs still captured)
 - `POSTHOG_LLMA_DISTINCT_ID` — Override the distinct_id (default: git user email)
+- `POSTHOG_LLMA_TRACE_GROUPING` — `session` (default) or `message`
 
 ## Steps
 
-1. Check if `POSTHOG_API_KEY` is already set in the environment
+1. Check if the env vars are already set
 2. If the user provided an API key as an argument (`$ARGUMENTS`), guide them to set it
 3. Help them choose US or EU hosting
-4. Suggest adding to their shell profile or `~/.claude/settings.json` env block
-5. Explain that analytics will start flowing on the next session end
+4. Offer them a choice of how to configure
 
-## Example shell profile setup
+## Option 1: Claude Code settings.json (recommended)
 
-```bash
-export POSTHOG_LLMA_CC_ENABLED=true
-export POSTHOG_API_KEY="phc_..."
-export POSTHOG_HOST="https://eu.i.posthog.com"  # for EU, omit for US
-```
-
-## Example Claude Code settings.json setup
+For global setup, add to `~/.claude/settings.json`:
 
 ```json
 {
@@ -55,7 +49,27 @@ export POSTHOG_HOST="https://eu.i.posthog.com"  # for EU, omit for US
 }
 ```
 
-Check current status:
+For per-project setup, add to `.claude/settings.local.json`:
+
+```json
+{
+  "env": {
+    "POSTHOG_LLMA_CC_ENABLED": "true",
+    "POSTHOG_API_KEY": "phc_...",
+    "POSTHOG_HOST": "https://eu.i.posthog.com"
+  }
+}
+```
+
+## Option 2: Shell profile
+
+```bash
+export POSTHOG_LLMA_CC_ENABLED=true
+export POSTHOG_API_KEY="phc_..."
+export POSTHOG_HOST="https://eu.i.posthog.com"  # for EU, omit for US
+```
+
+## Check current status
 
 ```bash
 echo "POSTHOG_LLMA_CC_ENABLED=${POSTHOG_LLMA_CC_ENABLED:-(not set, defaults to false)}"
