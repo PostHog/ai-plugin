@@ -26,9 +26,24 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
     all_generations = parsed["generations"]
     all_tool_uses = parsed["tool_uses"]
 
+    # In message mode, if prompt_id is missing we need a stable fallback
+    # so a generation and its tool spans share the same trace_id.
+    # Use span_id as the fallback — it's unique per generation but stable
+    # across the generation and its child tool uses.
+    fallback_trace_ids = {}  # span_id -> fallback trace_id
+
     # -- $ai_generation events --
     for gen in all_generations:
-        trace_id = session_trace_id if trace_grouping == "session" else (gen.get("prompt_id") or str(uuid.uuid4()))
+        if trace_grouping == "session":
+            trace_id = session_trace_id
+        else:
+            prompt_id = gen.get("prompt_id")
+            if prompt_id:
+                trace_id = prompt_id
+            else:
+                # Use span_id as deterministic fallback
+                trace_id = gen["span_id"]
+                fallback_trace_ids[gen["span_id"]] = trace_id
 
         output_choices = None
         if not privacy_mode:
@@ -71,7 +86,15 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
 
     # -- $ai_span events --
     for tu in all_tool_uses:
-        trace_id = session_trace_id if trace_grouping == "session" else (tu.get("prompt_id") or str(uuid.uuid4()))
+        if trace_grouping == "session":
+            trace_id = session_trace_id
+        else:
+            prompt_id = tu.get("prompt_id")
+            if prompt_id:
+                trace_id = prompt_id
+            else:
+                # Use the same fallback as the parent generation
+                trace_id = fallback_trace_ids.get(tu.get("generation_span_id"), tu.get("generation_span_id", str(uuid.uuid4())))
 
         result = tu.get("result")
         is_error = False
