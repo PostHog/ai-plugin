@@ -20,6 +20,13 @@ Official PostHog plugin for AI clients. Access your analytics, feature flags, ex
     ```
     Then follow the browser prompts to log into PostHog.
 
+3. (Optional) Send Claude Code sessions to PostHog LLM Analytics:
+    ```bash
+    export POSTHOG_API_KEY="phc_..."
+    export POSTHOG_HOST="https://eu.i.posthog.com"  # optional, defaults to US
+    ```
+    Sessions are automatically sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content. No data is sent unless `POSTHOG_API_KEY` is set.
+
 ### Cursor
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add manually in Cursor Settings > Plugins.
