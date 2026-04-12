@@ -32,7 +32,7 @@ def load_config() -> dict:
         "api_key": os.environ.get("POSTHOG_API_KEY", ""),
         "host": os.environ.get("POSTHOG_HOST", posthog_llma.DEFAULT_HOST),
         "privacy_mode": os.environ.get("POSTHOG_LLMA_PRIVACY_MODE", "false").lower() == "true",
-        "enabled": os.environ.get("POSTHOG_LLMA_ENABLED", "true").lower() != "false",
+        "enabled": os.environ.get("POSTHOG_LLMA_CC_ENABLED", "false").lower() == "true",
         "distinct_id": os.environ.get("POSTHOG_LLMA_DISTINCT_ID", ""),
         "max_attribute_length": int(os.environ.get("POSTHOG_LLMA_MAX_ATTRIBUTE_LENGTH", "12000")),
         "trace_grouping": os.environ.get("POSTHOG_LLMA_TRACE_GROUPING", "session"),  # "session" or "message"

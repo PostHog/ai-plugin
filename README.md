@@ -22,10 +22,11 @@ Official PostHog plugin for AI clients. Access your analytics, feature flags, ex
 
 3. (Optional) Send Claude Code sessions to PostHog LLM Analytics:
     ```bash
+    export POSTHOG_LLMA_CC_ENABLED=true
     export POSTHOG_API_KEY="phc_..."
     export POSTHOG_HOST="https://eu.i.posthog.com"  # optional, defaults to US
     ```
-    Sessions are automatically sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content. No data is sent unless `POSTHOG_API_KEY` is set.
+    Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Sessions are sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content.
 
 ### Cursor
 

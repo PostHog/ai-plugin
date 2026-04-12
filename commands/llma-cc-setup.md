@@ -18,13 +18,13 @@ The user needs to set these environment variables (in their shell profile or Cla
 
 ### Required
 
+- `POSTHOG_LLMA_CC_ENABLED` — Set to `true` to enable (must be explicitly opted in)
 - `POSTHOG_API_KEY` — PostHog project API key (starts with `phc_`)
 
 ### Optional
 
 - `POSTHOG_HOST` — PostHog instance URL (default: `https://us.i.posthog.com`, use `https://eu.i.posthog.com` for EU)
 - `POSTHOG_LLMA_PRIVACY_MODE` — Set to `true` to redact prompt/output content (tokens and costs still captured)
-- `POSTHOG_LLMA_ENABLED` — Set to `false` to disable without removing the API key
 - `POSTHOG_LLMA_DISTINCT_ID` — Override the distinct_id (default: git user email)
 
 ## Steps
@@ -38,6 +38,7 @@ The user needs to set these environment variables (in their shell profile or Cla
 ## Example shell profile setup
 
 ```bash
+export POSTHOG_LLMA_CC_ENABLED=true
 export POSTHOG_API_KEY="phc_..."
 export POSTHOG_HOST="https://eu.i.posthog.com"  # for EU, omit for US
 ```
@@ -47,6 +48,7 @@ export POSTHOG_HOST="https://eu.i.posthog.com"  # for EU, omit for US
 ```json
 {
   "env": {
+    "POSTHOG_LLMA_CC_ENABLED": "true",
     "POSTHOG_API_KEY": "phc_...",
     "POSTHOG_HOST": "https://eu.i.posthog.com"
   }
@@ -56,8 +58,8 @@ export POSTHOG_HOST="https://eu.i.posthog.com"  # for EU, omit for US
 Check current status:
 
 ```bash
+echo "POSTHOG_LLMA_CC_ENABLED=${POSTHOG_LLMA_CC_ENABLED:-(not set, defaults to false)}"
 echo "POSTHOG_API_KEY=${POSTHOG_API_KEY:-(not set)}"
 echo "POSTHOG_HOST=${POSTHOG_HOST:-(not set, defaults to US)}"
-echo "POSTHOG_LLMA_ENABLED=${POSTHOG_LLMA_ENABLED:-(not set, defaults to true)}"
 echo "POSTHOG_LLMA_PRIVACY_MODE=${POSTHOG_LLMA_PRIVACY_MODE:-(not set, defaults to false)}"
 ```
