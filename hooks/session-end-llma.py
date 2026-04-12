@@ -260,6 +260,13 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
 
                 output_text = "\n".join(text_parts) if text_parts else None
 
+                # Build tool_use content blocks for $ai_output_choices
+                # so PostHog's ingestion can extract $ai_tools_called
+                tool_use_blocks = [
+                    {"type": "tool_use", "name": tu["name"]}
+                    for tu in entry_tool_uses
+                ]
+
                 generation = {
                     "model": model,
                     "input_tokens": usage.get("input_tokens", 0),
@@ -271,6 +278,7 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
                     "prompt_id": prompt_id,
                     "span_id": span_id,
                     "output_text": output_text,
+                    "tool_use_blocks": tool_use_blocks,
                     "is_error": stop_reason == "error",
                     "error_message": msg.get("error_message"),
                 }
@@ -384,8 +392,15 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
         trace_id = session_trace_id if trace_grouping == "session" else (gen.get("prompt_id") or str(uuid.uuid4()))
 
         output_choices = None
-        if gen["output_text"] and not privacy_mode:
-            output_choices = [{"role": "assistant", "content": gen["output_text"]}]
+        if not privacy_mode:
+            # Build output in Anthropic format so PostHog can extract
+            # $ai_tools_called from content[].type="tool_use" blocks
+            content_blocks = []
+            if gen["output_text"]:
+                content_blocks.append({"type": "text", "text": gen["output_text"]})
+            content_blocks.extend(gen.get("tool_use_blocks", []))
+            if content_blocks:
+                output_choices = [{"role": "assistant", "content": content_blocks}]
 
         # Find the user prompt for this generation
         user_prompt = None
