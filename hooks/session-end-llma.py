@@ -187,8 +187,8 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
                                     tool_results[tool_use_id] = item
                                     has_tool_result = True
 
-                    if not has_tool_result:
-                        # It's a user prompt
+                    if not has_tool_result and not entry.get("isMeta"):
+                        # It's a user prompt (or slash command invocation)
                         content = msg_content
                         if isinstance(content, list):
                             text_parts = []
@@ -196,9 +196,18 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
                                 if isinstance(item, dict) and item.get("type") == "text":
                                     text_parts.append(item.get("text", ""))
                             content = "\n".join(text_parts)
-                        if prompt_id and isinstance(content, str) and not entry.get("isMeta"):
+                        if isinstance(content, str) and content.strip():
+                            # Use promptId if available, otherwise fall back
+                            # to the entry's uuid so slash commands (which
+                            # lack a promptId) still get captured.
+                            effective_prompt_id = prompt_id or entry.get("uuid", str(uuid.uuid4()))
+                            # Store in uuid_to_prompt_id so the parentUuid
+                            # chain can resolve generations back to this prompt
+                            entry_uuid = entry.get("uuid", "")
+                            if entry_uuid and effective_prompt_id:
+                                uuid_to_prompt_id[entry_uuid] = effective_prompt_id
                             prompts.append({
-                                "prompt_id": prompt_id,
+                                "prompt_id": effective_prompt_id,
                                 "timestamp": timestamp,
                                 "text": content if not privacy_mode else None,
                             })
@@ -314,6 +323,16 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
 # ---------------------------------------------------------------------------
 # Build PostHog events from parsed session
 # ---------------------------------------------------------------------------
+
+import re as _re
+
+def _clean_trace_name(text: str, max_len: int = 100) -> str:
+    """Strip XML/HTML tags and truncate for use as a trace name."""
+    cleaned = _re.sub(r"<[^>]+>", "", text).strip()
+    # Collapse whitespace
+    cleaned = " ".join(cleaned.split())
+    return cleaned[:max_len] if cleaned else text[:max_len]
+
 
 def build_events(parsed: dict, config: dict) -> list[dict]:
     """Convert parsed session data into PostHog $ai_* events.
@@ -432,9 +451,9 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
         # Use first generation timestamp for the trace
         trace_ts = timestamps[0] if timestamps else None
 
-        # Use first user prompt as the trace name (truncated)
+        # Use first user prompt as the trace name (truncated, tags stripped)
         first_prompt = parsed["prompts"][0].get("text", "") if parsed["prompts"] else ""
-        trace_name = first_prompt[:100] if first_prompt else None
+        trace_name = _clean_trace_name(first_prompt) if first_prompt else None
 
         events.append(posthog_llma.build_ai_trace(
             trace_id=session_trace_id,
@@ -478,7 +497,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
 
             prompt_ts = timestamps[0] if timestamps else prompt.get("timestamp")
             prompt_text = prompt.get("text", "")
-            trace_name = prompt_text[:100] if prompt_text else None
+            trace_name = _clean_trace_name(prompt_text) if prompt_text else None
 
             events.append(posthog_llma.build_ai_trace(
                 trace_id=pid,
