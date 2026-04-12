@@ -326,12 +326,35 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
 
 import re as _re
 
+# Prompts that are framework noise — skip when picking a trace name
+_SKIP_PROMPTS = _re.compile(
+    r"^(/clear|/exit|/quit|/help|/compact|/reload|clear|exit|quit|"
+    r"\[Request interrupted|\[Request cancelled)",
+    _re.IGNORECASE,
+)
+
+
 def _clean_trace_name(text: str, max_len: int = 100) -> str:
     """Strip XML/HTML tags and truncate for use as a trace name."""
     cleaned = _re.sub(r"<[^>]+>", "", text).strip()
     # Collapse whitespace
     cleaned = " ".join(cleaned.split())
     return cleaned[:max_len] if cleaned else text[:max_len]
+
+
+def _find_trace_name(prompts: list[dict], max_len: int = 100) -> str | None:
+    """Find the first meaningful user prompt to use as a trace name."""
+    for p in prompts:
+        text = p.get("text", "")
+        if not text:
+            continue
+        cleaned = _clean_trace_name(text, max_len)
+        if cleaned and not _SKIP_PROMPTS.match(cleaned):
+            return cleaned
+    # Fallback: use whatever the first prompt is, even if noisy
+    if prompts and prompts[0].get("text"):
+        return _clean_trace_name(prompts[0]["text"], max_len)
+    return None
 
 
 def build_events(parsed: dict, config: dict) -> list[dict]:
@@ -451,9 +474,8 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
         # Use first generation timestamp for the trace
         trace_ts = timestamps[0] if timestamps else None
 
-        # Use first user prompt as the trace name (truncated, tags stripped)
-        first_prompt = parsed["prompts"][0].get("text", "") if parsed["prompts"] else ""
-        trace_name = _clean_trace_name(first_prompt) if first_prompt else None
+        # Use first meaningful user prompt as the trace name
+        trace_name = _find_trace_name(parsed["prompts"])
 
         events.append(posthog_llma.build_ai_trace(
             trace_id=session_trace_id,
@@ -496,8 +518,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
                     pass
 
             prompt_ts = timestamps[0] if timestamps else prompt.get("timestamp")
-            prompt_text = prompt.get("text", "")
-            trace_name = _clean_trace_name(prompt_text) if prompt_text else None
+            trace_name = _find_trace_name([prompt])
 
             events.append(posthog_llma.build_ai_trace(
                 trace_id=pid,
