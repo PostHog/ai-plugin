@@ -5,6 +5,7 @@ import os
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
+from typing import Optional
 
 DEFAULT_HOST = "https://us.i.posthog.com"
 STATUS_FILE = os.path.expanduser("~/.claude/posthog-llma-status.json")
@@ -84,7 +85,7 @@ def write_status(status: dict) -> None:
         pass
 
 
-def read_status() -> dict | None:
+def read_status() -> Optional[dict]:
     """Read last send status."""
     try:
         with open(STATUS_FILE) as f:

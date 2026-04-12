@@ -7,9 +7,10 @@ prompts, and metadata into a structured dict.
 import json
 import uuid
 from pathlib import Path
+from typing import Optional
 
 
-def find_session_log(session_id: str, cwd: str) -> str | None:
+def find_session_log(session_id: str, cwd: str) -> Optional[str]:
     """Find the JSONL session log file.
 
     Claude Code stores logs at:

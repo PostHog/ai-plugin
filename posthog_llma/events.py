@@ -7,6 +7,7 @@ We do NOT need to calculate or send cost — just send model and tokens.
 
 import json
 import uuid
+from typing import Optional
 
 
 def build_ai_generation(
@@ -17,21 +18,22 @@ def build_ai_generation(
     output_tokens: int = 0,
     cache_read_tokens: int = 0,
     cache_creation_tokens: int = 0,
-    latency_seconds: float | None = None,
-    stop_reason: str | None = None,
+    latency_seconds: Optional[float] = None,
+    stop_reason: Optional[str] = None,
     is_error: bool = False,
-    error_message: str | None = None,
+    error_message: Optional[str] = None,
     trace_id: str,
-    span_id: str | None = None,
+    parent_id: Optional[str] = None,
+    span_id: Optional[str] = None,
     session_id: str,
     input_messages: object = None,
     output_choices: object = None,
-    user_prompt: str | None = None,
+    user_prompt: Optional[str] = None,
     project_name: str = "",
     agent_name: str = "",
     privacy_mode: bool = False,
-    extra_properties: dict | None = None,
-    timestamp: str | None = None,
+    extra_properties: Optional[dict] = None,
+    timestamp: Optional[str] = None,
 ) -> dict:
     """Build a $ai_generation event."""
     total_tokens = input_tokens + output_tokens
@@ -51,6 +53,7 @@ def build_ai_generation(
         "$ai_is_error": is_error,
         "$ai_error": error_message,
         "$ai_trace_id": trace_id,
+        "$ai_parent_id": parent_id,
         "$ai_span_id": span_id or str(uuid.uuid4()),
         "$ai_session_id": session_id,
         "$ai_input": None if privacy_mode else input_messages,
@@ -79,19 +82,19 @@ def build_ai_span(
     *,
     span_name: str,
     trace_id: str,
-    parent_span_id: str | None = None,
-    span_id: str | None = None,
+    parent_span_id: Optional[str] = None,
+    span_id: Optional[str] = None,
     session_id: str,
-    latency_seconds: float | None = None,
+    latency_seconds: Optional[float] = None,
     input_state: object = None,
     output_state: object = None,
     is_error: bool = False,
-    error_message: str | None = None,
+    error_message: Optional[str] = None,
     project_name: str = "",
     agent_name: str = "",
     privacy_mode: bool = False,
     max_attribute_length: int = 12000,
-    timestamp: str | None = None,
+    timestamp: Optional[str] = None,
 ) -> dict:
     """Build a $ai_span event for a tool execution."""
     def _truncate(val, max_len):
@@ -127,15 +130,15 @@ def build_ai_trace(
     *,
     trace_id: str,
     session_id: str,
-    trace_name: str | None = None,
-    latency_seconds: float | None = None,
+    trace_name: Optional[str] = None,
+    latency_seconds: Optional[float] = None,
     total_input_tokens: int = 0,
     total_output_tokens: int = 0,
     is_error: bool = False,
-    error_message: str | None = None,
+    error_message: Optional[str] = None,
     project_name: str = "",
     agent_name: str = "",
-    timestamp: str | None = None,
+    timestamp: Optional[str] = None,
 ) -> dict:
     """Build a $ai_trace event for a complete prompt-to-response cycle."""
     properties = {

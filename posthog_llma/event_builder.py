@@ -3,6 +3,7 @@
 import os
 import uuid
 from datetime import datetime as dt
+from typing import Optional
 
 from posthog_llma.events import build_ai_generation, build_ai_span, build_ai_trace
 from posthog_llma.trace_naming import find_trace_name
@@ -74,6 +75,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
             is_error=gen["is_error"],
             error_message=gen.get("error_message"),
             trace_id=trace_id,
+            parent_id=trace_id,
             span_id=gen["span_id"],
             session_id=session_id,
             input_messages=input_messages,
@@ -129,12 +131,12 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
     if trace_grouping == "session":
         _build_session_trace(events, parsed, all_generations, session_trace_id, session_id, project_name)
     else:
-        _build_message_traces(events, parsed, all_generations, session_id, project_name)
+        _build_message_traces(events, parsed, all_generations, session_id, project_name, fallback_trace_ids)
 
     return events
 
 
-def _compute_latency(timestamps: list[str]) -> float | None:
+def _compute_latency(timestamps: list[str]) -> Optional[float]:
     """Calculate latency in seconds between first and last timestamp."""
     if len(timestamps) < 2:
         return None
@@ -170,7 +172,7 @@ def _build_session_trace(events, parsed, all_generations, trace_id, session_id, 
     ))
 
 
-def _build_message_traces(events, parsed, all_generations, session_id, project_name):
+def _build_message_traces(events, parsed, all_generations, session_id, project_name, fallback_trace_ids=None):
     prompt_generations = {}
     for gen in all_generations:
         pid = gen.get("prompt_id", "")
@@ -202,3 +204,31 @@ def _build_message_traces(events, parsed, all_generations, session_id, project_n
             project_name=project_name,
             timestamp=prompt_ts,
         ))
+
+    # Emit root trace events for fallback (unresolved prompt) trace IDs
+    if fallback_trace_ids:
+        fallback_generations = {}
+        for gen in all_generations:
+            tid = fallback_trace_ids.get(gen["span_id"])
+            if tid:
+                fallback_generations.setdefault(tid, []).append(gen)
+
+        for trace_id, gens in fallback_generations.items():
+            total_input = sum(g["input_tokens"] for g in gens)
+            total_output = sum(g["output_tokens"] for g in gens)
+            has_error = any(g["is_error"] for g in gens)
+            error_msg = next((g["error_message"] for g in gens if g.get("error_message")), None)
+            timestamps = [g["timestamp"] for g in gens if g.get("timestamp")]
+
+            events.append(build_ai_trace(
+                trace_id=trace_id,
+                session_id=session_id,
+                trace_name="(unresolved prompt)",
+                latency_seconds=_compute_latency(timestamps),
+                total_input_tokens=total_input,
+                total_output_tokens=total_output,
+                is_error=has_error,
+                error_message=error_msg,
+                project_name=project_name,
+                timestamp=timestamps[0] if timestamps else None,
+            ))

@@ -13,6 +13,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Add plugin root to path
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -26,7 +27,7 @@ from posthog_llma import (  # noqa: E402
 )
 
 
-def find_project_dir() -> Path | None:
+def find_project_dir() -> Optional[Path]:
     """Find the Claude projects directory for the current working directory."""
     cwd = os.getcwd()
     project_dir_name = cwd.replace("/", "-")
@@ -36,7 +37,7 @@ def find_project_dir() -> Path | None:
     return None
 
 
-def list_sessions(project_dir: Path | None = None, limit: int = 10) -> list[dict]:
+def list_sessions(project_dir: Optional[Path] = None, limit: int = 10) -> list[dict]:
     """List recent session logs."""
     if project_dir:
         jsonl_files = list(project_dir.glob("*.jsonl"))
@@ -83,7 +84,7 @@ def list_sessions(project_dir: Path | None = None, limit: int = 10) -> list[dict
     return sessions
 
 
-def resolve_session_path(arg: str) -> str | None:
+def resolve_session_path(arg: str) -> Optional[str]:
     """Resolve a session ID or path to a JSONL file path."""
     expanded = os.path.expanduser(arg)
     if os.path.isfile(expanded):

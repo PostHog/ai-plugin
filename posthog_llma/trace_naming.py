@@ -1,6 +1,7 @@
 """Trace name selection from user prompts."""
 
 import re
+from typing import Optional
 
 # Prompts that are framework noise — skip when picking a trace name
 _SKIP_PROMPTS = re.compile(
@@ -17,7 +18,7 @@ def clean_trace_name(text: str, max_len: int = 100) -> str:
     return cleaned[:max_len] if cleaned else text[:max_len]
 
 
-def find_trace_name(prompts: list[dict], max_len: int = 100) -> str | None:
+def find_trace_name(prompts: list[dict], max_len: int = 100) -> Optional[str]:
     """Find the first meaningful user prompt to use as a trace name.
 
     Skips framework noise like /clear, /exit, [Request interrupted] etc.
