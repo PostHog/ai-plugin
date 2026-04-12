@@ -1,0 +1,16 @@
+{
+  "description": "PostHog LLM Analytics - sends Claude Code session data to PostHog",
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/session-end-llma.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

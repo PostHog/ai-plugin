@@ -1,0 +1,30 @@
+---
+description: Check if Claude Code sessions are being sent to PostHog LLM Analytics
+allowed-tools: Bash(echo:*),Bash(cat:*),Bash(python3:*)
+---
+
+# LLM Analytics — Claude Code Status
+
+Check the status of the PostHog LLM Analytics integration for Claude Code.
+
+## Steps
+
+1. Check if `POSTHOG_API_KEY` is set:
+
+```bash
+echo "POSTHOG_API_KEY=${POSTHOG_API_KEY:-(not set)}"
+echo "POSTHOG_HOST=${POSTHOG_HOST:-(not set, defaults to US)}"
+echo "POSTHOG_LLMA_ENABLED=${POSTHOG_LLMA_ENABLED:-(not set, defaults to true)}"
+echo "POSTHOG_LLMA_PRIVACY_MODE=${POSTHOG_LLMA_PRIVACY_MODE:-(not set, defaults to false)}"
+```
+
+2. Check the last send status:
+
+```bash
+cat ~/.claude/posthog-llma-status.json 2>/dev/null || echo "No sessions sent yet"
+```
+
+3. Summarize the results for the user:
+   - If API key is not set: explain they need to run `/posthog:llma-cc-setup`
+   - If API key is set but no status file: explain that data will be sent after the next session ends
+   - If status file exists: show when the last session was sent, how many events, and whether it succeeded
