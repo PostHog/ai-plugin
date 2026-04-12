@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Manually ingest a Claude Code session log into PostHog LLM Analytics.
+"""Manually ingest a Claude Code session log into PostHog LLM Analytics.
 
 Usage:
     python3 llma_cc_ingest.py                          # most recent session for cwd
@@ -15,23 +14,16 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Add scripts/ dir to path for posthog_llma import
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-import posthog_llma  # noqa: E402
-
-# Import the session parser from hooks/
+# Add plugin root to path
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(PLUGIN_ROOT, "hooks"))
+sys.path.insert(0, PLUGIN_ROOT)
 
-import importlib.util
-
-_spec = importlib.util.spec_from_file_location(
-    "session_end_llma",
-    os.path.join(PLUGIN_ROOT, "hooks", "session-end-llma.py"),
+from posthog_llma import (  # noqa: E402
+    parse_session,
+    build_events,
+    send_batch,
+    DEFAULT_HOST,
 )
-session_end_llma = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(session_end_llma)
 
 
 def find_project_dir() -> Path | None:
@@ -58,7 +50,6 @@ def list_sessions(project_dir: Path | None = None, limit: int = 10) -> list[dict
     for f in jsonl_files[:limit]:
         session_id = f.stem
         size_kb = f.stat().st_size / 1024
-        # Peek at first user prompt
         first_prompt = ""
         try:
             with open(f) as fh:
@@ -94,18 +85,15 @@ def list_sessions(project_dir: Path | None = None, limit: int = 10) -> list[dict
 
 def resolve_session_path(arg: str) -> str | None:
     """Resolve a session ID or path to a JSONL file path."""
-    # Direct file path
     expanded = os.path.expanduser(arg)
     if os.path.isfile(expanded):
         return expanded
 
-    # Session ID — search for it
     projects_dir = Path.home() / ".claude" / "projects"
     matches = list(projects_dir.glob(f"**/{arg}.jsonl"))
     if matches:
         return str(matches[0])
 
-    # Partial match
     matches = list(projects_dir.glob(f"**/{arg}*.jsonl"))
     if len(matches) == 1:
         return str(matches[0])
@@ -124,7 +112,7 @@ def ingest(jsonl_path: str) -> dict:
     if not api_key:
         return {"status": "error", "error": "POSTHOG_API_KEY not set"}
 
-    host = os.environ.get("POSTHOG_HOST", posthog_llma.DEFAULT_HOST)
+    host = os.environ.get("POSTHOG_HOST", DEFAULT_HOST)
     privacy_mode = os.environ.get("POSTHOG_LLMA_PRIVACY_MODE", "false").lower() == "true"
     trace_grouping = os.environ.get("POSTHOG_LLMA_TRACE_GROUPING", "session")
     max_attr = int(os.environ.get("POSTHOG_LLMA_MAX_ATTRIBUTE_LENGTH", "12000"))
@@ -135,15 +123,14 @@ def ingest(jsonl_path: str) -> dict:
         "trace_grouping": trace_grouping,
     }
 
-    parsed = session_end_llma.parse_session(jsonl_path, config)
+    parsed = parse_session(jsonl_path, config)
     if not parsed["generations"]:
         return {"status": "error", "error": "No generations found in session log"}
 
-    events = session_end_llma.build_events(parsed, config)
+    events = build_events(parsed, config)
     if not events:
         return {"status": "error", "error": "No events built"}
 
-    # Determine distinct_id
     distinct_id = os.environ.get("POSTHOG_LLMA_DISTINCT_ID", "")
     if not distinct_id:
         try:
@@ -158,7 +145,7 @@ def ingest(jsonl_path: str) -> dict:
     if not distinct_id:
         distinct_id = f"claude-code:{parsed['session_id']}"
 
-    result = posthog_llma.send_batch(
+    result = send_batch(
         events,
         api_key=api_key,
         host=host,
@@ -185,7 +172,6 @@ def main():
     args = sys.argv[1:]
 
     if not args or args == [""]:
-        # Most recent session for current project
         project_dir = find_project_dir()
         if not project_dir:
             print("No Claude Code sessions found for the current directory.")

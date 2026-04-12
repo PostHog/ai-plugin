@@ -1,31 +1,13 @@
-"""
-PostHog LLM Analytics - Generic event builder and sender.
+"""PostHog $ai_* event builders.
 
-Builds $ai_generation, $ai_span, and $ai_trace events in PostHog's
-LLM analytics format and sends them via the /batch capture endpoint.
-
-This module is client-agnostic — it takes structured data and produces
-PostHog events. Client-specific parsers (e.g. session-end-llma.py for
-Claude Code) feed data into this module.
-
-Zero dependencies — uses only Python stdlib.
+Cost calculation ($ai_total_cost_usd etc.) is handled by PostHog's
+ingestion pipeline automatically from $ai_model + token counts.
+We do NOT need to calculate or send cost — just send model and tokens.
 """
 
 import json
-import os
-import urllib.request
-import urllib.error
 import uuid
-from datetime import datetime, timezone
 
-
-# ---------------------------------------------------------------------------
-# Event builders
-#
-# Note: cost calculation ($ai_total_cost_usd etc.) is handled by PostHog's
-# ingestion pipeline automatically from $ai_model + token counts. We do NOT
-# need to calculate or send cost — just send model and tokens.
-# ---------------------------------------------------------------------------
 
 def build_ai_generation(
     *,
@@ -51,11 +33,7 @@ def build_ai_generation(
     extra_properties: dict | None = None,
     timestamp: str | None = None,
 ) -> dict:
-    """Build a $ai_generation event.
-
-    Cost ($ai_total_cost_usd etc.) is calculated by PostHog's ingestion
-    pipeline from $ai_model + token counts — we don't send it.
-    """
+    """Build a $ai_generation event."""
     total_tokens = input_tokens + output_tokens
 
     # Map Claude Code stop reasons to PostHog's expected values
@@ -159,7 +137,7 @@ def build_ai_trace(
     agent_name: str = "",
     timestamp: str | None = None,
 ) -> dict:
-    """Build a $ai_trace event for a complete prompt→response cycle."""
+    """Build a $ai_trace event for a complete prompt-to-response cycle."""
     properties = {
         "$ai_trace_id": trace_id,
         "$ai_trace_name": trace_name,
@@ -179,97 +157,3 @@ def build_ai_trace(
     if timestamp:
         result["timestamp"] = timestamp
     return result
-
-
-# ---------------------------------------------------------------------------
-# Sender
-# ---------------------------------------------------------------------------
-
-DEFAULT_HOST = "https://us.i.posthog.com"
-
-
-def send_batch(
-    events: list[dict],
-    *,
-    api_key: str,
-    host: str = DEFAULT_HOST,
-    distinct_id: str,
-) -> dict:
-    """Send a batch of events to PostHog's /batch endpoint.
-
-    Each event dict must have 'event' and 'properties' keys.
-    Returns {"status": "ok", "sent": N} on success or {"status": "error", "error": str}.
-    """
-    if not events:
-        return {"status": "ok", "sent": 0}
-
-    batch = []
-    fallback_ts = datetime.now(timezone.utc).isoformat()
-
-    for ev in events:
-        batch.append({
-            "event": ev["event"],
-            "properties": {
-                **ev["properties"],
-                "$lib": "posthog-ai-plugin",
-            },
-            "distinct_id": distinct_id,
-            "timestamp": ev.get("timestamp") or fallback_ts,
-        })
-
-    payload = json.dumps({
-        "api_key": api_key,
-        "batch": batch,
-    }).encode("utf-8")
-
-    url = f"{host.rstrip('/')}/batch"
-
-    req = urllib.request.Request(
-        url,
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "User-Agent": "posthog-ai-plugin/1.0",
-        },
-        method="POST",
-    )
-
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            return {"status": "ok", "sent": len(batch), "response_code": resp.status}
-    except urllib.error.HTTPError as e:
-        body = ""
-        try:
-            body = e.read().decode("utf-8", errors="replace")[:500]
-        except Exception:
-            pass
-        return {"status": "error", "error": f"HTTP {e.code}: {body}"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-
-# ---------------------------------------------------------------------------
-# Status file helpers
-# ---------------------------------------------------------------------------
-
-STATUS_FILE = os.path.expanduser("~/.claude/posthog-llma-status.json")
-
-
-def write_status(status: dict) -> None:
-    """Write last send status to a file for /posthog:llma-status to read."""
-    status["timestamp"] = datetime.now(timezone.utc).isoformat()
-    try:
-        os.makedirs(os.path.dirname(STATUS_FILE), exist_ok=True)
-        with open(STATUS_FILE, "w") as f:
-            json.dump(status, f, indent=2)
-    except OSError:
-        pass
-
-
-def read_status() -> dict | None:
-    """Read last send status."""
-    try:
-        with open(STATUS_FILE) as f:
-            return json.load(f)
-    except (OSError, json.JSONDecodeError):
-        return None

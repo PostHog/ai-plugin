@@ -1,6 +1,5 @@
-"""Tests for the Claude Code session JSONL parser."""
+"""Tests for the Claude Code session JSONL parser and event builder."""
 
-import importlib.util
 import json
 import os
 import sys
@@ -8,21 +7,13 @@ import tempfile
 
 import pytest
 
-# Load modules
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
-import posthog_llma  # noqa: E402
+# Add plugin root to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-_spec = importlib.util.spec_from_file_location(
-    "session_end_llma",
-    os.path.join(os.path.dirname(__file__), "..", "hooks", "session-end-llma.py"),
-)
-_mod = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_mod)
-parse_session = _mod.parse_session
-build_events = _mod.build_events
-load_config = _mod.load_config
-_find_trace_name = _mod._find_trace_name
-_clean_trace_name = _mod._clean_trace_name
+from posthog_llma.parser import parse_session
+from posthog_llma.event_builder import build_events
+from posthog_llma.config import load_config
+from posthog_llma.trace_naming import find_trace_name, clean_trace_name
 
 DEFAULT_CONFIG = {"privacy_mode": False, "max_attribute_length": 12000, "trace_grouping": "session"}
 
@@ -37,12 +28,7 @@ def _write_jsonl(entries: list[dict]) -> str:
 
 
 def _make_session(prompts_and_tools: list[dict] | None = None) -> list[dict]:
-    """Build a minimal but realistic session JSONL.
-
-    prompts_and_tools: list of dicts with keys:
-        - prompt: str (user prompt text)
-        - tools: list of str (tool names to call), optional
-    """
+    """Build a minimal but realistic session JSONL."""
     if prompts_and_tools is None:
         prompts_and_tools = [
             {"prompt": "hello", "tools": []},
@@ -50,7 +36,6 @@ def _make_session(prompts_and_tools: list[dict] | None = None) -> list[dict]:
         ]
 
     entries = []
-    # Permission mode entry
     entries.append({
         "type": "permission-mode",
         "permissionMode": "default",
@@ -62,7 +47,6 @@ def _make_session(prompts_and_tools: list[dict] | None = None) -> list[dict]:
         prompt_id = f"prompt-{i}"
         user_uuid = f"user-uuid-{i}"
 
-        # User prompt
         entries.append({
             "type": "user",
             "uuid": user_uuid,
@@ -79,46 +63,38 @@ def _make_session(prompts_and_tools: list[dict] | None = None) -> list[dict]:
 
         tools = pt.get("tools", [])
         if tools:
-            # Assistant message with tool_use (first entry: no tool blocks)
             msg_id = f"msg-{msg_counter}"
             asst_uuid = f"asst-uuid-{msg_counter}"
             msg_counter += 1
+            # First entry: no tool blocks (streaming)
             entries.append({
                 "type": "assistant",
                 "uuid": asst_uuid,
                 "parentUuid": user_uuid,
                 "message": {
-                    "role": "assistant",
-                    "id": msg_id,
-                    "model": "claude-opus-4-6",
-                    "stop_reason": "tool_use",
+                    "role": "assistant", "id": msg_id,
+                    "model": "claude-opus-4-6", "stop_reason": "tool_use",
                     "usage": {"input_tokens": 10, "output_tokens": 80, "cache_read_input_tokens": 5, "cache_creation_input_tokens": 0},
                     "content": [],
                 },
                 "timestamp": f"2026-04-12T10:0{i}:01.000Z",
-                "sessionId": "test-session-id",
-                "version": "2.1.0",
-                "cwd": "/Users/test/myproject",
+                "sessionId": "test-session-id", "version": "2.1.0", "cwd": "/Users/test/myproject",
             })
-            # Assistant message with tool_use (second entry: has tool blocks — streaming dedup)
+            # Second entry: has tool blocks (complete)
             entries.append({
                 "type": "assistant",
                 "uuid": asst_uuid,
                 "parentUuid": user_uuid,
                 "message": {
-                    "role": "assistant",
-                    "id": msg_id,
-                    "model": "claude-opus-4-6",
-                    "stop_reason": "tool_use",
+                    "role": "assistant", "id": msg_id,
+                    "model": "claude-opus-4-6", "stop_reason": "tool_use",
                     "usage": {"input_tokens": 10, "output_tokens": 80, "cache_read_input_tokens": 5, "cache_creation_input_tokens": 0},
                     "content": [
                         {"type": "tool_use", "id": f"tool-{msg_id}", "name": tools[0], "input": {"command": "ls"}},
                     ],
                 },
                 "timestamp": f"2026-04-12T10:0{i}:01.000Z",
-                "sessionId": "test-session-id",
-                "version": "2.1.0",
-                "cwd": "/Users/test/myproject",
+                "sessionId": "test-session-id", "version": "2.1.0", "cwd": "/Users/test/myproject",
             })
             # Tool result
             entries.append({
@@ -133,11 +109,9 @@ def _make_session(prompts_and_tools: list[dict] | None = None) -> list[dict]:
                     ],
                 },
                 "timestamp": f"2026-04-12T10:0{i}:02.000Z",
-                "sessionId": "test-session-id",
-                "version": "2.1.0",
-                "cwd": "/Users/test/myproject",
+                "sessionId": "test-session-id", "version": "2.1.0", "cwd": "/Users/test/myproject",
             })
-            # Follow-up assistant message (stop)
+            # Follow-up response
             msg_id2 = f"msg-{msg_counter}"
             msg_counter += 1
             entries.append({
@@ -145,20 +119,15 @@ def _make_session(prompts_and_tools: list[dict] | None = None) -> list[dict]:
                 "uuid": f"asst-uuid-{msg_counter}",
                 "parentUuid": asst_uuid,
                 "message": {
-                    "role": "assistant",
-                    "id": msg_id2,
-                    "model": "claude-opus-4-6",
-                    "stop_reason": "end_turn",
+                    "role": "assistant", "id": msg_id2,
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
                     "usage": {"input_tokens": 10, "output_tokens": 30, "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0},
                     "content": [{"type": "text", "text": "Done!"}],
                 },
                 "timestamp": f"2026-04-12T10:0{i}:03.000Z",
-                "sessionId": "test-session-id",
-                "version": "2.1.0",
-                "cwd": "/Users/test/myproject",
+                "sessionId": "test-session-id", "version": "2.1.0", "cwd": "/Users/test/myproject",
             })
         else:
-            # Simple assistant response (no tools)
             msg_id = f"msg-{msg_counter}"
             msg_counter += 1
             entries.append({
@@ -166,17 +135,13 @@ def _make_session(prompts_and_tools: list[dict] | None = None) -> list[dict]:
                 "uuid": f"asst-uuid-{msg_counter}",
                 "parentUuid": user_uuid,
                 "message": {
-                    "role": "assistant",
-                    "id": msg_id,
-                    "model": "claude-opus-4-6",
-                    "stop_reason": "end_turn",
+                    "role": "assistant", "id": msg_id,
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
                     "usage": {"input_tokens": 10, "output_tokens": 40, "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0},
                     "content": [{"type": "text", "text": "Hello!"}],
                 },
                 "timestamp": f"2026-04-12T10:0{i}:01.000Z",
-                "sessionId": "test-session-id",
-                "version": "2.1.0",
-                "cwd": "/Users/test/myproject",
+                "sessionId": "test-session-id", "version": "2.1.0", "cwd": "/Users/test/myproject",
             })
 
     return entries
@@ -200,11 +165,9 @@ class TestParseSession:
             os.unlink(path)
 
     def test_dedup_keeps_last_entry(self):
-        """Later streaming entries have tool_use blocks, earlier ones don't."""
         path = _write_jsonl(_make_session([{"prompt": "run ls", "tools": ["Bash"]}]))
         try:
             parsed = parse_session(path, DEFAULT_CONFIG)
-            # Should have 2 generations (tool_use + follow-up), not 3 (no dupe)
             assert len(parsed["generations"]) == 2
             assert len(parsed["tool_uses"]) == 1
             assert parsed["tool_uses"][0]["name"] == "Bash"
@@ -240,22 +203,16 @@ class TestParseSession:
             os.unlink(path)
 
     def test_slash_command_without_prompt_id(self):
-        """Slash commands lack promptId but should still be captured."""
         entries = [
             {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
             {
-                "type": "user",
-                "uuid": "cmd-uuid",
-                "parentUuid": None,
-                "isMeta": False,
+                "type": "user", "uuid": "cmd-uuid", "parentUuid": None, "isMeta": False,
                 "message": {"role": "user", "content": "<command-message>posthog:llma-cc-status</command-message>"},
                 "timestamp": "2026-04-12T10:00:00.000Z",
                 "sessionId": "s1", "version": "2.1.0", "cwd": "/test",
             },
             {
-                "type": "assistant",
-                "uuid": "asst-uuid",
-                "parentUuid": "cmd-uuid",
+                "type": "assistant", "uuid": "asst-uuid", "parentUuid": "cmd-uuid",
                 "message": {
                     "role": "assistant", "id": "msg-1", "model": "claude-opus-4-6",
                     "stop_reason": "end_turn",
@@ -290,7 +247,6 @@ class TestBuildEvents:
             traces = [e for e in events if e["event"] == "$ai_trace"]
             gens = [e for e in events if e["event"] == "$ai_generation"]
             assert len(traces) == 1
-            # All generations share the session trace_id
             trace_ids = set(e["properties"]["$ai_trace_id"] for e in gens)
             assert len(trace_ids) == 1
             assert trace_ids.pop() == "test-session-id"
@@ -304,12 +260,11 @@ class TestBuildEvents:
             parsed = parse_session(path, config)
             events = build_events(parsed, config)
             traces = [e for e in events if e["event"] == "$ai_trace"]
-            assert len(traces) == 2  # one per prompt
+            assert len(traces) == 2
         finally:
             os.unlink(path)
 
     def test_tool_use_blocks_in_output_choices(self):
-        """Output choices should include tool_use blocks for PostHog tool extraction."""
         path = _write_jsonl(_make_session([{"prompt": "run ls", "tools": ["Bash"]}]))
         try:
             parsed = parse_session(path, DEFAULT_CONFIG)
@@ -344,7 +299,6 @@ class TestBuildEvents:
             events = build_events(parsed, DEFAULT_CONFIG)
             span = next(e for e in events if e["event"] == "$ai_span")
             assert span["properties"]["$ai_parent_id"] is not None
-            # Parent should be one of the generation span_ids
             gen_span_ids = {e["properties"]["$ai_span_id"] for e in events if e["event"] == "$ai_generation"}
             assert span["properties"]["$ai_parent_id"] in gen_span_ids
         finally:
@@ -363,47 +317,38 @@ class TestBuildEvents:
 
 
 # ---------------------------------------------------------------------------
-# _clean_trace_name / _find_trace_name
+# trace naming
 # ---------------------------------------------------------------------------
 
 
 class TestTraceNaming:
     def test_clean_strips_tags(self):
-        assert _clean_trace_name("<command-name>/clear</command-name>") == "/clear"
+        assert clean_trace_name("<command-name>/clear</command-name>") == "/clear"
 
     def test_clean_collapses_whitespace(self):
-        assert _clean_trace_name("  hello   world  ") == "hello world"
+        assert clean_trace_name("  hello   world  ") == "hello world"
 
     def test_clean_truncates(self):
-        assert len(_clean_trace_name("x" * 200, max_len=50)) == 50
+        assert len(clean_trace_name("x" * 200, max_len=50)) == 50
 
     def test_find_skips_clear(self):
-        prompts = [
-            {"text": "/clear"},
-            {"text": "help me fix a bug"},
-        ]
-        assert _find_trace_name(prompts) == "help me fix a bug"
+        prompts = [{"text": "/clear"}, {"text": "help me fix a bug"}]
+        assert find_trace_name(prompts) == "help me fix a bug"
 
     def test_find_skips_exit(self):
-        prompts = [
-            {"text": "/exit"},
-            {"text": "real question"},
-        ]
-        assert _find_trace_name(prompts) == "real question"
+        prompts = [{"text": "/exit"}, {"text": "real question"}]
+        assert find_trace_name(prompts) == "real question"
 
     def test_find_skips_interrupted(self):
-        prompts = [
-            {"text": "[Request interrupted by user]"},
-            {"text": "actual task"},
-        ]
-        assert _find_trace_name(prompts) == "actual task"
+        prompts = [{"text": "[Request interrupted by user]"}, {"text": "actual task"}]
+        assert find_trace_name(prompts) == "actual task"
 
     def test_find_falls_back_to_first(self):
         prompts = [{"text": "/clear"}]
-        assert _find_trace_name(prompts) == "/clear"
+        assert find_trace_name(prompts) == "/clear"
 
     def test_find_returns_none_for_empty(self):
-        assert _find_trace_name([]) is None
+        assert find_trace_name([]) is None
 
 
 # ---------------------------------------------------------------------------
@@ -413,14 +358,14 @@ class TestTraceNaming:
 
 class TestLoadConfig:
     def test_disabled_by_default(self):
-        """POSTHOG_LLMA_CC_ENABLED must be explicitly set to true."""
-        env = {k: v for k, v in os.environ.items()}
+        env = dict(os.environ)
         os.environ.pop("POSTHOG_LLMA_CC_ENABLED", None)
         os.environ.pop("POSTHOG_API_KEY", None)
         try:
             config = load_config()
             assert config["enabled"] is False
         finally:
+            os.environ.clear()
             os.environ.update(env)
 
     def test_enabled_when_set(self):

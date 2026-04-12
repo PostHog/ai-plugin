@@ -1,4 +1,4 @@
-"""Tests for the generic PostHog LLM Analytics event builder."""
+"""Tests for the PostHog LLM Analytics event builders and sender."""
 
 import os
 import sys
@@ -6,8 +6,11 @@ import tempfile
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
-import posthog_llma
+# Add plugin root to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from posthog_llma.events import build_ai_generation, build_ai_span, build_ai_trace
+from posthog_llma.sender import send_batch, write_status, read_status, STATUS_FILE
 
 
 # ---------------------------------------------------------------------------
@@ -17,7 +20,7 @@ import posthog_llma
 
 class TestBuildAiGeneration:
     def test_basic_generation(self):
-        ev = posthog_llma.build_ai_generation(
+        ev = build_ai_generation(
             model="claude-opus-4-6",
             input_tokens=100,
             output_tokens=50,
@@ -42,13 +45,13 @@ class TestBuildAiGeneration:
         ("error", "error"),
     ])
     def test_stop_reason_mapping(self, cc_reason, expected):
-        ev = posthog_llma.build_ai_generation(
+        ev = build_ai_generation(
             model="m", stop_reason=cc_reason, trace_id="t", session_id="s",
         )
         assert ev["properties"]["$ai_stop_reason"] == expected
 
     def test_privacy_mode_redacts(self):
-        ev = posthog_llma.build_ai_generation(
+        ev = build_ai_generation(
             model="m", trace_id="t", session_id="s",
             input_messages=[{"role": "user", "content": "secret"}],
             output_choices=[{"role": "assistant", "content": "answer"}],
@@ -61,7 +64,7 @@ class TestBuildAiGeneration:
         assert "$ai_user_prompt" not in props
 
     def test_privacy_mode_off_includes_content(self):
-        ev = posthog_llma.build_ai_generation(
+        ev = build_ai_generation(
             model="m", trace_id="t", session_id="s",
             input_messages=[{"role": "user", "content": "hello"}],
             output_choices=[{"role": "assistant", "content": "hi"}],
@@ -74,20 +77,20 @@ class TestBuildAiGeneration:
         assert props["$ai_user_prompt"] == "hello"
 
     def test_timestamp_passthrough(self):
-        ev = posthog_llma.build_ai_generation(
+        ev = build_ai_generation(
             model="m", trace_id="t", session_id="s",
             timestamp="2026-04-12T21:00:00Z",
         )
         assert ev["timestamp"] == "2026-04-12T21:00:00Z"
 
     def test_no_timestamp_means_no_key(self):
-        ev = posthog_llma.build_ai_generation(
+        ev = build_ai_generation(
             model="m", trace_id="t", session_id="s",
         )
         assert "timestamp" not in ev
 
     def test_cache_tokens(self):
-        ev = posthog_llma.build_ai_generation(
+        ev = build_ai_generation(
             model="m", trace_id="t", session_id="s",
             input_tokens=10, output_tokens=20,
             cache_read_tokens=5, cache_creation_tokens=3,
@@ -98,7 +101,7 @@ class TestBuildAiGeneration:
 
     def test_no_cost_properties(self):
         """Cost is calculated by PostHog ingestion, we should not send it."""
-        ev = posthog_llma.build_ai_generation(
+        ev = build_ai_generation(
             model="m", trace_id="t", session_id="s",
             input_tokens=100, output_tokens=50,
         )
@@ -115,7 +118,7 @@ class TestBuildAiGeneration:
 
 class TestBuildAiSpan:
     def test_basic_span(self):
-        ev = posthog_llma.build_ai_span(
+        ev = build_ai_span(
             span_name="Bash",
             trace_id="trace-1",
             session_id="session-1",
@@ -125,14 +128,14 @@ class TestBuildAiSpan:
         assert ev["properties"]["$ai_trace_id"] == "trace-1"
 
     def test_parent_id(self):
-        ev = posthog_llma.build_ai_span(
+        ev = build_ai_span(
             span_name="Bash", trace_id="t", session_id="s",
             parent_span_id="parent-123",
         )
         assert ev["properties"]["$ai_parent_id"] == "parent-123"
 
     def test_privacy_mode_redacts_state(self):
-        ev = posthog_llma.build_ai_span(
+        ev = build_ai_span(
             span_name="Bash", trace_id="t", session_id="s",
             input_state={"command": "ls"},
             output_state="file list",
@@ -142,7 +145,7 @@ class TestBuildAiSpan:
         assert ev["properties"]["$ai_output_state"] is None
 
     def test_truncation(self):
-        ev = posthog_llma.build_ai_span(
+        ev = build_ai_span(
             span_name="Bash", trace_id="t", session_id="s",
             input_state="x" * 20000,
             max_attribute_length=100,
@@ -150,7 +153,7 @@ class TestBuildAiSpan:
         assert len(ev["properties"]["$ai_input_state"]) == 100
 
     def test_timestamp_passthrough(self):
-        ev = posthog_llma.build_ai_span(
+        ev = build_ai_span(
             span_name="Bash", trace_id="t", session_id="s",
             timestamp="2026-04-12T21:00:00Z",
         )
@@ -164,7 +167,7 @@ class TestBuildAiSpan:
 
 class TestBuildAiTrace:
     def test_basic_trace(self):
-        ev = posthog_llma.build_ai_trace(
+        ev = build_ai_trace(
             trace_id="trace-1",
             session_id="session-1",
             total_input_tokens=1000,
@@ -176,14 +179,14 @@ class TestBuildAiTrace:
         assert ev["properties"]["$ai_total_output_tokens"] == 5000
 
     def test_trace_name(self):
-        ev = posthog_llma.build_ai_trace(
+        ev = build_ai_trace(
             trace_id="t", session_id="s",
             trace_name="help me fix a bug",
         )
         assert ev["properties"]["$ai_trace_name"] == "help me fix a bug"
 
     def test_timestamp_passthrough(self):
-        ev = posthog_llma.build_ai_trace(
+        ev = build_ai_trace(
             trace_id="t", session_id="s",
             timestamp="2026-04-12T21:00:00Z",
         )
@@ -197,17 +200,16 @@ class TestBuildAiTrace:
 
 class TestSendBatch:
     def test_empty_batch(self):
-        result = posthog_llma.send_batch([], api_key="test", distinct_id="user")
+        result = send_batch([], api_key="test", distinct_id="user")
         assert result == {"status": "ok", "sent": 0}
 
     def test_per_event_timestamps_used(self):
-        """Verify batch assembly uses per-event timestamps."""
         from datetime import datetime, timezone
 
         events = [
             {"event": "$ai_generation", "properties": {}, "timestamp": "2026-04-12T10:00:00Z"},
             {"event": "$ai_generation", "properties": {}, "timestamp": "2026-04-12T10:01:00Z"},
-            {"event": "$ai_generation", "properties": {}},  # no timestamp
+            {"event": "$ai_generation", "properties": {}},
         ]
         fallback = datetime.now(timezone.utc).isoformat()
         timestamps = [ev.get("timestamp") or fallback for ev in events]
@@ -223,24 +225,26 @@ class TestSendBatch:
 
 class TestStatusFile:
     def test_write_and_read(self):
+        import posthog_llma.sender as sender_mod
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
             tmp_path = f.name
+        original = sender_mod.STATUS_FILE
         try:
-            original = posthog_llma.STATUS_FILE
-            posthog_llma.STATUS_FILE = tmp_path
-            posthog_llma.write_status({"session_id": "test", "status": "ok"})
-            status = posthog_llma.read_status()
+            sender_mod.STATUS_FILE = tmp_path
+            write_status({"session_id": "test", "status": "ok"})
+            status = read_status()
             assert status["session_id"] == "test"
             assert status["status"] == "ok"
             assert "timestamp" in status
         finally:
-            posthog_llma.STATUS_FILE = original
+            sender_mod.STATUS_FILE = original
             os.unlink(tmp_path)
 
     def test_read_missing_file(self):
-        original = posthog_llma.STATUS_FILE
-        posthog_llma.STATUS_FILE = "/tmp/nonexistent-posthog-llma-test.json"
+        import posthog_llma.sender as sender_mod
+        original = sender_mod.STATUS_FILE
+        sender_mod.STATUS_FILE = "/tmp/nonexistent-posthog-llma-test.json"
         try:
-            assert posthog_llma.read_status() is None
+            assert read_status() is None
         finally:
-            posthog_llma.STATUS_FILE = original
+            sender_mod.STATUS_FILE = original
