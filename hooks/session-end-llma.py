@@ -29,6 +29,15 @@ from posthog_llma import (  # noqa: E402
 
 
 def main():
+    try:
+        _run()
+    except Exception:
+        # Never crash — losing a session send is fine, interfering
+        # with the user's workflow is not.
+        sys.exit(0)
+
+
+def _run():
     config = load_config()
     if not config["enabled"] or not config["api_key"]:
         sys.exit(0)

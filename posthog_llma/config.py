@@ -21,6 +21,13 @@ import os
 from posthog_llma.sender import DEFAULT_HOST
 
 
+def _safe_int(val: str, default: int) -> int:
+    try:
+        return int(val) if val else default
+    except (ValueError, TypeError):
+        return default
+
+
 def load_config() -> dict:
     """Load configuration from environment variables.
 
@@ -43,7 +50,7 @@ def load_config() -> dict:
         "privacy_mode": os.environ.get("POSTHOG_LLMA_PRIVACY_MODE", "false").lower() == "true",
         "enabled": os.environ.get("POSTHOG_LLMA_CC_ENABLED", "false").lower() == "true",
         "distinct_id": os.environ.get("POSTHOG_LLMA_DISTINCT_ID", ""),
-        "max_attribute_length": int(os.environ.get("POSTHOG_LLMA_MAX_ATTRIBUTE_LENGTH", "12000")),
+        "max_attribute_length": _safe_int(os.environ.get("POSTHOG_LLMA_MAX_ATTRIBUTE_LENGTH", ""), 12000),
         "trace_grouping": os.environ.get("POSTHOG_LLMA_TRACE_GROUPING", "session"),
         "custom_properties": custom_props,
     }
