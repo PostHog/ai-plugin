@@ -27,7 +27,7 @@ def _write_jsonl(entries: list[dict]) -> str:
     return f.name
 
 
-def _make_session(prompts_and_tools: list[dict] | None = None) -> list[dict]:
+def _make_session(prompts_and_tools=None) -> list[dict]:
     """Build a minimal but realistic session JSONL."""
     if prompts_and_tools is None:
         prompts_and_tools = [
@@ -304,6 +304,18 @@ class TestBuildEvents:
         finally:
             os.unlink(path)
 
+    def test_custom_properties_on_all_events(self):
+        config = {**DEFAULT_CONFIG, "custom_properties": {"ai_product": "test-app"}}
+        path = _write_jsonl(_make_session([{"prompt": "run ls", "tools": ["Bash"]}]))
+        try:
+            parsed = parse_session(path, config)
+            events = build_events(parsed, config)
+            for e in events:
+                assert e["properties"].get("ai_product") == "test-app", \
+                    f"{e['event']} missing custom property"
+        finally:
+            os.unlink(path)
+
     def test_timestamps_are_real(self):
         path = _write_jsonl(_make_session())
         try:
@@ -357,10 +369,15 @@ class TestTraceNaming:
 
 
 class TestLoadConfig:
+    def _clean_env(self):
+        """Remove all POSTHOG_ env vars."""
+        for k in list(os.environ):
+            if k.startswith("POSTHOG_"):
+                del os.environ[k]
+
     def test_disabled_by_default(self):
         env = dict(os.environ)
-        os.environ.pop("POSTHOG_LLMA_CC_ENABLED", None)
-        os.environ.pop("POSTHOG_API_KEY", None)
+        self._clean_env()
         try:
             config = load_config()
             assert config["enabled"] is False
@@ -369,6 +386,8 @@ class TestLoadConfig:
             os.environ.update(env)
 
     def test_enabled_when_set(self):
+        env = dict(os.environ)
+        self._clean_env()
         os.environ["POSTHOG_LLMA_CC_ENABLED"] = "true"
         os.environ["POSTHOG_API_KEY"] = "phc_test"
         try:
@@ -376,5 +395,37 @@ class TestLoadConfig:
             assert config["enabled"] is True
             assert config["api_key"] == "phc_test"
         finally:
-            os.environ.pop("POSTHOG_LLMA_CC_ENABLED", None)
-            os.environ.pop("POSTHOG_API_KEY", None)
+            os.environ.clear()
+            os.environ.update(env)
+
+    def test_custom_properties_parsed(self):
+        env = dict(os.environ)
+        self._clean_env()
+        os.environ["POSTHOG_LLMA_CUSTOM_PROPERTIES"] = '{"ai_product": "my-app", "team": "platform"}'
+        try:
+            config = load_config()
+            assert config["custom_properties"] == {"ai_product": "my-app", "team": "platform"}
+        finally:
+            os.environ.clear()
+            os.environ.update(env)
+
+    def test_custom_properties_invalid_json_ignored(self):
+        env = dict(os.environ)
+        self._clean_env()
+        os.environ["POSTHOG_LLMA_CUSTOM_PROPERTIES"] = "not json"
+        try:
+            config = load_config()
+            assert config["custom_properties"] == {}
+        finally:
+            os.environ.clear()
+            os.environ.update(env)
+
+    def test_custom_properties_empty_by_default(self):
+        env = dict(os.environ)
+        self._clean_env()
+        try:
+            config = load_config()
+            assert config["custom_properties"] == {}
+        finally:
+            os.environ.clear()
+            os.environ.update(env)

@@ -1,7 +1,7 @@
 {
   "name": "posthog",
   "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from Claude Code. Optionally capture Claude Code sessions to PostHog LLM Analytics.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": {
     "name": "PostHog",
     "email": "hey@posthog.com",

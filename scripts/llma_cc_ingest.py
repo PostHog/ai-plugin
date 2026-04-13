@@ -118,10 +118,21 @@ def ingest(jsonl_path: str) -> dict:
     trace_grouping = os.environ.get("POSTHOG_LLMA_TRACE_GROUPING", "session")
     max_attr = int(os.environ.get("POSTHOG_LLMA_MAX_ATTRIBUTE_LENGTH", "12000"))
 
+    custom_props = {}
+    raw = os.environ.get("POSTHOG_LLMA_CUSTOM_PROPERTIES", "")
+    if raw:
+        try:
+            parsed_props = json.loads(raw)
+            if isinstance(parsed_props, dict):
+                custom_props = parsed_props
+        except (json.JSONDecodeError, ValueError):
+            pass
+
     config = {
         "privacy_mode": privacy_mode,
         "max_attribute_length": max_attr,
         "trace_grouping": trace_grouping,
+        "custom_properties": custom_props,
     }
 
     parsed = parse_session(jsonl_path, config)

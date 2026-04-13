@@ -16,6 +16,7 @@ echo "POSTHOG_LLMA_CC_ENABLED=${POSTHOG_LLMA_CC_ENABLED:-(not set, defaults to f
 echo "POSTHOG_API_KEY=${POSTHOG_API_KEY:-(not set)}"
 echo "POSTHOG_HOST=${POSTHOG_HOST:-(not set, defaults to US)}"
 echo "POSTHOG_LLMA_PRIVACY_MODE=${POSTHOG_LLMA_PRIVACY_MODE:-(not set, defaults to false)}"
+echo "POSTHOG_LLMA_CUSTOM_PROPERTIES=${POSTHOG_LLMA_CUSTOM_PROPERTIES:-(not set)}"
 ```
 
 2. Check the last send status:

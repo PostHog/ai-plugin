@@ -152,6 +152,14 @@ class TestBuildAiSpan:
         )
         assert len(ev["properties"]["$ai_input_state"]) == 100
 
+    def test_extra_properties(self):
+        ev = build_ai_span(
+            span_name="Bash", trace_id="t", session_id="s",
+            extra_properties={"ai_product": "my-app", "team": "platform"},
+        )
+        assert ev["properties"]["ai_product"] == "my-app"
+        assert ev["properties"]["team"] == "platform"
+
     def test_timestamp_passthrough(self):
         ev = build_ai_span(
             span_name="Bash", trace_id="t", session_id="s",
@@ -184,6 +192,13 @@ class TestBuildAiTrace:
             trace_name="help me fix a bug",
         )
         assert ev["properties"]["$ai_trace_name"] == "help me fix a bug"
+
+    def test_extra_properties(self):
+        ev = build_ai_trace(
+            trace_id="t", session_id="s",
+            extra_properties={"ai_product": "my-app"},
+        )
+        assert ev["properties"]["ai_product"] == "my-app"
 
     def test_timestamp_passthrough(self):
         ev = build_ai_trace(

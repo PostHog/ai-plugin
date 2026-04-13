@@ -27,6 +27,7 @@ Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Set them
 - `POSTHOG_LLMA_PRIVACY_MODE` — Set to `true` to redact prompt/output content (tokens and costs still captured)
 - `POSTHOG_LLMA_DISTINCT_ID` — Override the distinct_id (default: git user email)
 - `POSTHOG_LLMA_TRACE_GROUPING` — `session` (default) or `message`
+- `POSTHOG_LLMA_CUSTOM_PROPERTIES` — JSON object of custom properties added to all events (e.g. `{"ai_product": "my-app"}`)
 
 ## Steps
 
@@ -61,12 +62,27 @@ For per-project setup, add to `.claude/settings.local.json`:
 }
 ```
 
+### Custom properties
+
+To tag all events with custom properties (e.g. for filtering in PostHog):
+
+```json
+{
+  "env": {
+    "POSTHOG_LLMA_CC_ENABLED": "true",
+    "POSTHOG_API_KEY": "phc_...",
+    "POSTHOG_LLMA_CUSTOM_PROPERTIES": "{\"ai_product\": \"my-app\", \"team\": \"platform\"}"
+  }
+}
+```
+
 ## Option 2: Shell profile
 
 ```bash
 export POSTHOG_LLMA_CC_ENABLED=true
 export POSTHOG_API_KEY="phc_..."
 export POSTHOG_HOST="https://eu.i.posthog.com"  # for EU, omit for US
+export POSTHOG_LLMA_CUSTOM_PROPERTIES='{"ai_product": "my-app"}'  # optional
 ```
 
 ## Check current status
@@ -76,4 +92,5 @@ echo "POSTHOG_LLMA_CC_ENABLED=${POSTHOG_LLMA_CC_ENABLED:-(not set, defaults to f
 echo "POSTHOG_API_KEY=${POSTHOG_API_KEY:-(not set)}"
 echo "POSTHOG_HOST=${POSTHOG_HOST:-(not set, defaults to US)}"
 echo "POSTHOG_LLMA_PRIVACY_MODE=${POSTHOG_LLMA_PRIVACY_MODE:-(not set, defaults to false)}"
+echo "POSTHOG_LLMA_CUSTOM_PROPERTIES=${POSTHOG_LLMA_CUSTOM_PROPERTIES:-(not set)}"
 ```

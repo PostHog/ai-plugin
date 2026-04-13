@@ -94,6 +94,7 @@ def build_ai_span(
     agent_name: str = "",
     privacy_mode: bool = False,
     max_attribute_length: int = 12000,
+    extra_properties: Optional[dict] = None,
     timestamp: Optional[str] = None,
 ) -> dict:
     """Build a $ai_span event for a tool execution."""
@@ -120,6 +121,9 @@ def build_ai_span(
         "$ai_agent_name": agent_name,
     }
 
+    if extra_properties:
+        properties.update(extra_properties)
+
     result = {"event": "$ai_span", "properties": properties}
     if timestamp:
         result["timestamp"] = timestamp
@@ -138,6 +142,7 @@ def build_ai_trace(
     error_message: Optional[str] = None,
     project_name: str = "",
     agent_name: str = "",
+    extra_properties: Optional[dict] = None,
     timestamp: Optional[str] = None,
 ) -> dict:
     """Build a $ai_trace event for a complete prompt-to-response cycle."""
@@ -155,6 +160,9 @@ def build_ai_trace(
         "$ai_project_name": project_name,
         "$ai_agent_name": agent_name,
     }
+
+    if extra_properties:
+        properties.update(extra_properties)
 
     result = {"event": "$ai_trace", "properties": properties}
     if timestamp:

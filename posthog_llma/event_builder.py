@@ -12,7 +12,7 @@ from posthog_llma.trace_naming import find_trace_name
 def build_events(parsed: dict, config: dict) -> list[dict]:
     """Convert parsed session data into PostHog $ai_* events.
 
-    Supports two trace grouping modes (POSTHOG_LLMA_TRACE_GROUPING):
+    Supports two trace grouping modes (trace_grouping config):
       - "session" (default): one $ai_trace per session
       - "message": one $ai_trace per user prompt
     """
@@ -22,6 +22,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
     project_name = os.path.basename(cwd) if cwd else ""
     privacy_mode = config.get("privacy_mode", False)
     trace_grouping = config.get("trace_grouping", "session")
+    custom_properties = config.get("custom_properties") or None
 
     session_trace_id = session_id
     all_generations = parsed["generations"]
@@ -83,6 +84,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
             user_prompt=user_prompt,
             project_name=project_name,
             privacy_mode=privacy_mode,
+            extra_properties=custom_properties,
             timestamp=gen.get("timestamp"),
         ))
 
@@ -124,14 +126,15 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
             project_name=project_name,
             privacy_mode=privacy_mode,
             max_attribute_length=config.get("max_attribute_length", 12000),
+            extra_properties=custom_properties,
             timestamp=tu.get("timestamp"),
         ))
 
     # -- $ai_trace events --
     if trace_grouping == "session":
-        _build_session_trace(events, parsed, all_generations, session_trace_id, session_id, project_name)
+        _build_session_trace(events, parsed, all_generations, session_trace_id, session_id, project_name, custom_properties)
     else:
-        _build_message_traces(events, parsed, all_generations, session_id, project_name, fallback_trace_ids)
+        _build_message_traces(events, parsed, all_generations, session_id, project_name, fallback_trace_ids, custom_properties)
 
     return events
 
@@ -148,7 +151,7 @@ def _compute_latency(timestamps: list[str]) -> Optional[float]:
         return None
 
 
-def _build_session_trace(events, parsed, all_generations, trace_id, session_id, project_name):
+def _build_session_trace(events, parsed, all_generations, trace_id, session_id, project_name, custom_properties=None):
     total_input = sum(g["input_tokens"] for g in all_generations)
     total_output = sum(g["output_tokens"] for g in all_generations)
     has_error = any(g["is_error"] for g in all_generations)
@@ -168,11 +171,12 @@ def _build_session_trace(events, parsed, all_generations, trace_id, session_id, 
         is_error=has_error,
         error_message=error_msg,
         project_name=project_name,
+        extra_properties=custom_properties,
         timestamp=trace_ts,
     ))
 
 
-def _build_message_traces(events, parsed, all_generations, session_id, project_name, fallback_trace_ids=None):
+def _build_message_traces(events, parsed, all_generations, session_id, project_name, fallback_trace_ids=None, custom_properties=None):
     prompt_generations = {}
     for gen in all_generations:
         pid = gen.get("prompt_id", "")
@@ -202,6 +206,7 @@ def _build_message_traces(events, parsed, all_generations, session_id, project_n
             is_error=has_error,
             error_message=error_msg,
             project_name=project_name,
+            extra_properties=custom_properties,
             timestamp=prompt_ts,
         ))
 
@@ -230,5 +235,6 @@ def _build_message_traces(events, parsed, all_generations, session_id, project_n
                 is_error=has_error,
                 error_message=error_msg,
                 project_name=project_name,
+                extra_properties=custom_properties,
                 timestamp=timestamps[0] if timestamps else None,
             ))

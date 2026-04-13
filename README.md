@@ -32,9 +32,8 @@ Official PostHog plugin for AI clients. Access your analytics, feature flags, ex
       }
     }
     ```
-    Or via shell profile: `export POSTHOG_LLMA_CC_ENABLED=true POSTHOG_API_KEY="phc_..."`.
 
-    Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Sessions are sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content.
+    Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Sessions are sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content. Add custom properties to all events with `POSTHOG_LLMA_CUSTOM_PROPERTIES` (JSON string, e.g. `'{"ai_product": "my-app"}'`).
 
 ### Cursor
 
