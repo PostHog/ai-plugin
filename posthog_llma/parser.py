@@ -263,7 +263,7 @@ def _process_assistant_entry(
     output_text = "\n".join(text_parts) if text_parts else None
 
     tool_use_blocks = [
-        {"type": "tool_use", "name": tu["name"]}
+        {"type": "tool_use", "name": tu["name"], "input": tu.get("input")}
         for tu in entry_tool_uses
     ]
 

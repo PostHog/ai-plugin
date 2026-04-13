@@ -1,5 +1,6 @@
 """Build PostHog events from parsed Claude Code session data."""
 
+import json
 import os
 import uuid
 from datetime import datetime as dt
@@ -7,6 +8,25 @@ from typing import Optional
 
 from posthog_llma.events import build_ai_generation, build_ai_span, build_ai_trace
 from posthog_llma.trace_naming import find_trace_name
+
+
+def _truncate_tool_blocks(blocks: list, max_len: int) -> list:
+    """Truncate tool use input args to prevent oversized payloads."""
+    result = []
+    for block in blocks:
+        try:
+            if block.get("type") != "tool_use" or "input" not in block:
+                result.append(block)
+                continue
+            inp = block["input"]
+            serialized = json.dumps(inp) if not isinstance(inp, str) else inp
+            if len(serialized) <= max_len:
+                result.append(block)
+            else:
+                result.append({**block, "input": serialized[:max_len]})
+        except Exception:
+            result.append({"type": "tool_use", "name": block.get("name", "unknown")})
+    return result
 
 
 def build_events(parsed: dict, config: dict) -> list[dict]:
@@ -49,10 +69,11 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
 
         output_choices = None
         if not privacy_mode:
+            max_attr = config.get("max_attribute_length", 12000)
             content_blocks = []
             if gen["output_text"]:
                 content_blocks.append({"type": "text", "text": gen["output_text"]})
-            content_blocks.extend(gen.get("tool_use_blocks", []))
+            content_blocks.extend(_truncate_tool_blocks(gen.get("tool_use_blocks", []), max_attr))
             if content_blocks:
                 output_choices = [{"role": "assistant", "content": content_blocks}]
 
