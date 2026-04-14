@@ -28,7 +28,7 @@ FROM
         FROM
             events
         WHERE
-            and(or(equals(events.event, '$pageview'), equals(events.event, '$screen')), or(and(greaterOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-03 00:00:00'))), lessOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-10 23:59:59')))), false), 1, 1, notEquals(breakdown_value, NULL))
+            and(or(equals(events.event, '$pageview'), equals(events.event, '$screen')), or(and(greaterOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-03 00:00:00'))), lessOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-10 23:59:59')))), false), 1, 1)
         GROUP BY
             session_id,
             breakdown_value)
@@ -47,12 +47,14 @@ FROM
         FROM
             events
         WHERE
-            and(or(equals(events.event, '$pageview'), equals(events.event, '$screen')), notEquals(breakdown_value, NULL), or(and(greaterOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-03 00:00:00'))), lessOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-10 23:59:59')))), false), 1, 1)
+            and(or(equals(events.event, '$pageview'), equals(events.event, '$screen')), or(and(greaterOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-03 00:00:00'))), lessOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-10 23:59:59')))), false), 1, 1)
         GROUP BY
             session_id,
             breakdown_value)
     GROUP BY
         breakdown_value) AS bounce ON equals(counts.breakdown_value, bounce.breakdown_value)
+WHERE
+    notEquals(counts.breakdown_value, NULL)
 ORDER BY
     `context.columns.visitors` DESC,
     `context.columns.views` DESC,

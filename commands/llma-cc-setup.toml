@@ -1,0 +1,98 @@
+# Auto-generated from llma-cc-setup.md — do not edit manually.
+# Regenerate via: scripts/generate-gemini-commands.sh
+
+prompt = """
+
+# LLM Analytics — Claude Code Setup
+
+Help the user configure PostHog LLM Analytics for Claude Code session capture.
+
+## What this does
+
+When enabled, every Claude Code session is automatically sent to PostHog's LLM Analytics as `$ai_generation`, `$ai_span`, and `$ai_trace` events — giving visibility into model usage, token consumption, tool calls, and costs.
+
+## Configuration
+
+Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Set them via environment variables — either in your shell profile or in Claude Code's settings.json `env` block.
+
+### Required
+
+- `POSTHOG_LLMA_CC_ENABLED` — Set to `true` to enable (must be explicitly opted in)
+- `POSTHOG_API_KEY` — PostHog project API key (starts with `phc_`)
+
+### Optional
+
+- `POSTHOG_HOST` — PostHog instance URL (default: `https://us.i.posthog.com`, use `https://eu.i.posthog.com` for EU)
+- `POSTHOG_LLMA_PRIVACY_MODE` — Set to `true` to redact prompt/output content (tokens and costs still captured)
+- `POSTHOG_LLMA_DISTINCT_ID` — Override the distinct_id (default: git user email)
+- `POSTHOG_LLMA_TRACE_GROUPING` — `session` (default) or `message`
+- `POSTHOG_LLMA_CUSTOM_PROPERTIES` — JSON object of custom properties added to all events (e.g. `{"ai_product": "my-app"}`)
+
+## Steps
+
+1. Check if the env vars are already set
+2. If the user provided an API key as an argument (`$ARGUMENTS`), guide them to set it
+3. Help them choose US or EU hosting
+4. Offer them a choice of how to configure
+
+## Option 1: Claude Code settings.json (recommended)
+
+For global setup, add to `~/.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "POSTHOG_LLMA_CC_ENABLED": "true",
+    "POSTHOG_API_KEY": "phc_...",
+    "POSTHOG_HOST": "https://eu.i.posthog.com"
+  }
+}
+```
+
+For per-project setup, add to `.claude/settings.local.json`:
+
+```json
+{
+  "env": {
+    "POSTHOG_LLMA_CC_ENABLED": "true",
+    "POSTHOG_API_KEY": "phc_...",
+    "POSTHOG_HOST": "https://eu.i.posthog.com"
+  }
+}
+```
+
+### Custom properties
+
+To tag all events with custom properties (e.g. for filtering in PostHog):
+
+```json
+{
+  "env": {
+    "POSTHOG_LLMA_CC_ENABLED": "true",
+    "POSTHOG_API_KEY": "phc_...",
+    "POSTHOG_LLMA_CUSTOM_PROPERTIES": "{\"ai_product\": \"my-app\", \"team\": \"platform\"}"
+  }
+}
+```
+
+## Option 2: Shell profile
+
+```bash
+export POSTHOG_LLMA_CC_ENABLED=true
+export POSTHOG_API_KEY="phc_..."
+export POSTHOG_HOST="https://eu.i.posthog.com"  # for EU, omit for US
+export POSTHOG_LLMA_CUSTOM_PROPERTIES='{"ai_product": "my-app"}'  # optional
+```
+
+## Check current status
+
+```bash
+echo "POSTHOG_LLMA_CC_ENABLED=${POSTHOG_LLMA_CC_ENABLED:-(not set, defaults to false)}"
+echo "POSTHOG_API_KEY=${POSTHOG_API_KEY:-(not set)}"
+echo "POSTHOG_HOST=${POSTHOG_HOST:-(not set, defaults to US)}"
+echo "POSTHOG_LLMA_PRIVACY_MODE=${POSTHOG_LLMA_PRIVACY_MODE:-(not set, defaults to false)}"
+echo "POSTHOG_LLMA_CUSTOM_PROPERTIES=${POSTHOG_LLMA_CUSTOM_PROPERTIES:-(not set)}"
+```
+
+User request: {{args}}
+"""
