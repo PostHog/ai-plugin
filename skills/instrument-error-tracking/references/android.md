@@ -146,7 +146,7 @@
 
     Required
 
-    Great, you're capturing exceptions! If you serve minified bundles, the next step is to upload source maps to generate accurate stack traces.
+    Great, you're capturing exceptions! The next step is to upload ProGuard/R8 mapping files so PostHog can deobfuscate your stack traces.
 
     Let's continue to the next section.
 

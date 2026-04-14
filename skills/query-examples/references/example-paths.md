@@ -67,7 +67,7 @@ FROM
                     WHERE
                         and(and(ilike(toString(properties.$pathname), '%llm-analytics%'), notILike(toString(properties.$pathname), '%docs%')), and(greaterOrEquals(events.timestamp, toStartOfInterval(assumeNotNull(toDateTime('2025-12-03 00:00:00')), toIntervalDay(1))), lessOrEquals(events.timestamp, assumeNotNull(toDateTime('2025-12-10 23:59:59')))), equals(event, '$pageview'))
                     ORDER BY
-                        person_id ASC,
+                        events.person_id ASC,
                         events.timestamp ASC)
                 GROUP BY
                     person_id)

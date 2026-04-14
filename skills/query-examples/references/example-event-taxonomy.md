@@ -24,7 +24,7 @@ GROUP BY
     key
 ORDER BY
     total_count DESC
-LIMIT 500
+LIMIT 50000
 ```
 
 Specific properties only (faster, skips the omit filter):
@@ -56,5 +56,8 @@ FROM
         count DESC)
 GROUP BY
     key
-LIMIT 500
+ORDER BY
+    total_count DESC,
+    key ASC
+LIMIT 50000
 ```

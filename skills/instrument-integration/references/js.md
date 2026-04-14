@@ -173,7 +173,7 @@ import posthog from 'posthog-js/dist/module.slim'
 import {
     SessionReplayExtensions,
     AnalyticsExtensions,
-} from 'posthog-js/lib/src/extensions/extension-bundles'
+} from 'posthog-js/dist/extension-bundles'
 posthog.init('<ph_project_token>', {
     api_host: 'https://us.i.posthog.com',
     defaults: '2026-01-30',

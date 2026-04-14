@@ -1,0 +1,34 @@
+# Auto-generated from llma-cc-ingest.md — do not edit manually.
+# Regenerate via: scripts/generate-gemini-commands.sh
+
+prompt = """
+
+# LLM Analytics — Ingest Session
+
+Manually send a Claude Code session log to PostHog LLM Analytics.
+
+## Usage
+
+The argument `$ARGUMENTS` can be:
+- A session ID (e.g. `14a1687c-1937-4719-921d-cb2400d7a114`)
+- A path to a JSONL file (e.g. `~/.claude/projects/-Users-me-myproject/14a1687c.jsonl`)
+- Empty — will use the most recent session log for the current project
+
+## Steps
+
+1. Resolve the session log path from the argument
+2. Run the ingest script
+3. Report the results
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/llma_cc_ingest.py $ARGUMENTS
+```
+
+If no argument is provided, list recent sessions and let the user choose:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/llma_cc_ingest.py --list
+```
+
+User request: {{args}}
+"""

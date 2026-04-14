@@ -19,12 +19,14 @@ FROM
     FROM
         events
     WHERE
-        and(or(and(greaterOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-03 00:00:00'))), lessOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-10 23:59:59')))), false), or(equals(event, '$pageview'), equals(event, '$screen')), 1, and(notEquals(breakdown_value, NULL), notEquals(breakdown_value, '')))
+        and(or(and(greaterOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-03 00:00:00'))), lessOrEquals(timestamp, assumeNotNull(toDateTime('2025-12-10 23:59:59')))), false), or(equals(event, '$pageview'), equals(event, '$screen')), 1)
     GROUP BY
         session_id,
         breakdown_value)
 GROUP BY
     `context.columns.breakdown_value`
+HAVING
+    and(notEquals(`context.columns.breakdown_value`, NULL), notEquals(`context.columns.breakdown_value`, ''))
 ORDER BY
     `context.columns.visitors` DESC,
     `context.columns.views` DESC,
