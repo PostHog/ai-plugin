@@ -1,6 +1,6 @@
 {
   "name": "posthog",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from Codex",
   "author": {
     "name": "PostHog",
