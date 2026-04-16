@@ -65,7 +65,7 @@ STEP 6: Set up environment variables.
 - `references/api.md` - API feature flags installation - docs
 - `references/next-js.md` - Next.js - docs
 - `references/adding-feature-flag-code.md` - Adding feature flag code - docs
-- `references/best-practices.md` - Feature flag best practices - docs
+- `references/best-practices.md` - Best practices for production-ready flags - docs
 
 Each platform reference contains SDK-specific installation, flag evaluation, and code examples. Find the one matching the user's stack. If unlisted, use the API reference as a fallback.
 

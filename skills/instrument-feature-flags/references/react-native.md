@@ -1,4 +1,4 @@
-# React Native feature flags installation - Docs
+# React Native Feature Flags installation - Docs
 
 1.  1
 

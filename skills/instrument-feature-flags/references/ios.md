@@ -1,4 +1,4 @@
-# iOS feature flags installation - Docs
+# iOS Feature Flags installation - Docs
 
 1.  1
 

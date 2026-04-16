@@ -2,107 +2,95 @@
 
 1.  1
 
-    ## Install the PostHog SDK
+    ## Install dependencies
 
     Required
 
-    Setting up analytics starts with installing the PostHog SDK for your language. LLM analytics works best with our Python and Node SDKs.
+    **Full working examples**
+
+    See the complete [Node.js](https://github.com/PostHog/posthog-js/tree/main/examples/example-ai-langgraph) and [Python](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-langgraph) examples on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Node.js wrapper](https://github.com/PostHog/posthog-js/tree/e08ff1be/examples/example-ai-langgraph) and [Python wrapper](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-langgraph) examples.
+
+    Install the OpenTelemetry SDK, the LangChain instrumentation, and LangGraph with OpenAI.
 
     PostHog AI
 
     ### Python
 
     ```bash
-    pip install posthog
+    pip install langgraph langchain-core langchain-openai opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-langchain
     ```
 
     ### Node
 
     ```bash
-    npm install @posthog/ai posthog-node
+    npm install @langchain/langgraph @langchain/openai @langchain/core zod @posthog/ai @opentelemetry/sdk-node @opentelemetry/resources @traceloop/instrumentation-langchain
     ```
 
 2.  2
 
-    ## Install LangGraph
+    ## Set up OpenTelemetry tracing
 
     Required
 
-    Install LangGraph and LangChain. PostHog instruments your LLM calls through LangChain-compatible callback handlers that LangGraph supports.
-
-    PostHog AI
-
-    ### Python
-
-    ```bash
-    pip install langgraph langchain-openai
-    ```
-
-    ### Node
-
-    ```bash
-    npm install @langchain/langgraph @langchain/openai @langchain/core
-    ```
-
-3.  3
-
-    ## Initialize PostHog
-
-    Required
-
-    Initialize PostHog with your project token and host from [your project settings](https://app.posthog.com/settings/project), then create a LangChain `CallbackHandler`.
+    Configure OpenTelemetry to auto-instrument LangChain calls and export traces to PostHog. LangGraph is built on LangChain, so the same instrumentation captures all LLM calls. PostHog converts `gen_ai.*` spans into `$ai_generation` events automatically.
 
     PostHog AI
 
     ### Python
 
     ```python
-    from posthog.ai.langchain import CallbackHandler
-    from posthog import Posthog
-    posthog = Posthog(
-        "<ph_project_token>",
-        host="https://us.i.posthog.com"
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+    from posthog.ai.otel import PostHogSpanProcessor
+    from opentelemetry.instrumentation.langchain import LangchainInstrumentor
+    resource = Resource(attributes={
+        SERVICE_NAME: "my-app",
+        "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
+        "foo": "bar", # custom properties are passed through
+    })
+    provider = TracerProvider(resource=resource)
+    provider.add_span_processor(
+        PostHogSpanProcessor(
+            api_key="<ph_project_token>",
+            host="https://us.i.posthog.com",
+        )
     )
-    callback_handler = CallbackHandler(
-        client=posthog,
-        distinct_id="user_123", # optional
-        trace_id="trace_456", # optional
-        properties={"conversation_id": "abc123"}, # optional
-        groups={"company": "company_id_in_your_db"}, # optional
-        privacy_mode=False # optional
-    )
+    trace.set_tracer_provider(provider)
+    LangchainInstrumentor().instrument()
     ```
 
     ### Node
 
     ```typescript
-    import { PostHog } from 'posthog-node';
-    import { LangChainCallbackHandler } from '@posthog/ai';
-    const phClient = new PostHog(
-      '<ph_project_token>',
-      { host: 'https://us.i.posthog.com' }
-    );
-    const callbackHandler = new LangChainCallbackHandler({
-      client: phClient,
-      distinctId: 'user_123', // optional
-      traceId: 'trace_456', // optional
-      properties: { conversationId: 'abc123' }, // optional
-      groups: { company: 'company_id_in_your_db' }, // optional
-      privacyMode: false, // optional
-    });
+    import { NodeSDK } from '@opentelemetry/sdk-node'
+    import { resourceFromAttributes } from '@opentelemetry/resources'
+    import { PostHogSpanProcessor } from '@posthog/ai/otel'
+    import { LangChainInstrumentation } from '@traceloop/instrumentation-langchain'
+    const sdk = new NodeSDK({
+      resource: resourceFromAttributes({
+        'service.name': 'my-app',
+        'posthog.distinct_id': 'user_123', // optional: identifies the user in PostHog
+        foo: 'bar', // custom properties are passed through
+      }),
+      spanProcessors: [
+        new PostHogSpanProcessor({
+          apiKey: '<ph_project_token>',
+          host: 'https://us.i.posthog.com',
+        }),
+      ],
+      instrumentations: [new LangChainInstrumentation()],
+    })
+    sdk.start()
     ```
 
-    **How this works**
-
-    LangGraph is built on LangChain, so it supports LangChain-compatible callback handlers. PostHog's `CallbackHandler` captures `$ai_generation` events and trace hierarchy automatically without proxying your calls.
-
-4.  4
+3.  3
 
     ## Run your graph
 
     Required
 
-    Pass the `callback_handler` in the `config` when invoking your LangGraph graph. PostHog automatically captures generation events for each LLM call.
+    Use LangGraph as normal. The OpenTelemetry instrumentation automatically captures `$ai_generation` events for each LLM call — no callback handlers needed.
 
     PostHog AI
 
@@ -119,8 +107,7 @@
     model = ChatOpenAI(api_key="your_openai_api_key")
     agent = create_react_agent(model, tools=[get_weather])
     result = agent.invoke(
-        {"messages": [{"role": "user", "content": "What's the weather in Paris?"}]},
-        config={"callbacks": [callback_handler]}
+        {"messages": [{"role": "user", "content": "What's the weather in Paris?"}]}
     )
     print(result["messages"][-1].content)
     ```
@@ -145,12 +132,12 @@
     const model = new ChatOpenAI({ apiKey: 'your_openai_api_key' });
     const agent = createReactAgent({ llm: model, tools: [getWeather] });
     const result = await agent.invoke(
-      { messages: [{ role: 'user', content: "What's the weather in Paris?" }] },
-      { callbacks: [callbackHandler] }
+      { messages: [{ role: 'user', content: "What's the weather in Paris?" }] }
     );
     console.log(result.messages[result.messages.length - 1].content);
-    phClient.shutdown();
     ```
+
+    > **Note:** If you want to capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     PostHog automatically captures `$ai_generation` events and creates a trace hierarchy based on how LangGraph components are nested. You can expect captured events to have the following properties:
 
@@ -167,7 +154,7 @@
     | $ai_total_cost_usd | The total cost in USD (input + output) |
     | [[...]](/docs/llm-analytics/generations.md#event-properties) | See [full list](/docs/llm-analytics/generations.md#event-properties) of properties |
 
-5.  ## Verify traces and generations
+4.  ## Verify traces and generations
 
     Recommended
 
@@ -179,7 +166,7 @@
 
     [Check for LLM events in PostHog](https://app.posthog.com/llm-analytics/generations)
 
-6.  5
+5.  4
 
     ## Next steps
 

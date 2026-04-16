@@ -2,83 +2,83 @@
 
 1.  1
 
-    ## Install the PostHog SDK
+    ## Install dependencies
 
     Required
 
-    Setting up analytics starts with installing the PostHog SDK.
+    **Full working examples**
+
+    See the complete [Node.js example](https://github.com/PostHog/posthog-js/tree/main/examples/example-ai-mastra) on GitHub. If you're using the PostHog SDK wrapper instead, see the [Node.js wrapper example](https://github.com/PostHog/posthog-js/tree/e08ff1be/examples/example-ai-mastra).
+
+    Install Mastra with the official `@mastra/posthog` exporter. Mastra's observability system sends traces to PostHog as `$ai_generation` events automatically.
 
     ```bash
-    npm install @posthog/ai posthog-node
+    npm install @mastra/core @mastra/observability @mastra/posthog
     ```
 
 2.  2
 
-    ## Install Mastra
+    ## Configure Mastra with the PostHog exporter
 
     Required
 
-    Install Mastra and a model provider SDK. Mastra uses the Vercel AI SDK under the hood, so you can use any Vercel AI-compatible model provider.
+    Initialize Mastra with an `Observability` config that uses the `PosthogExporter`. Pass your PostHog project token and host from [your project settings](https://app.posthog.com/settings/project).
 
-    ```bash
-    npm install @mastra/core @ai-sdk/openai
+    ```typescript
+    import { Mastra } from '@mastra/core'
+    import { Agent } from '@mastra/core/agent'
+    import { Observability } from '@mastra/observability'
+    import { PosthogExporter } from '@mastra/posthog'
+    const weatherAgent = new Agent({
+      id: 'weather-agent',
+      name: 'Weather Agent',
+      instructions: 'You are a helpful assistant with access to weather data.',
+      model: { id: 'openai/gpt-4o-mini' },
+    })
+    const mastra = new Mastra({
+      agents: { weatherAgent },
+      observability: new Observability({
+        configs: {
+          posthog: {
+            serviceName: 'my-app',
+            exporters: [
+              new PosthogExporter({
+                apiKey: '<ph_project_token>',
+                host: 'https://us.i.posthog.com',
+                defaultDistinctId: 'user_123', // fallback if no userId in metadata
+              }),
+            ],
+          },
+        },
+      }),
+    })
     ```
-
-    **Proxy note**
-
-    These SDKs **do not** proxy your calls. They only fire off an async call to PostHog in the background to send the data. You can also use LLM analytics with other SDKs or our API, but you will need to capture the data in the right format. See the schema in the [manual capture section](/docs/llm-analytics/installation/manual-capture.md) for more details.
 
 3.  3
 
-    ## Initialize PostHog and wrap your model
+    ## Run your agent
 
     Required
 
-    Initialize PostHog with your project token and host from [your project settings](https://app.posthog.com/settings/project), then use `withTracing` from `@posthog/ai` to wrap the model you pass to your Mastra agent.
+    Use Mastra as normal. The `PosthogExporter` automatically captures `$ai_generation` events for each LLM call, including token usage, cost, latency, and the full conversation.
+
+    Pass `tracingOptions.metadata` to `generate()` to attach per-request metadata. The `userId` field maps to PostHog's distinct ID, `sessionId` maps to `$ai_session_id`, and any other keys are passed through as custom event properties.
 
     ```typescript
-    import { Agent } from "@mastra/core/agent";
-    import { PostHog } from "posthog-node";
-    import { withTracing } from "@posthog/ai";
-    import { createOpenAI } from "@ai-sdk/openai";
-    const phClient = new PostHog(
-      '<ph_project_token>',
-      { host: 'https://us.i.posthog.com' }
-    );
-    const openaiClient = createOpenAI({
-      apiKey: 'your_openai_api_key',
-      compatibility: 'strict'
-    });
-    const agent = new Agent({
-      name: "my-agent",
-      instructions: "You are a helpful assistant.",
-      model: withTracing(openaiClient("gpt-4o"), phClient, {
-        posthogDistinctId: "user_123", // optional
-        posthogTraceId: "trace_123", // optional
-        posthogProperties: { conversationId: "abc123" }, // optional
-        posthogPrivacyMode: false, // optional
-        posthogGroups: { company: "companyIdInYourDb" }, // optional
-      }),
-    });
+    const agent = mastra.getAgent('weatherAgent')
+    const result = await agent.generate("What's the weather in Dublin?", {
+      tracingOptions: {
+        metadata: {
+          userId: 'user_123', // becomes distinct_id
+          sessionId: 'session_abc', // becomes $ai_session_id
+          conversation_id: 'abc-123', // custom property
+        },
+      },
+    })
+    console.log(result.text)
     ```
 
-    You can enrich LLM events with additional data by passing parameters such as the trace ID, distinct ID, custom properties, groups, and privacy mode options.
-
-4.  4
-
-    ## Use your Mastra agent
-
-    Required
-
-    Now, when your Mastra agent makes LLM calls, PostHog automatically captures an `$ai_generation` event for each one.
-
-    ```typescript
-    const result = await agent.generate("What is the capital of France?");
-    console.log(result.text);
-    phClient.shutdown();
-    ```
-
-    > **Note:** If you want to capture LLM events anonymously, **don't** pass a distinct ID to the request. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
+    > **Note:** If you want to capture LLM events anonymously, omit `userId` from `tracingOptions.metadata` and don't set `defaultDistinctId`. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
@@ -95,7 +95,7 @@
     | $ai_total_cost_usd | The total cost in USD (input + output) |
     | [[...]](/docs/llm-analytics/generations.md#event-properties) | See [full list](/docs/llm-analytics/generations.md#event-properties) of properties |
 
-5.  ## Verify traces and generations
+4.  ## Verify traces and generations
 
     Recommended
 
@@ -107,7 +107,7 @@
 
     [Check for LLM events in PostHog](https://app.posthog.com/llm-analytics/generations)
 
-6.  5
+5.  4
 
     ## Next steps
 

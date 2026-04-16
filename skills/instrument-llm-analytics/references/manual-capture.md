@@ -229,7 +229,9 @@
     ]);
     ```
 
-    ### Event Properties
+2.  2
+
+    ## Event properties
 
     Each event type has specific properties. See the tabs below for detailed property documentation for each event type.
 
@@ -387,6 +389,34 @@
     | $ai_input_cost_usd | (Optional) Cost in USD for input tokens |
     | $ai_output_cost_usd | (Optional) Cost in USD for output tokens (usually 0 for embeddings) |
     | $ai_total_cost_usd | (Optional) Total cost in USD |
+
+3.  ## Verify traces and generations
+
+    Recommended
+
+    *Confirm LLM events are being sent to PostHog*
+
+    Let's make sure LLM events are being captured and sent to PostHog. Under **LLM analytics**, you should see rows of data appear in the **Traces** and **Generations** tabs.
+
+    ![LLM generations in PostHog](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250807_syne_ecd0801880.png)![LLM generations in PostHog](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250807_syjm_5baab36590.png)
+
+    [Check for LLM events in PostHog](https://app.posthog.com/llm-analytics/generations)
+
+4.  3
+
+    ## Next steps
+
+    Recommended
+
+    Now that you're capturing AI conversations, continue with the resources below to learn what else LLM Analytics enables within the PostHog platform.
+
+    | Resource | Description |
+    | --- | --- |
+    | [Basics](/docs/llm-analytics/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
+    | [Generations](/docs/llm-analytics/generations.md) | Read about the $ai_generation event and its properties. |
+    | [Traces](/docs/llm-analytics/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
+    | [Spans](/docs/llm-analytics/spans.md) | Review spans and their role in representing individual operations. |
+    | [Anaylze LLM performance](/docs/llm-analytics/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
 
 ### Community questions
 

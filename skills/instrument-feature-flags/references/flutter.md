@@ -1,4 +1,4 @@
-# Flutter feature flags installation - Docs
+# Flutter Feature Flags installation - Docs
 
 1.  1
 

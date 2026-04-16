@@ -2,69 +2,62 @@
 
 1.  1
 
-    ## Install the PostHog SDK
+    ## Install dependencies
 
     Required
 
-    Setting up analytics starts with installing the PostHog SDK. The LlamaIndex integration uses PostHog's OpenAI wrapper.
+    **Full working examples**
+
+    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-llamaindex) on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-llamaindex).
+
+    Install LlamaIndex, OpenAI, and the OpenTelemetry SDK with the LlamaIndex instrumentation.
 
     ```bash
-    pip install posthog
+    pip install llama-index llama-index-llms-openai opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-llamaindex
     ```
 
 2.  2
 
-    ## Install LlamaIndex
+    ## Set up OpenTelemetry tracing
 
     Required
 
-    Install LlamaIndex with the OpenAI integration. PostHog instruments your LLM calls by wrapping the OpenAI client that LlamaIndex uses.
+    Configure OpenTelemetry to auto-instrument LlamaIndex calls and export traces to PostHog. PostHog converts `gen_ai.*` spans into `$ai_generation` events automatically.
 
-    ```bash
-    pip install llama-index llama-index-llms-openai
+    ```python
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+    from posthog.ai.otel import PostHogSpanProcessor
+    from opentelemetry.instrumentation.llamaindex import LlamaIndexInstrumentor
+    resource = Resource(attributes={
+        SERVICE_NAME: "my-app",
+        "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
+                "foo": "bar", # custom properties are passed through
+    })
+    provider = TracerProvider(resource=resource)
+    provider.add_span_processor(
+        PostHogSpanProcessor(
+            api_key="<ph_project_token>",
+            host="https://us.i.posthog.com",
+        )
+    )
+    trace.set_tracer_provider(provider)
+    LlamaIndexInstrumentor().instrument()
     ```
 
 3.  3
-
-    ## Initialize PostHog and LlamaIndex
-
-    Required
-
-    Initialize PostHog with your project token and host from [your project settings](https://app.posthog.com/settings/project), then create a PostHog OpenAI wrapper and pass it to LlamaIndex's `OpenAI` LLM class.
-
-    ```python
-    from llama_index.llms.openai import OpenAI as LlamaOpenAI
-    from posthog.ai.openai import OpenAI
-    from posthog import Posthog
-    posthog = Posthog(
-        "<ph_project_token>",
-        host="https://us.i.posthog.com"
-    )
-    openai_client = OpenAI(
-        api_key="your_openai_api_key",
-        posthog_client=posthog
-    )
-    llm = LlamaOpenAI(
-        model="gpt-5-mini",
-        api_key="your_openai_api_key",
-    )
-    llm._client = openai_client
-    ```
-
-    **How this works**
-
-    PostHog's `OpenAI` wrapper is a proper subclass of `openai.OpenAI`, so it can replace the internal client used by LlamaIndex's OpenAI LLM. PostHog captures `$ai_generation` events automatically without proxying your calls. **Note:** This approach accesses an internal attribute (`_client`) which may change in future LlamaIndex versions. Check for updates if you encounter issues after upgrading LlamaIndex.
-
-4.  4
 
     ## Query with LlamaIndex
 
     Required
 
-    Use LlamaIndex as normal. PostHog automatically captures an `$ai_generation` event for each LLM call made through the wrapped client.
+    Use LlamaIndex as normal. The OpenTelemetry instrumentation automatically captures `$ai_generation` events for each LLM call.
 
     ```python
+    from llama_index.llms.openai import OpenAI
     from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+    llm = OpenAI(model="gpt-4o-mini", api_key="your_openai_api_key")
     # Load your documents
     documents = SimpleDirectoryReader("data").load_data()
     # Create an index
@@ -74,6 +67,8 @@
     response = query_engine.query("What is this document about?")
     print(response)
     ```
+
+    > **Note:** If you want to capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
@@ -90,7 +85,7 @@
     | $ai_total_cost_usd | The total cost in USD (input + output) |
     | [[...]](/docs/llm-analytics/generations.md#event-properties) | See [full list](/docs/llm-analytics/generations.md#event-properties) of properties |
 
-5.  ## Verify traces and generations
+4.  ## Verify traces and generations
 
     Recommended
 
@@ -102,7 +97,7 @@
 
     [Check for LLM events in PostHog](https://app.posthog.com/llm-analytics/generations)
 
-6.  5
+5.  4
 
     ## Next steps
 

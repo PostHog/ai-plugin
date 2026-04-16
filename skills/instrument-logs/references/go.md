@@ -125,7 +125,7 @@
     Once everything is configured, test that logs are flowing into PostHog:
 
     1.  Send a test log from your application
-    2.  Check the PostHog logs interface for your log entries
+    2.  Check the PostHog Logs interface for your log entries
     3.  Verify the logs appear in your project
 
     [View your logs in PostHog](https://app.posthog.com/logs)

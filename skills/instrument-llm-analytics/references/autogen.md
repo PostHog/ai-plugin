@@ -2,69 +2,66 @@
 
 1.  1
 
-    ## Install the PostHog SDK
+    ## Install dependencies
 
     Required
 
-    Setting up analytics starts with installing the PostHog SDK. The AutoGen integration uses PostHog's OpenAI wrapper since AutoGen uses OpenAI under the hood.
+    **Full working examples**
+
+    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-autogen) on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-autogen).
+
+    Install the OpenTelemetry SDK, the OpenAI instrumentation, and AutoGen.
 
     ```bash
-    pip install posthog
+    pip install autogen-agentchat "autogen-ext[openai]" openai opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-openai-v2
     ```
 
 2.  2
 
-    ## Install AutoGen
+    ## Set up OpenTelemetry tracing
 
     Required
 
-    Install AutoGen with the OpenAI extension. PostHog instruments your LLM calls by wrapping the OpenAI client that AutoGen uses internally.
+    Configure OpenTelemetry to auto-instrument OpenAI SDK calls and export traces to PostHog. PostHog converts `gen_ai.*` spans into `$ai_generation` events automatically.
 
-    ```bash
-    pip install "autogen-agentchat" "autogen-ext[openai]"
+    ```python
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+    from posthog.ai.otel import PostHogSpanProcessor
+    from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
+    resource = Resource(attributes={
+        SERVICE_NAME: "my-app",
+        "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
+        "foo": "bar", # custom properties are passed through
+    })
+    provider = TracerProvider(resource=resource)
+    provider.add_span_processor(
+        PostHogSpanProcessor(
+            api_key="<ph_project_token>",
+            host="https://us.i.posthog.com",
+        )
+    )
+    trace.set_tracer_provider(provider)
+    OpenAIInstrumentor().instrument()
     ```
 
 3.  3
-
-    ## Initialize PostHog and AutoGen
-
-    Required
-
-    Initialize PostHog with your project token and host from [your project settings](https://app.posthog.com/settings/project), then create a PostHog OpenAI wrapper and pass it to AutoGen's `OpenAIChatCompletionClient`.
-
-    ```python
-    import asyncio
-    from posthog.ai.openai import OpenAI
-    from posthog import Posthog
-    from autogen_agentchat.agents import AssistantAgent
-    from autogen_ext.models.openai import OpenAIChatCompletionClient
-    posthog = Posthog(
-        "<ph_project_token>",
-        host="https://us.i.posthog.com"
-    )
-    openai_client = OpenAI(
-        api_key="your_openai_api_key",
-        posthog_client=posthog,
-    )
-    model_client = OpenAIChatCompletionClient(
-        model="gpt-4o",
-        openai_client=openai_client,
-    )
-    ```
-
-    **How this works**
-
-    AutoGen's `OpenAIChatCompletionClient` accepts a custom OpenAI client via the `openai_client` parameter. PostHog's `OpenAI` wrapper is a proper subclass of `openai.OpenAI`, so it works directly. PostHog captures `$ai_generation` events automatically without proxying your calls.
-
-4.  4
 
     ## Run your agents
 
     Required
 
-    Use AutoGen as normal. PostHog automatically captures an `$ai_generation` event for each LLM call made through the wrapped OpenAI client.
+    Use AutoGen as normal. PostHog automatically captures an `$ai_generation` event for each LLM call made through the OpenAI SDK that AutoGen uses internally.
 
     ```python
+    import asyncio
+    from autogen_agentchat.agents import AssistantAgent
+    from autogen_ext.models.openai import OpenAIChatCompletionClient
+    model_client = OpenAIChatCompletionClient(
+        model="gpt-4o",
+        api_key="your_openai_api_key",
+    )
     agent = AssistantAgent("assistant", model_client=model_client)
     async def main():
         result = await agent.run(task="Say 'Hello World!'")
@@ -72,6 +69,8 @@
         await model_client.close()
     asyncio.run(main())
     ```
+
+    > **Note:** If you want to capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
@@ -88,7 +87,7 @@
     | $ai_total_cost_usd | The total cost in USD (input + output) |
     | [[...]](/docs/llm-analytics/generations.md#event-properties) | See [full list](/docs/llm-analytics/generations.md#event-properties) of properties |
 
-5.  ## Verify traces and generations
+4.  ## Verify traces and generations
 
     Recommended
 
@@ -100,7 +99,7 @@
 
     [Check for LLM events in PostHog](https://app.posthog.com/llm-analytics/generations)
 
-6.  5
+5.  4
 
     ## Next steps
 

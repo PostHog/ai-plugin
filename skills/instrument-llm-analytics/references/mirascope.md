@@ -2,74 +2,68 @@
 
 1.  1
 
-    ## Install the PostHog SDK
+    ## Install dependencies
 
     Required
 
-    Setting up analytics starts with installing the PostHog SDK. The Mirascope integration uses PostHog's OpenAI wrapper since Mirascope supports passing a custom OpenAI client.
+    **Full working examples**
+
+    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-mirascope) on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-mirascope).
+
+    Install the OpenTelemetry SDK, the OpenAI instrumentation, and Mirascope.
 
     ```bash
-    pip install posthog
+    pip install "mirascope[openai]" opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-openai-v2
     ```
 
 2.  2
 
-    ## Install Mirascope
+    ## Set up OpenTelemetry tracing
 
     Required
 
-    Install Mirascope with OpenAI support. PostHog instruments your LLM calls by wrapping the OpenAI client that Mirascope uses under the hood.
+    Configure OpenTelemetry to auto-instrument OpenAI SDK calls and export traces to PostHog. PostHog converts `gen_ai.*` spans into `$ai_generation` events automatically.
 
-    ```bash
-    pip install mirascope openai
+    ```python
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+    from posthog.ai.otel import PostHogSpanProcessor
+    from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
+    resource = Resource(attributes={
+        SERVICE_NAME: "my-app",
+        "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
+        "foo": "bar", # custom properties are passed through
+    })
+    provider = TracerProvider(resource=resource)
+    provider.add_span_processor(
+        PostHogSpanProcessor(
+            api_key="<ph_project_token>",
+            host="https://us.i.posthog.com",
+        )
+    )
+    trace.set_tracer_provider(provider)
+    OpenAIInstrumentor().instrument()
     ```
 
 3.  3
 
-    ## Initialize PostHog and Mirascope
+    ## Call your LLMs
 
     Required
 
-    Initialize PostHog with your project token and host from [your project settings](https://app.posthog.com/settings/project), then create a PostHog OpenAI wrapper and pass it to Mirascope's `@call` decorator via the `client` parameter.
+    Use Mirascope as normal. PostHog automatically captures an `$ai_generation` event for each LLM call made through the OpenAI SDK that Mirascope uses internally.
 
     ```python
-    from mirascope.llm import call
-    from posthog.ai.openai import OpenAI
-    from posthog import Posthog
-    posthog = Posthog(
-        "<ph_project_token>",
-        host="https://us.i.posthog.com"
-    )
-    openai_client = OpenAI(
-        api_key="your_openai_api_key",
-        posthog_client=posthog
-    )
-    ```
-
-    **How this works**
-
-    Mirascope's `@call` decorator accepts a `client` parameter for passing a custom OpenAI client. PostHog's `OpenAI` wrapper is a proper subclass of `openai.OpenAI`, so it works directly. PostHog captures `$ai_generation` events automatically without proxying your calls.
-
-4.  4
-
-    ## Make your first call
-
-    Required
-
-    Use Mirascope as normal, passing the wrapped client to the call decorator. PostHog automatically captures an `$ai_generation` event for each LLM call.
-
-    ```python
-    @call(model="openai/gpt-5-mini", client=openai_client)
-    def recommend_book(genre: str):
-        return f"Recommend a {genre} book."
-    response = recommend_book(
-        "fantasy",
-        posthog_distinct_id="user_123",
-        posthog_trace_id="trace_123",
-        posthog_properties={"conversation_id": "abc123"},
-    )
+    from mirascope.core import openai, prompt_template
+    @openai.call("gpt-4o-mini")
+    @prompt_template("Tell me a fun fact about {topic}")
+    def fun_fact(topic: str): ...
+    response = fun_fact("hedgehogs")
     print(response.content)
     ```
+
+    > **Note:** If you want to capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
@@ -86,7 +80,7 @@
     | $ai_total_cost_usd | The total cost in USD (input + output) |
     | [[...]](/docs/llm-analytics/generations.md#event-properties) | See [full list](/docs/llm-analytics/generations.md#event-properties) of properties |
 
-5.  ## Verify traces and generations
+4.  ## Verify traces and generations
 
     Recommended
 
@@ -98,7 +92,7 @@
 
     [Check for LLM events in PostHog](https://app.posthog.com/llm-analytics/generations)
 
-6.  5
+5.  4
 
     ## Next steps
 

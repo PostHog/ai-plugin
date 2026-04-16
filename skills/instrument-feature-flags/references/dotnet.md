@@ -1,4 +1,4 @@
-# .NET feature flags installation - Docs
+# .NET Feature Flags installation - Docs
 
 The `PostHog` package supports any .NET platform that targets .NET Standard 2.1 or .NET 8+, including MAUI, Blazor, and console applications. The `PostHog.AspNetCore` package provides additional conveniences for ASP.NET Core applications such as streamlined registration, request-scoped caching, and integration with [.NET Feature Management](https://learn.microsoft.com/en-us/azure/azure-app-configuration/feature-management-dotnet-reference).
 
