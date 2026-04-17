@@ -1,4 +1,4 @@
-# PHP feature flags installation - Docs
+# PHP Feature Flags installation - Docs
 
 1.  1
 

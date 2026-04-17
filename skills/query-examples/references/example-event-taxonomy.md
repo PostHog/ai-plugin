@@ -48,7 +48,7 @@ FROM
             and(greaterOrEquals(timestamp, minus(now(), toIntervalDay(30))), equals(event, '$pageview'), or(notEquals(JSONExtractString(properties, '$browser'), ''), notEquals(JSONExtractString(properties, '$os'), ''))))
     ARRAY JOIN (kv).1 AS key, (kv).2 AS value
     WHERE
-        notEquals(value, '')
+        and(notEquals(value, NULL), notEquals(value, ''))
     GROUP BY
         key,
         value

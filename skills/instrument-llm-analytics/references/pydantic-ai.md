@@ -2,80 +2,70 @@
 
 1.  1
 
-    ## Install the PostHog SDK
+    ## Install dependencies
 
     Required
 
-    Setting up analytics starts with installing the PostHog SDK. The Pydantic AI integration uses PostHog's OpenAI wrapper.
+    **Full working examples**
+
+    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-pydantic-ai) on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-pydantic-ai).
+
+    Install the OpenTelemetry SDK and Pydantic AI.
 
     ```bash
-    pip install posthog
+    pip install "pydantic-ai[openai]" opentelemetry-sdk posthog[otel]
     ```
 
 2.  2
 
-    ## Install Pydantic AI
+    ## Set up OpenTelemetry tracing
 
     Required
 
-    Install Pydantic AI with OpenAI support. PostHog instruments your LLM calls by wrapping the OpenAI client that Pydantic AI uses.
+    Configure OpenTelemetry to export traces to PostHog and enable Pydantic AI's built-in OTel instrumentation. PostHog converts `gen_ai.*` spans into `$ai_generation` events automatically.
 
-    ```bash
-    pip install 'pydantic-ai[openai]'
+    ```python
+    import os
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+    from posthog.ai.otel import PostHogSpanProcessor
+    from pydantic_ai import Agent
+    resource = Resource(attributes={
+        SERVICE_NAME: "my-app",
+        "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
+        "foo": "bar", # custom properties are passed through
+    })
+    provider = TracerProvider(resource=resource)
+    provider.add_span_processor(
+        PostHogSpanProcessor(
+            api_key="<ph_project_token>",
+            host="https://us.i.posthog.com",
+        )
+    )
+    trace.set_tracer_provider(provider)
+    # Enable automatic OTel instrumentation for all Pydantic AI agents
+    Agent.instrument_all()
     ```
 
 3.  3
-
-    ## Initialize PostHog and Pydantic AI
-
-    Required
-
-    Initialize PostHog with your project token and host from [your project settings](https://app.posthog.com/settings/project), then create a PostHog `AsyncOpenAI` wrapper, pass it to an `OpenAIProvider`, and use that with Pydantic AI's `OpenAIChatModel`.
-
-    ```python
-    from pydantic_ai import Agent
-    from pydantic_ai.models.openai import OpenAIChatModel
-    from pydantic_ai.providers.openai import OpenAIProvider
-    from posthog.ai.openai import AsyncOpenAI
-    from posthog import Posthog
-    posthog = Posthog(
-        "<ph_project_token>",
-        host="https://us.i.posthog.com"
-    )
-    openai_client = AsyncOpenAI(
-        api_key="your_openai_api_key",
-        posthog_client=posthog
-    )
-    provider = OpenAIProvider(openai_client=openai_client)
-    model = OpenAIChatModel(
-        "gpt-5-mini",
-        provider=provider
-    )
-    ```
-
-    **How this works**
-
-    PostHog's `AsyncOpenAI` wrapper is a proper subclass of `openai.AsyncOpenAI`, so it works directly as the client for Pydantic AI's `OpenAIProvider`. PostHog captures `$ai_generation` events automatically without proxying your calls.
-
-4.  4
 
     ## Run your agent
 
     Required
 
-    Create a Pydantic AI agent with the model and run it. PostHog automatically captures an `$ai_generation` event for each LLM call.
+    Create a Pydantic AI agent and run it. PostHog automatically captures an `$ai_generation` event for each LLM call via the OTel instrumentation.
 
     ```python
-    agent = Agent(
-        model,
-        system_prompt="You are a helpful assistant.",
-    )
-    result = agent.run_sync(
-        "Tell me a fun fact about hedgehogs.",
-        # Pass PostHog metadata via the OpenAI client's extra params
-    )
+    from pydantic_ai import Agent
+    from pydantic_ai.models.openai import OpenAIModel
+    model = OpenAIModel("gpt-4o-mini")
+    agent = Agent(model, system_prompt="You are a helpful assistant.")
+    result = agent.run_sync("Tell me a fun fact about hedgehogs.")
     print(result.output)
     ```
+
+    > **Note:** If you want to capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
@@ -92,7 +82,7 @@
     | $ai_total_cost_usd | The total cost in USD (input + output) |
     | [[...]](/docs/llm-analytics/generations.md#event-properties) | See [full list](/docs/llm-analytics/generations.md#event-properties) of properties |
 
-5.  ## Verify traces and generations
+4.  ## Verify traces and generations
 
     Recommended
 
@@ -104,7 +94,7 @@
 
     [Check for LLM events in PostHog](https://app.posthog.com/llm-analytics/generations)
 
-6.  5
+5.  4
 
     ## Next steps
 

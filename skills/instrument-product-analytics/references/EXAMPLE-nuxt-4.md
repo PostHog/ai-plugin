@@ -13,7 +13,7 @@ This is a [Nuxt 4](https://nuxt.com) example demonstrating PostHog integration w
 
 Nuxt 4 supports the `@posthog/nuxt` package, which provides automatic PostHog integration with built-in error tracking, source map uploads, and simplified configuration. This is the recommended approach for Nuxt 4+.
 
-For Nuxt 3.0 - 3.6, you must use the `posthog-js` and `posthog-node` packages directly instead. See the [Nuxt 3.6 example](../nuxt-3.6) for that approach.
+For Nuxt 3.0 - 3.6, you must use the `posthog-js` and `posthog-node` packages directly instead. See the [Nuxt 3.6 example](../nuxt-3-6) for that approach.
 
 ## Features
 

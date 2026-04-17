@@ -2,55 +2,95 @@
 
 1.  1
 
-    ## Install the PostHog SDK
+    ## Install dependencies
 
     Required
 
-    Setting up analytics starts with installing the PostHog SDK for your language. LLM analytics works best with our Python and Node SDKs.
+    **Full working examples**
+
+    See the complete [Node.js](https://github.com/PostHog/posthog-js/tree/main/examples/example-ai-instructor) and [Python](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-instructor) examples on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Node.js wrapper](https://github.com/PostHog/posthog-js/tree/e08ff1be/examples/example-ai-instructor) and [Python wrapper](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-instructor) examples.
+
+    Install the OpenTelemetry SDK, the OpenAI instrumentation, and Instructor.
 
     PostHog AI
 
     ### Python
 
     ```bash
-    pip install posthog
+    pip install instructor openai opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-openai-v2
     ```
 
     ### Node
 
     ```bash
-    npm install @posthog/ai posthog-node
+    npm install @instructor-ai/instructor openai zod @posthog/ai @opentelemetry/sdk-node @opentelemetry/resources @opentelemetry/instrumentation-openai
     ```
 
 2.  2
 
-    ## Install Instructor and OpenAI SDKs
+    ## Set up OpenTelemetry tracing
 
     Required
 
-    Install Instructor and the OpenAI SDK. PostHog instruments your LLM calls by wrapping the OpenAI client, which Instructor uses under the hood.
+    Configure OpenTelemetry to auto-instrument OpenAI SDK calls and export traces to PostHog. PostHog converts `gen_ai.*` spans into `$ai_generation` events automatically.
 
     PostHog AI
 
     ### Python
 
-    ```bash
-    pip install instructor openai
+    ```python
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+    from posthog.ai.otel import PostHogSpanProcessor
+    from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
+    resource = Resource(attributes={
+        SERVICE_NAME: "my-app",
+        "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
+        "foo": "bar", # custom properties are passed through
+    })
+    provider = TracerProvider(resource=resource)
+    provider.add_span_processor(
+        PostHogSpanProcessor(
+            api_key="<ph_project_token>",
+            host="https://us.i.posthog.com",
+        )
+    )
+    trace.set_tracer_provider(provider)
+    OpenAIInstrumentor().instrument()
     ```
 
     ### Node
 
-    ```bash
-    npm install @instructor-ai/instructor openai zod@3
+    ```typescript
+    import { NodeSDK } from '@opentelemetry/sdk-node'
+    import { resourceFromAttributes } from '@opentelemetry/resources'
+    import { PostHogSpanProcessor } from '@posthog/ai/otel'
+    import { OpenAIInstrumentation } from '@opentelemetry/instrumentation-openai'
+    const sdk = new NodeSDK({
+      resource: resourceFromAttributes({
+        'service.name': 'my-app',
+        'posthog.distinct_id': 'user_123', // optional: identifies the user in PostHog
+        foo: 'bar', // custom properties are passed through
+      }),
+      spanProcessors: [
+        new PostHogSpanProcessor({
+          apiKey: '<ph_project_token>',
+          host: 'https://us.i.posthog.com',
+        }),
+      ],
+      instrumentations: [new OpenAIInstrumentation()],
+    })
+    sdk.start()
     ```
 
 3.  3
 
-    ## Initialize PostHog and Instructor
+    ## Extract structured data
 
     Required
 
-    Initialize PostHog with your project token and host from [your project settings](https://app.posthog.com/settings/project), then create a PostHog OpenAI wrapper and pass it to Instructor.
+    Use Instructor to extract structured data from LLM responses. PostHog automatically captures an `$ai_generation` event for each call made through the OpenAI SDK that Instructor wraps.
 
     PostHog AI
 
@@ -58,91 +98,41 @@
 
     ```python
     import instructor
+    import openai
     from pydantic import BaseModel
-    from posthog.ai.openai import OpenAI
-    from posthog import Posthog
-    posthog = Posthog(
-        "<ph_project_token>",
-        host="https://us.i.posthog.com"
-    )
-    openai_client = OpenAI(
-        api_key="your_openai_api_key",
-        posthog_client=posthog
-    )
-    client = instructor.from_openai(openai_client)
-    ```
-
-    ### Node
-
-    ```typescript
-    import Instructor from '@instructor-ai/instructor'
-    import { OpenAI } from '@posthog/ai'
-    import { PostHog } from 'posthog-node'
-    import { z } from 'zod'
-    const phClient = new PostHog(
-      '<ph_project_token>',
-      { host: 'https://us.i.posthog.com' }
-    );
-    const openai = new OpenAI({
-      apiKey: 'your_openai_api_key',
-      posthog: phClient,
-    });
-    const client = Instructor({ client: openai, mode: 'TOOLS' })
-    ```
-
-    **How this works**
-
-    PostHog's `OpenAI` wrapper is a proper subclass of `openai.OpenAI`, so it works directly with `instructor.from_openai()`. PostHog captures `$ai_generation` events automatically without proxying your calls.
-
-4.  4
-
-    ## Use Instructor with structured outputs
-
-    Required
-
-    Now use Instructor to extract structured data from LLM responses. PostHog automatically captures an `$ai_generation` event for each call.
-
-    PostHog AI
-
-    ### Python
-
-    ```python
-    class UserInfo(BaseModel):
+    class User(BaseModel):
         name: str
         age: int
+    client = instructor.from_openai(openai.OpenAI(api_key="your_openai_api_key"))
     user = client.chat.completions.create(
-        model="gpt-5-mini",
-        response_model=UserInfo,
-        messages=[
-            {"role": "user", "content": "John Doe is 30 years old."}
-        ],
-        posthog_distinct_id="user_123",
-        posthog_trace_id="trace_123",
-        posthog_properties={"conversation_id": "abc123"},
+        model="gpt-4o-mini",
+        response_model=User,
+        messages=[{"role": "user", "content": "Extract: John is 30 years old"}],
     )
-    print(f"{user.name} is {user.age} years old")
+    print(user)
     ```
 
     ### Node
 
     ```typescript
-    const UserInfo = z.object({
+    import OpenAI from 'openai'
+    import Instructor from '@instructor-ai/instructor'
+    import { z } from 'zod'
+    const oai = new OpenAI({ apiKey: 'your_openai_api_key' })
+    const client = Instructor({ client: oai, mode: 'TOOLS' })
+    const UserSchema = z.object({
       name: z.string(),
       age: z.number(),
     })
     const user = await client.chat.completions.create({
-      model: 'gpt-5-mini',
-      response_model: { schema: UserInfo, name: 'UserInfo' },
-      messages: [
-        { role: 'user', content: 'John Doe is 30 years old.' }
-      ],
-      posthogDistinctId: 'user_123',
-      posthogTraceId: 'trace_123',
-      posthogProperties: { conversation_id: 'abc123' },
+      model: 'gpt-4o-mini',
+      response_model: { schema: UserSchema, name: 'User' },
+      messages: [{ role: 'user', content: 'Extract: John is 30 years old' }],
     })
-    console.log(`${user.name} is ${user.age} years old`)
-    phClient.shutdown()
+    console.log(user)
     ```
+
+    > **Note:** If you want to capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
@@ -159,7 +149,7 @@
     | $ai_total_cost_usd | The total cost in USD (input + output) |
     | [[...]](/docs/llm-analytics/generations.md#event-properties) | See [full list](/docs/llm-analytics/generations.md#event-properties) of properties |
 
-5.  ## Verify traces and generations
+4.  ## Verify traces and generations
 
     Recommended
 
@@ -171,7 +161,7 @@
 
     [Check for LLM events in PostHog](https://app.posthog.com/llm-analytics/generations)
 
-6.  5
+5.  4
 
     ## Next steps
 

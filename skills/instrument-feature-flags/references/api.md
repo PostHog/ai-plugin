@@ -1,4 +1,4 @@
-# API feature flags installation - Docs
+# API Feature Flags installation - Docs
 
 1.  1
 

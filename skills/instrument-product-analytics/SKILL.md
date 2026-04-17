@@ -71,7 +71,7 @@ STEP 10: Verify and clean up.
 - `references/EXAMPLE-react-react-router-7-framework.md` - react-react-router-7-framework example project code
 - `references/EXAMPLE-react-react-router-7-data.md` - react-react-router-7-data example project code
 - `references/EXAMPLE-react-react-router-7-declarative.md` - react-react-router-7-declarative example project code
-- `references/EXAMPLE-nuxt-3.6.md` - nuxt-3.6 example project code
+- `references/EXAMPLE-nuxt-3-6.md` - nuxt-3-6 example project code
 - `references/EXAMPLE-nuxt-4.md` - nuxt-4 example project code
 - `references/EXAMPLE-vue-3.md` - vue-3 example project code
 - `references/EXAMPLE-react-tanstack-router-file-based.md` - react-tanstack-router-file-based example project code

@@ -4,7 +4,7 @@
 
 ## Install and configure logging
 
-PostHog logs is a powerful logging solution that works with the OpenTelemetry Protocol (OTLP). You don't need any vendor specific SDKs – just use standard OpenTelemetry libraries.
+PostHog Logs is a powerful logging solution that works with the OpenTelemetry Protocol (OTLP). You don't need any vendor-specific SDKs – just use standard OpenTelemetry libraries.
 
 Install and configure your logging client to send logs to PostHog:
 

@@ -82,7 +82,7 @@
     import { usePathname, useSearchParams } from "next/navigation"
     import { useEffect } from "react"
     import posthog from 'posthog-js'
-    import { PostHogProvider as PHProvider } from 'posthog-js/react'
+    import { PostHogProvider as PHProvider } from '@posthog/react'
     export function PostHogProvider({ children }: { children: React.ReactNode }) {
       useEffect(() => {
         posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN as string, {
@@ -132,7 +132,7 @@
     import { useEffect } from 'react'
     import { Router } from 'next/router'
     import posthog from 'posthog-js'
-    import { PostHogProvider } from 'posthog-js/react'
+    import { PostHogProvider } from '@posthog/react'
     import type { AppProps } from 'next/app'
     export default function App({ Component, pageProps }: AppProps) {
       useEffect(() => {
@@ -191,7 +191,7 @@
 
     ```typescript
     'use client'
-    import { usePostHog } from 'posthog-js/react'
+    import { usePostHog } from '@posthog/react'
     export default function CheckoutPage() {
         const posthog = usePostHog()
         function handlePurchase() {

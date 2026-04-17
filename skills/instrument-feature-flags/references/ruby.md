@@ -1,4 +1,4 @@
-# Ruby feature flags installation - Docs
+# Ruby Feature Flags installation - Docs
 
 1.  1
 

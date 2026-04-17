@@ -1,4 +1,4 @@
-# Rust feature flags installation - Docs
+# Rust Feature Flags installation - Docs
 
 Install the `posthog-rs` crate by adding it to your `Cargo.toml`.
 

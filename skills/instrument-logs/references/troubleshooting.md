@@ -19,7 +19,7 @@ Ask PostHog AI
 
 ## Connection issues
 
-**Problem**: Cannot connect to the PostHog logs endpoint.
+**Problem**: Cannot connect to the PostHog Logs endpoint.
 
 **Solutions**:
 

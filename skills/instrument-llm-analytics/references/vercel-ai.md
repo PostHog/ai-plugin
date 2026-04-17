@@ -12,30 +12,28 @@
     npm install @posthog/ai @ai-sdk/openai ai @opentelemetry/sdk-node @opentelemetry/resources
     ```
 
-    **No proxy**
-
-    These SDKs **do not** proxy your calls. They only send analytics data to PostHog in the background.
-
 2.  2
 
     ## Set up the OpenTelemetry exporter
 
     Required
 
-    Initialize the OpenTelemetry SDK with PostHog's `PostHogTraceExporter`. This sends `gen_ai.*` spans directly to PostHog's OTLP ingestion endpoint. PostHog converts these into `$ai_generation` events automatically.
+    Initialize the OpenTelemetry SDK with PostHog's `PostHogSpanProcessor`. This sends `gen_ai.*` spans directly to PostHog's OTLP ingestion endpoint. PostHog converts these into `$ai_generation` events automatically.
 
     ```typescript
     import { NodeSDK } from '@opentelemetry/sdk-node'
     import { resourceFromAttributes } from '@opentelemetry/resources'
-    import { PostHogTraceExporter } from '@posthog/ai/otel'
+    import { PostHogSpanProcessor } from '@posthog/ai/otel'
     const sdk = new NodeSDK({
       resource: resourceFromAttributes({
-        'service.name': 'my-ai-app',
+        'service.name': 'my-app',
       }),
-      traceExporter: new PostHogTraceExporter({
-        apiKey: '<ph_project_token>',
-        host: 'https://us.i.posthog.com',
-      }),
+      spanProcessors: [
+        new PostHogSpanProcessor({
+          apiKey: '<ph_project_token>',
+          host: 'https://us.i.posthog.com',
+        }),
+      ],
     })
     sdk.start()
     ```
@@ -63,7 +61,6 @@
       },
     })
     console.log(result.text)
-    await sdk.shutdown()
     ```
 
     > **Note:** If you want to capture LLM events anonymously, omit the `posthog_distinct_id` metadata field. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.

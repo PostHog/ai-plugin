@@ -1,4 +1,4 @@
-# React feature flags installation - Docs
+# React Feature Flags installation - Docs
 
 1.  1
 

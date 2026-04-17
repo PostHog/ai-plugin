@@ -1,4 +1,4 @@
-# Node.js feature flags installation - Docs
+# Node.js Feature Flags installation - Docs
 
 1.  1
 

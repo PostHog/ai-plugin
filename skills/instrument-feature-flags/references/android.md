@@ -1,4 +1,4 @@
-# Android feature flags installation - Docs
+# Android Feature Flags installation - Docs
 
 1.  1
 

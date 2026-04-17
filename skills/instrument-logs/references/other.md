@@ -1,6 +1,6 @@
 # Other languages logs installation - Docs
 
-PostHog logs works with any OpenTelemetry-compatible client. Check the [OpenTelemetry documentation](https://opentelemetry.io/docs/) for your specific language or framework.
+PostHog Logs works with any OpenTelemetry-compatible client. Check the [OpenTelemetry documentation](https://opentelemetry.io/docs/) for your specific language or framework.
 
 1.  1
 
@@ -11,7 +11,7 @@ PostHog logs works with any OpenTelemetry-compatible client. Check the [OpenTele
     The key requirements are:
 
     -   Use OTLP (OpenTelemetry Protocol) for log export over HTTP
-    -   Send logs to your PostHog logs endpoint (see configuration step below)
+    -   Send logs to your Logs endpoint (see configuration step below)
     -   Include your project token in the Authorization header or as a `?token=` query parameter
 
     Find the OpenTelemetry SDK for your language in the [official registry](https://opentelemetry.io/ecosystem/registry/).
@@ -69,7 +69,7 @@ PostHog logs works with any OpenTelemetry-compatible client. Check the [OpenTele
     Once everything is configured, test that logs are flowing into PostHog:
 
     1.  Send a test log from your application
-    2.  Check the PostHog logs interface for your log entries
+    2.  Check the PostHog Logs interface for your log entries
     3.  Verify the logs appear in your project
 
     [View your logs in PostHog](https://app.posthog.com/logs)

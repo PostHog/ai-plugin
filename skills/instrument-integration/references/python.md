@@ -740,7 +740,7 @@ Python
 PostHog AI
 
 ```python
-posthog.debug = True # +
+posthog.debug = True
 ```
 
 ## Disabling requests during tests

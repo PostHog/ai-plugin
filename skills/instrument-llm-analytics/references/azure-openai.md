@@ -2,78 +2,87 @@
 
 1.  1
 
-    ## Install the SDKs
+    ## Install dependencies
 
     Required
 
-    Setting up analytics starts with installing the PostHog and OpenAI SDKs.
+    **Full working examples**
+
+    See the complete [Node.js](https://github.com/PostHog/posthog-js/tree/main/examples/example-ai-azure-openai) and [Python](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-azure-openai) examples on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Node.js wrapper](https://github.com/PostHog/posthog-js/tree/e08ff1be/examples/example-ai-azure-openai) and [Python wrapper](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-azure-openai) examples.
+
+    Install the OpenTelemetry SDK, the OpenAI instrumentation, and the OpenAI SDK.
 
     PostHog AI
 
     ### Python
 
     ```bash
-    pip install posthog openai
+    pip install openai opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-openai-v2
     ```
 
     ### Node
 
     ```bash
-    npm install @posthog/ai posthog-node openai
+    npm install openai @posthog/ai @opentelemetry/sdk-node @opentelemetry/resources @opentelemetry/instrumentation-openai
     ```
 
 2.  2
 
-    ## Initialize PostHog and Azure OpenAI client
+    ## Set up OpenTelemetry tracing
 
     Required
 
-    We call Azure OpenAI through PostHog's AzureOpenAI wrapper to capture all the details of the call. Initialize PostHog with your PostHog project token and host from [your project settings](https://app.posthog.com/settings/project), then pass the PostHog client along with your Azure OpenAI config (the API key, API version, and endpoint) to our AzureOpenAI wrapper.
+    Configure OpenTelemetry to auto-instrument OpenAI SDK calls and export traces to PostHog. PostHog converts `gen_ai.*` spans into `$ai_generation` events automatically.
 
     PostHog AI
 
     ### Python
 
     ```python
-    from posthog.ai.openai import AzureOpenAI
-    from posthog import Posthog
-    posthog = Posthog(
-        "<ph_project_token>",
-        host="https://us.i.posthog.com"
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+    from posthog.ai.otel import PostHogSpanProcessor
+    from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
+    resource = Resource(attributes={
+        SERVICE_NAME: "my-app",
+        "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
+        "foo": "bar", # custom properties are passed through
+    })
+    provider = TracerProvider(resource=resource)
+    provider.add_span_processor(
+        PostHogSpanProcessor(
+            api_key="<ph_project_token>",
+            host="https://us.i.posthog.com",
+        )
     )
-    client = AzureOpenAI(
-        api_key="<azure_openai_api_key>",
-        api_version="2024-10-21",
-        azure_endpoint="https://<your-resource>.openai.azure.com",
-        posthog_client=posthog
-    )
+    trace.set_tracer_provider(provider)
+    OpenAIInstrumentor().instrument()
     ```
 
     ### Node
 
     ```typescript
-    import { AzureOpenAI } from '@posthog/ai'
-    import { PostHog } from 'posthog-node'
-    const phClient = new PostHog(
-      '<ph_project_token>',
-      { host: 'https://us.i.posthog.com' }
-    );
-    const client = new AzureOpenAI({
-      apiKey: '<azure_openai_api_key>',
-      apiVersion: '2024-10-21',
-      endpoint: 'https://<your-resource>.openai.azure.com',
-      posthog: phClient,
-    });
-    // ... your code here ...
-    // IMPORTANT: Shutdown the client when you're done to ensure all events are sent
-    phClient.shutdown()
+    import { NodeSDK } from '@opentelemetry/sdk-node'
+    import { resourceFromAttributes } from '@opentelemetry/resources'
+    import { PostHogSpanProcessor } from '@posthog/ai/otel'
+    import { OpenAIInstrumentation } from '@opentelemetry/instrumentation-openai'
+    const sdk = new NodeSDK({
+      resource: resourceFromAttributes({
+        'service.name': 'my-app',
+        'posthog.distinct_id': 'user_123', // optional: identifies the user in PostHog
+        foo: 'bar', // custom properties are passed through
+      }),
+      spanProcessors: [
+        new PostHogSpanProcessor({
+          apiKey: '<ph_project_token>',
+          host: 'https://us.i.posthog.com',
+        }),
+      ],
+      instrumentations: [new OpenAIInstrumentation()],
+    })
+    sdk.start()
     ```
-
-    > **Note:** This also works with the `AsyncAzureOpenAI` client.
-
-    **Proxy note**
-
-    These SDKs **do not** proxy your calls. They only fire off an async call to PostHog in the background to send the data. You can also use LLM analytics with other SDKs or our API, but you will need to capture the data in the right format. See the schema in the [manual capture section](/docs/llm-analytics/installation/manual-capture.md) for more details.
 
 3.  3
 
@@ -81,23 +90,24 @@
 
     Required
 
-    Now, when you call Azure OpenAI, PostHog automatically captures an `$ai_generation` event. You can also capture or modify additional properties with the distinct ID, trace ID, properties, groups, and privacy mode parameters.
+    Now, when you call Azure OpenAI, PostHog automatically captures `$ai_generation` events via the OpenTelemetry instrumentation.
 
     PostHog AI
 
     ### Python
 
     ```python
+    import openai
+    client = openai.AzureOpenAI(
+        api_key="<azure_openai_api_key>",
+        api_version="2024-10-21",
+        azure_endpoint="https://<your-resource>.openai.azure.com",
+    )
     response = client.chat.completions.create(
         model="<your-deployment-name>",
         messages=[
             {"role": "user", "content": "Tell me a fun fact about hedgehogs"}
         ],
-        posthog_distinct_id="user_123", # optional
-        posthog_trace_id="trace_123", # optional
-        posthog_properties={"conversation_id": "abc123", "paid": True}, # optional
-        posthog_groups={"company": "company_id_in_your_db"},  # optional
-        posthog_privacy_mode=False # optional
     )
     print(response.choices[0].message.content)
     ```
@@ -105,24 +115,20 @@
     ### Node
 
     ```typescript
-    const completion = await client.chat.completions.create({
-        model: "<your-deployment-name>",
-        messages: [{ role: "user", content: "Tell me a fun fact about hedgehogs" }],
-        posthogDistinctId: "user_123", // optional
-        posthogTraceId: "trace_123", // optional
-        posthogProperties: { conversation_id: "abc123", paid: true }, // optional
-        posthogGroups: { company: "company_id_in_your_db" }, // optional
-        posthogPrivacyMode: false // optional
-    });
-    console.log(completion.choices[0].message.content)
+    import { AzureOpenAI } from 'openai'
+    const client = new AzureOpenAI({
+      apiKey: '<azure_openai_api_key>',
+      apiVersion: '2024-10-21',
+      endpoint: 'https://<your-resource>.openai.azure.com',
+    })
+    const response = await client.chat.completions.create({
+      model: '<your-deployment-name>',
+      messages: [{ role: 'user', content: 'Tell me a fun fact about hedgehogs' }],
+    })
+    console.log(response.choices[0].message.content)
     ```
 
-    > **Notes:**
-    >
-    > -   This works with responses where `stream=True`.
-    > -   If you want to capture LLM events anonymously, **don't** pass a distinct ID to the request.
-    >
-    > See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
+    > **Note:** If you want to capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
