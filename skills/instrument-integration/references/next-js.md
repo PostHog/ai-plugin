@@ -148,14 +148,12 @@ JavaScript
 PostHog AI
 
 ```javascript
-'use client'
-import posthog from 'posthog-js'
+"use client";
+import posthog from "posthog-js";
 export default function Home() {
   return (
     <div>
-      <button onClick={() => posthog.capture('test_event')}>
-        Click me for an event
-      </button>
+      <button onClick={() => posthog.capture("test_event")}>Click me for an event</button>
     </div>
   );
 }
@@ -170,11 +168,11 @@ JavaScript
 PostHog AI
 
 ```javascript
-'use client'
-import { useFeatureFlagEnabled } from 'posthog-js/react'
+"use client";
+import { useFeatureFlagEnabled } from "@posthog/react";
 export default function FeatureComponent() {
-  const showNewFeature = useFeatureFlagEnabled('new-feature')
-  return showNewFeature ? <NewFeature /> : <OldFeature />
+  const showNewFeature = useFeatureFlagEnabled("new-feature");
+  return showNewFeature ? <NewFeature /> : <OldFeature />;
 }
 ```
 

@@ -1,6 +1,6 @@
 # PostHog JavaScript Web SDK
 
-**SDK Version:** 1.364.6
+**SDK Version:** 1.369.1
 
 Posthog-js allows you to automatically capture usage and send events to PostHog.
 
@@ -11,6 +11,7 @@ Posthog-js allows you to automatically capture usage and send events to PostHog.
 - Capture
 - Surveys
 - Error tracking
+- Logs
 - LLM analytics
 - Privacy
 - Session replay
@@ -39,6 +40,24 @@ Constructs a new instance of the `PostHog` class
 ```ts
 // Generated example for PostHog
 posthog.PostHog();
+```
+
+---
+
+#### clearIdentity()
+
+**Release Tag:** public
+
+Clear HMAC-based identity verification, reverting to anonymous mode.
+
+### Returns
+
+- `void`
+
+### Examples
+
+```ts
+posthog.clearIdentity()
 ```
 
 ---
@@ -116,6 +135,33 @@ push() keeps the standard async-array-push behavior around after the lib is load
 
 ```ts
 posthog.push(['register', { a: 'b' }]);
+```
+
+---
+
+#### setIdentity()
+
+**Release Tag:** public
+
+Set HMAC-based identity verification.
+
+**Notes:**
+
+When set, products like conversations use server-verified identity (distinct_id + HMAC hash) instead of anonymous session identifiers. The hash should be computed server-side as HMAC-SHA256 of the distinct_id using the project's API secret.
+
+### Parameters
+
+- **`distinctId`** (`string`) - The verified user distinct_id
+- **`hash`** (`string`) - HMAC-SHA256 of distinctId using the project API secret
+
+### Returns
+
+- `void`
+
+### Examples
+
+```ts
+posthog.setIdentity('user_123', 'a1b2c3d4e5f6...')
 ```
 
 ---
@@ -1127,6 +1173,34 @@ turns exception autocapture off by updating the config option `capture_exception
 ```ts
 // Stop capturing exceptions automatically
 posthog.stopExceptionAutocapture()
+```
+
+---
+
+### Logs methods
+
+#### captureLog()
+
+**Release Tag:** public
+
+Capture a log entry and send it to the PostHog logs endpoint.
+
+### Parameters
+
+- **`options`** (`CaptureLogOptions`) - The log entry options
+
+### Returns
+
+- `void`
+
+### Examples
+
+```ts
+posthog.captureLog({
+  body: 'checkout completed',
+  level: 'info',
+  attributes: { order_id: 'ord_789', amount_cents: 4999 },
+})
 ```
 
 ---

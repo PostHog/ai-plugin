@@ -230,7 +230,7 @@ The `defaults` is a date, such as `2026-01-30`, for a configuration snapshot use
 >
 > See our guide on [identifying users](/docs/getting-started/identify-users.md) for how to set this up.
 
-Once you've installed PostHog, see our [features doc](/docs/libraries/js/features.md) for more information about what you can do with it.
+Once you've installed PostHog, see our [features doc](/docs/libraries/js/features.md) for more information about what you can do with it. You can also install the [PostHog VS Code extension](/docs/vscode-extension.md) to see live analytics, flag status, and session replay links inline in your code.
 
 ### Track across marketing website & app
 

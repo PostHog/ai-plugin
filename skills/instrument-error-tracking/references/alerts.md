@@ -4,7 +4,7 @@ To stay on top of issues, you can set up alerts. These enable you to post to Sla
 
 ## Issue created or reopened
 
-To alert when an issue is created or reopened, go to [error tracking's configuration page](https://app.posthog.com/error_tracking?activeTab=configuration#selectedSetting=error-tracking-alerting) and click **Alerting**. This shows you a list of existing alerts. Clicking **New notification** brings you to a page to create a new one.
+To alert when an issue is created or reopened, go to [error tracking's configuration page](https://app.posthog.com/error_tracking/configuration#selectedSetting=error-tracking-alerting) and click **Alerting**. This shows you a list of existing alerts. Clicking **New notification** brings you to a page to create a new one.
 
 ![Error tracking alerting](https://res.cloudinary.com/dmukukwp6/image/upload/error_alerts_create_light_1a05deef21.png)![Error tracking alerting](https://res.cloudinary.com/dmukukwp6/image/upload/error_alerts_create_dark_7585087b18.png)
 
@@ -52,7 +52,7 @@ This sends an email notification to the user you choose. Check out our [alerts d
 
 **Can't find your alert?**
 
-If you'd like a destination to be added that we don't yet support, [let us know in-app](https://app.posthog.com/project/2#panel=support%3Afeedback%3Aerror_tracking%3A%3Afalse).
+If you'd like a destination to be added that we don't yet support, [let us know in-app](https://app.posthog.com/#panel=support%3Afeedback%3Aerror_tracking%3A%3Afalse).
 
 ### Community questions
 

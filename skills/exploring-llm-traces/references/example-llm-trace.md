@@ -10,25 +10,25 @@ Key properties of the $ai_generation event: $ai_input and $ai_output_choices.
 
 ```sql
 SELECT
-    properties.$ai_trace_id AS id,
-    any(properties.$ai_session_id) AS ai_session_id,
+    trace_id AS id,
+    any(session_id) AS ai_session_id,
     min(timestamp) AS first_timestamp,
     ifNull(nullIf(argMinIf(distinct_id, timestamp, equals(event, '$ai_trace')), ''), argMin(distinct_id, timestamp)) AS first_distinct_id,
-    round(if(and(equals(countIf(and(greater(toFloat(properties.$ai_latency), 0), notEquals(event, '$ai_generation'))), 0), greater(countIf(and(greater(toFloat(properties.$ai_latency), 0), equals(event, '$ai_generation'))), 0)), sumIf(toFloat(properties.$ai_latency), and(equals(event, '$ai_generation'), greater(toFloat(properties.$ai_latency), 0))), sumIf(toFloat(properties.$ai_latency), or(equals(properties.$ai_parent_id, NULL), equals(toString(properties.$ai_parent_id), toString(properties.$ai_trace_id))))), 2) AS total_latency,
-    sumIf(toFloat(properties.$ai_input_tokens), in(event, tuple('$ai_generation', '$ai_embedding'))) AS input_tokens,
-    sumIf(toFloat(properties.$ai_output_tokens), in(event, tuple('$ai_generation', '$ai_embedding'))) AS output_tokens,
-    round(sumIf(toFloat(properties.$ai_input_cost_usd), in(event, tuple('$ai_generation', '$ai_embedding'))), 10) AS input_cost,
-    round(sumIf(toFloat(properties.$ai_output_cost_usd), in(event, tuple('$ai_generation', '$ai_embedding'))), 10) AS output_cost,
-    round(sumIf(toFloat(properties.$ai_total_cost_usd), in(event, tuple('$ai_generation', '$ai_embedding'))), 10) AS total_cost,
-    arrayDistinct(arraySort(x -> x.3, groupArrayIf(tuple(uuid, event, timestamp, properties), notEquals(event, '$ai_trace')))) AS events,
-    argMinIf(properties.$ai_input_state, timestamp, equals(event, '$ai_trace')) AS input_state,
-    argMinIf(properties.$ai_output_state, timestamp, equals(event, '$ai_trace')) AS output_state,
-    ifNull(argMinIf(ifNull(properties.$ai_span_name, properties.$ai_trace_name), timestamp, equals(event, '$ai_trace')), argMin(ifNull(properties.$ai_span_name, properties.$ai_trace_name), timestamp)) AS trace_name
+    round(if(and(equals(countIf(and(greater(latency, 0), notEquals(event, '$ai_generation'))), 0), greater(countIf(and(greater(latency, 0), equals(event, '$ai_generation'))), 0)), sumIf(latency, and(equals(event, '$ai_generation'), greater(latency, 0))), sumIf(latency, or(equals(parent_id, NULL), equals(parent_id, trace_id)))), 2) AS total_latency,
+    nullIf(sumIf(input_tokens, in(event, tuple('$ai_generation', '$ai_embedding'))), 0) AS input_tokens,
+    nullIf(sumIf(output_tokens, in(event, tuple('$ai_generation', '$ai_embedding'))), 0) AS output_tokens,
+    nullIf(round(sumIf(input_cost_usd, in(event, tuple('$ai_generation', '$ai_embedding'))), 10), 0) AS input_cost,
+    nullIf(round(sumIf(output_cost_usd, in(event, tuple('$ai_generation', '$ai_embedding'))), 10), 0) AS output_cost,
+    nullIf(round(sumIf(total_cost_usd, in(event, tuple('$ai_generation', '$ai_embedding'))), 10), 0) AS total_cost,
+    arrayDistinct(arraySort(x -> x.3, groupArrayIf(tuple(uuid, event, timestamp, properties, input, output, output_choices, input_state, output_state, tools), notEquals(event, '$ai_trace')))) AS events,
+    argMinIf(input_state, timestamp, equals(event, '$ai_trace')) AS input_state,
+    argMinIf(output_state, timestamp, equals(event, '$ai_trace')) AS output_state,
+    ifNull(argMinIf(ifNull(nullIf(span_name, ''), nullIf(trace_name, '')), timestamp, equals(event, '$ai_trace')), argMin(ifNull(nullIf(span_name, ''), nullIf(trace_name, '')), timestamp)) AS trace_name
 FROM
-    events
+    ai_events
 WHERE
-    and(in(event, tuple('$ai_span', '$ai_generation', '$ai_embedding', '$ai_metric', '$ai_feedback', '$ai_trace')), and(greaterOrEquals(events.timestamp, assumeNotNull(toDateTime('2025-12-09 23:35:41'))), lessOrEquals(events.timestamp, assumeNotNull(toDateTime('2025-12-10 00:25:41'))), equals(properties.$ai_trace_id, '79955c94-7453-488f-a84a-eabb6f084e4c')))
+    and(in(event, tuple('$ai_span', '$ai_generation', '$ai_embedding', '$ai_metric', '$ai_feedback', '$ai_trace')), and(greaterOrEquals(ai_events.timestamp, assumeNotNull(toDateTime('2025-12-09 23:35:41'))), lessOrEquals(ai_events.timestamp, assumeNotNull(toDateTime('2025-12-10 00:25:41'))), equals(trace_id, '79955c94-7453-488f-a84a-eabb6f084e4c')))
 GROUP BY
-    properties.$ai_trace_id
+    trace_id
 LIMIT 1
 ```

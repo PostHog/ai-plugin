@@ -75,7 +75,7 @@ If you're already using Datadog to collect logs, you can forward them to PostHog
 
     1.  Restart the Datadog Agent (or your log forwarder) to apply the configuration
     2.  Generate some log entries in your application
-    3.  Check the PostHog logs interface for your log entries
+    3.  Check the PostHog Logs interface for your log entries
     4.  Verify the logs appear in your project
 
     [View your logs in PostHog](https://app.posthog.com/logs)

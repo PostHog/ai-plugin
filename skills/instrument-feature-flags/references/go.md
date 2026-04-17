@@ -1,4 +1,4 @@
-# Go feature flags installation - Docs
+# Go Feature Flags installation - Docs
 
 1.  1
 

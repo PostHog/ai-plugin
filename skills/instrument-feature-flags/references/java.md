@@ -1,4 +1,4 @@
-# Java feature flags installation - Docs
+# Java Feature Flags installation - Docs
 
 The best way to install the PostHog Java SDK is with a build system like Gradle or Maven. This ensures you can easily upgrade to the latest versions.
 

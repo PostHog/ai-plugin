@@ -1,4 +1,4 @@
-# Web feature flags installation - Docs
+# Web Feature Flags installation - Docs
 
 1.  1
 

@@ -1,4 +1,4 @@
-# Python feature flags installation - Docs
+# Python Feature Flags installation - Docs
 
 1.  1
 
