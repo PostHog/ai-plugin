@@ -3,7 +3,6 @@ name: insights
 description: Query PostHog analytics and insights
 argument-hint: [query]
 ---
-name: insights
 
 # Insights
 

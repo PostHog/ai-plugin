@@ -3,7 +3,6 @@ name: query
 description: Run HogQL queries and natural language analytics
 argument-hint: [question or query]
 ---
-name: query
 
 # Query
 

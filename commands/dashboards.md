@@ -3,7 +3,6 @@ name: dashboards
 description: Manage PostHog dashboards
 argument-hint: [dashboard-name]
 ---
-name: dashboards
 
 # Dashboards
 

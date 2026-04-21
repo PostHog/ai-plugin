@@ -3,7 +3,6 @@ name: experiments
 description: Manage PostHog A/B testing experiments
 argument-hint: [experiment-name]
 ---
-name: experiments
 
 # Experiments
 

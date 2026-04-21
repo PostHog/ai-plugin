@@ -3,7 +3,6 @@ name: logs
 description: Query PostHog logs and log attributes
 argument-hint: [query]
 ---
-name: logs
 
 # Logs
 
