@@ -313,6 +313,7 @@ groupBitmapXor
 groupBitOr
 groupBitXor
 groupUniqArray
+groupUniqArrayArray
 h3CellAreaM2
 h3CellAreaRads2
 h3Distance

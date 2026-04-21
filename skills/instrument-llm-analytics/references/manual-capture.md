@@ -261,6 +261,7 @@
     | $ai_request_url | (Optional) The full URL of the request made to the LLM APIExample: https://api.openai.com/v1/chat/completions |
     | $ai_is_error | (Optional) Boolean to indicate if the request was an error |
     | $ai_error | (Optional) The error message or object |
+    | $ai_stop_reason | (Optional) The reason the model stopped generating tokensExample: end_turn, stop, max_tokens, tool_use |
 
     ### Cost properties
 
