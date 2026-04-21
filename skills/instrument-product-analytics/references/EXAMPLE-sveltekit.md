@@ -304,9 +304,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	// Reverse proxy for PostHog - route /ingest requests to PostHog servers
 	if (pathname.startsWith('/ingest')) {
-		const hostname = pathname.startsWith('/ingest/static/')
-			? 'us-assets.i.posthog.com'
-			: 'us.i.posthog.com';
+		const useAssetHost = pathname.startsWith('/ingest/static/') || pathname.startsWith('/ingest/array/')
+		const hostname = useAssetHost ? 'us-assets.i.posthog.com' : 'us.i.posthog.com';
 
 		const url = new URL(event.request.url);
 		url.protocol = 'https:';

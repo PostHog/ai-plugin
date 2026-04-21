@@ -1,6 +1,7 @@
 analyzing-experiment-session-replays
 auditing-experiments-flags
 cleaning-up-stale-feature-flags
+diagnosing-missing-recordings
 exploring-autocapture-events
 exploring-llm-clusters
 exploring-llm-evaluations

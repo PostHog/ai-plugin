@@ -13,6 +13,7 @@ SELECT
     trace_id AS id,
     any(session_id) AS ai_session_id,
     min(timestamp) AS first_timestamp,
+    max(timestamp) AS last_timestamp,
     ifNull(nullIf(argMinIf(distinct_id, timestamp, equals(event, '$ai_trace')), ''), argMin(distinct_id, timestamp)) AS first_distinct_id,
     round(if(and(equals(countIf(and(greater(latency, 0), notEquals(event, '$ai_generation'))), 0), greater(countIf(and(greater(latency, 0), equals(event, '$ai_generation'))), 0)), sumIf(latency, and(equals(event, '$ai_generation'), greater(latency, 0))), sumIf(latency, or(equals(parent_id, NULL), equals(parent_id, trace_id)))), 2) AS total_latency,
     nullIf(sumIf(input_tokens, in(event, tuple('$ai_generation', '$ai_embedding'))), 0) AS input_tokens,
