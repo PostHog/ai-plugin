@@ -626,6 +626,7 @@ pow
 power
 protocol
 quantile
+quantileExact
 quantiles
 queryString
 queryStringAndFragment
