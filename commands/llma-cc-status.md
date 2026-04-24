@@ -1,4 +1,5 @@
 ---
+name: posthog:llma-cc-status
 description: Check if Claude Code sessions are being sent to PostHog LLM Analytics
 allowed-tools: Bash(echo:*),Bash(cat:*),Bash(python3:*)
 ---
