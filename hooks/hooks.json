@@ -1,5 +1,5 @@
 {
-  "description": "PostHog LLM Analytics - sends Claude Code session data to PostHog",
+  "description": "PostHog LLM Analytics + permission gating for write commands via mcp__posthog__exec",
   "hooks": {
     "SessionEnd": [
       {
@@ -8,6 +8,18 @@
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/session-end-llma.py",
             "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "__exec$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/gate-exec-write.sh",
+            "timeout": 5
           }
         ]
       }

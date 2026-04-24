@@ -18,5 +18,6 @@
     "dashboards",
     "llm-analytics"
   ],
-  "logo": "assets/logo.svg"
+  "logo": "assets/logo.svg",
+  "hooks": "./hooks/cursor-hooks.json"
 }

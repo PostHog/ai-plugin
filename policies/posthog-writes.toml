@@ -1,0 +1,23 @@
+# Gemini CLI policy: re-prompt for PostHog MCP write commands even after the
+# `exec` tool has been broadly approved. Mirrors the write-verb gating in
+# hooks/gate-exec-write.sh (Claude Code) and hooks/cursor-gate-exec-write.sh
+# (Cursor). See https://geminicli.com/docs/reference/policy-engine/.
+#
+# The PostHog MCP exposes a single `exec` tool whose `command` argument takes
+# the form `tools | search | info | schema | call <tool_name> [json]`. The
+# regex below fires only on `call <tool>` where <tool> contains a known
+# write-verb fragment as a hyphen-segmented token. Read verbs (list, get,
+# retrieve, run, query, ...) and the non-`call` exec verbs fall through.
+#
+# Gemini CLI ignores `allow` decisions in extension policies (security), but
+# `ask_user` is honored. Priority 100 puts this in the extension tier
+# (effective ~2.100), overridable by user or admin policies.
+#
+# Keep the write-verb list in sync with hooks/gate-exec-write.sh.
+
+[[rule]]
+mcpName = "posthog"
+toolName = "exec"
+argsPattern = '"command"[ \t]*:[ \t]*"call (--json )?([a-zA-Z0-9_-]*-)?(archive|cancel|create|delete|destroy|disable|duplicate|enable|end|invocations|launch|materialize|merge|move|partial-update|pause|rearrange|reload|rename|reorder|reset|restore|resume|resync|retry|set|ship|unarchive|unmaterialize|update)(-[a-zA-Z0-9_-]+)*[ "{]'
+decision = "ask_user"
+priority = 100
