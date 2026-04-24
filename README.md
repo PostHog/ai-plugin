@@ -41,9 +41,17 @@ Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add man
 
 ### Codex
 
-```bash
-codex plugin install posthog
-```
+1. Add the marketplace:
+    ```bash
+    codex plugin marketplace add PostHog/ai-plugin
+    ```
+
+2. Install the plugin from inside Codex:
+    ```
+    codex
+    # Then run /plugins, select PostHog, and install
+    /plugins
+    ```
 
 ### Gemini CLI
 
