@@ -1,4 +1,5 @@
 ---
+name: posthog:llma-cc-ingest
 description: Manually send a Claude Code session log to PostHog LLM Analytics
 argument-hint: [session-id or path]
 allowed-tools: Bash(python3:*),Bash(ls:*),Bash(echo:*)

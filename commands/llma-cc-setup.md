@@ -1,4 +1,5 @@
 ---
+name: posthog:llma-cc-setup
 description: Set up PostHog LLM Analytics to capture Claude Code sessions
 argument-hint: [api-key]
 allowed-tools: Bash(echo:*),Bash(cat:*),Bash(mkdir:*)
