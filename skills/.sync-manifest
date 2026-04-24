@@ -1,14 +1,17 @@
 analyzing-experiment-session-replays
 auditing-experiments-flags
+auditing-warehouse-data-health
 cleaning-up-stale-feature-flags
 configuring-experiment-analytics
 configuring-experiment-rollout
 creating-experiments
+diagnosing-failed-warehouse-syncs
 diagnosing-missing-recordings
 exploring-autocapture-events
 exploring-llm-clusters
 exploring-llm-evaluations
 exploring-llm-traces
+feature-usage-feed
 finding-experiments
 instrument-error-tracking
 instrument-feature-flags
@@ -19,5 +22,8 @@ instrument-product-analytics
 managing-experiment-lifecycle
 managing-subscriptions
 query-examples
+setting-up-a-data-warehouse-source
 signals
 skills-store
+suggesting-data-imports
+tuning-incremental-sync-config
