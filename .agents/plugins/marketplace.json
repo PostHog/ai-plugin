@@ -1,0 +1,20 @@
+{
+  "name": "posthog",
+  "interface": {
+    "displayName": "PostHog"
+  },
+  "plugins": [
+    {
+      "name": "posthog",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/PostHog/ai-plugin.git"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
