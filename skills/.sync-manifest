@@ -10,6 +10,7 @@ diagnosing-missing-recordings
 diagnosing-sdk-health
 exploring-autocapture-events
 exploring-llm-clusters
+exploring-llm-costs
 exploring-llm-evaluations
 exploring-llm-traces
 feature-usage-feed
@@ -20,6 +21,7 @@ instrument-integration
 instrument-llm-analytics
 instrument-logs
 instrument-product-analytics
+investigate-metric
 managing-experiment-lifecycle
 managing-subscriptions
 query-examples
