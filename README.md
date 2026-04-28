@@ -1,6 +1,6 @@
 # PostHog AI plugin
 
-Official PostHog plugin for AI clients. Access your analytics, feature flags, experiments, and error tracking directly from your AI coding tool.
+Official PostHog plugin for AI clients. Access PostHog products directly from your AI coding tool.
 
 ## Installation
 
@@ -84,22 +84,11 @@ This plugin provides access to 27+ PostHog tools across these categories:
 - **Error tracking** - View and debug errors
 - **LLM analytics** - Track AI/LLM costs and usage
 - **Documentation** - Search PostHog docs
+- And more
 
-## Slash Commands
+### Bundled skills
 
-- `/posthog:flags` - List and manage feature flags
-- `/posthog:insights` - Query analytics and create visualizations
-- `/posthog:errors` - View and debug error tracking data
-- `/posthog:experiments` - Manage A/B testing experiments
-- `/posthog:dashboards` - Create and manage dashboards
-- `/posthog:surveys` - Create and manage user surveys
-- `/posthog:query` - Run HogQL queries and natural language analytics
-- `/posthog:logs` - Query application logs
-- `/posthog:llm-analytics` - Track AI/LLM costs and usage
-- `/posthog:docs` - Search PostHog documentation
-- `/posthog:actions` - Manage PostHog actions
-- `/posthog:search` - Search across all PostHog entities
-- `/posthog:workspace` - Manage organizations and projects
+The plugin also ships 30+ task-specific skills that your AI client loads on demand to follow PostHog best practices — covering HogQL query patterns, experiment creation and lifecycle, feature flags, data warehouse setup and troubleshooting, LLM analytics exploration, session replay diagnostics, and SDK instrumentation. Skills activate automatically when their description matches your request (e.g. "create an experiment", "why isn't my Stripe sync working?", "audit my feature flags"), so you generally don't need to invoke them by name.
 
 ## Example usage
 
