@@ -78,6 +78,14 @@ jobs:
           } | sort -u > "$MANIFEST"
           rm -f "$cm_manifest"
 
+          # Reconcile: remove any directory not in the new manifest
+          # (catches orphans from past manual edits or partial deletions)
+          for d in skills/*/; do
+            [ -d "$d" ] || continue
+            name=$(basename "$d")
+            grep -qFx "$name" "$MANIFEST" || rm -rf "$d"
+          done
+
       - name: Check for changes and bump version
         id: check
         env:
