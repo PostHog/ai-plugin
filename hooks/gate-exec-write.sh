@@ -11,6 +11,12 @@
 # Read-only PostHog tools and non-`call` exec verbs are left alone — the hook
 # exits 0 so normal permission flow applies.
 #
+# Users can opt specific write tools out of the prompt via
+# `POSTHOG_MCP_EXEC_GATE_ALLOW` — a comma-separated list of bash glob patterns
+# matched against the PostHog tool name. Example:
+#
+#     export POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*,annotation-create"
+#
 # Pure bash; no jq or other third-party tools required. Relies on the fact
 # that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
 # the raw JSON payload is safe.
@@ -45,6 +51,17 @@ write_re='(^|-)(archive|cancel|create|delete|destroy|disable|duplicate|enable|en
 
 shopt -s nocasematch
 if [[ "$posthog_tool" =~ $write_re ]]; then
+    # User-controlled allowlist — skip the prompt for tools matching any glob
+    # in POSTHOG_MCP_EXEC_GATE_ALLOW. Patterns use bash glob syntax (`*`, `?`).
+    if [[ -n "${POSTHOG_MCP_EXEC_GATE_ALLOW:-}" ]]; then
+        IFS=',' read -ra _allow_patterns <<< "$POSTHOG_MCP_EXEC_GATE_ALLOW"
+        for _pat in "${_allow_patterns[@]}"; do
+            _pat="${_pat#"${_pat%%[![:space:]]*}"}"
+            _pat="${_pat%"${_pat##*[![:space:]]}"}"
+            [[ -n "$_pat" && "$posthog_tool" == $_pat ]] && exit 0
+        done
+    fi
+
     # `posthog_tool` is restricted to [a-zA-Z0-9_-]+ by the regex above, so
     # interpolating it into the JSON response is safe — no characters that
     # would need escaping for JSON or printf.
