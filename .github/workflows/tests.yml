@@ -1,0 +1,25 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run gate-exec-write hook tests
+        run: ./tests/test_gate_exec_write.sh
+
+      - name: Install pytest
+        run: python3 -m pip install --user pytest
+
+      - name: Run Python tests
+        run: python3 -m pytest tests/test_session_parser.py tests/test_posthog_llma.py
