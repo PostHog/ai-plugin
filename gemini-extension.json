@@ -1,13 +1,15 @@
 {
   "name": "posthog",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from Gemini CLI",
   "mcpServers": {
     "posthog": {
       "command": "npx",
       "args": [
         "mcp-remote@latest",
-        "${POSTHOG_MCP_URL:-https://mcp.posthog.com/mcp}"
+        "${POSTHOG_MCP_URL:-https://mcp.posthog.com/mcp}",
+        "--header",
+        "x-posthog-mcp-consumer:plugin"
       ]
     }
   },
