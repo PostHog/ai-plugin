@@ -28,7 +28,7 @@ SELECT
 FROM
     ai_events
 WHERE
-    and(in(event, tuple('$ai_span', '$ai_generation', '$ai_embedding', '$ai_metric', '$ai_feedback', '$ai_trace')), and(greaterOrEquals(ai_events.timestamp, assumeNotNull(toDateTime('2025-12-09 23:35:41'))), lessOrEquals(ai_events.timestamp, assumeNotNull(toDateTime('2025-12-10 00:25:41'))), equals(trace_id, '79955c94-7453-488f-a84a-eabb6f084e4c')))
+    and(in(event, tuple('$ai_span', '$ai_generation', '$ai_embedding', '$ai_metric', '$ai_feedback', '$ai_trace')), and(greaterOrEquals(ai_events.timestamp, toDateTime('2025-12-09 23:35:41.000000')), lessOrEquals(ai_events.timestamp, toDateTime('2025-12-10 00:15:41.000000')), equals(trace_id, '79955c94-7453-488f-a84a-eabb6f084e4c')))
 GROUP BY
     trace_id
 LIMIT 1
