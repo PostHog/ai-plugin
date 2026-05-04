@@ -4,7 +4,9 @@ auditing-warehouse-data-health
 cleaning-up-stale-feature-flags
 configuring-experiment-analytics
 configuring-experiment-rollout
+copying-flags-across-projects
 creating-experiments
+debugging-local-replay
 diagnosing-failed-warehouse-syncs
 diagnosing-missing-recordings
 diagnosing-sdk-health
@@ -15,6 +17,8 @@ exploring-llm-evaluations
 exploring-llm-traces
 feature-usage-feed
 finding-experiments
+finding-replay-for-issue
+inbox-exploration
 instrument-error-tracking
 instrument-feature-flags
 instrument-integration
@@ -22,6 +26,7 @@ instrument-llm-analytics
 instrument-logs
 instrument-product-analytics
 investigate-metric
+investigating-replay
 managing-experiment-lifecycle
 managing-subscriptions
 querying-posthog-data
@@ -29,4 +34,5 @@ setting-up-a-data-warehouse-source
 signals
 skills-store
 suggesting-data-imports
+triaging-visual-review-runs
 tuning-incremental-sync-config
