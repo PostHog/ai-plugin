@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.0.1
+**SDK Version:** 7.14.0
 
 Integrate PostHog into any python application.
 
@@ -56,9 +56,11 @@ Initialize a new PostHog client instance.
 - **`before_send`** (`any`)
 - **`flag_fallback_cache_url`** (`any`)
 - **`enable_local_evaluation`** (`bool`)
+- **`flag_definition_cache_provider?`** (`FlagDefinitionCacheProvider`)
 - **`capture_exception_code_variables`** (`bool`)
 - **`code_variables_mask_patterns`** (`any`)
 - **`code_variables_ignore_patterns`** (`any`)
+- **`in_app_modules`** (`UnionType[list[str], any]`)
 
 ### Returns
 
@@ -270,6 +272,41 @@ except Exception as e:
 
 ### Feature flags methods
 
+#### evaluate_flags()
+
+**Release Tag:** public
+
+Evaluate all feature flags for a user in a single call and return a :class:`FeatureFlagEvaluations` snapshot. Branch on ``.is_enabled()`` / ``.get_flag()`` and pass the same snapshot to :meth:`capture` via the ``flags`` option so events carry the exact flag values the code branched on.  Prefer this over repeated ``get_feature_flag()`` calls and over ``capture(send_feature_flags=True)`` — it consolidates flag evaluation into a single ``/flags`` request per incoming request.  Local evaluation is transparent: when the poller resolves a flag, the snapshot's ``$feature_flag_called`` events are tagged ``locally_evaluated=True`` and reason ``"Evaluated locally"``.
+
+### Parameters
+
+- **`distinct_id`** (`Number`) - The user's distinct ID. If ``None``, falls back to the         context distinct_id. If still unresolvable, returns an empty snapshot.
+- **`groups?`** (`dict[str, str]`) - Mapping of group type to group key.
+- **`person_properties?`** (`dict[str, Any]`) - Person properties to use for evaluation.
+- **`group_properties?`** (`dict[str, dict[str, Any]]`) - Group properties keyed by group type.
+- **`only_evaluate_locally`** (`bool`) - If True, never fall back to remote evaluation —         flags that can't be evaluated locally are simply omitted from the snapshot.
+- **`disable_geoip?`** (`bool`) - Whether to disable GeoIP lookup.
+- **`flag_keys?`** (`list[str]`) - Optional list of flag keys to scope the underlying ``/flags``         request to a subset.
+- **`device_id?`** (`str`) - Optional device ID override. If not provided, falls back to the         context device_id (which may be set via tracing headers). Used by         experience-continuity flags to match users across distinct_id changes.
+
+### Returns
+
+- `FeatureFlagEvaluations`
+
+### Examples
+
+```python
+flags = posthog.evaluate_flags(
+    "user_123",
+    person_properties={"plan": "enterprise"},
+)
+if flags.is_enabled("new-dashboard"):
+    render_new_dashboard()
+posthog.capture("page_viewed", distinct_id="user_123", flags=flags)
+```
+
+---
+
 #### feature_enabled()
 
 **Release Tag:** public
@@ -286,6 +323,7 @@ Check if a feature flag is enabled for a user.
 - **`only_evaluate_locally`** (`bool`) - Whether to only evaluate locally.
 - **`send_feature_flag_events`** (`bool`) - Whether to send feature flag events.
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP for this request.
+- **`device_id?`** (`str`) - The device ID for this request.
 
 ### Returns
 
@@ -318,6 +356,7 @@ Get all feature flags for a user.
 - **`only_evaluate_locally`** (`bool`) - Whether to only evaluate locally.
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP for this request.
 - **`flag_keys_to_evaluate?`** (`list[str]`) - A list of specific flag keys to evaluate. If provided,         only these flags will be evaluated, improving performance.
+- **`device_id?`** (`str`) - The device ID for this request.
 
 ### Returns
 
@@ -346,6 +385,7 @@ Get all feature flags and their payloads for a user.
 - **`only_evaluate_locally`** (`bool`) - Whether to only evaluate locally.
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP for this request.
 - **`flag_keys_to_evaluate?`** (`list[str]`) - A list of specific flag keys to evaluate. If provided,         only these flags will be evaluated, improving performance.
+- **`device_id?`** (`str`) - The device ID for this request.
 
 ### Returns
 
@@ -375,6 +415,7 @@ Get multivariate feature flag value for a user.
 - **`only_evaluate_locally`** (`bool`) - Whether to only evaluate locally.
 - **`send_feature_flag_events`** (`bool`) - Whether to send feature flag events.
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP for this request.
+- **`device_id?`** (`str`) - The device ID for this request.
 
 ### Returns
 
@@ -407,8 +448,9 @@ Get the payload for a feature flag.
 - **`person_properties`** (`any`) - A dictionary of person properties.
 - **`group_properties`** (`any`) - A dictionary of group properties.
 - **`only_evaluate_locally`** (`bool`) - Whether to only evaluate locally.
-- **`send_feature_flag_events`** (`bool`) - Whether to send feature flag events.
+- **`send_feature_flag_events`** (`bool`) - Deprecated. Use get_feature_flag() instead if you need events.
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP for this request.
+- **`device_id?`** (`str`) - The device ID for this request.
 
 ### Returns
 
@@ -431,7 +473,7 @@ if is_my_flag_enabled:
 
 **Release Tag:** public
 
-Get feature flags and payloads for a user by calling decide.
+Get feature flags and payloads for a user.
 
 ### Parameters
 
@@ -441,6 +483,7 @@ Get feature flags and payloads for a user by calling decide.
 - **`group_properties`** (`any`) - A dictionary of group properties.
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP for this request.
 - **`flag_keys_to_evaluate?`** (`list[str]`) - A list of specific flag keys to evaluate. If provided,         only these flags will be evaluated, improving performance.
+- **`device_id?`** (`str`) - The device ID for this request.
 
 ### Returns
 
@@ -458,7 +501,7 @@ result = posthog.get_feature_flags_and_payloads('<distinct_id>')
 
 **Release Tag:** public
 
-Get feature flag payloads for a user by calling decide.
+Get feature flag payloads for a user.
 
 ### Parameters
 
@@ -468,6 +511,7 @@ Get feature flag payloads for a user by calling decide.
 - **`group_properties`** (`any`) - A dictionary of group properties.
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP for this request.
 - **`flag_keys_to_evaluate?`** (`list[str]`) - A list of specific flag keys to evaluate. If provided,         only these flags will be evaluated, improving performance.
+- **`device_id?`** (`str`) - The device ID for this request.
 
 ### Returns
 
@@ -485,7 +529,7 @@ payloads = posthog.get_feature_payloads('<distinct_id>')
 
 **Release Tag:** public
 
-Get feature flag variants for a user by calling decide.
+Get feature flag variants for a user.
 
 ### Parameters
 
@@ -495,6 +539,7 @@ Get feature flag variants for a user by calling decide.
 - **`group_properties`** (`any`) - A dictionary of group properties.
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP for this request.
 - **`flag_keys_to_evaluate?`** (`list[str]`) - A list of specific flag keys to evaluate. If provided,         only these flags will be evaluated, improving performance.
+- **`device_id?`** (`str`) - The device ID for this request.
 
 ### Returns
 
@@ -516,6 +561,7 @@ Get feature flags decision.
 - **`group_properties`** (`any`) - A dictionary of group properties.
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP for this request.
 - **`flag_keys_to_evaluate?`** (`list[str]`) - A list of specific flag keys to evaluate. If provided,         only these flags will be evaluated, improving performance.
+- **`device_id?`** (`str`) - The device ID for this request.
 
 ### Returns
 
@@ -584,6 +630,7 @@ Get a FeatureFlagResult object which contains the flag result and payload for a 
 - **`only_evaluate_locally`** (`bool`) - Whether to only evaluate locally.
 - **`send_feature_flag_events`** (`bool`) - Whether to send feature flag events.
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP for this request.
+- **`device_id?`** (`str`) - The device ID for this request.
 
 ### Returns
 
@@ -716,6 +763,7 @@ Set properties on a group.
 - **`timestamp`** (`any`) - Optional timestamp for the event
 - **`uuid`** (`any`) - Optional UUID for the event
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP lookup
+- **`distinct_id`** (`any`) - Optional distinct ID of the user performing the action
 
 ### Returns
 
@@ -931,6 +979,39 @@ except Exception as e:
 
 ### Feature flags methods
 
+#### evaluate_flags()
+
+**Release Tag:** public
+
+Evaluate all feature flags for a user in a single call and return a :class:`FeatureFlagEvaluations` snapshot. Branch on ``.is_enabled()`` / ``.get_flag()`` and pass the same snapshot to ``capture()`` via the ``flags`` option so events carry the exact flag values the code branched on.  Prefer this over repeated ``get_feature_flag()`` calls and over ``capture(send_feature_flags=True)`` — it consolidates flag evaluation into a single ``/flags`` request per incoming request.
+
+### Parameters
+
+- **`distinct_id`** (`any`) - The user's distinct ID. If ``None``, falls back to the context         distinct_id. If still unresolvable, returns an empty snapshot.
+- **`groups`** (`any`) - Mapping of group type to group key.
+- **`person_properties`** (`any`) - Person properties to use for evaluation.
+- **`group_properties`** (`any`) - Group properties keyed by group type.
+- **`only_evaluate_locally`** (`bool`) - If ``True``, never fall back to remote evaluation.
+- **`disable_geoip`** (`any`) - Whether to disable GeoIP lookup.
+- **`flag_keys`** (`any`) - Optional list of flag keys. When provided, only these flags are         evaluated — the underlying ``/flags`` request asks the server for just         this subset, which makes the response smaller and the request cheaper.         Use this when you only need a handful of flags out of many.
+- **`device_id`** (`any`) - Optional device ID override. If not provided, falls back to the         context device_id (which may be set via tracing headers). Used by         experience-continuity flags to match users across distinct_id changes.
+
+### Returns
+
+- `FeatureFlagEvaluations`
+
+### Examples
+
+```python
+from posthog import evaluate_flags, capture
+flags = evaluate_flags("user_123", person_properties={"plan": "enterprise"})
+if flags.is_enabled("new-dashboard"):
+    render_new_dashboard()
+capture("page_viewed", distinct_id="user_123", flags=flags)
+```
+
+---
+
 #### feature_enabled()
 
 **Release Tag:** public
@@ -951,6 +1032,7 @@ You can call `posthog.load_feature_flags()` before to make sure you're not doing
 - **`only_evaluate_locally`** (`bool`) - Whether to evaluate only locally
 - **`send_feature_flag_events`** (`bool`) - Whether to send feature flag events
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP lookup
+- **`device_id`** (`any`)
 
 ### Returns
 
@@ -1009,6 +1091,8 @@ Flags are key-value pairs where the key is the flag key and the value is the fla
 - **`group_properties`** (`any`) - Group properties
 - **`only_evaluate_locally`** (`bool`) - Whether to evaluate only locally
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP lookup
+- **`device_id`** (`any`)
+- **`flag_keys_to_evaluate`** (`any`) - Optional list of flag keys to evaluate (evaluates all if None)
 
 ### Returns
 
@@ -1044,6 +1128,7 @@ Get feature flag variant for users. Used with experiments.
 - **`only_evaluate_locally`** (`bool`) - Whether to evaluate only locally
 - **`send_feature_flag_events`** (`bool`) - Whether to send feature flag events
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP lookup
+- **`device_id`** (`any`)
 
 ### Returns
 
@@ -1157,6 +1242,7 @@ Get a FeatureFlagResult object which contains the flag result and payload.  This
 - **`only_evaluate_locally`** (`bool`)
 - **`send_feature_flag_events`** (`bool`)
 - **`disable_geoip`** (`any`)
+- **`device_id`** (`any`)
 
 ### Returns
 
@@ -1230,6 +1316,18 @@ Variable names matching these patterns will be masked with *** when capturing co
 
 ### Contexts methods
 
+#### get_tags()
+
+**Release Tag:** public
+
+Get all tags from the current context.  Returns:     Dict of all tags in the current context
+
+### Returns
+
+- `dict[str, Any]`
+
+---
+
 #### new_context()
 
 **Release Tag:** public
@@ -1280,6 +1378,29 @@ from posthog import scoped, tag, capture
 def process_payment(payment_id):
     tag("payment_id", payment_id)
     capture("payment_started")
+```
+
+---
+
+#### set_context_device_id()
+
+**Release Tag:** public
+
+Set the device ID for the current context, associating all feature flag requests in this or child contexts with the given device ID.
+
+### Parameters
+
+- **`device_id?`** (`str`) - The device ID to associate with the current context and its children
+
+### Returns
+
+- `None`
+
+### Examples
+
+```python
+from posthog import set_context_device_id
+set_context_device_id("device_123")
 ```
 
 ---

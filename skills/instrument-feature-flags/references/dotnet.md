@@ -36,7 +36,7 @@ PostHog AI
 ```json
 {
   "PostHog": {
-    "ProjectApiKey": "<ph_project_token>",
+    "ProjectToken": "<ph_project_token>",
     "HostUrl": "https://us.i.posthog.com"
   }
 }
@@ -197,7 +197,7 @@ PostHog AI
 ```csharp
 using PostHog;
 public static readonly PostHogClient PostHog = new(new PostHogOptions {
-    ProjectApiKey = "<ph_project_token>",
+    ProjectToken = "<ph_project_token>",
     HostUrl = new Uri("https://us.i.posthog.com"),
     PersonalApiKey = Environment.GetEnvironmentVariable(
       "PostHog__PersonalApiKey")

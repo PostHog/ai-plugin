@@ -13,7 +13,7 @@
     PostHog AI
 
     ```yaml
-    posthog_flutter: ^5.0.0
+    posthog_flutter: ^5.24.0
     ```
 
 2.  2
@@ -35,7 +35,7 @@
       <activity>
         [...]
       </activity>
-      <meta-data android:name="com.posthog.posthog.API_KEY" android:value="<ph_project_token>" />
+      <meta-data android:name="com.posthog.posthog.PROJECT_TOKEN" android:value="<ph_project_token>" />
       <meta-data android:name="com.posthog.posthog.POSTHOG_HOST" android:value="https://us.i.posthog.com" />
       <meta-data android:name="com.posthog.posthog.TRACK_APPLICATION_LIFECYCLE_EVENTS" android:value="true" />
       <meta-data android:name="com.posthog.posthog.DEBUG" android:value="true" />
@@ -50,7 +50,7 @@
 
     ```groovy
     defaultConfig {
-      minSdkVersion 21
+      minSdkVersion 23
       // rest of your config
     }
     ```
@@ -66,7 +66,7 @@
     ```xml
     <dict>
       [...]
-      <key>com.posthog.posthog.API_KEY</key>
+      <key>com.posthog.posthog.PROJECT_TOKEN</key>
       <string><ph_project_token></string>
       <key>com.posthog.posthog.POSTHOG_HOST</key>
       <string>https://us.i.posthog.com</string>

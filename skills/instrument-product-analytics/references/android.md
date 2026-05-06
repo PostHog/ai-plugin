@@ -508,7 +508,7 @@ PostHog.reloadFeatureFlags()
 
 ## Experiments (A/B tests)
 
-Since [experiments](/docs/experiments/manual.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
+Since [experiments](/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
 
 Kotlin
 

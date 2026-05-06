@@ -1,6 +1,6 @@
 # PostHog JavaScript Web SDK
 
-**SDK Version:** 1.369.3
+**SDK Version:** 1.372.8
 
 Posthog-js allows you to automatically capture usage and send events to PostHog.
 
@@ -9,8 +9,8 @@ Posthog-js allows you to automatically capture usage and send events to PostHog.
 - Initialization
 - Identification
 - Capture
-- Surveys
 - Error tracking
+- Surveys
 - Logs
 - LLM analytics
 - Privacy
@@ -162,6 +162,132 @@ When set, products like conversations use server-verified identity (distinct_id 
 
 ```ts
 posthog.setIdentity('user_123', 'a1b2c3d4e5f6...')
+```
+
+---
+
+### Error tracking methods
+
+#### addExceptionStep()
+
+**Release Tag:** public
+
+Add a breadcrumb-like step that will be attached to the next captured exception.
+
+### Parameters
+
+- **`message`** (`string`)
+- **`properties?`** (`Properties`)
+
+### Returns
+
+- `void`
+
+### Examples
+
+```ts
+posthog.addExceptionStep('Checkout button clicked', {
+  checkout_id: 'ch_123',
+})
+```
+
+---
+
+#### captureException()
+
+**Release Tag:** public
+
+Capture a caught exception manually
+
+### Parameters
+
+- **`error`** (`unknown`) - The error to capture
+- **`additionalProperties?`** (`Properties`) - Any additional properties to add to the error event
+
+### Returns
+
+**Union of:**
+- `CaptureResult`
+- `undefined`
+
+### Examples
+
+#### Capture a caught exception
+
+```ts
+// Capture a caught exception
+try {
+  // something that might throw
+} catch (error) {
+  posthog.captureException(error)
+}
+```
+
+#### With additional properties
+
+```ts
+// With additional properties
+posthog.captureException(error, {
+  customProperty: 'value',
+  anotherProperty: ['I', 'can be a list'],
+  ...
+})
+```
+
+---
+
+#### startExceptionAutocapture()
+
+**Release Tag:** public
+
+turns exception autocapture on, and updates the config option `capture_exceptions` to the provided config (or `true`)
+
+### Parameters
+
+- **`config?`** (`ExceptionAutoCaptureConfig`) - optional configuration option to control the exception autocapture behavior
+
+### Returns
+
+- `void`
+
+### Examples
+
+#### Start with default exception autocapture rules. No-op if already enabled
+
+```ts
+// Start with default exception autocapture rules. No-op if already enabled
+posthog.startExceptionAutocapture()
+```
+
+#### Start and override controls
+
+```ts
+// Start and override controls
+posthog.startExceptionAutocapture({
+  // you don't have to send all of these (unincluded values will use the default)
+  capture_unhandled_errors: true || false,
+  capture_unhandled_rejections: true || false,
+  capture_console_errors: true || false
+})
+```
+
+---
+
+#### stopExceptionAutocapture()
+
+**Release Tag:** public
+
+turns exception autocapture off by updating the config option `capture_exceptions` to `false`
+
+### Returns
+
+- `void`
+
+### Examples
+
+```ts
+// Stop capturing exceptions automatically
+posthog.stopExceptionAutocapture()
 ```
 
 ---
@@ -1076,107 +1202,6 @@ posthog.unregister('plan_type')
 
 ---
 
-### Error tracking methods
-
-#### captureException()
-
-**Release Tag:** public
-
-Capture a caught exception manually
-
-### Parameters
-
-- **`error`** (`unknown`) - The error to capture
-- **`additionalProperties?`** (`Properties`) - Any additional properties to add to the error event
-
-### Returns
-
-**Union of:**
-- `CaptureResult`
-- `undefined`
-
-### Examples
-
-#### Capture a caught exception
-
-```ts
-// Capture a caught exception
-try {
-  // something that might throw
-} catch (error) {
-  posthog.captureException(error)
-}
-```
-
-#### With additional properties
-
-```ts
-// With additional properties
-posthog.captureException(error, {
-  customProperty: 'value',
-  anotherProperty: ['I', 'can be a list'],
-  ...
-})
-```
-
----
-
-#### startExceptionAutocapture()
-
-**Release Tag:** public
-
-turns exception autocapture on, and updates the config option `capture_exceptions` to the provided config (or `true`)
-
-### Parameters
-
-- **`config?`** (`ExceptionAutoCaptureConfig`) - optional configuration option to control the exception autocapture behavior
-
-### Returns
-
-- `void`
-
-### Examples
-
-#### Start with default exception autocapture rules. No-op if already enabled
-
-```ts
-// Start with default exception autocapture rules. No-op if already enabled
-posthog.startExceptionAutocapture()
-```
-
-#### Start and override controls
-
-```ts
-// Start and override controls
-posthog.startExceptionAutocapture({
-  // you don't have to send all of these (unincluded values will use the default)
-  capture_unhandled_errors: true || false,
-  capture_unhandled_rejections: true || false,
-  capture_console_errors: true || false
-})
-```
-
----
-
-#### stopExceptionAutocapture()
-
-**Release Tag:** public
-
-turns exception autocapture off by updating the config option `capture_exceptions` to `false`
-
-### Returns
-
-- `void`
-
-### Examples
-
-```ts
-// Stop capturing exceptions automatically
-posthog.stopExceptionAutocapture()
-```
-
----
-
 ### Logs methods
 
 #### captureLog()
@@ -1331,7 +1356,7 @@ if (posthog.has_opted_out_capturing()) {
 
 Checks whether the PostHog library is currently capturing events.
 Usually this means that the user has not opted out of capturing, but the exact behaviour can be controlled by some config options.
-Additionally, if the cookieless_mode is set to `'on_reject'`, we will capture events in cookieless mode if the user has explicitly opted out.
+Additionally, if the cookieless_mode is set to `'on_reject'`, we will capture events in cookieless mode if the user has opted out or been defaulted to opt-out.
 
 ### Returns
 

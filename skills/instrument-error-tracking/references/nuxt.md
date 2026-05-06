@@ -74,9 +74,9 @@
     })
     ```
 
-    **Personal API Key**
+    **Personal API key**
 
-    Your Personal API Key will require `organization:read` and `error_tracking:write` scopes.
+    Your personal API key will require `organization:read` and `error_tracking:write` scopes.
 
     The module will automatically:
 

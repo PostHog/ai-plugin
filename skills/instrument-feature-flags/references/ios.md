@@ -14,7 +14,7 @@
 
     ```swift
     dependencies: [
-      .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.0.0")
+      .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.56.0")
     ]
     ```
 
@@ -25,7 +25,7 @@
     PostHog AI
 
     ```ruby
-    pod "PostHog", "~> 3.0"
+    pod "PostHog", "~> 3.56"
     ```
 
 2.  2
@@ -48,7 +48,7 @@
         func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
             let POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
             let POSTHOG_HOST = "https://us.i.posthog.com"
-            let config = PostHogConfig(apiKey: POSTHOG_PROJECT_TOKEN, host: POSTHOG_HOST)
+            let config = PostHogConfig(projectToken: POSTHOG_PROJECT_TOKEN, host: POSTHOG_HOST)
             PostHogSDK.shared.setup(config)
             return true
         }

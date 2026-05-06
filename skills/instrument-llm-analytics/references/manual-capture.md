@@ -161,7 +161,7 @@
     ### 2\. Initialize PostHog
 
     ```ruby
-    require 'posthog-ruby'
+    require 'posthog'
     posthog = PostHog::Client.new({
         api_key: '<ph_project_token>',
         host: 'https://us.i.posthog.com'
