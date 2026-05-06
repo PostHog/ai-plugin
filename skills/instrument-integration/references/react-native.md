@@ -359,14 +359,14 @@ posthog.screen('dashboard', {
 
 PostHog autocapture can automatically track the following events for you:
 
--   **Application Opened** - when the app is opened from a closed state
--   **Application Became Active** - when the app comes to the foreground (e.g. from the app switcher)
--   **Application Backgrounded** - when the app is sent to the background by the user
--   **Application Installed** - when the app is installed.
--   **Application Updated** - when the app is updated.
--   **$screen** - when the user navigates (if using `@react-navigation/native` (v6 or lower) or `react-native-navigation`), check out the [capturing screen views](/docs/libraries/react-native.md#capturing-screen-views) section
--   **$autocapture** - touch events when the user interacts with the screen
--   **$exception** - when the app throws exceptions.
+-   **Application Opened** – when the app is opened from a closed state
+-   **Application Became Active** – when the app comes to the foreground (e.g. from the app switcher)
+-   **Application Backgrounded** – when the app is sent to the background by the user
+-   **Application Installed** – when the app is installed.
+-   **Application Updated** – when the app is updated.
+-   **$screen** – when the user navigates (if using `@react-navigation/native` (v6 or lower) or `react-native-navigation`), check out the [capturing screen views](/docs/libraries/react-native.md#capturing-screen-views) section
+-   **$autocapture** – touch events when the user interacts with the screen
+-   **$exception** – when the app throws exceptions.
 
 > ⚠️ **React Navigation v7 users**
 >
@@ -945,7 +945,7 @@ For details on how to implement bootstrapping, see our [bootstrapping guide](/do
 
 ## Experiments (A/B tests)
 
-Since [experiments](/docs/experiments/manual.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
+Since [experiments](/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
 
 React Native
 
@@ -1080,6 +1080,12 @@ const posthog = new PostHog('<ph_project_token>', {
 ```
 
 You can also use `before_send` to sample or filter other event types. See the [JavaScript Web SDK documentation](/docs/libraries/js/usage.md#amending-or-sampling-events) for more examples.
+
+## Logs
+
+To set up [logs](/docs/logs.md) in your React Native app, follow the [React Native logs installation guide](/docs/logs/installation/react-native.md). The SDK exposes `posthog.captureLog`, `posthog.logger.{trace,debug,info,warn,error,fatal}`, and `posthog.flushLogs` for sending structured records to PostHog Logs.
+
+> **Minimum version:** `posthog-react-native@4.44.0` or later.
 
 ## Session replay
 

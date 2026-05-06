@@ -10,6 +10,7 @@ debugging-local-replay
 diagnosing-failed-warehouse-syncs
 diagnosing-missing-recordings
 diagnosing-sdk-health
+exploring-apm-traces
 exploring-autocapture-events
 exploring-llm-clusters
 exploring-llm-costs

@@ -14,8 +14,10 @@ By including session IDs and user identity in your logs, you can:
 ## Prerequisites
 
 -   A [logging client installed](/docs/logs/installation.md) on your backend
--   The [PostHog JavaScript SDK](/docs/libraries/js.md) on your frontend
+-   The [PostHog JavaScript SDK](/docs/libraries/js.md) on your web frontend, or the [React Native SDK](/docs/libraries/react-native.md) in your mobile app
 -   [Session replay enabled](/docs/session-replay/installation.md) if you want to link to replays (you can still pass `posthogDistinctId` without session replay to link logs to a user profile)
+
+> **Logs captured client-side:** When you call `posthog.captureLog` / `posthog.logger.*` directly from the JavaScript web SDK or React Native SDK, the current `distinct_id` and `session_id` are attached to every log record automatically. You only need the manual setup below when your backend emits the logs.
 
 ## Implementation
 
@@ -25,12 +27,11 @@ To link logs to session replays, you need to pass the session ID and user identi
 
 In your frontend code, retrieve the current session ID and send it with your API requests:
 
-JavaScript
-
 PostHog AI
 
+### JavaScript
+
 ```javascript
-// In your frontend code
 import posthog from 'posthog-js'
 // Get the current session ID
 const sessionId = posthog.getSessionId()
@@ -42,6 +43,23 @@ const response = await fetch('/api/chat', {
     message: userInput,
     sessionId: sessionId  // Include session ID
   })
+})
+```
+
+### "React
+
+```jsx
+import { posthog } from './posthog'
+// Get the current session ID
+const sessionId = posthog.getSessionId()
+// Send it with your API request
+const response = await fetch('https://api.example.com/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    message: userInput,
+    sessionId,  // Include session ID
+  }),
 })
 ```
 

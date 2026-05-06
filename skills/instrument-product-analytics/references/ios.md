@@ -15,7 +15,7 @@ Podfile
 PostHog AI
 
 ```ruby
-pod "PostHog", "~> 3.0"
+pod "PostHog", "~> 3.56.0"
 ```
 
 ### Swift Package Manager
@@ -30,7 +30,7 @@ PostHog AI
 
 ```swift
 dependencies: [
-  .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.0.0")
+  .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.56.0")
 ],
 ```
 
@@ -64,10 +64,10 @@ import PostHog
 import UIKit
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        let POSTHOG_API_KEY = "<ph_project_token>"
+        let POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
         // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
         let POSTHOG_HOST = "https://us.i.posthog.com"
-        let config = PostHogConfig(apiKey: POSTHOG_API_KEY, host: POSTHOG_HOST)
+        let config = PostHogConfig(projectToken: POSTHOG_PROJECT_TOKEN, host: POSTHOG_HOST)
         PostHogSDK.shared.setup(config)
         return true
     }
@@ -88,10 +88,10 @@ struct YourGreatApp: App {
     // Add PostHog to your app's initializer.
     // If using UIApplicationDelegateAdaptor, see the UIKit tab.
     init() {
-        let POSTHOG_API_KEY = "<ph_project_token>"
+        let POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
         // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
         let POSTHOG_HOST = "https://us.i.posthog.com"
-        let config = PostHogConfig(apiKey: POSTHOG_API_KEY, host: POSTHOG_HOST)
+        let config = PostHogConfig(projectToken: POSTHOG_PROJECT_TOKEN, host: POSTHOG_HOST)
         PostHogSDK.shared.setup(config)
     }
     var body: some Scene {

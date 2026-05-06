@@ -1,6 +1,6 @@
 # PostHog Node.js SDK
 
-**SDK Version:** 5.29.2
+**SDK Version:** 5.33.2
 
 PostHog Node.js SDK allows you to capture events and send them to PostHog from your Node.js applications.
 
@@ -736,7 +736,8 @@ Capture an error exception as an event.
 - **`error`** (`unknown`) - The error to capture
 - **`distinctId?`** (`string`) - Optional user distinct ID
 - **`additionalProperties?`** (`Record<string | number, any>`) - Optional additional properties to include
-- **`uuid?`** (`EventMessage['uuid']`)
+- **`uuid?`** (`EventMessage['uuid']`) - Optional event UUID
+- **`flags?`** (`FeatureFlagEvaluations`) - Optional `FeatureFlagEvaluations` snapshot to attach the same flag context as your other events
 
 ### Returns
 
@@ -784,6 +785,7 @@ Capture an error exception as an event immediately (synchronously).
 - **`error`** (`unknown`) - The error to capture
 - **`distinctId?`** (`string`) - Optional user distinct ID
 - **`additionalProperties?`** (`Record<string | number, any>`) - Optional additional properties to include
+- **`flags?`** (`FeatureFlagEvaluations`) - Optional `FeatureFlagEvaluations` snapshot to attach the same flag context as your other events
 
 ### Returns
 
@@ -863,6 +865,75 @@ await client.enable()
 ---
 
 ### Feature flags methods
+
+#### evaluateFlags()
+
+**Release Tag:** public
+
+Evaluate all feature flags for a user in a single call and return a  snapshot. Branch on `.isEnabled()` / `.getFlag()`, then pass the same snapshot to `capture()` via the `flags` option so the captured event carries the exact flag values the code branched on.
+Prefer this over repeated `isFeatureEnabled()` / `getFeatureFlag()` calls and over `capture({ sendFeatureFlags: true })` — it consolidates flag evaluation into a single `/flags` request per incoming request.
+**Local evaluation is transparent.** When the poller can resolve a flag from cached definitions, no network call is made and the snapshot's `$feature_flag_called` events are tagged `locally_evaluated: true`.
+**Trim the request.** Pass `flagKeys` to scope the underlying `/flags` request to a subset of flags — useful when you only need a few flags and want to reduce the response payload.
+**Trim the event payload.** Use `flags.only([...])` or `flags.onlyAccessed()` to filter which flags get attached to a captured event without re-fetching.
+
+### Parameters
+
+- **`options?`** (`AllFlagsOptions`) - Optional configuration for flag evaluation. Supports the same fields as `getAllFlags()`, including `flagKeys` to scope the `/flags` request.
+
+### Returns
+
+- `Promise<FeatureFlagEvaluations>`
+
+### Examples
+
+#### 
+
+```node
+Basic usage:
+
+const flags = await client.evaluateFlags('user_123', {
+  personProperties: { plan: 'enterprise' },
+})
+if (flags.isEnabled('new-dashboard')) {
+  renderNewDashboard()
+}
+client.capture({ distinctId: 'user_123', event: 'page_viewed', flags })
+```
+
+#### 
+
+```node
+Scope the  request to specific keys:
+
+const flags = await client.evaluateFlags('user_123', {
+  flagKeys: ['new-dashboard', 'checkout-flow'],
+  personProperties: { plan: 'enterprise' },
+})
+```
+
+#### 
+
+```node
+Attach only the flags the developer actually checked:
+
+const flags = await client.evaluateFlags('user_123')
+if (flags.isEnabled('new-dashboard')) { ... }
+client.capture({ distinctId: 'user_123', event: 'page_viewed', flags: flags.onlyAccessed() })
+```
+
+#### 
+
+```node
+Use  to avoid repeating the distinctId:
+
+await client.withContext({ distinctId: 'user_123' }, async () => {
+  const flags = await client.evaluateFlags()
+  if (flags.isEnabled('new-dashboard')) { ... }
+  client.capture({ event: 'page_viewed', flags })
+})
+```
+
+---
 
 #### getAllFlags()
 
@@ -957,7 +1028,7 @@ const result = await client.getAllFlagsAndPayloads('user_123', {
 
 #### getFeatureFlag()
 
-**Release Tag:** public
+**Release Tag:** deprecated
 
 Get the value of a feature flag for a specific user.
 
@@ -1020,7 +1091,7 @@ const flagValue = await client.getFeatureFlag('local-flag', 'user_123', {
 
 #### getFeatureFlagPayload()
 
-**Release Tag:** public
+**Release Tag:** deprecated
 
 Get the payload for a feature flag.
 
@@ -1148,7 +1219,7 @@ if (payload) {
 
 #### isFeatureEnabled()
 
-**Release Tag:** public
+**Release Tag:** deprecated
 
 Check if a feature flag is enabled for a specific user.
 

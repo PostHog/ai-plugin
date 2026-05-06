@@ -11,7 +11,7 @@ PostHog AI
 ```elixir
 def deps do
   [
-    {:posthog, "~> 2.2.0"}
+    {:posthog, "~> 2.0"}
   ]
 end
 ```
