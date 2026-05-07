@@ -1,6 +1,7 @@
 analyzing-experiment-session-replays
 auditing-experiments-flags
 auditing-warehouse-data-health
+authoring-log-alerts
 cleaning-up-stale-feature-flags
 configuring-experiment-analytics
 configuring-experiment-rollout
@@ -12,6 +13,7 @@ diagnosing-missing-recordings
 diagnosing-sdk-health
 exploring-apm-traces
 exploring-autocapture-events
+exploring-live-traffic
 exploring-llm-clusters
 exploring-llm-costs
 exploring-llm-evaluations
