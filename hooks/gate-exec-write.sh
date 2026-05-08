@@ -17,37 +17,113 @@
 #
 #     export POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*,annotation-create"
 #
-# Pure bash; no jq or other third-party tools required. Relies on the fact
-# that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
-# the raw JSON payload is safe.
+# JSON parsing and command tokenization are delegated to python3 (already
+# required by the SessionEnd hook). Earlier versions parsed the raw payload
+# with bash regexes and were trivially bypassable: leading whitespace, a
+# leading newline, JSON-escaped quotes around the tool name, an upper-case
+# `CALL`, or any future write verb not listed below all silently failed
+# open. python3's json.loads + shlex.split close those gaps.
 
 set -u
 
 input="$(cat)"
 
-# Extract `tool_name` — simple identifier, no escaping inside the value.
-tool_name=""
-if [[ "$input" =~ \"tool_name\"[[:space:]]*:[[:space:]]*\"([^\"]+)\" ]]; then
-    tool_name="${BASH_REMATCH[1]}"
-fi
+# Parse: emit four lines — tool_name, verb, posthog_tool, parse_failed.
+# parse_failed=1 when shlex couldn't tokenize a non-empty command, so we
+# default-deny rather than silently allow whatever the server might run.
+parsed=$(
+    PARSE_INPUT="$input" python3 - <<'PY'
+import json
+import os
+import re
+import shlex
+import sys
+
+raw = os.environ.get("PARSE_INPUT", "")
+try:
+    data = json.loads(raw)
+except Exception:
+    sys.exit(0)
+
+if not isinstance(data, dict):
+    sys.exit(0)
+
+tool_name = (data.get("tool_name") or "").strip()
+ti = data.get("tool_input") if isinstance(data.get("tool_input"), dict) else {}
+command = (ti.get("command") or "").strip() if isinstance(ti, dict) else ""
+
+parse_failed = "0"
+verb = ""
+ph_tool = ""
+
+if command:
+    try:
+        tokens = shlex.split(command, posix=True)
+    except ValueError:
+        tokens = None
+    if tokens is None:
+        parse_failed = "1"
+    elif tokens:
+        verb = tokens[0].lower()
+        if verb == "call":
+            args = tokens[1:]
+            if args and args[0] == "--json":
+                args = args[1:]
+            if args:
+                candidate = args[0]
+                # Restrict to kebab-case alphanumerics. Anything else is
+                # treated as no tool name; the caller will default-deny
+                # for `call` invocations.
+                if re.fullmatch(r"[A-Za-z0-9_-]+", candidate):
+                    ph_tool = candidate
+
+print(tool_name)
+print(verb)
+print(ph_tool)
+print(parse_failed)
+PY
+)
+
+# python3 missing or errored — exit silently to match prior behaviour.
+[[ -n "$parsed" ]] || exit 0
+
+# Read four lines portably (no `mapfile` — macOS still ships bash 3.2).
+tool_name=""; verb=""; posthog_tool=""; parse_failed="0"
+{
+    IFS= read -r tool_name || true
+    IFS= read -r verb || true
+    IFS= read -r posthog_tool || true
+    IFS= read -r parse_failed || true
+} <<< "$parsed"
+parse_failed="${parse_failed:-0}"
 
 # Match any MCP tool whose name ends in `__exec` regardless of plugin/server
 # namespacing (bare `mcp__posthog__exec` or plugin-prefixed variants like
 # `mcp__posthog_posthog__exec`).
 [[ "$tool_name" =~ __exec$ ]] || exit 0
 
-# Extract the PostHog tool name from `"command":"call [--json] <tool>..."`.
-# Tool names are kebab-case [a-zA-Z0-9_-]+ so the regex stops cleanly at the
-# first space or escaped quote without needing to parse the trailing JSON.
-posthog_tool=""
-if [[ "$input" =~ \"command\"[[:space:]]*:[[:space:]]*\"call[[:space:]]+(--json[[:space:]]+)?([a-zA-Z0-9_-]+) ]]; then
-    posthog_tool="${BASH_REMATCH[2]}"
+# Default-deny on unparseable exec commands: better to over-prompt than to
+# silently let an oddly-shaped command through to the MCP server.
+if [[ "$parse_failed" == "1" ]]; then
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"unable to parse PostHog `exec` command — approve to run."}}'
+    exit 0
 fi
-[[ -n "$posthog_tool" ]] || exit 0
+
+# Only `call` invocations route to PostHog tools; other verbs (tools, search,
+# info, schema) are read-only and unaffected.
+[[ "$verb" == "call" ]] || exit 0
+
+# `call` with no recognizable tool name: default-deny.
+if [[ -z "$posthog_tool" ]]; then
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"unable to parse PostHog tool name — approve to run."}}'
+    exit 0
+fi
 
 # Match write-verb fragments as whole hyphen-separated words within the tool
-# name. Keep this list in sync with the PostHog MCP write surface.
-write_re='(^|-)(archive|cancel|create|delete|destroy|disable|duplicate|enable|end|invocations|launch|materialize|merge|move|partial-update|pause|rearrange|reload|rename|reorder|reset|restore|resume|resync|retry|set|ship|unarchive|unmaterialize|update)(-|$)'
+# name. Keep this list in sync with the PostHog MCP write surface; new
+# destructive verbs default to silent until added here, so additions to the
+# server tool set must be mirrored.
+write_re='(^|-)(archive|cancel|clear|create|delete|destroy|disable|duplicate|enable|end|expire|flush|grant|invocations|kill|launch|materialize|merge|move|partial-update|pause|purge|rearrange|reload|rename|reorder|reset|restore|resume|resync|retry|revoke|set|ship|terminate|truncate|unarchive|unmaterialize|update|void)(-|$)'
 
 shopt -s nocasematch
 if [[ "$posthog_tool" =~ $write_re ]]; then
@@ -62,7 +138,7 @@ if [[ "$posthog_tool" =~ $write_re ]]; then
         done
     fi
 
-    # `posthog_tool` is restricted to [a-zA-Z0-9_-]+ by the regex above, so
+    # `posthog_tool` is restricted to [a-zA-Z0-9_-]+ by the parser above, so
     # interpolating it into the JSON response is safe — no characters that
     # would need escaping for JSON or printf.
     printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"`%s` modifies PostHog data — approve to run."}}' "$posthog_tool"
