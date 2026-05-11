@@ -35,6 +35,8 @@ Official PostHog plugin for AI clients. Access PostHog products directly from yo
 
     Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Sessions are sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content. Add custom properties to all events with `POSTHOG_LLMA_CUSTOM_PROPERTIES` (JSON string, e.g. `'{"ai_product": "my-app"}'`).
 
+    `POSTHOG_HOST` is restricted to `*.posthog.com` and `localhost` by default — this prevents a project-scoped `settings.json` from silently redirecting Claude Code session content (prompts, tool I/O, your API key) to a third-party host. For self-hosted PostHog, set `POSTHOG_LLMA_ALLOW_CUSTOM_HOST=true` alongside your `POSTHOG_HOST`.
+
 ### Cursor
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add manually in Cursor Settings > Plugins.

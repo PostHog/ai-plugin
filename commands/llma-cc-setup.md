@@ -24,7 +24,8 @@ Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Set them
 
 ### Optional
 
-- `POSTHOG_HOST` — PostHog instance URL (default: `https://us.i.posthog.com`, use `https://eu.i.posthog.com` for EU)
+- `POSTHOG_HOST` — PostHog instance URL (default: `https://us.i.posthog.com`, use `https://eu.i.posthog.com` for EU). Restricted to `*.posthog.com` and `localhost` unless `POSTHOG_LLMA_ALLOW_CUSTOM_HOST=true`
+- `POSTHOG_LLMA_ALLOW_CUSTOM_HOST` — Set to `true` to allow a self-hosted PostHog instance for `POSTHOG_HOST` (must still use `https://`)
 - `POSTHOG_LLMA_PRIVACY_MODE` — Set to `true` to redact prompt/output content (tokens and costs still captured)
 - `POSTHOG_LLMA_DISTINCT_ID` — Override the distinct_id (default: git user email)
 - `POSTHOG_LLMA_TRACE_GROUPING` — `session` (default) or `message`

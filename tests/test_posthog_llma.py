@@ -10,7 +10,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from posthog_llma.events import build_ai_generation, build_ai_span, build_ai_trace
-from posthog_llma.sender import send_batch, write_status, read_status, STATUS_FILE
+from posthog_llma.sender import send_batch, validate_host, write_status, read_status, STATUS_FILE
 
 
 # ---------------------------------------------------------------------------
@@ -218,6 +218,28 @@ class TestSendBatch:
         result = send_batch([], api_key="test", distinct_id="user")
         assert result == {"status": "ok", "sent": 0}
 
+    def test_refuses_unknown_host(self, monkeypatch):
+        monkeypatch.delenv("POSTHOG_LLMA_ALLOW_CUSTOM_HOST", raising=False)
+        result = send_batch(
+            [{"event": "$ai_generation", "properties": {}}],
+            api_key="phc_test",
+            host="https://attacker.example.com",
+            distinct_id="u",
+        )
+        assert result["status"] == "error"
+        assert "refused to send" in result["error"]
+
+    def test_refuses_http_for_non_localhost(self, monkeypatch):
+        monkeypatch.delenv("POSTHOG_LLMA_ALLOW_CUSTOM_HOST", raising=False)
+        result = send_batch(
+            [{"event": "$ai_generation", "properties": {}}],
+            api_key="phc_test",
+            host="http://us.i.posthog.com",
+            distinct_id="u",
+        )
+        assert result["status"] == "error"
+        assert "refused to send" in result["error"]
+
     def test_per_event_timestamps_used(self):
         from datetime import datetime, timezone
 
@@ -231,6 +253,53 @@ class TestSendBatch:
         assert timestamps[0] == "2026-04-12T10:00:00Z"
         assert timestamps[1] == "2026-04-12T10:01:00Z"
         assert timestamps[2] == fallback
+
+
+# ---------------------------------------------------------------------------
+# validate_host
+# ---------------------------------------------------------------------------
+
+
+class TestValidateHost:
+    @pytest.mark.parametrize("host", [
+        "https://us.i.posthog.com",
+        "https://eu.i.posthog.com",
+        "https://app.posthog.com",
+        "https://posthog.com",
+        "https://us.i.posthog.com/",
+        "us.i.posthog.com",  # no scheme — defaulted to https
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ])
+    def test_accepts_known_endpoints(self, host, monkeypatch):
+        monkeypatch.delenv("POSTHOG_LLMA_ALLOW_CUSTOM_HOST", raising=False)
+        ok, reason = validate_host(host)
+        assert ok, reason
+
+    @pytest.mark.parametrize("host", [
+        "https://attacker.example.com",
+        "https://evilposthog.com",       # substring, not suffix
+        "https://posthog.com.evil.com",  # suffix attack
+        "http://us.i.posthog.com",       # http to non-localhost
+        "ftp://us.i.posthog.com",        # bad scheme
+        "",                              # empty
+    ])
+    def test_rejects_untrusted_hosts(self, host, monkeypatch):
+        monkeypatch.delenv("POSTHOG_LLMA_ALLOW_CUSTOM_HOST", raising=False)
+        ok, reason = validate_host(host)
+        assert not ok
+        assert reason
+
+    def test_self_hosted_opt_in(self, monkeypatch):
+        monkeypatch.setenv("POSTHOG_LLMA_ALLOW_CUSTOM_HOST", "true")
+        ok, reason = validate_host("https://posthog.internal.example.com")
+        assert ok, reason
+
+    def test_self_hosted_opt_in_still_requires_https(self, monkeypatch):
+        monkeypatch.setenv("POSTHOG_LLMA_ALLOW_CUSTOM_HOST", "true")
+        ok, reason = validate_host("http://posthog.internal.example.com")
+        assert not ok
+        assert "https" in reason
 
 
 # ---------------------------------------------------------------------------
