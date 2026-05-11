@@ -106,6 +106,18 @@ run_case "write call via plugin-prefixed exec name prompts" \
     "$(exec_call llma-skill-update mcp__posthog_posthog__exec)" \
     prompt llma-skill-update
 
+run_case "write call via cli tool name prompts" \
+    "$(exec_call experiment-update mcp__posthog__cli)" \
+    prompt experiment-update
+
+run_case "write call via plugin-prefixed cli name prompts" \
+    "$(exec_call notebooks-destroy mcp__posthog_posthog__cli)" \
+    prompt notebooks-destroy
+
+run_case "read-only call via cli tool name is silent" \
+    "$(exec_call experiment-get mcp__posthog__cli)" \
+    silent
+
 run_case "write call with --json flag still extracts tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --json experiment-update {\"id\":1}"}}' \
     prompt experiment-update

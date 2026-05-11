@@ -1,5 +1,5 @@
 {
-  "description": "PostHog LLM Analytics + permission gating for write commands via mcp__posthog__exec",
+  "description": "PostHog LLM Analytics + permission gating for write commands via mcp__posthog__exec / mcp__posthog__cli",
   "hooks": {
     "SessionEnd": [
       {
@@ -14,7 +14,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "__exec$",
+        "matcher": "__(exec|cli)$",
         "hooks": [
           {
             "type": "command",

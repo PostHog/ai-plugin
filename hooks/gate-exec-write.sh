@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# PreToolUse gate for the PostHog MCP `exec` tool.
+# PreToolUse gate for the PostHog MCP `exec` / `cli` tools.
 #
-# The PostHog MCP exposes a single `exec` tool that dispatches subcommands like
+# The PostHog MCP exposes a single dispatcher tool (named `exec` or `cli`
+# depending on the server build) that runs subcommands like
 # `tools | search | info | schema | call <tool_name> [json]`. Once the user
-# allow-lists `mcp__posthog__exec`, every subsequent `call` (including writes
-# like `experiment-update`, `notebooks-destroy`, `cdp-functions-delete`) runs
-# without a prompt. This hook re-introduces a prompt for write `call`s by
-# returning `permissionDecision: "ask"`.
+# allow-lists `mcp__posthog__exec` (or `mcp__posthog__cli`), every subsequent
+# `call` (including writes like `experiment-update`, `notebooks-destroy`,
+# `cdp-functions-delete`) runs without a prompt. This hook re-introduces a
+# prompt for write `call`s by returning `permissionDecision: "ask"`.
 #
 # Read-only PostHog tools and non-`call` exec verbs are left alone — the hook
 # exits 0 so normal permission flow applies.
@@ -31,10 +32,10 @@ if [[ "$input" =~ \"tool_name\"[[:space:]]*:[[:space:]]*\"([^\"]+)\" ]]; then
     tool_name="${BASH_REMATCH[1]}"
 fi
 
-# Match any MCP tool whose name ends in `__exec` regardless of plugin/server
-# namespacing (bare `mcp__posthog__exec` or plugin-prefixed variants like
-# `mcp__posthog_posthog__exec`).
-[[ "$tool_name" =~ __exec$ ]] || exit 0
+# Match any MCP tool whose name ends in `__exec` or `__cli` regardless of
+# plugin/server namespacing (bare `mcp__posthog__exec` / `mcp__posthog__cli`
+# or plugin-prefixed variants like `mcp__posthog_posthog__exec`).
+[[ "$tool_name" =~ __(exec|cli)$ ]] || exit 0
 
 # Extract the PostHog tool name from `"command":"call [--json] <tool>..."`.
 # Tool names are kebab-case [a-zA-Z0-9_-]+ so the regex stops cleanly at the
