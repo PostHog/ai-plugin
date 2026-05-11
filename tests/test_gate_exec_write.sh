@@ -36,11 +36,19 @@ run_case() {
     if [[ "$expected" == "silent" ]]; then
         [[ -z "$out" && $status -eq 0 ]] || ok=0
     else
-        # Match the actual JSON shape the hook produces, with the tool name
-        # interpolated. Any drift in the response template will fail here.
+        # Match the actual JSON shape the hook produces. When expected_tool
+        # is non-empty we also assert the message names that tool; an empty
+        # expected_tool just asserts an "ask" decision (used for default-deny
+        # paths where the message is generic).
         local needle="\"permissionDecision\":\"ask\""
-        local tool_needle="\`${expected_tool}\` modifies PostHog data"
-        [[ $status -eq 0 && "$out" == *"$needle"* && "$out" == *"$tool_needle"* ]] || ok=0
+        if [[ $status -eq 0 && "$out" == *"$needle"* ]]; then
+            if [[ -n "$expected_tool" ]]; then
+                local tool_needle="\`${expected_tool}\` modifies PostHog data"
+                [[ "$out" == *"$tool_needle"* ]] || ok=0
+            fi
+        else
+            ok=0
+        fi
     fi
 
     if (( ok )); then
@@ -163,6 +171,58 @@ run_case "tool with no write verb stays silent (persons-list)" \
 run_case "embedded substring is not a write verb (e.g. updates-feed)" \
     "$(exec_call some-updates-feed)" \
     silent
+
+# --- parser-bypass regression tests ---
+# Each input below slipped past the original bash-regex parser. The
+# python-backed parser must catch them.
+
+run_case "leading whitespace before 'call' still prompts on writes" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"  call experiment-update {}"}}' \
+    prompt experiment-update
+
+run_case "tab between 'call' and tool name still prompts" \
+    "$(printf '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call\\texperiment-update {}"}}')" \
+    prompt experiment-update
+
+run_case "leading newline in command still prompts" \
+    "$(printf '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"\\ncall experiment-update {}"}}')" \
+    prompt experiment-update
+
+run_case "uppercase CALL still prompts on writes" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"CALL experiment-update {}"}}' \
+    prompt experiment-update
+
+run_case "JSON-quoted tool name still prompts on writes" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call \"experiment-update\" {}"}}' \
+    prompt experiment-update
+
+# --- newly-classified write verbs (post-audit additions) ---
+
+run_case "write verb 'purge' prompts" \
+    "$(exec_call data-purge)" \
+    prompt data-purge
+
+run_case "write verb 'revoke' prompts" \
+    "$(exec_call api-key-revoke)" \
+    prompt api-key-revoke
+
+run_case "write verb 'truncate' prompts" \
+    "$(exec_call event-truncate)" \
+    prompt event-truncate
+
+run_case "write verb 'terminate' prompts" \
+    "$(exec_call session-terminate)" \
+    prompt session-terminate
+
+# --- default-deny on unparseable / odd-shaped exec commands ---
+
+run_case "unbalanced quotes in exec command default-deny" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call experiment-get \"unterminated"}}' \
+    prompt ""
+
+run_case "call with no tool name default-denies" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call"}}' \
+    prompt ""
 
 # --- summary ---
 
