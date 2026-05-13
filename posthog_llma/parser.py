@@ -2,12 +2,92 @@
 
 Reads a Claude Code session log and extracts generations, tool uses,
 prompts, and metadata into a structured dict.
+
+Also exposes a small registry so agent runtimes (or the Github-Discovery skill)
+can invoke local GitHub repo discovery without a separate service.
 """
 
 import json
 import uuid
 from pathlib import Path
-from typing import Optional
+from typing import Any, Callable, Optional
+
+from posthog_llma.discovery.engine import (
+    GitHubDiscoveryError,
+    discover_repository,
+)
+
+# Skill / tool id used by ``skills/github-discovery/SKILL.md`` and matching hooks.
+GITHUB_DISCOVERY_SKILL_ID = "Github-Discovery"
+
+
+def handle_github_discovery_tool(tool_input: dict[str, Any]) -> dict[str, Any]:
+    """Run headless GitHub tree discovery from agent tool input.
+
+    Expected ``tool_input`` keys:
+    - ``url`` (required): ``https://github.com/org/repo`` or ``org/repo``.
+    - ``ref`` (optional): branch, tag, or commit (overrides ref in URL).
+    - ``path_prefix`` (optional): limit output to this directory prefix.
+    - ``max_tree_nodes`` (optional): BFS cap when GitHub truncates recursive trees.
+    - ``output_file`` (optional): workspace-relative or absolute path; writes the full ``map`` JSON with ``indent=2``.
+    - ``markdown_file`` (optional): path for navigation Markdown; use ``""`` to skip Markdown when ``output_file`` is set (otherwise a ``*_nav.md`` sibling is written for ``.json`` outputs).
+
+    Returns a dict ``{"ok": True, "map": ...}`` or ``{"ok": False, "error": "..."}``.
+    On success, ``map`` includes ``discovery_stats``, ``saved_to``, and ``markdown_saved_to`` (paths or ``null``).
+    """
+    if not isinstance(tool_input, dict):
+        return {"ok": False, "error": "tool_input must be an object"}
+    url = tool_input.get("url") or tool_input.get("repo")
+    if not url or not isinstance(url, str):
+        return {"ok": False, "error": "Missing string field 'url' (or 'repo')."}
+    ref = tool_input.get("ref")
+    path_prefix = tool_input.get("path_prefix")
+    max_nodes = tool_input.get("max_tree_nodes", 50_000)
+    token = tool_input.get("token")
+    output_file = tool_input.get("output_file")
+    markdown_file: Optional[str]
+    if "markdown_file" in tool_input:
+        mv = tool_input.get("markdown_file")
+        markdown_file = mv if isinstance(mv, str) else None
+    else:
+        markdown_file = None
+    try:
+        ref_s = str(ref) if ref is not None else None
+        prefix_s = str(path_prefix) if path_prefix is not None else None
+        token_s = str(token) if token is not None else None
+        max_n = int(max_nodes) if max_nodes is not None else 50_000
+        if isinstance(output_file, str) and output_file.strip():
+            out_path: Optional[str] = output_file.strip()
+        else:
+            out_path = None
+        tree = discover_repository(
+            url,
+            ref=ref_s,
+            path_prefix=prefix_s,
+            max_tree_nodes=max_n,
+            token=token_s,
+            output_file=out_path,
+            markdown_file=markdown_file,
+        )
+        return {"ok": True, "map": tree}
+    except GitHubDiscoveryError as e:
+        return {"ok": False, "error": str(e)}
+    except (TypeError, ValueError) as e:
+        return {"ok": False, "error": f"Invalid parameters: {e}"}
+
+
+# Dispatch table for native skill → local Python handlers (extend as needed).
+SKILL_TOOL_HANDLERS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
+    GITHUB_DISCOVERY_SKILL_ID: handle_github_discovery_tool,
+}
+
+
+def invoke_skill_tool_handler(skill_id: str, tool_input: dict[str, Any]) -> dict[str, Any]:
+    """Invoke a registered skill handler by id, or return a structured error."""
+    handler = SKILL_TOOL_HANDLERS.get(skill_id)
+    if not handler:
+        return {"ok": False, "error": f"No handler registered for skill {skill_id!r}"}
+    return handler(tool_input)
 
 
 def find_session_log(session_id: str, cwd: str) -> Optional[str]:
