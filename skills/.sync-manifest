@@ -31,6 +31,7 @@ instrument-product-analytics
 investigate-metric
 investigating-replay
 managing-experiment-lifecycle
+managing-path-cleaning-rules
 managing-subscriptions
 querying-posthog-data
 setting-up-a-data-warehouse-source
