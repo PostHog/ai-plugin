@@ -40,129 +40,167 @@ In blocking mode, calls to `capture` and related methods will block until the Po
 
 ## Using feature flags
 
-### Boolean feature flags
+There are two steps to implement feature flags in Rust:
+
+### Step 1: Evaluate flags once
+
+Call `client.evaluate_flags()` once for the user, then read values from the returned snapshot.
+
+#### Boolean feature flags
 
 Rust
 
 PostHog AI
 
 ```rust
-let is_enabled = client.is_feature_enabled(
-    "flag-key".to_string(),
-    "distinct_id_of_your_user".to_string(),
-    None, // groups
-    None, // person_properties
-    None, // group_properties
+use posthog_rs::EvaluateFlagsOptions;
+let flags = client.evaluate_flags(
+    "distinct_id_of_your_user",
+    EvaluateFlagsOptions::default(),
 ).await.unwrap();
-if is_enabled {
+if flags.is_enabled("flag-key") {
+    // Do something differently for this user
+    // Optional: fetch the payload
+    let matched_flag_payload = flags.get_flag_payload("flag-key");
+}
+```
+
+#### Multivariate feature flags
+
+Rust
+
+PostHog AI
+
+```rust
+use posthog_rs::{EvaluateFlagsOptions, FlagValue};
+let flags = client.evaluate_flags(
+    "distinct_id_of_your_user",
+    EvaluateFlagsOptions::default(),
+).await.unwrap();
+match flags.get_flag("flag-key") {
+    Some(FlagValue::String(variant)) if variant == "variant-key" => {
+        // Do something differently for this user
+        // Optional: fetch the payload
+        let matched_flag_payload = flags.get_flag_payload("flag-key");
+    }
+    _ => {}
+}
+```
+
+`flags.get_flag()` returns `Some(FlagValue::String(...))` for multivariate flags, `Some(FlagValue::Boolean(true))` for enabled boolean flags, `Some(FlagValue::Boolean(false))` for disabled flags, and `None` when the flag wasn't returned by the evaluation.
+
+> **Note:** `client.is_feature_enabled()`, `client.get_feature_flag()`, `client.get_feature_flag_payload()`, and `client.get_feature_flags()` still work during the migration period, but they're deprecated. Prefer `evaluate_flags()` for new code.
+
+### Step 2: Include feature flag information when capturing events
+
+If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+
+There are two methods you can use to include feature flag information in your events:
+
+#### Method 1: Pass the evaluated flags snapshot to the event
+
+Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
+
+Rust
+
+PostHog AI
+
+```rust
+use posthog_rs::{EvaluateFlagsOptions, Event};
+let flags = client.evaluate_flags(
+    "distinct_id_of_your_user",
+    EvaluateFlagsOptions::default(),
+).await.unwrap();
+if flags.is_enabled("flag-key") {
     // Do something differently for this user
 }
+let mut event = Event::new("event_name", "distinct_id_of_your_user");
+event.with_flags(&flags);
+client.capture(event).await.unwrap();
 ```
 
-### Multivariate feature flags
+By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
+
+To reduce event property bloat, pass a filtered snapshot:
 
 Rust
 
 PostHog AI
 
 ```rust
-use posthog_rs::FlagValue;
-match client.get_feature_flag(
-    "flag-key".to_string(),
-    "distinct_id_of_your_user".to_string(),
-    None, None, None
-).await.unwrap() {
-    Some(FlagValue::String(variant)) => {
-        if variant == "variant-key" {
-            // Do something for this variant
-        }
-    }
-    Some(FlagValue::Boolean(enabled)) => {
-        // Handle boolean flag
-    }
-    None => {
-        // Flag not found or disabled
-    }
+// Attach only flags accessed with is_enabled() or get_flag() before this call
+let mut event = Event::new("event_name", "distinct_id_of_your_user");
+event.with_flags(&flags.only_accessed());
+client.capture(event).await.unwrap();
+// Attach only specific flags
+let mut event = Event::new("event_name", "distinct_id_of_your_user");
+event.with_flags(&flags.only(&["checkout-flow", "new-dashboard"]));
+client.capture(event).await.unwrap();
+```
+
+`only_accessed()` is order-dependent. If you call it before accessing any flags with `is_enabled()` or `get_flag()`, no feature flag properties are attached.
+
+#### Method 2: Include the `$feature/feature_flag_name` property manually
+
+In the event properties, include `$feature/feature_flag_name: variant_key`:
+
+Rust
+
+PostHog AI
+
+```rust
+use posthog_rs::Event;
+let mut event = Event::new("event_name", "distinct_id_of_your_user");
+event.insert_prop("$feature/feature-flag-key", "variant-key").unwrap();
+client.capture(event).await.unwrap();
+```
+
+### Evaluating only specific flags
+
+By default, `evaluate_flags()` evaluates every flag for the user. If you only need a few flags, pass `flag_keys` to request only those flags:
+
+Rust
+
+PostHog AI
+
+```rust
+use posthog_rs::EvaluateFlagsOptions;
+let flags = client.evaluate_flags(
+    "distinct_id_of_your_user",
+    EvaluateFlagsOptions {
+        flag_keys: Some(vec!["checkout-flow".to_string(), "new-dashboard".to_string()]),
+        ..Default::default()
+    },
+).await.unwrap();
+```
+
+### Sending `$feature_flag_called` events
+
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `evaluate_flags()`, the SDK sends this event when you call `flags.is_enabled()` or `flags.get_flag()` for a flag.
+
+The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
+
+`flags.get_flag_payload()` doesn't send `$feature_flag_called` events and doesn't count as an access for `only_accessed()`.
+
+### Blocking client
+
+If you're using the blocking client (with `default-features = false`), the API is the same but without `.await`:
+
+Rust
+
+PostHog AI
+
+```rust
+use posthog_rs::EvaluateFlagsOptions;
+let flags = client.evaluate_flags(
+    "distinct_id_of_your_user",
+    EvaluateFlagsOptions::default(),
+).unwrap();
+if flags.is_enabled("flag-key") {
+    // Do something differently for this user
 }
-```
-
-### Fetching all flags
-
-Rust
-
-PostHog AI
-
-```rust
-let (flags, payloads) = client.get_feature_flags(
-    "distinct_id_of_your_user".to_string(),
-    None, None, None
-).await.unwrap();
-for (key, value) in flags {
-    println!("Flag {}: {:?}", key, value);
-}
-```
-
-### Feature flag payloads
-
-Rust
-
-PostHog AI
-
-```rust
-let payload = client.get_feature_flag_payload(
-    "flag-key".to_string(),
-    "distinct_id_of_your_user".to_string()
-).await.unwrap();
-if let Some(data) = payload {
-    println!("Payload: {}", data);
-}
-```
-
-### With person properties
-
-Rust
-
-PostHog AI
-
-```rust
-use std::collections::HashMap;
-use serde_json::json;
-let mut person_props = HashMap::new();
-person_props.insert("plan".to_string(), json!("enterprise"));
-person_props.insert("country".to_string(), json!("US"));
-let flag = client.get_feature_flag(
-    "premium-feature".to_string(),
-    "distinct_id_of_your_user".to_string(),
-    None,
-    Some(person_props),
-    None
-).await.unwrap();
-```
-
-### With groups
-
-For B2B applications with group-based flags:
-
-Rust
-
-PostHog AI
-
-```rust
-use std::collections::HashMap;
-use serde_json::json;
-let mut groups = HashMap::new();
-groups.insert("company".to_string(), "company-123".to_string());
-let mut group_props = HashMap::new();
-let mut company_props = HashMap::new();
-company_props.insert("size".to_string(), json!(500));
-group_props.insert("company".to_string(), company_props);
-let flag = client.get_feature_flag(
-    "b2b-feature".to_string(),
-    "distinct_id_of_your_user".to_string(),
-    Some(groups),
-    None,
-    Some(group_props)
-).await.unwrap();
 ```
 
 Now that you're evaluating flags, continue with the resources below to learn what else Feature Flags enables within the PostHog platform.
