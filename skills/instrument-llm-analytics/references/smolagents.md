@@ -13,7 +13,7 @@
     Install the OpenTelemetry SDK, the OpenAI instrumentation, and smolagents.
 
     ```bash
-    pip install smolagents openai opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-openai-v2
+    pip install smolagents openai opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-openai-v2
     ```
 
 2.  2

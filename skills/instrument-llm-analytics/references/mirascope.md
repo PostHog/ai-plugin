@@ -13,7 +13,7 @@
     Install the OpenTelemetry SDK, the OpenAI instrumentation, and Mirascope.
 
     ```bash
-    pip install "mirascope[openai]" opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-openai-v2
+    pip install "mirascope[openai]" opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-openai-v2
     ```
 
 2.  2
