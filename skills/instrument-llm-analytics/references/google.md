@@ -17,7 +17,7 @@
     ### Python
 
     ```bash
-    pip install google-genai opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-google-generativeai
+    pip install google-genai opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-google-generativeai
     ```
 
     ### Node

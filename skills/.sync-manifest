@@ -21,6 +21,7 @@ exploring-llm-traces
 feature-usage-feed
 finding-experiments
 finding-replay-for-issue
+formatting-insight-axes
 inbox-exploration
 instrument-error-tracking
 instrument-feature-flags
@@ -31,7 +32,9 @@ instrument-product-analytics
 investigate-metric
 investigating-replay
 managing-experiment-lifecycle
+managing-path-cleaning-rules
 managing-subscriptions
+planning-user-interviews
 querying-posthog-data
 setting-up-a-data-warehouse-source
 signals

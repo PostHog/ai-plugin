@@ -17,7 +17,7 @@
     ### Python
 
     ```bash
-    pip install anthropic opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-anthropic
+    pip install anthropic opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-anthropic
     ```
 
     ### Node

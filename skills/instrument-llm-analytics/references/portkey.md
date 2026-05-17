@@ -21,7 +21,7 @@
     ### Python
 
     ```bash
-    pip install openai portkey-ai opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-openai-v2
+    pip install openai portkey-ai opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-openai-v2
     ```
 
     ### Node
