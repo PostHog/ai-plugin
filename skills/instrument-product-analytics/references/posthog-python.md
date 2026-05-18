@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.14.0
+**SDK Version:** 7.14.2
 
 Integrate PostHog into any python application.
 
@@ -1338,7 +1338,7 @@ Create a new context scope that will be active for the duration of the with bloc
 
 - **`fresh`** (`bool`) - Whether to start with a fresh context (default: False)
 - **`capture_exceptions`** (`bool`) - Whether to capture exceptions raised within the context (default: True)
-- **`client`** (`any`) - Optional Posthog client instance to use for this context (default: None)
+- **`client?`** (`Client`) - Optional Posthog client instance to use for this context (default: None)
 
 ### Returns
 

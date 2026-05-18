@@ -414,7 +414,7 @@
 
     Importantly, you need to:
 
-    1.  Set up a `posthog-node` client in your server-side code. See our doc on [setting up Next.js server-side analytics](/docs/libraries/next-js.md#server-side-analytics.md) for more.
+    1.  Set up a `posthog-node` client in your server-side code. See our doc on [setting up Next.js server-side analytics](/docs/libraries/next-js.md#server-side-analytics) for more.
     2.  Check the request is running in the `nodejs` runtime to ensure PostHog works. You can call `posthog.debug()` to get verbose logging.
     3.  Get the `distinct_id` from the cookie to connect the error to a specific user.
 

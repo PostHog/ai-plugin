@@ -15,7 +15,7 @@ Podfile
 PostHog AI
 
 ```ruby
-pod "PostHog", "~> 3.56.0"
+pod "PostHog", "~> 3.58.0"
 ```
 
 ### Swift Package Manager
@@ -30,7 +30,7 @@ PostHog AI
 
 ```swift
 dependencies: [
-  .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.56.0")
+  .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.58.0")
 ],
 ```
 
