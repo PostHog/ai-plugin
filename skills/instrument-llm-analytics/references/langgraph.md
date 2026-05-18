@@ -17,7 +17,7 @@
     ### Python
 
     ```bash
-    pip install langgraph langchain-core langchain-openai opentelemetry-sdk posthog[otel] opentelemetry-instrumentation-langchain
+    pip install langgraph langchain-core langchain-openai opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-langchain
     ```
 
     ### Node

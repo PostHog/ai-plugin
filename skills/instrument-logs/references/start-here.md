@@ -22,6 +22,8 @@ Follow the guides below to set up your logging client:
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/react.svg)React Native](/docs/logs/installation/react-native.md)
 
+-   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/ios.svg)iOS](/docs/logs/installation/ios.md)
+
 -   [Datadog](/docs/logs/installation/datadog.md)
 
 -   [Other languages](/docs/logs/installation/other.md)
