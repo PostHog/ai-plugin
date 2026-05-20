@@ -11,6 +11,7 @@ debugging-local-replay
 diagnosing-failed-warehouse-syncs
 diagnosing-missing-recordings
 diagnosing-sdk-health
+diagnosing-stacktrace-symbolication
 exploring-apm-traces
 exploring-autocapture-events
 exploring-live-traffic
