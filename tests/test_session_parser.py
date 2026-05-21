@@ -381,6 +381,50 @@ class TestBuildEvents:
         finally:
             os.unlink(path)
 
+    def test_insert_id_set_on_all_events(self):
+        """Regression coverage for #85: deterministic $insert_id lets
+        PostHog dedupe re-sends of the same session."""
+        path = _write_jsonl(_make_session([{"prompt": "run ls", "tools": ["Bash"]}]))
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            events = build_events(parsed, DEFAULT_CONFIG)
+            for e in events:
+                assert e["properties"].get("$insert_id"), \
+                    f"{e['event']} missing $insert_id"
+
+            # Insert IDs must be unique within a single send
+            ids = [e["properties"]["$insert_id"] for e in events]
+            assert len(ids) == len(set(ids))
+        finally:
+            os.unlink(path)
+
+    def test_insert_id_stable_across_reparses(self):
+        """Same JSONL parsed twice yields identical $insert_ids, so PostHog
+        dedupes — even though span_ids are regenerated each parse."""
+        path = _write_jsonl(_make_session([{"prompt": "run ls", "tools": ["Bash"]}]))
+        try:
+            events_a = build_events(parse_session(path, DEFAULT_CONFIG), DEFAULT_CONFIG)
+            events_b = build_events(parse_session(path, DEFAULT_CONFIG), DEFAULT_CONFIG)
+
+            ids_a = sorted(e["properties"]["$insert_id"] for e in events_a)
+            ids_b = sorted(e["properties"]["$insert_id"] for e in events_b)
+            assert ids_a == ids_b
+        finally:
+            os.unlink(path)
+
+    def test_insert_id_stable_in_message_mode(self):
+        config = {**DEFAULT_CONFIG, "trace_grouping": "message"}
+        path = _write_jsonl(_make_session([{"prompt": "run ls", "tools": ["Bash"]}]))
+        try:
+            events_a = build_events(parse_session(path, config), config)
+            events_b = build_events(parse_session(path, config), config)
+
+            ids_a = sorted(e["properties"]["$insert_id"] for e in events_a)
+            ids_b = sorted(e["properties"]["$insert_id"] for e in events_b)
+            assert ids_a == ids_b
+        finally:
+            os.unlink(path)
+
 
 # ---------------------------------------------------------------------------
 # trace naming

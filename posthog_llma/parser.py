@@ -287,6 +287,7 @@ def _process_assistant_entry(
         "timestamp": timestamp,
         "prompt_id": prompt_id,
         "span_id": span_id,
+        "msg_id": msg_id,
         "output_text": output_text,
         "tool_use_blocks": tool_use_blocks,
         "is_error": stop_reason == "error",
