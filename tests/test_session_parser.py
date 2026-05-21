@@ -10,7 +10,7 @@ import pytest
 # Add plugin root to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from posthog_llma.parser import parse_session
+from posthog_llma.parser import parse_session, find_session_log
 from posthog_llma.event_builder import build_events
 from posthog_llma.config import load_config
 from posthog_llma.trace_naming import find_trace_name, clean_trace_name
@@ -145,6 +145,60 @@ def _make_session(prompts_and_tools=None) -> list[dict]:
             })
 
     return entries
+
+
+# ---------------------------------------------------------------------------
+# find_session_log
+# ---------------------------------------------------------------------------
+
+
+class TestFindSessionLog:
+    """Regression coverage for #48 and follow-ups (Windows backslash/colon,
+    underscores, spaces). Claude Code's project dir name collapses many
+    characters; we use a glob fallback rather than mirror its rules."""
+
+    def _stub_projects_dir(self, monkeypatch, tmp_path):
+        projects = tmp_path / ".claude" / "projects"
+        projects.mkdir(parents=True)
+        monkeypatch.setattr("posthog_llma.parser.Path.home", lambda: tmp_path)
+        return projects
+
+    def test_direct_lookup_still_works(self, monkeypatch, tmp_path):
+        projects = self._stub_projects_dir(monkeypatch, tmp_path)
+        (projects / "-Users-test-myproject").mkdir()
+        sid = "11111111-1111-1111-1111-111111111111"
+        log = projects / "-Users-test-myproject" / f"{sid}.jsonl"
+        log.write_text("{}")
+        assert find_session_log(sid, "/Users/test/myproject") == str(log)
+
+    def test_glob_fallback_handles_dots(self, monkeypatch, tmp_path):
+        projects = self._stub_projects_dir(monkeypatch, tmp_path)
+        # cwd contains a dot; Claude Code stores under dot-collapsed name
+        (projects / "-Users-me-dev--claude-worktrees-feature").mkdir()
+        sid = "22222222-2222-2222-2222-222222222222"
+        log = projects / "-Users-me-dev--claude-worktrees-feature" / f"{sid}.jsonl"
+        log.write_text("{}")
+        assert find_session_log(sid, "/Users/me/dev/.claude/worktrees/feature") == str(log)
+
+    def test_glob_fallback_handles_windows_path(self, monkeypatch, tmp_path):
+        projects = self._stub_projects_dir(monkeypatch, tmp_path)
+        (projects / "c--Users-me-PYProjs-my-project").mkdir()
+        sid = "33333333-3333-3333-3333-333333333333"
+        log = projects / "c--Users-me-PYProjs-my-project" / f"{sid}.jsonl"
+        log.write_text("{}")
+        assert find_session_log(sid, r"c:\Users\me\PYProjs\my-project") == str(log)
+
+    def test_glob_fallback_handles_underscores_and_spaces(self, monkeypatch, tmp_path):
+        projects = self._stub_projects_dir(monkeypatch, tmp_path)
+        (projects / "-Users-me-00-Projects-Project-Name").mkdir()
+        sid = "44444444-4444-4444-4444-444444444444"
+        log = projects / "-Users-me-00-Projects-Project-Name" / f"{sid}.jsonl"
+        log.write_text("{}")
+        assert find_session_log(sid, "/Users/me/00_Projects/Project Name") == str(log)
+
+    def test_returns_none_when_not_found(self, monkeypatch, tmp_path):
+        self._stub_projects_dir(monkeypatch, tmp_path)
+        assert find_session_log("nonexistent-uuid", "/some/path") is None
 
 
 # ---------------------------------------------------------------------------

@@ -14,12 +14,22 @@ def find_session_log(session_id: str, cwd: str) -> Optional[str]:
     """Find the JSONL session log file.
 
     Claude Code stores logs at:
-        ~/.claude/projects/{cwd-with-slashes-replaced}/{session_id}.jsonl
+        ~/.claude/projects/{cwd-with-special-chars-replaced}/{session_id}.jsonl
+
+    Claude Code collapses `/`, `.`, `\\`, `:`, `_`, and spaces to `-` when
+    naming the project dir, and the exact rules have drifted across versions
+    and platforms (Windows paths, paths under `.claude` worktrees, paths
+    with underscores or spaces, etc.). Rather than mirror that rule set, we
+    try the direct lookup first and fall back to a glob across project dirs
+    — session IDs are UUIDs and unique, so the match is unambiguous.
     """
+    base = Path.home() / ".claude" / "projects"
     project_dir_name = cwd.replace("/", "-")
-    path = Path.home() / ".claude" / "projects" / project_dir_name / f"{session_id}.jsonl"
-    if path.is_file():
-        return str(path)
+    direct = base / project_dir_name / f"{session_id}.jsonl"
+    if direct.is_file():
+        return str(direct)
+    for candidate in base.glob(f"*/{session_id}.jsonl"):
+        return str(candidate)
     return None
 
 
