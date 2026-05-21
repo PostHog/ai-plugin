@@ -141,11 +141,11 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
             if not metadata.get("git_branch"):
                 metadata["git_branch"] = entry.get("gitBranch", "")
 
-    # Flatten deduplicated generations and tool uses
+    # Flatten merged per-msg_id states into generations + tool_uses
     generations = []
     tool_uses = []
     for key in generations_order:
-        gen, tus = generations_by_msg_id[key]
+        gen, tus = _finalize_generation(generations_by_msg_id[key])
         generations.append(gen)
         tool_uses.extend(tus)
 
@@ -235,9 +235,21 @@ def _process_assistant_entry(
 ) -> None:
     """Process an assistant-type JSONL entry.
 
-    Session logs can have duplicate entries for the same message
-    (streaming updates). The later entry is more complete (has
-    tool_use blocks), so we overwrite earlier entries per message ID.
+    Session logs can have multiple entries for the same message ID, and
+    the Claude Agent SDK splits content blocks across them — one entry
+    may carry only `thinking`, the next only `tool_use`, the next only
+    `text`. Naively overwriting per msg_id drops every block except the
+    last entry's, so thinking content vanishes from $ai_output_choices.
+
+    Instead, merge per content type:
+      - When an entry carries blocks of a type we've seen, replace that
+        type's blocks (handles cumulative streaming where each chunk
+        repeats prior content in a longer form).
+      - When an entry carries blocks of a type we haven't seen, add them
+        (handles delta streaming where each chunk has only new content).
+
+    Usage/stop_reason/timestamp/model are taken from the latest non-empty
+    chunk — Claude Code typically emits these on the final entry.
     """
     msg = entry.get("message", {})
     if msg.get("role") != "assistant":
@@ -245,46 +257,99 @@ def _process_assistant_entry(
 
     msg_id = msg.get("id", "")
     usage = msg.get("usage", {})
-    model = msg.get("model", "unknown")
+    model = msg.get("model", "")
     stop_reason = msg.get("stop_reason")
     timestamp = entry.get("timestamp", "")
     entry_uuid = entry.get("uuid", "")
     prompt_id = resolve_prompt_id(entry_uuid)
-    span_id = str(uuid.uuid4())
 
-    # Extract text, thinking blocks, and tool_use blocks
+    # Group this entry's content blocks by type
+    entry_blocks_by_type = {"thinking": [], "text": [], "tool_use": []}
     content = msg.get("content", [])
-    text_parts = []
-    entry_tool_uses = []
-
     if isinstance(content, list):
         for item in content:
             if isinstance(item, dict):
-                if item.get("type") == "text":
-                    text_parts.append(item.get("text", ""))
-                elif item.get("type") == "thinking":
-                    thinking_text = item.get("thinking", "")
-                    if thinking_text:
-                        text_parts.append(thinking_text)
-                elif item.get("type") == "tool_use":
-                    entry_tool_uses.append({
-                        "tool_use_id": item.get("id", ""),
-                        "name": item.get("name", "unknown"),
-                        "input": item.get("input"),
-                        "generation_span_id": span_id,
-                        "prompt_id": prompt_id,
-                        "timestamp": timestamp,
-                    })
+                t = item.get("type")
+                if t in entry_blocks_by_type:
+                    entry_blocks_by_type[t].append(item)
 
-    output_text = "\n".join(text_parts) if text_parts else None
+    key = msg_id or entry_uuid or str(uuid.uuid4())
+
+    state = generations_by_msg_id.get(key)
+    if state is None:
+        state = {
+            "model": model or "unknown",
+            "usage": usage,
+            "stop_reason": stop_reason,
+            "timestamp": timestamp,
+            "prompt_id": prompt_id,
+            "span_id": str(uuid.uuid4()),
+            "msg_id": msg_id,
+            "blocks_by_type": {"thinking": [], "text": [], "tool_use": []},
+            "error_message": msg.get("error_message"),
+        }
+        generations_by_msg_id[key] = state
+        generations_order.append(key)
+
+    # Merge content blocks per type
+    for t, blocks in entry_blocks_by_type.items():
+        if blocks:
+            state["blocks_by_type"][t] = blocks
+
+    # Take latest non-empty metadata
+    if usage:
+        state["usage"] = usage
+    if stop_reason:
+        state["stop_reason"] = stop_reason
+    if timestamp:
+        state["timestamp"] = timestamp
+    if model:
+        state["model"] = model
+    if msg.get("error_message"):
+        state["error_message"] = msg["error_message"]
+    # prompt_id can resolve later as more entries arrive
+    if not state["prompt_id"] and prompt_id:
+        state["prompt_id"] = prompt_id
+
+
+def _finalize_generation(state: dict) -> tuple[dict, list]:
+    """Convert a merged per-msg_id state into a (generation, tool_uses) pair."""
+    span_id = state["span_id"]
+    prompt_id = state["prompt_id"]
+    timestamp = state["timestamp"]
+    usage = state.get("usage") or {}
+
+    blocks = state["blocks_by_type"]
+    text_parts = []
+    for item in blocks["thinking"]:
+        t = item.get("thinking", "")
+        if t:
+            text_parts.append(t)
+    for item in blocks["text"]:
+        t = item.get("text", "")
+        if t:
+            text_parts.append(t)
+
+    entry_tool_uses = []
+    for item in blocks["tool_use"]:
+        entry_tool_uses.append({
+            "tool_use_id": item.get("id", ""),
+            "name": item.get("name", "unknown"),
+            "input": item.get("input"),
+            "generation_span_id": span_id,
+            "prompt_id": prompt_id,
+            "timestamp": timestamp,
+        })
 
     tool_use_blocks = [
         {"type": "tool_use", "name": tu["name"], "input": tu.get("input")}
         for tu in entry_tool_uses
     ]
+    output_text = "\n".join(text_parts) if text_parts else None
+    stop_reason = state.get("stop_reason")
 
     generation = {
-        "model": model,
+        "model": state.get("model") or "unknown",
         "input_tokens": usage.get("input_tokens", 0),
         "output_tokens": usage.get("output_tokens", 0),
         "cache_read_tokens": usage.get("cache_read_input_tokens", 0),
@@ -293,14 +358,10 @@ def _process_assistant_entry(
         "timestamp": timestamp,
         "prompt_id": prompt_id,
         "span_id": span_id,
-        "msg_id": msg_id,
+        "msg_id": state.get("msg_id", ""),
         "output_text": output_text,
         "tool_use_blocks": tool_use_blocks,
         "is_error": stop_reason == "error",
-        "error_message": msg.get("error_message"),
+        "error_message": state.get("error_message"),
     }
-
-    key = msg_id or entry_uuid or str(uuid.uuid4())
-    if key not in generations_by_msg_id:
-        generations_order.append(key)
-    generations_by_msg_id[key] = (generation, entry_tool_uses)
+    return generation, entry_tool_uses

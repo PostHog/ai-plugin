@@ -256,6 +256,73 @@ class TestParseSession:
         finally:
             os.unlink(path)
 
+    def test_thinking_preserved_when_split_across_chunks(self):
+        """Regression coverage for #55 Defect 2: streaming entries can
+        split content blocks across chunks (e.g. thinking on chunk 1,
+        tool_use on chunk 2). The merge must preserve both."""
+        entries = [
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "think then act"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            # Chunk 1: thinking only
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": None,
+                    "usage": {},
+                    "content": [{"type": "thinking", "thinking": "deep thoughts"}],
+                },
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            # Chunk 2: tool_use only, complete usage
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "tool_use",
+                    "usage": {"input_tokens": 10, "output_tokens": 20, "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0},
+                    "content": [{"type": "tool_use", "id": "t-1", "name": "Bash", "input": {"cmd": "ls"}}],
+                },
+                "timestamp": "2026-04-12T10:00:02.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            assert len(parsed["generations"]) == 1
+            gen = parsed["generations"][0]
+
+            # Both the thinking text and the tool_use survived
+            assert gen["output_text"] == "deep thoughts"
+            assert len(gen["tool_use_blocks"]) == 1
+            assert gen["tool_use_blocks"][0]["name"] == "Bash"
+
+            # Latest non-empty metadata wins
+            assert gen["stop_reason"] == "tool_use"
+            assert gen["input_tokens"] == 10
+            assert gen["output_tokens"] == 20
+
+            # Tool use is registered for span emission
+            assert len(parsed["tool_uses"]) == 1
+            assert parsed["tool_uses"][0]["name"] == "Bash"
+
+            # Downstream events include thinking in output_choices
+            events = build_events(parsed, DEFAULT_CONFIG)
+            gen_ev = next(e for e in events if e["event"] == "$ai_generation")
+            content_blocks = gen_ev["properties"]["$ai_output_choices"][0]["content"]
+            text_blocks = [b for b in content_blocks if b.get("type") == "text"]
+            assert text_blocks and "deep thoughts" in text_blocks[0]["text"]
+        finally:
+            os.unlink(path)
+
     def test_session_id_extracted_from_agent_sdk_jsonl(self):
         """Regression coverage for #55 Defect 1: Claude Agent SDK JSONLs
         don't emit a permission-mode entry, but every entry carries
