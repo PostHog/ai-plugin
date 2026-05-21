@@ -286,14 +286,21 @@ def _process_assistant_entry(
             "span_id": str(uuid.uuid4()),
             "msg_id": msg_id,
             "blocks_by_type": {"thinking": [], "text": [], "tool_use": []},
+            # Order types by first appearance across chunks rather than
+            # assuming thinking → text → tool_use. Most Anthropic streams
+            # do follow that order, but if a chunk arrives text-first the
+            # output sequence should still reflect what the model produced.
+            "type_order": [],
             "error_message": msg.get("error_message"),
         }
         generations_by_msg_id[key] = state
         generations_order.append(key)
 
-    # Merge content blocks per type
+    # Merge content blocks per type, preserving first-seen order
     for t, blocks in entry_blocks_by_type.items():
         if blocks:
+            if t not in state["type_order"]:
+                state["type_order"].append(t)
             state["blocks_by_type"][t] = blocks
 
     # Take latest non-empty metadata
@@ -320,26 +327,33 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
     usage = state.get("usage") or {}
 
     blocks = state["blocks_by_type"]
-    text_parts = []
-    for item in blocks["thinking"]:
-        t = item.get("thinking", "")
-        if t:
-            text_parts.append(t)
-    for item in blocks["text"]:
-        t = item.get("text", "")
-        if t:
-            text_parts.append(t)
+    # Fall back to a sensible default order for older state dicts; new
+    # entries populate type_order in first-seen order during the merge.
+    type_order = state.get("type_order") or ["thinking", "text", "tool_use"]
 
+    text_parts = []
     entry_tool_uses = []
-    for item in blocks["tool_use"]:
-        entry_tool_uses.append({
-            "tool_use_id": item.get("id", ""),
-            "name": item.get("name", "unknown"),
-            "input": item.get("input"),
-            "generation_span_id": span_id,
-            "prompt_id": prompt_id,
-            "timestamp": timestamp,
-        })
+    for block_type in type_order:
+        if block_type == "thinking":
+            for item in blocks.get("thinking", []):
+                t = item.get("thinking", "")
+                if t:
+                    text_parts.append(t)
+        elif block_type == "text":
+            for item in blocks.get("text", []):
+                t = item.get("text", "")
+                if t:
+                    text_parts.append(t)
+        elif block_type == "tool_use":
+            for item in blocks.get("tool_use", []):
+                entry_tool_uses.append({
+                    "tool_use_id": item.get("id", ""),
+                    "name": item.get("name", "unknown"),
+                    "input": item.get("input"),
+                    "generation_span_id": span_id,
+                    "prompt_id": prompt_id,
+                    "timestamp": timestamp,
+                })
 
     tool_use_blocks = [
         {"type": "tool_use", "name": tu["name"], "input": tu.get("input")}

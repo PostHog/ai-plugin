@@ -468,6 +468,55 @@ class TestParseSession:
         finally:
             os.unlink(path)
 
+    def test_merge_preserves_first_seen_block_order(self):
+        """Regression coverage for codex review on PR #86:
+        _finalize_generation must not impose a fixed thinking → text →
+        tool_use order. If a chunk arrives text-first, output should
+        reflect that order rather than reshuffling by type."""
+        entries = [
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "go"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            # Chunk 1: text first
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": None,
+                    "usage": {},
+                    "content": [{"type": "text", "text": "preface"}],
+                },
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            # Chunk 2: thinking arrives after text
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
+                    "usage": {"input_tokens": 5, "output_tokens": 10},
+                    "content": [{"type": "thinking", "thinking": "afterthought"}],
+                },
+                "timestamp": "2026-04-12T10:00:02.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            assert len(parsed["generations"]) == 1
+            # Text came first in the source, so output_text must lead
+            # with "preface" rather than reshuffling thinking ahead of it.
+            assert parsed["generations"][0]["output_text"] == "preface\nafterthought"
+        finally:
+            os.unlink(path)
+
     def test_three_chunk_merge_preserves_all_block_types(self):
         """Thinking, text, and tool_use arriving in three separate chunks
         all survive the merge."""
