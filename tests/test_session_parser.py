@@ -393,6 +393,234 @@ class TestParseSession:
         finally:
             os.unlink(path)
 
+    def test_session_id_prefers_permission_mode_when_present(self):
+        """When both permission-mode and other entries carry sessionId,
+        permission-mode wins (it's the canonical source). Guards against
+        accidentally picking up a sessionId from a malformed entry first."""
+        entries = [
+            # Pre-permission-mode user entry with a different sessionId
+            # (shouldn't happen in practice, but pin the precedence rule)
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "isMeta": True,
+                "message": {"role": "user", "content": ""},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "early-stray-id",
+                "version": "2.1.0", "cwd": "/tmp",
+            },
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "canonical-id"},
+            {
+                "type": "user", "uuid": "u-2", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "hi"},
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "sessionId": "canonical-id",
+                "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-2",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
+                    "usage": {"input_tokens": 5, "output_tokens": 10},
+                    "content": [{"type": "text", "text": "hello"}],
+                },
+                "timestamp": "2026-04-12T10:00:02.000Z",
+                "sessionId": "canonical-id",
+                "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            assert parsed["session_id"] == "canonical-id"
+        finally:
+            os.unlink(path)
+
+    def test_missing_session_id_returns_empty_without_crashing(self):
+        """A JSONL with no sessionId anywhere parses cleanly and leaves
+        session_id as empty string (rather than crashing)."""
+        entries = [
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "hi"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
+                    "usage": {"input_tokens": 5, "output_tokens": 10},
+                    "content": [{"type": "text", "text": "hello"}],
+                },
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            assert parsed["session_id"] == ""
+            assert len(parsed["generations"]) == 1
+        finally:
+            os.unlink(path)
+
+    def test_three_chunk_merge_preserves_all_block_types(self):
+        """Thinking, text, and tool_use arriving in three separate chunks
+        all survive the merge."""
+        entries = [
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "do stuff"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": None,
+                    "usage": {},
+                    "content": [{"type": "thinking", "thinking": "ponder"}],
+                },
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": None,
+                    "usage": {},
+                    "content": [{"type": "text", "text": "here goes"}],
+                },
+                "timestamp": "2026-04-12T10:00:02.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "tool_use",
+                    "usage": {"input_tokens": 10, "output_tokens": 20},
+                    "content": [{"type": "tool_use", "id": "t-1", "name": "Bash", "input": {}}],
+                },
+                "timestamp": "2026-04-12T10:00:03.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            assert len(parsed["generations"]) == 1
+            gen = parsed["generations"][0]
+            assert "ponder" in gen["output_text"]
+            assert "here goes" in gen["output_text"]
+            assert len(gen["tool_use_blocks"]) == 1
+            assert gen["stop_reason"] == "tool_use"
+            assert gen["input_tokens"] == 10
+        finally:
+            os.unlink(path)
+
+    def test_cumulative_text_streaming_keeps_only_latest(self):
+        """When the same content type arrives in two chunks (cumulative
+        streaming — chunk 2 carries a longer/extended version of chunk 1),
+        the later chunk replaces the earlier and no duplicate appears."""
+        entries = [
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "tell me"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": None,
+                    "usage": {},
+                    "content": [{"type": "text", "text": "Hello"}],
+                },
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
+                    "usage": {"input_tokens": 5, "output_tokens": 15},
+                    "content": [{"type": "text", "text": "Hello, world."}],
+                },
+                "timestamp": "2026-04-12T10:00:02.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            assert len(parsed["generations"]) == 1
+            assert parsed["generations"][0]["output_text"] == "Hello, world."
+        finally:
+            os.unlink(path)
+
+    def test_delta_tool_use_across_chunks_known_limitation(self):
+        """Pin current behaviour: if tool_use blocks arrive split delta-style
+        ([A] then [B] for the same msg_id), the later chunk replaces the
+        earlier one rather than unioning. Claude Code's wire format is
+        cumulative for tool_use, so this case shouldn't arise in practice
+        — but if that ever changes, this test will surface it."""
+        entries = [
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "do two things"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": None,
+                    "usage": {},
+                    "content": [{"type": "tool_use", "id": "t-A", "name": "Bash", "input": {}}],
+                },
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "tool_use",
+                    "usage": {"input_tokens": 5, "output_tokens": 15},
+                    "content": [{"type": "tool_use", "id": "t-B", "name": "Read", "input": {}}],
+                },
+                "timestamp": "2026-04-12T10:00:02.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            assert len(parsed["generations"]) == 1
+            tool_names = [tu["name"] for tu in parsed["tool_uses"]]
+            # Current behaviour: only the last chunk's tool_use survives.
+            # If this changes (e.g. we move to id-keyed union), revisit
+            # event_builder.py's $insert_id derivation for tool spans.
+            assert tool_names == ["Read"]
+        finally:
+            os.unlink(path)
+
 
 # ---------------------------------------------------------------------------
 # build_events
@@ -529,6 +757,74 @@ class TestBuildEvents:
             ids_a = sorted(e["properties"]["$insert_id"] for e in events_a)
             ids_b = sorted(e["properties"]["$insert_id"] for e in events_b)
             assert ids_a == ids_b
+        finally:
+            os.unlink(path)
+
+    def test_insert_id_differs_across_sessions(self):
+        """Guards against over-deduping: two different sessions with
+        identical msg_ids (rare but possible — Anthropic msg_ids aren't
+        guaranteed globally unique) must produce different $insert_ids."""
+        entries_a = _make_session([{"prompt": "x", "tools": []}])
+        entries_b = []
+        for entry in _make_session([{"prompt": "x", "tools": []}]):
+            new = dict(entry)
+            if "sessionId" in new:
+                new["sessionId"] = "different-session-id"
+            if new.get("type") == "permission-mode":
+                new["sessionId"] = "different-session-id"
+            entries_b.append(new)
+
+        path_a = _write_jsonl(entries_a)
+        path_b = _write_jsonl(entries_b)
+        try:
+            events_a = build_events(parse_session(path_a, DEFAULT_CONFIG), DEFAULT_CONFIG)
+            events_b = build_events(parse_session(path_b, DEFAULT_CONFIG), DEFAULT_CONFIG)
+            ids_a = {e["properties"]["$insert_id"] for e in events_a}
+            ids_b = {e["properties"]["$insert_id"] for e in events_b}
+            assert ids_a.isdisjoint(ids_b), \
+                "Different sessions must not share $insert_id"
+        finally:
+            os.unlink(path_a)
+            os.unlink(path_b)
+
+    def test_insert_id_falls_back_to_span_id_when_msg_id_missing(self):
+        """Pin current limitation: if the assistant message has no `id`
+        field, the $insert_id derivation falls back to the parser's
+        span_id (which is a fresh uuid4 per parse). PostHog cannot dedupe
+        re-sends in that case. If this becomes a real problem we'd need
+        a different stable identifier (entry uuid + timestamp, say)."""
+        entries = [
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "hi"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    # No "id" field on the assistant message
+                    "role": "assistant",
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
+                    "usage": {"input_tokens": 5, "output_tokens": 10},
+                    "content": [{"type": "text", "text": "hello"}],
+                },
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            events_a = build_events(parse_session(path, DEFAULT_CONFIG), DEFAULT_CONFIG)
+            events_b = build_events(parse_session(path, DEFAULT_CONFIG), DEFAULT_CONFIG)
+            gen_a = next(e for e in events_a if e["event"] == "$ai_generation")
+            gen_b = next(e for e in events_b if e["event"] == "$ai_generation")
+            # Known limitation: insert_id is NOT stable when msg_id is missing.
+            # If we ever change the fallback to use entry_uuid, flip this
+            # assertion to assertEqual.
+            assert gen_a["properties"]["$insert_id"] != gen_b["properties"]["$insert_id"]
         finally:
             os.unlink(path)
 

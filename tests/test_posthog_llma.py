@@ -232,6 +232,48 @@ class TestSendBatch:
         assert timestamps[1] == "2026-04-12T10:01:00Z"
         assert timestamps[2] == fallback
 
+    def test_insert_id_survives_send_batch(self, monkeypatch):
+        """Regression coverage for #85: $insert_id set on the event
+        properties must reach PostHog's /batch payload — otherwise the
+        deterministic-dedup work upstream is wasted."""
+        import json
+
+        captured = {}
+
+        class _FakeResponse:
+            status = 200
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self): return b""
+
+        def fake_urlopen(req, timeout=None):
+            captured["body"] = json.loads(req.data.decode("utf-8"))
+            return _FakeResponse()
+
+        monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+
+        events = [
+            {
+                "event": "$ai_generation",
+                "properties": {"$ai_model": "claude", "$insert_id": "stable-id-1"},
+                "timestamp": "2026-04-12T10:00:00Z",
+            },
+            {
+                "event": "$ai_span",
+                "properties": {"$ai_span_name": "Bash", "$insert_id": "stable-id-2"},
+                "timestamp": "2026-04-12T10:00:01Z",
+            },
+        ]
+        result = send_batch(events, api_key="phc_test", distinct_id="user@example.com")
+        assert result["status"] == "ok"
+
+        sent = captured["body"]["batch"]
+        assert len(sent) == 2
+        assert sent[0]["properties"]["$insert_id"] == "stable-id-1"
+        assert sent[1]["properties"]["$insert_id"] == "stable-id-2"
+        # The $lib merge in sender.send_batch must not clobber $insert_id
+        assert sent[0]["properties"]["$lib"] == "posthog-ai-plugin"
+
 
 # ---------------------------------------------------------------------------
 # Status file
