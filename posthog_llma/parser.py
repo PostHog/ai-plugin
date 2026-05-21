@@ -14,12 +14,22 @@ def find_session_log(session_id: str, cwd: str) -> Optional[str]:
     """Find the JSONL session log file.
 
     Claude Code stores logs at:
-        ~/.claude/projects/{cwd-with-slashes-replaced}/{session_id}.jsonl
+        ~/.claude/projects/{cwd-with-special-chars-replaced}/{session_id}.jsonl
+
+    Claude Code collapses `/`, `.`, `\\`, `:`, `_`, and spaces to `-` when
+    naming the project dir, and the exact rules have drifted across versions
+    and platforms (Windows paths, paths under `.claude` worktrees, paths
+    with underscores or spaces, etc.). Rather than mirror that rule set, we
+    try the direct lookup first and fall back to a glob across project dirs
+    — session IDs are UUIDs and unique, so the match is unambiguous.
     """
+    base = Path.home() / ".claude" / "projects"
     project_dir_name = cwd.replace("/", "-")
-    path = Path.home() / ".claude" / "projects" / project_dir_name / f"{session_id}.jsonl"
-    if path.is_file():
-        return str(path)
+    direct = base / project_dir_name / f"{session_id}.jsonl"
+    if direct.is_file():
+        return str(direct)
+    for candidate in base.glob(f"*/{session_id}.jsonl"):
+        return str(candidate)
     return None
 
 
@@ -92,9 +102,15 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
 
             entry_type = entry.get("type", "")
 
-            # Session metadata
+            # Session metadata. The Claude Code CLI emits a permission-mode
+            # entry at the top of every session, but the Claude Agent SDK
+            # JSONL format does not — every entry just carries `sessionId`.
+            # Pull it opportunistically so SDK sessions still get a non-empty
+            # $ai_session_id / $ai_trace_id.
+            if not session_id:
+                session_id = entry.get("sessionId", "") or session_id
             if entry_type == "permission-mode":
-                session_id = entry.get("sessionId", "")
+                session_id = entry.get("sessionId", "") or session_id
 
             # User messages (prompts + tool results)
             if entry_type == "user":
@@ -125,11 +141,11 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
             if not metadata.get("git_branch"):
                 metadata["git_branch"] = entry.get("gitBranch", "")
 
-    # Flatten deduplicated generations and tool uses
+    # Flatten merged per-msg_id states into generations + tool_uses
     generations = []
     tool_uses = []
     for key in generations_order:
-        gen, tus = generations_by_msg_id[key]
+        gen, tus = _finalize_generation(generations_by_msg_id[key])
         generations.append(gen)
         tool_uses.extend(tus)
 
@@ -219,9 +235,21 @@ def _process_assistant_entry(
 ) -> None:
     """Process an assistant-type JSONL entry.
 
-    Session logs can have duplicate entries for the same message
-    (streaming updates). The later entry is more complete (has
-    tool_use blocks), so we overwrite earlier entries per message ID.
+    Session logs can have multiple entries for the same message ID, and
+    the Claude Agent SDK splits content blocks across them — one entry
+    may carry only `thinking`, the next only `tool_use`, the next only
+    `text`. Naively overwriting per msg_id drops every block except the
+    last entry's, so thinking content vanishes from $ai_output_choices.
+
+    Instead, merge per content type:
+      - When an entry carries blocks of a type we've seen, replace that
+        type's blocks (handles cumulative streaming where each chunk
+        repeats prior content in a longer form).
+      - When an entry carries blocks of a type we haven't seen, add them
+        (handles delta streaming where each chunk has only new content).
+
+    Usage/stop_reason/timestamp/model are taken from the latest non-empty
+    chunk — Claude Code typically emits these on the final entry.
     """
     msg = entry.get("message", {})
     if msg.get("role") != "assistant":
@@ -229,46 +257,113 @@ def _process_assistant_entry(
 
     msg_id = msg.get("id", "")
     usage = msg.get("usage", {})
-    model = msg.get("model", "unknown")
+    model = msg.get("model", "")
     stop_reason = msg.get("stop_reason")
     timestamp = entry.get("timestamp", "")
     entry_uuid = entry.get("uuid", "")
     prompt_id = resolve_prompt_id(entry_uuid)
-    span_id = str(uuid.uuid4())
 
-    # Extract text, thinking blocks, and tool_use blocks
+    # Group this entry's content blocks by type
+    entry_blocks_by_type = {"thinking": [], "text": [], "tool_use": []}
     content = msg.get("content", [])
-    text_parts = []
-    entry_tool_uses = []
-
     if isinstance(content, list):
         for item in content:
             if isinstance(item, dict):
-                if item.get("type") == "text":
-                    text_parts.append(item.get("text", ""))
-                elif item.get("type") == "thinking":
-                    thinking_text = item.get("thinking", "")
-                    if thinking_text:
-                        text_parts.append(thinking_text)
-                elif item.get("type") == "tool_use":
-                    entry_tool_uses.append({
-                        "tool_use_id": item.get("id", ""),
-                        "name": item.get("name", "unknown"),
-                        "input": item.get("input"),
-                        "generation_span_id": span_id,
-                        "prompt_id": prompt_id,
-                        "timestamp": timestamp,
-                    })
+                t = item.get("type")
+                if t in entry_blocks_by_type:
+                    entry_blocks_by_type[t].append(item)
 
-    output_text = "\n".join(text_parts) if text_parts else None
+    key = msg_id or entry_uuid or str(uuid.uuid4())
+
+    state = generations_by_msg_id.get(key)
+    if state is None:
+        state = {
+            "model": model or "unknown",
+            "usage": usage,
+            "stop_reason": stop_reason,
+            "timestamp": timestamp,
+            "prompt_id": prompt_id,
+            "span_id": str(uuid.uuid4()),
+            "msg_id": msg_id,
+            "blocks_by_type": {"thinking": [], "text": [], "tool_use": []},
+            # Order types by first appearance across chunks rather than
+            # assuming thinking → text → tool_use. Most Anthropic streams
+            # do follow that order, but if a chunk arrives text-first the
+            # output sequence should still reflect what the model produced.
+            "type_order": [],
+            "error_message": msg.get("error_message"),
+        }
+        generations_by_msg_id[key] = state
+        generations_order.append(key)
+
+    # Merge content blocks per type, preserving first-seen order
+    for t, blocks in entry_blocks_by_type.items():
+        if blocks:
+            if t not in state["type_order"]:
+                state["type_order"].append(t)
+            state["blocks_by_type"][t] = blocks
+
+    # Take latest non-empty metadata
+    if usage:
+        state["usage"] = usage
+    if stop_reason:
+        state["stop_reason"] = stop_reason
+    if timestamp:
+        state["timestamp"] = timestamp
+    if model:
+        state["model"] = model
+    if msg.get("error_message"):
+        state["error_message"] = msg["error_message"]
+    # prompt_id can resolve later as more entries arrive
+    if not state["prompt_id"] and prompt_id:
+        state["prompt_id"] = prompt_id
+
+
+def _finalize_generation(state: dict) -> tuple[dict, list]:
+    """Convert a merged per-msg_id state into a (generation, tool_uses) pair."""
+    span_id = state["span_id"]
+    prompt_id = state["prompt_id"]
+    timestamp = state["timestamp"]
+    usage = state.get("usage") or {}
+
+    blocks = state["blocks_by_type"]
+    # Fall back to a sensible default order for older state dicts; new
+    # entries populate type_order in first-seen order during the merge.
+    type_order = state.get("type_order") or ["thinking", "text", "tool_use"]
+
+    text_parts = []
+    entry_tool_uses = []
+    for block_type in type_order:
+        if block_type == "thinking":
+            for item in blocks.get("thinking", []):
+                t = item.get("thinking", "")
+                if t:
+                    text_parts.append(t)
+        elif block_type == "text":
+            for item in blocks.get("text", []):
+                t = item.get("text", "")
+                if t:
+                    text_parts.append(t)
+        elif block_type == "tool_use":
+            for item in blocks.get("tool_use", []):
+                entry_tool_uses.append({
+                    "tool_use_id": item.get("id", ""),
+                    "name": item.get("name", "unknown"),
+                    "input": item.get("input"),
+                    "generation_span_id": span_id,
+                    "prompt_id": prompt_id,
+                    "timestamp": timestamp,
+                })
 
     tool_use_blocks = [
         {"type": "tool_use", "name": tu["name"], "input": tu.get("input")}
         for tu in entry_tool_uses
     ]
+    output_text = "\n".join(text_parts) if text_parts else None
+    stop_reason = state.get("stop_reason")
 
     generation = {
-        "model": model,
+        "model": state.get("model") or "unknown",
         "input_tokens": usage.get("input_tokens", 0),
         "output_tokens": usage.get("output_tokens", 0),
         "cache_read_tokens": usage.get("cache_read_input_tokens", 0),
@@ -277,13 +372,10 @@ def _process_assistant_entry(
         "timestamp": timestamp,
         "prompt_id": prompt_id,
         "span_id": span_id,
+        "msg_id": state.get("msg_id", ""),
         "output_text": output_text,
         "tool_use_blocks": tool_use_blocks,
         "is_error": stop_reason == "error",
-        "error_message": msg.get("error_message"),
+        "error_message": state.get("error_message"),
     }
-
-    key = msg_id or entry_uuid or str(uuid.uuid4())
-    if key not in generations_by_msg_id:
-        generations_order.append(key)
-    generations_by_msg_id[key] = (generation, entry_tool_uses)
+    return generation, entry_tool_uses

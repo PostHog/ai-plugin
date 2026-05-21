@@ -33,7 +33,7 @@ def send_batch(
     fallback_ts = datetime.now(timezone.utc).isoformat()
 
     for ev in events:
-        batch.append({
+        entry = {
             "event": ev["event"],
             "properties": {
                 **ev["properties"],
@@ -41,7 +41,13 @@ def send_batch(
             },
             "distinct_id": distinct_id,
             "timestamp": ev.get("timestamp") or fallback_ts,
-        })
+        }
+        # PostHog's /batch endpoint dedupes on the event-level `uuid`
+        # field via ClickHouse's ReplacingMergeTree. Pass through when
+        # the builder set it (deterministic uuid5 in event_builder.py).
+        if ev.get("uuid"):
+            entry["uuid"] = ev["uuid"]
+        batch.append(entry)
 
     payload = json.dumps({
         "api_key": api_key,

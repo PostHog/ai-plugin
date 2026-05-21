@@ -9,6 +9,29 @@ from typing import Optional
 from posthog_llma.events import build_ai_generation, build_ai_span, build_ai_trace
 from posthog_llma.trace_naming import find_trace_name
 
+# Stable namespace for deriving deterministic event UUIDs via uuid5.
+# Don't change — would break dedup against previously ingested events.
+_UUID_NAMESPACE = uuid.UUID("a3c3f6c2-9b8e-4a3e-b3a1-7e6b8e9a0f00")
+
+
+def _insert_id(*parts: str) -> str:
+    """Deterministic identifier for PostHog dedup.
+
+    The SessionEnd hook re-reads the full JSONL on every fire (including
+    after `claude --resume`), so the same generation/tool/trace gets
+    re-built and re-sent with fresh random span IDs. A stable identifier
+    derived from session-stable inputs (session_id + msg_id, etc.) lets
+    PostHog dedupe re-sends.
+
+    Returned as a UUIDv5. The PostHog `/batch` endpoint dedupes on the
+    event's top-level `uuid` field (the `events` table is a ClickHouse
+    ReplacingMergeTree keyed by uuid); `$insert_id` as a property is
+    *not* a dedup signal on this path. We set both — uuid drives the
+    actual dedup, the $insert_id property doubles as a debug marker.
+    """
+    key = "|".join(p or "" for p in parts)
+    return str(uuid.uuid5(_UUID_NAMESPACE, key))
+
 
 def _truncate_tool_blocks(blocks: list, max_len: int) -> list:
     """Truncate tool use input args to prevent oversized payloads."""
@@ -107,6 +130,10 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
             privacy_mode=privacy_mode,
             extra_properties=custom_properties,
             timestamp=gen.get("timestamp"),
+            insert_id=_insert_id(
+                "cc-gen", session_id,
+                gen.get("msg_id") or gen["span_id"],
+            ),
         ))
 
     # -- $ai_span events --
@@ -149,6 +176,12 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
             max_attribute_length=config.get("max_attribute_length", 12000),
             extra_properties=custom_properties,
             timestamp=tu.get("timestamp"),
+            insert_id=_insert_id(
+                "cc-span", session_id,
+                tu.get("tool_use_id") or "",
+                tu.get("name") or "",
+                tu.get("timestamp") or "",
+            ),
         ))
 
     # -- $ai_trace events --
@@ -194,6 +227,7 @@ def _build_session_trace(events, parsed, all_generations, trace_id, session_id, 
         project_name=project_name,
         extra_properties=custom_properties,
         timestamp=trace_ts,
+        insert_id=_insert_id("cc-trace-session", session_id),
     ))
 
 
@@ -229,6 +263,7 @@ def _build_message_traces(events, parsed, all_generations, session_id, project_n
             project_name=project_name,
             extra_properties=custom_properties,
             timestamp=prompt_ts,
+            insert_id=_insert_id("cc-trace-msg", session_id, pid),
         ))
 
     # Emit root trace events for fallback (unresolved prompt) trace IDs
@@ -258,4 +293,5 @@ def _build_message_traces(events, parsed, all_generations, session_id, project_n
                 project_name=project_name,
                 extra_properties=custom_properties,
                 timestamp=timestamps[0] if timestamps else None,
+                insert_id=_insert_id("cc-trace-fallback", session_id, trace_id),
             ))

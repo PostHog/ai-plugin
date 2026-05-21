@@ -232,6 +232,81 @@ class TestSendBatch:
         assert timestamps[1] == "2026-04-12T10:01:00Z"
         assert timestamps[2] == fallback
 
+    def test_dedup_key_survives_send_batch(self, monkeypatch):
+        """Regression coverage for #85: PostHog's /batch endpoint dedupes
+        on the event-level `uuid` field (ClickHouse ReplacingMergeTree),
+        NOT on properties.$insert_id. The sender must forward the
+        builder-set top-level uuid so dedup actually kicks in."""
+        import json
+
+        captured = {}
+
+        class _FakeResponse:
+            status = 200
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self): return b""
+
+        def fake_urlopen(req, timeout=None):
+            captured["body"] = json.loads(req.data.decode("utf-8"))
+            return _FakeResponse()
+
+        monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+
+        events = [
+            {
+                "event": "$ai_generation",
+                "uuid": "abcd1234-aaaa-5bbb-9ccc-deadbeef0001",
+                "properties": {"$ai_model": "claude", "$insert_id": "abcd1234-aaaa-5bbb-9ccc-deadbeef0001"},
+                "timestamp": "2026-04-12T10:00:00Z",
+            },
+            {
+                "event": "$ai_span",
+                "uuid": "abcd1234-aaaa-5bbb-9ccc-deadbeef0002",
+                "properties": {"$ai_span_name": "Bash", "$insert_id": "abcd1234-aaaa-5bbb-9ccc-deadbeef0002"},
+                "timestamp": "2026-04-12T10:00:01Z",
+            },
+        ]
+        result = send_batch(events, api_key="phc_test", distinct_id="user@example.com")
+        assert result["status"] == "ok"
+
+        sent = captured["body"]["batch"]
+        assert len(sent) == 2
+        # Top-level uuid is the actual dedup key
+        assert sent[0]["uuid"] == "abcd1234-aaaa-5bbb-9ccc-deadbeef0001"
+        assert sent[1]["uuid"] == "abcd1234-aaaa-5bbb-9ccc-deadbeef0002"
+        # Property is preserved as a debug marker
+        assert sent[0]["properties"]["$insert_id"] == "abcd1234-aaaa-5bbb-9ccc-deadbeef0001"
+        # The $lib merge in sender.send_batch must not clobber anything
+        assert sent[0]["properties"]["$lib"] == "posthog-ai-plugin"
+
+    def test_uuid_omitted_when_not_set(self, monkeypatch):
+        """Generic callers that don't set a top-level uuid still work —
+        the sender doesn't fabricate one, PostHog assigns server-side."""
+        import json
+
+        captured = {}
+
+        class _FakeResponse:
+            status = 200
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self): return b""
+
+        def fake_urlopen(req, timeout=None):
+            captured["body"] = json.loads(req.data.decode("utf-8"))
+            return _FakeResponse()
+
+        monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+
+        events = [{
+            "event": "$ai_generation",
+            "properties": {"$ai_model": "claude"},
+            "timestamp": "2026-04-12T10:00:00Z",
+        }]
+        send_batch(events, api_key="phc_test", distinct_id="u")
+        assert "uuid" not in captured["body"]["batch"][0]
+
 
 # ---------------------------------------------------------------------------
 # Status file

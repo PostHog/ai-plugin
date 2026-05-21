@@ -34,8 +34,14 @@ def build_ai_generation(
     privacy_mode: bool = False,
     extra_properties: Optional[dict] = None,
     timestamp: Optional[str] = None,
+    insert_id: Optional[str] = None,
 ) -> dict:
-    """Build a $ai_generation event."""
+    """Build a $ai_generation event.
+
+    Pass `insert_id` to set `$insert_id` for PostHog dedup. Use a
+    deterministic value (e.g. derived from session_id + message_id) so
+    re-sends of the same generation collapse into a single ingested event.
+    """
     total_tokens = input_tokens + output_tokens
 
     # Map Claude Code stop reasons to PostHog's expected values
@@ -72,7 +78,12 @@ def build_ai_generation(
     if extra_properties:
         properties.update(extra_properties)
 
+    if insert_id:
+        properties["$insert_id"] = insert_id
+
     result = {"event": "$ai_generation", "properties": properties}
+    if insert_id:
+        result["uuid"] = insert_id
     if timestamp:
         result["timestamp"] = timestamp
     return result
@@ -96,8 +107,12 @@ def build_ai_span(
     max_attribute_length: int = 12000,
     extra_properties: Optional[dict] = None,
     timestamp: Optional[str] = None,
+    insert_id: Optional[str] = None,
 ) -> dict:
-    """Build a $ai_span event for a tool execution."""
+    """Build a $ai_span event for a tool execution.
+
+    Pass `insert_id` to set `$insert_id` for PostHog dedup.
+    """
     def _truncate(val, max_len):
         if val is None:
             return None
@@ -124,7 +139,12 @@ def build_ai_span(
     if extra_properties:
         properties.update(extra_properties)
 
+    if insert_id:
+        properties["$insert_id"] = insert_id
+
     result = {"event": "$ai_span", "properties": properties}
+    if insert_id:
+        result["uuid"] = insert_id
     if timestamp:
         result["timestamp"] = timestamp
     return result
@@ -144,8 +164,12 @@ def build_ai_trace(
     agent_name: str = "",
     extra_properties: Optional[dict] = None,
     timestamp: Optional[str] = None,
+    insert_id: Optional[str] = None,
 ) -> dict:
-    """Build a $ai_trace event for a complete prompt-to-response cycle."""
+    """Build a $ai_trace event for a complete prompt-to-response cycle.
+
+    Pass `insert_id` to set `$insert_id` for PostHog dedup.
+    """
     properties = {
         "$ai_trace_id": trace_id,
         "$ai_trace_name": trace_name,
@@ -164,7 +188,12 @@ def build_ai_trace(
     if extra_properties:
         properties.update(extra_properties)
 
+    if insert_id:
+        properties["$insert_id"] = insert_id
+
     result = {"event": "$ai_trace", "properties": properties}
+    if insert_id:
+        result["uuid"] = insert_id
     if timestamp:
         result["timestamp"] = timestamp
     return result
