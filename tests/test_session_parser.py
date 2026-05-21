@@ -256,6 +256,46 @@ class TestParseSession:
         finally:
             os.unlink(path)
 
+    def test_session_id_extracted_from_agent_sdk_jsonl(self):
+        """Regression coverage for #55 Defect 1: Claude Agent SDK JSONLs
+        don't emit a permission-mode entry, but every entry carries
+        sessionId. The parser should still pick it up."""
+        # No permission-mode entry, no system/turn_duration entry.
+        entries = [
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "hi"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "sdk-session-abc",
+                "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
+                    "usage": {"input_tokens": 5, "output_tokens": 10, "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0},
+                    "content": [{"type": "text", "text": "hello"}],
+                },
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "sessionId": "sdk-session-abc",
+                "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            assert parsed["session_id"] == "sdk-session-abc"
+
+            # Downstream events must have a non-empty trace_id / session_id
+            events = build_events(parsed, DEFAULT_CONFIG)
+            for e in events:
+                assert e["properties"]["$ai_session_id"] == "sdk-session-abc"
+                assert e["properties"]["$ai_trace_id"]
+        finally:
+            os.unlink(path)
+
     def test_slash_command_without_prompt_id(self):
         entries = [
             {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},

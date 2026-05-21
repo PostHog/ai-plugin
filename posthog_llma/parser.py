@@ -102,9 +102,15 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
 
             entry_type = entry.get("type", "")
 
-            # Session metadata
+            # Session metadata. The Claude Code CLI emits a permission-mode
+            # entry at the top of every session, but the Claude Agent SDK
+            # JSONL format does not — every entry just carries `sessionId`.
+            # Pull it opportunistically so SDK sessions still get a non-empty
+            # $ai_session_id / $ai_trace_id.
+            if not session_id:
+                session_id = entry.get("sessionId", "") or session_id
             if entry_type == "permission-mode":
-                session_id = entry.get("sessionId", "")
+                session_id = entry.get("sessionId", "") or session_id
 
             # User messages (prompts + tool results)
             if entry_type == "user":
