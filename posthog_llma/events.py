@@ -82,6 +82,8 @@ def build_ai_generation(
         properties["$insert_id"] = insert_id
 
     result = {"event": "$ai_generation", "properties": properties}
+    if insert_id:
+        result["uuid"] = insert_id
     if timestamp:
         result["timestamp"] = timestamp
     return result
@@ -141,6 +143,8 @@ def build_ai_span(
         properties["$insert_id"] = insert_id
 
     result = {"event": "$ai_span", "properties": properties}
+    if insert_id:
+        result["uuid"] = insert_id
     if timestamp:
         result["timestamp"] = timestamp
     return result
@@ -188,6 +192,8 @@ def build_ai_trace(
         properties["$insert_id"] = insert_id
 
     result = {"event": "$ai_trace", "properties": properties}
+    if insert_id:
+        result["uuid"] = insert_id
     if timestamp:
         result["timestamp"] = timestamp
     return result

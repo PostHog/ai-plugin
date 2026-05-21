@@ -1,6 +1,5 @@
 """Build PostHog events from parsed Claude Code session data."""
 
-import hashlib
 import json
 import os
 import uuid
@@ -10,18 +9,28 @@ from typing import Optional
 from posthog_llma.events import build_ai_generation, build_ai_span, build_ai_trace
 from posthog_llma.trace_naming import find_trace_name
 
+# Stable namespace for deriving deterministic event UUIDs via uuid5.
+# Don't change — would break dedup against previously ingested events.
+_UUID_NAMESPACE = uuid.UUID("a3c3f6c2-9b8e-4a3e-b3a1-7e6b8e9a0f00")
+
 
 def _insert_id(*parts: str) -> str:
-    """Deterministic $insert_id for PostHog dedup.
+    """Deterministic identifier for PostHog dedup.
 
     The SessionEnd hook re-reads the full JSONL on every fire (including
-    after `claude --resume`), so the same generation/tool/trace gets re-built
-    and re-sent with fresh random span IDs. Passing a stable $insert_id
-    derived from session-stable identifiers (session_id + msg_id, etc.)
-    lets PostHog dedupe re-sends into a single ingested event.
+    after `claude --resume`), so the same generation/tool/trace gets
+    re-built and re-sent with fresh random span IDs. A stable identifier
+    derived from session-stable inputs (session_id + msg_id, etc.) lets
+    PostHog dedupe re-sends.
+
+    Returned as a UUIDv5. The PostHog `/batch` endpoint dedupes on the
+    event's top-level `uuid` field (the `events` table is a ClickHouse
+    ReplacingMergeTree keyed by uuid); `$insert_id` as a property is
+    *not* a dedup signal on this path. We set both — uuid drives the
+    actual dedup, the $insert_id property doubles as a debug marker.
     """
     key = "|".join(p or "" for p in parts)
-    return hashlib.sha1(key.encode("utf-8")).hexdigest()
+    return str(uuid.uuid5(_UUID_NAMESPACE, key))
 
 
 def _truncate_tool_blocks(blocks: list, max_len: int) -> list:

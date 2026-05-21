@@ -717,8 +717,13 @@ class TestBuildEvents:
             os.unlink(path)
 
     def test_insert_id_set_on_all_events(self):
-        """Regression coverage for #85: deterministic $insert_id lets
-        PostHog dedupe re-sends of the same session."""
+        """Regression coverage for #85: deterministic dedup key lets
+        PostHog dedupe re-sends of the same session.
+
+        PostHog's /batch endpoint dedupes on the event-level `uuid`
+        field via ClickHouse's ReplacingMergeTree. $insert_id in
+        properties is kept as a visible mirror so the dedup key is
+        easy to spot in the UI."""
         path = _write_jsonl(_make_session([{"prompt": "run ls", "tools": ["Bash"]}]))
         try:
             parsed = parse_session(path, DEFAULT_CONFIG)
@@ -726,10 +731,13 @@ class TestBuildEvents:
             for e in events:
                 assert e["properties"].get("$insert_id"), \
                     f"{e['event']} missing $insert_id"
+                assert e.get("uuid"), f"{e['event']} missing top-level uuid"
+                # Both must match — uuid is what PostHog actually dedupes on
+                assert e["uuid"] == e["properties"]["$insert_id"]
 
-            # Insert IDs must be unique within a single send
-            ids = [e["properties"]["$insert_id"] for e in events]
-            assert len(ids) == len(set(ids))
+            # Dedup keys must be unique within a single send
+            uuids = [e["uuid"] for e in events]
+            assert len(uuids) == len(set(uuids))
         finally:
             os.unlink(path)
 
