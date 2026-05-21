@@ -19,8 +19,10 @@ anyLast
 appendTrailingCharIfAbsent
 argMax
 argMaxMerge
+argMaxState
 argMin
 argMinMerge
+argMinState
 array
 array_agg
 arrayAll
@@ -713,8 +715,10 @@ sumArray
 sumArrayOrDefault
 sumArrayOrNull
 sumForEach
+sumForEachMerge
 sumForEachOrDefault
 sumForEachOrNull
+sumForEachState
 sumMap
 sumMapMerge
 sumMapOrDefault
