@@ -169,6 +169,7 @@ countArgMinOrNull
 countArray
 countArrayOrDefault
 countArrayOrNull
+countDistinct
 countDistinctArgMax
 countDistinctArgMaxOrDefault
 countDistinctArgMaxOrNull
@@ -181,7 +182,6 @@ countDistinctArrayOrNull
 countDistinctForEach
 countDistinctForEachOrDefault
 countDistinctForEachOrNull
-countDistinctIf
 countDistinctMap
 countDistinctMapOrDefault
 countDistinctMapOrNull
