@@ -55,17 +55,17 @@ FROM
                         ifNull(if(equals(event, '$pageview'), replaceRegexpAll(ifNull(properties.$current_url, ''), '(.)/$', '\\1'), event), '') AS path_item_ungrouped,
                         replaceRegexpAll(path_item_ungrouped, '^https:\\/\\/[a-z-]+\\.posthog\\.com', 'https://<region>.posthog.com') AS path_item_0,
                         replaceRegexpAll(path_item_0, '\\/project\\/\\d+', '/project/<team_id>') AS path_item_1,
-                        replaceRegexpAll(path_item_1, '\\/llm-analytics\\/traces\\/[0-9a-f\\-]+', '/llm-analytics/traces/<trace_id>') AS path_item_2,
-                        replaceRegexpAll(path_item_2, '\\/llm-analytics\\/sessions\\/[0-9a-f\\-]+', '/llm-analytics/sessions/<session_id>') AS path_item_3,
-                        replaceRegexpAll(path_item_3, '\\/llm-analytics\\/evaluations\\/[0-9a-f\\-]+', '/llm-analytics/evaluations/<evaluation_id>') AS path_item_4,
-                        replaceRegexpAll(path_item_4, '\\/llm-analytics\\/datasets\\/[0-9a-f\\-]+', '/llm-analytics/datasets/<dataset_id>') AS path_item_cleaned,
+                        replaceRegexpAll(path_item_1, '\\/ai-observability\\/traces\\/[0-9a-f\\-]+', '/ai-observability/traces/<trace_id>') AS path_item_2,
+                        replaceRegexpAll(path_item_2, '\\/ai-observability\\/sessions\\/[0-9a-f\\-]+', '/ai-observability/sessions/<session_id>') AS path_item_3,
+                        replaceRegexpAll(path_item_3, '\\/ai-evals\\/evaluations\\/[0-9a-f\\-]+', '/ai-evals/evaluations/<evaluation_id>') AS path_item_4,
+                        replaceRegexpAll(path_item_4, '\\/ai-evals\\/datasets\\/[0-9a-f\\-]+', '/ai-evals/datasets/<dataset_id>') AS path_item_cleaned,
                         NULL AS groupings,
                         multiMatchAnyIndex(path_item_cleaned, NULL) AS group_index,
                         (if(greater(group_index, 0), groupings[group_index], path_item_cleaned) AS path_item) AS path_item
                     FROM
                         events
                     WHERE
-                        and(and(ilike(toString(properties.$pathname), '%llm-analytics%'), notILike(toString(properties.$pathname), '%docs%')), and(greaterOrEquals(events.timestamp, toStartOfInterval(assumeNotNull(toDateTime('2025-12-03 00:00:00')), toIntervalDay(1))), lessOrEquals(events.timestamp, assumeNotNull(toDateTime('2025-12-10 23:59:59')))), equals(event, '$pageview'))
+                        and(and(ilike(toString(properties.$pathname), '%ai-%'), notILike(toString(properties.$pathname), '%docs%')), and(greaterOrEquals(events.timestamp, toStartOfInterval(assumeNotNull(toDateTime('2025-12-03 00:00:00')), toIntervalDay(1))), lessOrEquals(events.timestamp, assumeNotNull(toDateTime('2025-12-10 23:59:59')))), equals(event, '$pageview'))
                     ORDER BY
                         events.person_id ASC,
                         events.timestamp ASC)
