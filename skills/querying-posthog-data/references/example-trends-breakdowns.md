@@ -17,7 +17,7 @@ FROM
                     count() AS total,
                     toStartOfDay(timestamp) AS day_start,
                     ifNull(nullIf(left(toString(properties.$browser), 400), ''), '$$_posthog_breakdown_null_$$') AS breakdown_value_1,
-                    properties.$browser_version AS breakdown_value_2
+                    toFloat(properties.$browser_version) AS breakdown_value_2
                 FROM
                     events AS e
                 WHERE
@@ -35,7 +35,7 @@ FROM
                 count() AS total,
                 toStartOfDay(timestamp) AS day_start,
                 ifNull(nullIf(left(toString(properties.$browser), 400), ''), '$$_posthog_breakdown_null_$$') AS breakdown_value_1,
-                properties.$browser_version AS breakdown_value_2,
+                toFloat(properties.$browser_version) AS breakdown_value_2,
                 (SELECT
                         [max(breakdown_value_2)]
                     FROM
@@ -44,9 +44,7 @@ FROM
                         [min(breakdown_value_2)]
                     FROM
                         min_max) AS min_nums,
-                arrayMap((max_num, min_num) -> minus(max_num, min_num), arrayZip(max_nums, min_nums)) AS diff,
-                [10] AS bins,
-                arrayMap(i -> arrayMap(x -> [plus(multiply(divide(diff[i], bins[i]), x), min_nums[i]), plus(plus(multiply(divide(diff[i], bins[i]), plus(x, 1)), min_nums[i]), if(equals(plus(x, 1), bins[i]), 0.01, 0))], range(bins[i])), range(1, 2)) AS buckets
+                arrayMap((max_num, min_num, bin_count) -> arrayMap(x -> [plus(multiply(divide(minus(max_num, min_num), bin_count), x), min_num), plus(plus(multiply(divide(minus(max_num, min_num), bin_count), plus(x, 1)), min_num), if(equals(plus(x, 1), bin_count), 0.01, 0))], range(bin_count)), max_nums, min_nums, [10]) AS buckets
             FROM
                 events AS e
             WHERE
