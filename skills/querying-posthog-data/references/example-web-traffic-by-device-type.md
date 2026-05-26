@@ -23,8 +23,6 @@ FROM
         breakdown_value)
 GROUP BY
     `context.columns.breakdown_value`
-HAVING
-    notEquals(`context.columns.breakdown_value`, NULL)
 ORDER BY
     `context.columns.visitors` DESC,
     `context.columns.views` DESC,
