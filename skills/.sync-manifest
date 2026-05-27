@@ -13,6 +13,7 @@ diagnosing-failed-warehouse-syncs
 diagnosing-missing-recordings
 diagnosing-sdk-health
 diagnosing-stacktrace-symbolication
+downloading-batch-export-files
 exploring-apm-traces
 exploring-autocapture-events
 exploring-live-traffic

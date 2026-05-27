@@ -1,10 +1,10 @@
-# LLM Analytics basics - Docs
+# AI Observability basics - Docs
 
-This page covers how your LLM calls become analytics in PostHog and defines key concepts for LLM Analytics.
+This page covers how your LLM calls become analytics in PostHog and defines key concepts for AI Observability.
 
 ## How LLM calls become events
 
-PostHog's LLM Analytics works by wrapping your existing LLM provider's SDK to capture requests and responses. Your API calls still go directly to your provider, but the wrapper extracts metadata from each call and sends it to PostHog as an event.
+PostHog's AI Observability works by wrapping your existing LLM provider's SDK to capture requests and responses. Your API calls still go directly to your provider, but the wrapper extracts metadata from each call and sends it to PostHog as an event.
 
 graph LR Call\["LLM call"\] --> Wrapper\["Wrapped SDK"\] Wrapper --> Provider\["LLM provider API"\] Wrapper --> Event\["Event"\] Event --> PostHog\["PostHog"\]
 
@@ -23,7 +23,7 @@ Generations are represented using the event name `$ai_generation`. Each generati
 
 PostHog automatically calculates costs by matching your model and provider against pricing data. We use OpenRouter's pricing as our primary source, with fallback to manually maintained pricing for additional models.
 
-You can also [set custom pricing](/docs/llm-analytics/calculating-costs.md) if you have negotiated rates or use unsupported models.
+You can also [set custom pricing](/docs/ai-observability/calculating-costs.md) if you have negotiated rates or use unsupported models.
 
 ### Message roles
 
@@ -47,11 +47,11 @@ Here's a breakdown of this hierarchy:
 
 | Term | Definition | Example |
 | --- | --- | --- |
-| [Session](/docs/llm-analytics/sessions.md) | Groups multiple traces together | A user's conversation thread |
-| [Trace](/docs/llm-analytics/traces.md) | Contains generations and spans for a single request | One chatbot message and response |
-| [Span](/docs/llm-analytics/spans.md) | Tracks an operation within a trace | A retrieval step or function call |
-| [Generation](/docs/llm-analytics/generations.md) | An LLM call, tracked as $ai_generation events | Sending a prompt to Claude |
-| [Embedding](/docs/llm-analytics/embeddings.md) | Converts text into vectors | Vectorizing documents for RAG |
+| [Session](/docs/ai-observability/sessions.md) | Groups multiple traces together | A user's conversation thread |
+| [Trace](/docs/ai-observability/traces.md) | Contains generations and spans for a single request | One chatbot message and response |
+| [Span](/docs/ai-observability/spans.md) | Tracks an operation within a trace | A retrieval step or function call |
+| [Generation](/docs/ai-observability/generations.md) | An LLM call, tracked as $ai_generation events | Sending a prompt to Claude |
+| [Embedding](/docs/ai-observability/embeddings.md) | Converts text into vectors | Vectorizing documents for RAG |
 
 ### Community questions
 

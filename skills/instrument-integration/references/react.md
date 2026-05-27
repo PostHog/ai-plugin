@@ -56,15 +56,15 @@ pnpm add posthog-js @posthog/react
 bun add posthog-js @posthog/react
 ```
 
-2.  Add your environment variables to your `.env.local` file and to your hosting provider (e.g. Vercel, Netlify, AWS). You can find your project token and host in [your project settings](https://us.posthog.com/settings/project). If you're using Vite, include `VITE_PUBLIC_` in their names ensures they are accessible in the frontend.
+2.  Add your environment variables to your `.env.local` file and to your hosting provider (e.g. Vercel, Netlify, AWS). You can find your project token and host in [your project settings](https://us.posthog.com/settings/project). If you're using Vite, prefixing variable names with `VITE_` ensures they are accessible in the frontend.
 
 .env.local
 
 PostHog AI
 
 ```shell
-VITE_PUBLIC_POSTHOG_TOKEN=<ph_project_token>
-VITE_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+VITE_POSTHOG_TOKEN=<ph_project_token>
+VITE_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
 3.  Integrate PostHog at the root of your app (such as `main.jsx` for Vite apps and `root.tsx` for React Router V7).
@@ -81,8 +81,8 @@ import './index.css'
 import App from './App.jsx'
 import posthog from 'posthog-js';
 import { PostHogProvider } from '@posthog/react'
-posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_TOKEN, {
-  api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+posthog.init(import.meta.env.VITE_POSTHOG_TOKEN, {
+  api_host: import.meta.env.VITE_POSTHOG_HOST,
   defaults: '2026-01-30',
 });
 createRoot(document.getElementById('root')).render(

@@ -10,13 +10,13 @@ SELECT
     count(DISTINCT uuid) AS occurrences,
     count(DISTINCT nullIf($session_id, '')) AS sessions,
     count(DISTINCT coalesce(nullIf(toString(person_id), '00000000-0000-0000-0000-000000000000'), distinct_id)) AS users,
-    sumForEach(arrayMap(bin -> if(and(greater(timestamp, bin), lessOrEquals(dateDiff('seconds', bin, timestamp), divide(dateDiff('seconds', toDateTime(toDateTime('2026-05-21 20:25:41.236619')), toDateTime(toDateTime('2026-05-22 20:25:41.237155'))), 20))), 1, 0), arrayMap(i -> dateAdd(toDateTime(toDateTime('2026-05-21 20:25:41.236619')), toIntervalSecond(multiply(i, divide(dateDiff('seconds', toDateTime(toDateTime('2026-05-21 20:25:41.236619')), toDateTime(toDateTime('2026-05-22 20:25:41.237155'))), 20)))), range(0, 20)))) AS volumeRange,
+    sumForEach(arrayMap(bin -> if(and(greater(timestamp, bin), lessOrEquals(dateDiff('seconds', bin, timestamp), divide(dateDiff('seconds', toDateTime(toDateTime('2026-05-26 12:40:03.888767')), toDateTime(toDateTime('2026-05-27 12:40:03.889273'))), 20))), 1, 0), arrayMap(i -> dateAdd(toDateTime(toDateTime('2026-05-26 12:40:03.888767')), toIntervalSecond(multiply(i, divide(dateDiff('seconds', toDateTime(toDateTime('2026-05-26 12:40:03.888767')), toDateTime(toDateTime('2026-05-27 12:40:03.889273'))), 20)))), range(0, 20)))) AS volumeRange,
     argMin(tuple(uuid, distinct_id, timestamp, properties), timestamp) AS first_event,
     argMax(properties.$lib, timestamp) AS library
 FROM
     events AS e
 WHERE
-    and(equals(event, '$exception'), isNotNull(e.issue_id), equals(properties.tag, 'max_ai'), greaterOrEquals(timestamp, toDateTime(toDateTime('2026-05-21 20:25:41.236619'))), lessOrEquals(timestamp, toDateTime(toDateTime('2026-05-22 20:25:41.237155'))), or(greater(position(lower(properties.$exception_types), lower('constant')), 0), greater(position(lower(properties.$exception_values), lower('constant')), 0), greater(position(lower(properties.$exception_sources), lower('constant')), 0), greater(position(lower(properties.$exception_functions), lower('constant')), 0), greater(position(lower(properties.email), lower('constant')), 0), greater(position(lower(person.properties.email), lower('constant')), 0)))
+    and(equals(event, '$exception'), isNotNull(e.issue_id), equals(properties.tag, 'max_ai'), greaterOrEquals(timestamp, toDateTime(toDateTime('2026-05-26 12:40:03.888767'))), lessOrEquals(timestamp, toDateTime(toDateTime('2026-05-27 12:40:03.889273'))), or(greater(position(lower(properties.$exception_types), lower('constant')), 0), greater(position(lower(properties.$exception_values), lower('constant')), 0), greater(position(lower(properties.$exception_sources), lower('constant')), 0), greater(position(lower(properties.$exception_functions), lower('constant')), 0), greater(position(lower(properties.email), lower('constant')), 0), greater(position(lower(person.properties.email), lower('constant')), 0)))
 GROUP BY
     id
 ORDER BY
