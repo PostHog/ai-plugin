@@ -1,13 +1,13 @@
 # Traces - Docs
 
-Traces are a collection of [generations](/docs/llm-analytics/generations.md) and [spans](/docs/llm-analytics/spans.md) that capture a full interaction between a user and an LLM. The [traces tab](https://app.posthog.com/llm-analytics/traces) lists them along with the properties autocaptured by PostHog like the person, total cost, total latency, and more.
+Traces are a collection of [generations](/docs/ai-observability/generations.md) and [spans](/docs/ai-observability/spans.md) that capture a full interaction between a user and an LLM. The [traces tab](https://app.posthog.com/llm-analytics/traces) lists them along with the properties autocaptured by PostHog like the person, total cost, total latency, and more.
 
 ## Sessions vs Traces
 
--   **Trace** (`$ai_trace_id`): Groups related generations and spans together. Required for all LLM analytics events.
+-   **Trace** (`$ai_trace_id`): Groups related generations and spans together. Required for all AI Observability events.
 -   **Session** (`$ai_session_id`): Optional property that groups multiple traces together based on your chosen grouping strategy.
 
-See the [Sessions](/docs/llm-analytics/sessions.md) documentation for more details on how to use `$ai_session_id`.
+See the [Sessions](/docs/ai-observability/sessions.md) documentation for more details on how to use `$ai_session_id`.
 
 ## Trace timeline
 
@@ -27,15 +27,15 @@ When viewing a trace, you can control how conversation messages are displayed us
 
 ## Tool calls
 
-Traces display any [tools](/docs/llm-analytics/tools.md) called by the generations within them, shown as tags in the traces list. This makes it easy to see which conversations involved tool use at a glance.
+Traces display any [tools](/docs/ai-observability/tools.md) called by the generations within them, shown as tags in the traces list. This makes it easy to see which conversations involved tool use at a glance.
 
 ## Sentiment classification
 
-PostHog can classify the sentiment of user messages in a trace as negative, neutral, or positive. Sentiment is computed on-demand using a local model when you view a trace — no data is sent to third-party services. Each trace gets an overall sentiment label and score, with a per-generation and per-message breakdown. See [Sentiment classification](/docs/llm-analytics/sentiment.md) for more details.
+PostHog can classify the sentiment of user messages in a trace as negative, neutral, or positive. Sentiment is computed on-demand using a local model when you view a trace — no data is sent to third-party services. Each trace gets an overall sentiment label and score, with a per-generation and per-message breakdown. See [Sentiment classification](/docs/ai-observability/sentiment.md) for more details.
 
 ## Search traces with PostHog AI
 
-[PostHog AI](/docs/posthog-ai.md) can search and analyze your LLM traces using natural language. When you're on an [LLM Analytics page](https://app.posthog.com/llm-analytics), PostHog AI automatically switches to its LLM analytics mode, giving it access to tools for searching traces by date range, model, cost, error status, and other properties.
+[PostHog AI](/docs/posthog-ai.md) can search and analyze your LLM traces using natural language. When you're on an [AI Observability page](https://app.posthog.com/llm-analytics), PostHog AI automatically switches to its AI Observability mode, giving it access to tools for searching traces by date range, model, cost, error status, and other properties.
 
 Example prompts you can try:
 

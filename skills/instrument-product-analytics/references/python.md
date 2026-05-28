@@ -224,7 +224,7 @@ Python
 PostHog AI
 
 ```python
-from posthog import new_context
+from posthog import new_context, tag
 with new_context(fresh=True):
     tag("some-key", "value-2")
     # This event only has the property some-key="value-2" from the fresh context
@@ -266,7 +266,7 @@ You can read more about identifying users in the [user identification documentat
 
 ### Contexts and sessions
 
-Contexts can be associated with a session ID by calling `posthog.set_context_session`. Session IDs must be UUIDv7 strings.
+Contexts can be associated with a session ID by calling `posthog.set_context_session`. When linking backend events to frontend sessions, use the session ID from the frontend SDK (PostHog session IDs are UUIDv7 strings).
 
 Python
 
@@ -324,7 +324,7 @@ with new_context(capture_exceptions=False):
 
 ### Decorating functions
 
-The SDK exposes a function decorator. It takes the same arguments as `new_context` and provides a handy way to mark a whole function as being in a new context. For example:
+The SDK exposes a function decorator. It takes the same `fresh` and `capture_exceptions` arguments as `new_context` and provides a handy way to mark a whole function as being in a new context. For example:
 
 Python
 
@@ -609,9 +609,9 @@ if variant == "variant-name":
 
 It's also possible to [run experiments without using feature flags](/docs/experiments/running-experiments-without-feature-flags.md).
 
-## LLM analytics
+## AI Observability
 
-Our Python SDK includes a built-in LLM analytics feature. It enables you to capture LLM usage, performance, and more. Check out our [analytics docs](/docs/llm-analytics.md) for more details on setting it up.
+Our Python SDK includes a built-in AI Observability feature. It enables you to capture LLM usage, performance, and more. Check out our [analytics docs](/docs/ai-observability.md) for more details on setting it up.
 
 ## Error tracking
 
@@ -633,7 +633,7 @@ Python
 PostHog AI
 
 ```python
-posthog.capture_exception(e, 'user_distinct_id', properties=additional_properties)
+posthog.capture_exception(e, distinct_id='user_distinct_id', properties=additional_properties)
 ```
 
 Contexts automatically capture exceptions thrown inside them, unless disable it by passing `capture_exceptions=False` to `new_context()`.

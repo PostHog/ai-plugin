@@ -196,7 +196,6 @@ posthog.init('<ph_project_token>', {
 | ErrorTrackingExtensions | [Error Tracking](/docs/error-tracking.md) |
 | SurveysExtensions | [Surveys](/docs/surveys.md) |
 | ExperimentsExtensions | [Experiments](/docs/experiments.md) |
-| ProductToursExtensions | [Product Tours](/docs/product-tours.md) |
 | SiteAppsExtensions | [Site apps](/docs/site-apps.md) |
 | TracingExtensions | Distributed tracing header injection |
 | ToolbarExtensions | [Toolbar](/docs/toolbar.md) |

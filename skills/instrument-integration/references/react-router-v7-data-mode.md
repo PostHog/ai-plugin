@@ -42,15 +42,15 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
 
     Required
 
-    Add your environment variables to your `.env.local` file and to your hosting provider (e.g. Vercel, Netlify, AWS). You can find your project token and host in [your project settings](https://us.posthog.com/settings/project). If you're using Vite, including `VITE_PUBLIC_` in their names ensures they are accessible in the frontend.
+    Add your environment variables to your `.env.local` file and to your hosting provider (e.g. Vercel, Netlify, AWS). You can find your project token and host in [your project settings](https://us.posthog.com/settings/project). If you're using Vite, prefixing variable names with `VITE_` ensures they are accessible in the frontend.
 
     .env.local
 
     PostHog AI
 
     ```shell
-    VITE_PUBLIC_POSTHOG_TOKEN=<ph_project_token>
-    VITE_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+    VITE_POSTHOG_TOKEN=<ph_project_token>
+    VITE_POSTHOG_HOST=https://us.i.posthog.com
     ```
 
 3.  3
@@ -72,8 +72,8 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
     import Root, { RootErrorBoundary } from "./app/root";
     import posthog from 'posthog-js';
     import { PostHogProvider } from '@posthog/react'
-    posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_TOKEN, {
-      api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+    posthog.init(import.meta.env.VITE_POSTHOG_TOKEN, {
+      api_host: import.meta.env.VITE_POSTHOG_HOST,
       defaults: '2026-01-30',
     });
     const router = createBrowserRouter([...]);
@@ -329,8 +329,8 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
     PostHog AI
 
     ```jsx
-    posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_TOKEN, {
-      api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+    posthog.init(import.meta.env.VITE_POSTHOG_TOKEN, {
+      api_host: import.meta.env.VITE_POSTHOG_HOST,
       defaults: '2026-01-30',
       __add_tracing_headers: [ window.location.host, 'localhost' ],
     });
