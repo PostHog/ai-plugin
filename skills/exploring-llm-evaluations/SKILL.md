@@ -50,7 +50,7 @@ AI-generated summary of pass/fail/N/A patterns across many runs.
 | `posthog:execute-sql`                    | Ad-hoc HogQL over `$ai_evaluation` events                      |
 | `posthog:query-llm-trace`                | Drill into the underlying generation that an evaluation scored |
 
-All `llma-evaluation-*` tools are defined in `products/llm_analytics/mcp/tools.yaml`.
+All `llma-evaluation-*` tools are defined in `products/ai_observability/mcp/tools.yaml`.
 
 ## Event schema
 

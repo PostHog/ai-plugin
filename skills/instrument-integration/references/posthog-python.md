@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.14.2
+**SDK Version:** 7.15.4
 
 Integrate PostHog into any python application.
 
@@ -29,38 +29,38 @@ Initialize a new PostHog client instance.
 
 ### Parameters
 
-- **`project_api_key?`** (`str`) - The project API key.
-- **`host`** (`any`) - The host to use for the client.
-- **`debug`** (`bool`) - Whether to enable debug mode.
-- **`max_queue_size`** (`int`)
-- **`send`** (`bool`)
-- **`on_error`** (`any`)
-- **`flush_at`** (`int`)
-- **`flush_interval`** (`float`)
-- **`gzip`** (`bool`)
-- **`max_retries`** (`int`)
-- **`sync_mode`** (`bool`)
-- **`timeout`** (`int`)
-- **`thread`** (`int`)
-- **`poll_interval`** (`int`)
-- **`personal_api_key`** (`any`)
-- **`disabled`** (`bool`)
-- **`disable_geoip`** (`bool`)
-- **`historical_migration`** (`bool`)
-- **`feature_flags_request_timeout_seconds`** (`int`)
-- **`super_properties`** (`any`)
-- **`enable_exception_autocapture`** (`bool`)
-- **`log_captured_exceptions`** (`bool`)
-- **`project_root`** (`any`)
-- **`privacy_mode`** (`bool`)
-- **`before_send`** (`any`)
-- **`flag_fallback_cache_url`** (`any`)
-- **`enable_local_evaluation`** (`bool`)
-- **`flag_definition_cache_provider?`** (`FlagDefinitionCacheProvider`)
-- **`capture_exception_code_variables`** (`bool`)
-- **`code_variables_mask_patterns`** (`any`)
-- **`code_variables_ignore_patterns`** (`any`)
-- **`in_app_modules`** (`UnionType[list[str], any]`)
+- **`project_api_key?`** (`str`) - PostHog project API key/token.
+- **`host`** (`any`) - PostHog host. Defaults to the US ingestion endpoint when not         set. App hosts such as ``https://us.posthog.com`` are mapped to         the corresponding ingestion host.
+- **`debug`** (`bool`) - Enable verbose SDK logging and re-raise errors from public         API methods.
+- **`max_queue_size`** (`int`) - Maximum number of events buffered before upload.
+- **`send`** (`bool`) - If False, queueing succeeds but events are not sent.
+- **`on_error`** (`any`) - Optional callback invoked by background consumers when an         upload fails.
+- **`flush_at`** (`int`) - Number of queued events that triggers a batch upload.
+- **`flush_interval`** (`float`) - Maximum seconds a background consumer waits before         flushing a partial batch.
+- **`gzip`** (`bool`) - Whether to gzip event upload payloads.
+- **`max_retries`** (`int`) - Number of upload retries for background consumers.
+- **`sync_mode`** (`bool`) - If True, send each event synchronously instead of using         background worker threads.
+- **`timeout`** (`int`) - HTTP request timeout in seconds for event uploads.
+- **`thread`** (`int`) - Number of background consumer threads.
+- **`poll_interval`** (`int`) - Seconds between local feature flag definition refreshes.
+- **`personal_api_key`** (`any`) - Personal API key used for local feature flag         evaluation and remote config payloads.
+- **`disabled`** (`bool`) - If True, disable captures and API requests. Useful in tests.
+- **`disable_geoip`** (`bool`) - Whether to disable server-side GeoIP enrichment.         Defaults to True.
+- **`historical_migration`** (`bool`) - Mark events as historical migration imports.
+- **`feature_flags_request_timeout_seconds`** (`int`) - Timeout in seconds for feature         flag and remote config requests.
+- **`super_properties`** (`any`) - Properties merged into every captured event.
+- **`enable_exception_autocapture`** (`bool`) - Automatically capture uncaught         exceptions.
+- **`log_captured_exceptions`** (`bool`) - Also log exceptions captured by error         tracking.
+- **`project_root`** (`any`) - Root path used to determine in-app stack frames for         captured exceptions. Defaults to the current working directory.
+- **`privacy_mode`** (`bool`) - For AI observability, capture usage metadata without         prompt inputs or outputs.
+- **`before_send`** (`any`) - Optional callback that can modify or drop events before         upload. Return ``None`` to drop an event.
+- **`flag_fallback_cache_url`** (`any`) - Optional feature flag fallback cache URL,         such as ``memory://local/?ttl=300&size=10000`` or a Redis URL.
+- **`enable_local_evaluation`** (`bool`) - Whether to poll feature flag definitions for         local evaluation when a personal API key is configured.
+- **`flag_definition_cache_provider?`** (`FlagDefinitionCacheProvider`) - Optional external cache provider for         sharing feature flag definitions across workers.
+- **`capture_exception_code_variables`** (`bool`) - Capture local variable values on         exception stack frames.
+- **`code_variables_mask_patterns`** (`any`) - Variable-name patterns to mask when         capturing code variables.
+- **`code_variables_ignore_patterns`** (`any`) - Variable-name patterns to omit when         capturing code variables.
+- **`in_app_modules`** (`UnionType[list[str], any]`) - Module/package prefixes treated as in-app frames in         captured exceptions.
 
 ### Returns
 
@@ -341,6 +341,18 @@ if is_my_flag_enabled:
 
 ---
 
+#### feature_flag_definitions()
+
+**Release Tag:** public
+
+Return feature flag definitions loaded for local evaluation.  Returns:     The currently loaded feature flag definitions, or ``None`` before     local evaluation has loaded definitions.
+
+### Returns
+
+- `None`
+
+---
+
 #### get_all_flags()
 
 **Release Tag:** public
@@ -572,6 +584,22 @@ Get feature flags decision.
 ```python
 decision = posthog.get_flags_decision('user123')
 ```
+
+---
+
+#### get_remote_config_payload()
+
+**Release Tag:** public
+
+Get the payload for a remote config feature flag.
+
+### Parameters
+
+- **`key?`** (`str`) - The remote config feature flag key.
+
+### Returns
+
+- `None`
 
 ---
 
@@ -827,15 +855,8 @@ This will overwrite previous people property values. Generally operates similar 
 
 ```python
 # Set person properties
-from posthog import capture
-capture(
-    'distinct_id',
-    event='event_name',
-    properties={
-        '$set': {'name': 'Max Hedgehog'},
-        '$set_once': {'initial_url': '/blog'}
-    }
-)
+from posthog import set
+set(distinct_id='distinct_id', properties={'name': 'Max Hedgehog'})
 ```
 
 ---
@@ -862,15 +883,8 @@ This will not overwrite previous people property values, unlike `set`. Otherwise
 
 ```python
 # Set property once
-from posthog import capture
-capture(
-    'distinct_id',
-    event='event_name',
-    properties={
-        '$set': {'name': 'Max Hedgehog'},
-        '$set_once': {'initial_url': '/blog'}
-    }
-)
+from posthog import set_once
+set_once(distinct_id='distinct_id', properties={'initial_url': '/blog'})
 ```
 
 ---
@@ -957,7 +971,7 @@ Capture exception is idempotent - if it is called twice with the same exception 
 
 ### Parameters
 
-- **`exception`** (`BaseException`) - The exception to capture. If not provided, the current exception is captured via `sys.exc_info()`
+- **`exception`** (`BaseException`) - The exception to capture. If not provided, the current exception is captured via `sys.exc_info()`     **kwargs: Optional capture arguments including distinct_id, properties,         timestamp, uuid, groups, flags, send_feature_flags, and disable_geoip.
 - **`kwargs?`** (`Unpack[OptionalCaptureArgs]`)
 
 ### Returns
@@ -1032,7 +1046,7 @@ You can call `posthog.load_feature_flags()` before to make sure you're not doing
 - **`only_evaluate_locally`** (`bool`) - Whether to evaluate only locally
 - **`send_feature_flag_events`** (`bool`) - Whether to send feature flag events
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP lookup
-- **`device_id`** (`any`)
+- **`device_id`** (`any`) - Optional device ID override for experience-continuity flags
 
 ### Returns
 
@@ -1091,7 +1105,7 @@ Flags are key-value pairs where the key is the flag key and the value is the fla
 - **`group_properties`** (`any`) - Group properties
 - **`only_evaluate_locally`** (`bool`) - Whether to evaluate only locally
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP lookup
-- **`device_id`** (`any`)
+- **`device_id`** (`any`) - Optional device ID override for experience-continuity flags
 - **`flag_keys_to_evaluate`** (`any`) - Optional list of flag keys to evaluate (evaluates all if None)
 
 ### Returns
@@ -1105,6 +1119,29 @@ Flags are key-value pairs where the key is the flag key and the value is the fla
 from posthog import get_all_flags
 get_all_flags('distinct_id_of_your_user')
 ```
+
+---
+
+#### get_all_flags_and_payloads()
+
+**Release Tag:** public
+
+Get all feature flag values and payloads for a user.
+
+### Parameters
+
+- **`distinct_id?`** (`any`) - The user's distinct ID.
+- **`groups`** (`any`) - Mapping of group type to group key.
+- **`person_properties`** (`any`) - Person properties to use for evaluation.
+- **`group_properties`** (`any`) - Group properties keyed by group type.
+- **`only_evaluate_locally`** (`bool`) - Whether to evaluate only locally.
+- **`disable_geoip`** (`any`) - Whether to disable GeoIP lookup.
+- **`device_id`** (`any`) - Optional device ID override for experience-continuity flags.
+- **`flag_keys_to_evaluate`** (`any`) - Optional list of flag keys to evaluate. Evaluates         all flags when omitted.
+
+### Returns
+
+- `FlagsAndPayloads`
 
 ---
 
@@ -1128,7 +1165,7 @@ Get feature flag variant for users. Used with experiments.
 - **`only_evaluate_locally`** (`bool`) - Whether to evaluate only locally
 - **`send_feature_flag_events`** (`bool`) - Whether to send feature flag events
 - **`disable_geoip`** (`any`) - Whether to disable GeoIP lookup
-- **`device_id`** (`any`)
+- **`device_id`** (`any`) - Optional device ID override for experience-continuity flags
 
 ### Returns
 
@@ -1143,6 +1180,31 @@ enabled_variant = get_feature_flag('flag-key', 'distinct_id_of_your_user')
 if enabled_variant == 'variant-key':
     matched_flag_payload = get_feature_flag_payload('flag-key', 'distinct_id_of_your_user')
 ```
+
+---
+
+#### get_feature_flag_payload()
+
+**Release Tag:** public
+
+Get the payload associated with a feature flag value.  Deprecated for new code. Prefer ``evaluate_flags()`` and ``flags.get_flag_payload(key)`` so flag evaluation happens once per request.
+
+### Parameters
+
+- **`key?`** (`any`) - The feature flag key.
+- **`distinct_id?`** (`any`) - The user's distinct ID.
+- **`match_value`** (`any`) - Optional flag value to use when selecting a payload.
+- **`groups`** (`any`) - Mapping of group type to group key.
+- **`person_properties`** (`any`) - Person properties to use for evaluation.
+- **`group_properties`** (`any`) - Group properties keyed by group type.
+- **`only_evaluate_locally`** (`bool`) - Whether to evaluate only locally.
+- **`send_feature_flag_events`** (`bool`) - Whether to send a $feature_flag_called event.
+- **`disable_geoip`** (`any`) - Whether to disable GeoIP lookup.
+- **`device_id`** (`any`) - Optional device ID override for experience-continuity flags.
+
+### Returns
+
+- `Optional[str]`
 
 ---
 
@@ -1230,19 +1292,19 @@ shutdown()
 
 **Release Tag:** public
 
-Get a FeatureFlagResult object which contains the flag result and payload.  This method evaluates a feature flag and returns a FeatureFlagResult object containing: - enabled: Whether the flag is enabled - variant: The variant value if the flag has variants - payload: The payload associated with the flag (automatically deserialized from JSON) - key: The flag key - reason: Why the flag was enabled/disabled  Example: ```python result = posthog.get_feature_flag_result('beta-feature', 'distinct_id') if result and result.enabled:     # Use the variant and payload     print(f"Variant: {result.variant}")     print(f"Payload: {result.payload}") ```
+Get a FeatureFlagResult object which contains the flag result and payload.  This method evaluates a feature flag and returns a FeatureFlagResult object containing: - enabled: Whether the flag is enabled - variant: The variant value if the flag has variants - payload: The payload associated with the flag (automatically deserialized from JSON) - key: The flag key - reason: Why the flag was enabled/disabled
 
 ### Parameters
 
-- **`key?`** (`any`)
-- **`distinct_id?`** (`any`)
-- **`groups`** (`any`)
-- **`person_properties`** (`any`)
-- **`group_properties`** (`any`)
-- **`only_evaluate_locally`** (`bool`)
-- **`send_feature_flag_events`** (`bool`)
-- **`disable_geoip`** (`any`)
-- **`device_id`** (`any`)
+- **`key?`** (`any`) - The feature flag key.
+- **`distinct_id?`** (`any`) - The user's distinct ID.
+- **`groups`** (`any`) - Mapping of group type to group key.
+- **`person_properties`** (`any`) - Person properties to use for evaluation.
+- **`group_properties`** (`any`) - Group properties keyed by group type.
+- **`only_evaluate_locally`** (`bool`) - Whether to evaluate only locally.
+- **`send_feature_flag_events`** (`bool`) - Whether to send a $feature_flag_called event.
+- **`disable_geoip`** (`any`) - Whether to disable GeoIP lookup.
+- **`device_id`** (`any`) - Optional device ID override for experience-continuity flags.
 
 ### Returns
 
@@ -1259,54 +1321,6 @@ Get the payload for a remote config feature flag.
 ### Parameters
 
 - **`key?`** (`any`) - The key of the feature flag
-
-### Returns
-
-- `None`
-
----
-
-#### set_capture_exception_code_variables_context()
-
-**Release Tag:** public
-
-Set whether code variables are captured for the current context.
-
-### Parameters
-
-- **`enabled?`** (`bool`)
-
-### Returns
-
-- `None`
-
----
-
-#### set_code_variables_ignore_patterns_context()
-
-**Release Tag:** public
-
-Variable names matching these patterns will be ignored completely when capturing code variables.
-
-### Parameters
-
-- **`ignore_patterns?`** (`list`)
-
-### Returns
-
-- `None`
-
----
-
-#### set_code_variables_mask_patterns_context()
-
-**Release Tag:** public
-
-Variable names matching these patterns will be masked with *** when capturing code variables.
-
-### Parameters
-
-- **`mask_patterns?`** (`list`)
 
 ### Returns
 
@@ -1382,6 +1396,54 @@ def process_payment(payment_id):
 
 ---
 
+#### set_capture_exception_code_variables_context()
+
+**Release Tag:** public
+
+Override code-variable capture for exceptions in the current context.
+
+### Parameters
+
+- **`enabled?`** (`bool`) - Whether exceptions captured in this context should include local         variable values from stack frames.
+
+### Returns
+
+- `None`
+
+---
+
+#### set_code_variables_ignore_patterns_context()
+
+**Release Tag:** public
+
+Override code-variable ignore patterns for exceptions in the current context.
+
+### Parameters
+
+- **`ignore_patterns?`** (`list`) - Variable-name patterns that should be omitted entirely         when code variables are captured.
+
+### Returns
+
+- `None`
+
+---
+
+#### set_code_variables_mask_patterns_context()
+
+**Release Tag:** public
+
+Override code-variable mask patterns for exceptions in the current context.
+
+### Parameters
+
+- **`mask_patterns?`** (`list`) - Variable-name patterns whose values should be replaced         with ``***`` when code variables are captured.
+
+### Returns
+
+- `None`
+
+---
+
 #### set_context_device_id()
 
 **Release Tag:** public
@@ -1449,5 +1511,19 @@ Add a tag to the current context.
 from posthog import tag
 tag("user_id", "123")
 ```
+
+---
+
+### Initialization methods
+
+#### setup()
+
+**Release Tag:** public
+
+Create or return the global PostHog client configured by module settings.  Most applications should either instantiate ``Posthog`` directly or set ``posthog.api_key``/other module settings before calling top-level helpers. ``setup()`` is called automatically by global APIs such as ``capture()``.  Returns:     The global ``Client`` instance.  Raises:     ValueError: If ``api_key`` has not been configured.
+
+### Returns
+
+- `Client`
 
 ---
