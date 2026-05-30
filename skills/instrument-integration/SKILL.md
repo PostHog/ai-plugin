@@ -12,7 +12,7 @@ metadata:
 
 Use this skill to add the PostHog SDK to an application. Use it when setting up PostHog for the first time, or reviewing PRs that need PostHog initialization. Covers SDK installation, provider setup, and basic configuration. Supports any framework or language.
 
-Supported frameworks: Next.js, React, React Router, Vue, Nuxt, TanStack Start, SvelteKit, Astro, Angular, Django, Flask, FastAPI, Laravel, Ruby on Rails, Android, Swift, React Native, Expo, Node.js, and vanilla JavaScript.
+Supported frameworks: Next.js, React, React Router, Vue, Nuxt, TanStack Start, SvelteKit, Astro, Angular, Django, Flask, FastAPI, Laravel, PHP, Ruby on Rails, Android, Swift, React Native, Expo, Node.js, and vanilla JavaScript.
 
 ## Instructions
 
@@ -79,6 +79,7 @@ STEP 7: Verify and clean up.
 - `references/EXAMPLE-fastapi.md` - fastapi example project code
 - `references/EXAMPLE-python.md` - python example project code
 - `references/EXAMPLE-laravel.md` - laravel example project code
+- `references/EXAMPLE-php.md` - php example project code
 - `references/EXAMPLE-ruby-on-rails.md` - ruby-on-rails example project code
 - `references/EXAMPLE-ruby.md` - ruby example project code
 - `references/EXAMPLE-android.md` - android example project code
@@ -107,6 +108,7 @@ STEP 7: Verify and clean up.
 - `references/python.md` - Python - docs
 - `references/posthog-python.md` - PostHog python SDK
 - `references/laravel.md` - Laravel - docs
+- `references/php.md` - Php - docs
 - `references/ruby-on-rails.md` - Ruby on rails - docs
 - `references/ruby.md` - Ruby - docs
 - `references/android.md` - Android - docs

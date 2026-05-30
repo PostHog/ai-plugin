@@ -630,6 +630,8 @@ protocol
 quantile
 quantileExact
 quantiles
+quantilesMerge
+quantilesState
 queryString
 queryStringAndFragment
 radians

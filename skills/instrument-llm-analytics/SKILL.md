@@ -55,41 +55,41 @@ STEP 6: Set up environment variables.
 
 ## Reference files
 
-- `references/openai.md` - Openai llm analytics installation - docs
-- `references/azure-openai.md` - Azure openai llm analytics installation - docs
-- `references/anthropic.md` - Anthropic llm analytics installation - docs
-- `references/google.md` - Google llm analytics installation - docs
-- `references/cohere.md` - Cohere llm analytics installation - docs
-- `references/mistral.md` - Mistral llm analytics installation - docs
-- `references/perplexity.md` - Perplexity llm analytics installation - docs
-- `references/deepseek.md` - Deepseek llm analytics installation - docs
-- `references/groq.md` - Groq llm analytics installation - docs
-- `references/together-ai.md` - Together ai llm analytics installation - docs
-- `references/fireworks-ai.md` - Fireworks ai llm analytics installation - docs
-- `references/xai.md` - Xai llm analytics installation - docs
-- `references/cerebras.md` - Cerebras llm analytics installation - docs
-- `references/hugging-face.md` - Hugging face llm analytics installation - docs
-- `references/ollama.md` - Ollama llm analytics installation - docs
-- `references/openrouter.md` - Openrouter llm analytics installation - docs
-- `references/langchain.md` - Langchain llm analytics installation - docs
-- `references/llamaindex.md` - Llamaindex llm analytics installation - docs
-- `references/crewai.md` - Crewai llm analytics installation - docs
-- `references/autogen.md` - Autogen llm analytics installation - docs
-- `references/dspy.md` - Dspy llm analytics installation - docs
-- `references/langgraph.md` - Langgraph llm analytics installation - docs
-- `references/pydantic-ai.md` - Pydantic ai llm analytics installation - docs
-- `references/vercel-ai.md` - Vercel ai SDK llm analytics installation - docs
-- `references/litellm.md` - Litellm llm analytics installation - docs
-- `references/instructor.md` - Instructor llm analytics installation - docs
-- `references/semantic-kernel.md` - Semantic kernel llm analytics installation - docs
-- `references/mirascope.md` - Mirascope llm analytics installation - docs
-- `references/mastra.md` - Mastra llm analytics installation - docs
-- `references/smolagents.md` - Smolagents llm analytics installation - docs
-- `references/openai-agents.md` - Openai agents SDK llm analytics installation - docs
-- `references/portkey.md` - Portkey llm analytics installation - docs
-- `references/helicone.md` - Helicone llm analytics installation - docs
-- `references/manual-capture.md` - Manual capture llm analytics installation - docs
-- `references/basics.md` - Llm analytics basics - docs
+- `references/openai.md` - Openai observability installation - docs
+- `references/azure-openai.md` - Azure openai observability installation - docs
+- `references/anthropic.md` - Anthropic ai observability installation - docs
+- `references/google.md` - Google ai observability installation - docs
+- `references/cohere.md` - Cohere ai observability installation - docs
+- `references/mistral.md` - Mistral ai observability installation - docs
+- `references/perplexity.md` - Perplexity ai observability installation - docs
+- `references/deepseek.md` - Deepseek ai observability installation - docs
+- `references/groq.md` - Groq ai observability installation - docs
+- `references/together-ai.md` - Together ai observability installation - docs
+- `references/fireworks-ai.md` - Fireworks ai observability installation - docs
+- `references/xai.md` - Xai observability installation - docs
+- `references/cerebras.md` - Cerebras ai observability installation - docs
+- `references/hugging-face.md` - Hugging face ai observability installation - docs
+- `references/ollama.md` - Ollama ai observability installation - docs
+- `references/openrouter.md` - Openrouter ai observability installation - docs
+- `references/langchain.md` - Langchain ai observability installation - docs
+- `references/llamaindex.md` - Llamaindex ai observability installation - docs
+- `references/crewai.md` - Crewai observability installation - docs
+- `references/autogen.md` - Autogen ai observability installation - docs
+- `references/dspy.md` - Dspy ai observability installation - docs
+- `references/langgraph.md` - Langgraph ai observability installation - docs
+- `references/pydantic-ai.md` - Pydantic ai observability installation - docs
+- `references/vercel-ai.md` - Vercel ai SDK observability installation - docs
+- `references/litellm.md` - Litellm ai observability installation - docs
+- `references/instructor.md` - Instructor ai observability installation - docs
+- `references/semantic-kernel.md` - Semantic kernel ai observability installation - docs
+- `references/mirascope.md` - Mirascope ai observability installation - docs
+- `references/mastra.md` - Mastra ai observability installation - docs
+- `references/smolagents.md` - Smolagents ai observability installation - docs
+- `references/openai-agents.md` - Openai agents SDK observability installation - docs
+- `references/portkey.md` - Portkey ai observability installation - docs
+- `references/helicone.md` - Helicone ai observability installation - docs
+- `references/manual-capture.md` - Manual capture ai observability installation - docs
+- `references/basics.md` - Ai observability basics - docs
 - `references/traces.md` - Traces - docs
 - `references/calculating-costs.md` - Calculating llm costs - docs
 

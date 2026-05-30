@@ -13,6 +13,7 @@ diagnosing-failed-warehouse-syncs
 diagnosing-missing-recordings
 diagnosing-sdk-health
 diagnosing-stacktrace-symbolication
+downloading-batch-export-files
 exploring-apm-traces
 exploring-autocapture-events
 exploring-live-traffic
@@ -25,6 +26,7 @@ finding-deleted-feature-flags
 finding-experiments
 finding-replay-for-issue
 formatting-insight-axes
+grouping-noisy-errors
 inbox-exploration
 instrument-error-tracking
 instrument-feature-flags
@@ -33,6 +35,7 @@ instrument-llm-analytics
 instrument-logs
 instrument-product-analytics
 investigate-metric
+investigating-error-issue
 investigating-replay
 managing-experiment-lifecycle
 managing-path-cleaning-rules
@@ -43,6 +46,8 @@ setting-up-a-data-warehouse-source
 signals
 skills-store
 suggesting-data-imports
+suppressing-noisy-errors
+triaging-error-issues
 triaging-visual-review-runs
 tuning-incremental-sync-config
 working-with-skills
