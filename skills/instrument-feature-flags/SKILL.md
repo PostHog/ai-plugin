@@ -55,8 +55,12 @@ STEP 6: Set up environment variables.
 - `references/web.md` - Web feature flags installation - docs
 - `references/nodejs.md` - Node.js feature flags installation - docs
 - `references/python.md` - Python feature flags installation - docs
+- `references/django.md` - Django - docs
+- `references/flask.md` - Flask - docs
 - `references/php.md` - Php feature flags installation - docs
+- `references/laravel.md` - Laravel - docs
 - `references/ruby.md` - Ruby feature flags installation - docs
+- `references/ruby-on-rails.md` - Ruby on rails - docs
 - `references/go.md` - Go feature flags installation - docs
 - `references/java.md` - Java feature flags installation - docs
 - `references/rust.md` - Rust feature flags installation - docs

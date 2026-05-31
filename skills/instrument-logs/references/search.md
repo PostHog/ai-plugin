@@ -1,9 +1,10 @@
 # Search logs - Docs
 
-Filter logs from the filter bar at the top of the [logs page](https://us.posthog.com/logs). Pick a field, choose an operator, and enter a value. Add as many filters as you need — they're combined with AND.
+Filter logs from the filter bar at the top of the [logs page](https://app.posthog.com/logs). Pick a field, choose an operator, and enter a value. Add as many filters as you need — they're combined with AND.
 
-There are three kinds of fields you can filter on:
+There are four kinds of fields you can filter on:
 
+-   **Logs** – top-level log properties: `severity_level`, `trace_id`, and `span_id`
 -   **Message** – full-text search over the log body
 -   **Resource attributes** – describe where the log came from, like `service.name`, `host.name`, or `k8s.container.name`
 -   **Attributes** – custom key-value context attached to individual log events, like `user_id`, `endpoint`, or `status_code`
@@ -19,6 +20,16 @@ To filter:
 3.  Enter a value.
 
 For example, filter `service.name` equals `checkout-api` to scope to one service, then add `status_code` equals `500` to narrow to failed requests.
+
+## Filter by severity, trace ID, and span ID
+
+The **Logs** group in the filter picker exposes three top-level fields. All three only support equals and not-equals operators.
+
+-   **severity\_level** – filter by log severity using a dropdown. Available values: `trace`, `debug`, `info`, `warn`, `error`, `fatal`.
+-   **trace\_id** – filter logs by their OpenTelemetry trace correlation ID. Accepts hex or base64 format trace IDs
+-   **span\_id** – filter logs by their OpenTelemetry span ID. Accepts hex or base64, same as `trace_id`.
+
+For example, copy a `trace_id` from a trace URL and paste it into the filter to see every log emitted during that trace.
 
 ## Full-text search on Message
 

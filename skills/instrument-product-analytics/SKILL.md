@@ -12,7 +12,7 @@ metadata:
 
 Use this skill to add product analytics events (capture calls) that track meaningful user actions in new or changed code. Use it after implementing features or reviewing PRs to ensure key user behaviors are captured. If PostHog is not yet installed, this skill also covers initial SDK setup. Supports any framework or language.
 
-Supported frameworks: Next.js, React Router, Nuxt, Vue, TanStack Start, SvelteKit, Astro, Angular, Django, Flask, FastAPI, Laravel, Ruby on Rails, Android, iOS, React Native, Expo, and more.
+Supported frameworks: Next.js, React Router, Nuxt, Vue, TanStack Start, SvelteKit, Astro, Angular, Django, Flask, FastAPI, Laravel, PHP, Ruby on Rails, Android, iOS, React Native, Expo, and more.
 
 ## Instructions
 
@@ -91,6 +91,7 @@ STEP 10: Verify and clean up.
 - `references/EXAMPLE-fastapi.md` - fastapi example project code
 - `references/EXAMPLE-python.md` - python example project code
 - `references/EXAMPLE-laravel.md` - laravel example project code
+- `references/EXAMPLE-php.md` - php example project code
 - `references/EXAMPLE-ruby-on-rails.md` - ruby-on-rails example project code
 - `references/EXAMPLE-ruby.md` - ruby example project code
 - `references/EXAMPLE-android.md` - android example project code
@@ -114,6 +115,7 @@ STEP 10: Verify and clean up.
 - `references/python.md` - Python - docs
 - `references/posthog-python.md` - PostHog python SDK
 - `references/laravel.md` - Laravel - docs
+- `references/php.md` - Php - docs
 - `references/ruby-on-rails.md` - Ruby on rails - docs
 - `references/ruby.md` - Ruby - docs
 - `references/android.md` - Android - docs

@@ -65,6 +65,24 @@ The `onFeatureFlags` callback receives the following parameters:
 
 You won't usually need to use these, but they are useful if you want to be extra careful about feature flags not being loaded yet because of a network error and/or a network timeout (see `feature_flag_request_timeout_ms`).
 
+### Evaluating only specific flags
+
+By default, the JavaScript SDK requests that every eligible feature flag be evaluated for the current user. If you'd only like to evaluate and return a subset of flags, pass `flag_keys` when initializing PostHog:
+
+Web
+
+PostHog AI
+
+```javascript
+posthog.init('<ph_project_token>', {
+  api_host: 'https://us.i.posthog.com',
+  defaults: '2026-01-30',
+  flag_keys: ['checkout-flow', 'new-dashboard'],
+})
+```
+
+PostHog scopes evaluation and the response to those keys for this SDK instance. Dependency flags required to evaluate requested flags may also be evaluated and returned. Leave `flag_keys` unset to evaluate all eligible flags.
+
 ### Reloading feature flags
 
 Feature flag values are cached. If something has changed with your user and you'd like to refetch their flag values, call:
@@ -896,6 +914,8 @@ if ($enabledVariant === 'variant-key') { // replace 'variant-key' with the key o
 
 `$flags->getFlag()` returns the variant string for multivariate flags, `true` for enabled boolean flags, `false` for disabled flags, and `null` when the flag wasn't returned by the evaluation.
 
+You can also call `$flags->getKeys()` to list the evaluated flag keys, or `$flags->getEventProperties()` to get the `$feature/<flag-key>` and `$active_feature_flags` properties that would be attached to a captured event.
+
 > **Note:** `PostHog::isFeatureEnabled()`, `PostHog::getFeatureFlag()`, `PostHog::getFeatureFlagPayload()`, and `capture(['send_feature_flags' => true])` still work during the migration period, but they're deprecated. Prefer `evaluateFlags()` for new code.
 
 ### Step 2: Include feature flag information when capturing events
@@ -985,11 +1005,31 @@ $flags = PostHog::evaluateFlags(
 );
 ```
 
+### Optional evaluation parameters
+
+`evaluateFlags()` also accepts optional parameters for local evaluation and GeoIP behavior:
+
+PHP
+
+PostHog AI
+
+```php
+$flags = PostHog::evaluateFlags(
+    distinctId: 'distinct_id_of_your_user',
+    groups: ['company' => 'company_id_in_your_db'],
+    personProperties: ['plan' => 'pro'],
+    groupProperties: ['company' => ['employees' => 11]],
+    onlyEvaluateLocally: false, // Defaults to false. Set to true to avoid a remote fallback.
+    disableGeoip: false, // Defaults to false. Set to true to disable GeoIP enrichment during remote evaluation.
+    flagKeys: ['checkout-flow', 'new-dashboard'],
+);
+```
+
 ### Sending `$feature_flag_called` events
 
 Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `evaluateFlags()`, the SDK sends this event when you call `$flags->isEnabled()` or `$flags->getFlag()` for a flag.
 
-The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
+The SDK deduplicates these events per `(flag key, distinct_id)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
 `$flags->getFlagPayload()` doesn't send `$feature_flag_called` events and doesn't count as an access for `onlyAccessed()`.
 
@@ -1108,7 +1148,7 @@ end
 
 `flags.get_flag()` returns the variant string for multivariate flags, `true` for enabled boolean flags, `false` for disabled flags, and `nil` when the flag wasn't returned by the evaluation.
 
-> **Note:** `posthog.is_feature_enabled()`, `posthog.get_feature_flag()`, `posthog.get_feature_flag_payload()`, and `capture(send_feature_flags: true)` still work during the migration period, but they're deprecated. Prefer `evaluate_flags()` for new code.
+> **Note:** `posthog.is_feature_enabled()`, `posthog.get_feature_flag()`, `posthog.get_feature_flag_result()`, `posthog.get_feature_flag_payload()`, and `capture({ ..., send_feature_flags: true })` still work during the migration period, but they're deprecated. Prefer `evaluate_flags()` for new code.
 
 ### Step 2: Include feature flag information when capturing events
 
@@ -1194,6 +1234,36 @@ PostHog AI
 flags = posthog.evaluate_flags(
     'distinct_id_of_your_user',
     flag_keys: ['checkout-flow', 'new-dashboard'],
+)
+```
+
+### Evaluating locally only
+
+If you want to skip the remote `/flags` request and only use locally cached definitions, pass `only_evaluate_locally: true`:
+
+Ruby
+
+PostHog AI
+
+```ruby
+flags = posthog.evaluate_flags(
+    'distinct_id_of_your_user',
+    only_evaluate_locally: true,
+)
+```
+
+### Disabling GeoIP for flag evaluation
+
+Pass `disable_geoip: true` to disable GeoIP lookup for remote flag evaluation:
+
+Ruby
+
+PostHog AI
+
+```ruby
+flags = posthog.evaluate_flags(
+    'distinct_id_of_your_user',
+    disable_geoip: true,
 )
 ```
 

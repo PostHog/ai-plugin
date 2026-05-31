@@ -26,7 +26,7 @@ FROM
         FROM
             events AS e
         WHERE
-            and(and(greaterOrEquals(e.timestamp, toDateTime('2025-12-03 00:00:00.000000')), lessOrEquals(e.timestamp, toDateTime('2025-12-10 23:59:59.999999'))), and(notEquals(aggregation_target, ''), notEquals(aggregation_target, NULL))))
+            and(and(greaterOrEquals(e.timestamp, toDateTime('2025-12-03 00:00:00.000000')), lessOrEquals(e.timestamp, toDateTime('2025-12-10 23:59:59.999999'))), and(notEquals(toString(aggregation_target), ''), notEquals(aggregation_target, NULL))))
     GROUP BY
         aggregation_target) AS data
     RIGHT OUTER JOIN (SELECT
