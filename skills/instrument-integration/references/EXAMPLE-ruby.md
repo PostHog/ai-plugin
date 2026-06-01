@@ -174,7 +174,7 @@ POSTHOG_HOST=https://us.i.posthog.com
 ```
 source 'https://rubygems.org'
 
-gem 'posthog-ruby', '~> 3.0'
+gem 'posthog-ruby', '~> 3.3'
 gem 'dotenv', '~> 3.0'
 
 ```
@@ -438,19 +438,7 @@ rescue StandardError => e
   puts "ERROR: #{e.message}"
 
   # Manually capture handled errors
-  posthog&.capture(
-    distinct_id: get_user_id,
-    event: '$exception',
-    properties: {
-      '$exception_type' => e.class.name,
-      '$exception_message' => e.message,
-      '$exception_list' => [{
-        'type' => e.class.name,
-        'value' => e.message,
-        'stacktrace' => { 'frames' => (e.backtrace || []).first(10).map { |line| { 'filename' => line } } }
-      }]
-    }
-  )
+  posthog&.capture_exception(e, get_user_id)
 
   exit 1
 ensure

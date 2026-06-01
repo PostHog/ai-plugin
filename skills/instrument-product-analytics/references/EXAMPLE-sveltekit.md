@@ -216,6 +216,7 @@ PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 
 ```
 engine-strict=true
+min-release-age=7
 
 ```
 

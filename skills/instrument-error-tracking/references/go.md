@@ -106,6 +106,8 @@
     client.Enqueue(exception)
     ```
 
+    To see how `net/http` services can automatically associate backend exceptions with frontend users, view the [Go request context documentation](/docs/libraries/go.md#request-context).
+
     ### Option B: Automatic capture with slog
 
     The SDK provides a `SlogCaptureHandler` that wraps Go's standard `log/slog` logger and automatically captures log records as exceptions.

@@ -565,6 +565,12 @@ The `name` is a special property which is used in the PostHog UI for the name of
 
 To set up error tracking in your project, follow the [Android installation guide](/docs/error-tracking/installation/android.md).
 
+## Logs
+
+To set up [logs](/docs/logs.md) in your Android app, follow the [Android logs installation guide](/docs/logs/installation/android.md). The SDK exposes `PostHog.logger.{trace,debug,info,warn,error,fatal}` for sending structured records to PostHog Logs, with batching, offline persistence, and a rate cap built in.
+
+> **Minimum version:** `com.posthog:posthog-android@3.46.0` or later.
+
 ## Session replay
 
 To set up [session replay](/docs/session-replay/mobile.md) in your project, all you need to do is install the Android SDK, enable "Record user sessions" in [your project settings](https://us.posthog.com/settings/project-replay) and enable the `sessionReplay` option.

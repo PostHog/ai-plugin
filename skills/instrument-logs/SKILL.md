@@ -13,7 +13,7 @@ metadata:
 
 Use this skill to add PostHog log capture for new or changed code. Use it after implementing features or reviewing PRs to ensure meaningful log events are captured with structured properties. If PostHog log export is not yet configured, this skill also covers initial OTLP exporter setup. Supports any platform or language.
 
-Supported platforms: Next.js, Node.js, Python, Go, Java, Datadog, and any language via OpenTelemetry.
+Supported platforms: Next.js, Node.js, Python, Go, Java, Datadog, Android, React Native, iOS, and any language via OpenTelemetry.
 
 ## Instructions
 
@@ -21,8 +21,9 @@ Follow these steps IN ORDER:
 
 STEP 1: Analyze the codebase and detect the platform.
   - Detect the language, framework, and existing logging setup.
-  - Look for log libraries (winston, pino, logging module, logrus, log4j, serilog, etc.).
-  - Look for lockfiles to determine the package manager.
+  - Look for dependency files and project files (package.json, Podfile, Package.swift, requirements.txt, go.mod, pom.xml, etc.).
+  - Look for log libraries (winston, pino, logging module, logrus, log4j, serilog, os_log, Logger, etc.).
+  - Look for lockfiles (pnpm-lock.yaml, package-lock.json, yarn.lock, bun.lockb, go.sum, Podfile.lock, Package.resolved, etc.) to determine the package manager.
   - Check for existing PostHog log export setup. If the OTLP exporter is already configured, skip to STEP 5 to add log capture for new code.
 
 STEP 2: Research log capture. (Skip if PostHog log export is already configured.)
@@ -36,6 +37,7 @@ STEP 3: Install dependencies. (Skip if PostHog log export is already configured.
 
 STEP 4: Configure the OTLP exporter. (Skip if PostHog log export is already configured.)
   - PostHog logs use the OpenTelemetry protocol. Set up an OTLP exporter pointed at PostHog's ingest endpoint.
+  - For SDK-native log support such as Android, React Native, and iOS, follow the platform reference instead of adding a separate OTLP exporter.
   - Follow the platform-specific reference for the exact configuration.
 
 STEP 5: Integrate with existing logging.
@@ -63,6 +65,9 @@ STEP 7: Set up environment variables.
 - `references/go.md` - Go logs installation - docs
 - `references/java.md` - Java logs installation - docs
 - `references/datadog.md` - Datadog logs installation - docs
+- `references/android.md` - Android logs installation - docs
+- `references/react-native.md` - React native logs installation - docs
+- `references/ios.md` - Ios logs installation - docs
 - `references/other.md` - Other languages logs installation - docs
 - `references/start-here.md` - Getting started with logs - docs
 - `references/search.md` - Search logs - docs
@@ -77,5 +82,6 @@ Each platform reference contains specific OTLP configuration, SDK setup, and int
 
 - **Environment variables**: Always use environment variables for PostHog keys and OpenTelemetry endpoints. Never hardcode them.
 - **Minimal changes**: Add log export alongside existing logging. Don't replace or restructure existing logging code.
-- **OpenTelemetry**: PostHog logs use the OpenTelemetry protocol. Configure an OTLP exporter pointed at PostHog's ingest endpoint.
+- **OpenTelemetry**: PostHog logs use the OpenTelemetry protocol. Configure an OTLP exporter pointed at PostHog's ingest endpoint unless the platform SDK provides native log capture.
+- **SDK-native logs**: For Android, React Native, and iOS, use the SDK logger/capture APIs from the platform reference instead of adding a separate OTLP exporter.
 - **Structured logging**: Prefer structured log formats with key-value properties over plain text messages.

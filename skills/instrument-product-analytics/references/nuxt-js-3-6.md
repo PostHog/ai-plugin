@@ -44,7 +44,7 @@ PostHog AI
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      posthogToken: process.env.NUXT_PUBLIC_POSTHOG_TOKEN || '<ph_project_token>',
+      posthogToken: process.env.NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN || '<ph_project_token>',
       posthogHost: process.env.NUXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
       posthogDefaults: '2026-01-30',
     },

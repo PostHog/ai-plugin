@@ -4,7 +4,7 @@
 
 PostHog Logs works with any OpenTelemetry client. No PostHog-specific packages required. Use the OTel SDKs you already have, point them at PostHog's HTTP endpoint, and drop in your project token.
 
-On the frontend, our [JavaScript web SDK](/docs/logs/installation/javascript.md) and [React Native SDK](/docs/logs/installation/react-native.md) include first-class logging support.
+On the frontend, our [JavaScript web SDK](/docs/logs/installation/javascript.md), [React Native SDK](/docs/logs/installation/react-native.md), [iOS SDK](/docs/logs/installation/ios.md), and [Android SDK](/docs/logs/installation/android.md) include first-class logging support.
 
 Follow the guides below to set up your logging client:
 
@@ -23,6 +23,8 @@ Follow the guides below to set up your logging client:
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/react.svg)React Native](/docs/logs/installation/react-native.md)
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/ios.svg)iOS](/docs/logs/installation/ios.md)
+
+-   [![](https://res.cloudinary.com/dmukukwp6/image/upload/Android_robot_bec2fb7318.svg)Android](/docs/logs/installation/android.md)
 
 -   [Datadog](/docs/logs/installation/datadog.md)
 
