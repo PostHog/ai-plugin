@@ -13,15 +13,17 @@ metadata:
 
 Use this skill to add PostHog error tracking that captures and monitors exceptions in your application. Use it after implementing features or reviewing PRs to ensure errors are tracked with full stack traces and source maps. If PostHog is not yet installed, this skill also covers initial SDK setup. Supports any platform or language.
 
-Supported platforms: React, Next.js, Web (JavaScript), Node.js, Python, Ruby, Ruby on Rails, Go, Angular, Svelte, Nuxt, React Native, Flutter, Android, and Hono.
+Supported platforms: React, Next.js, Web (JavaScript), Node.js, Python, PHP, Ruby, Ruby on Rails, Go, Elixir, Angular, Svelte, Nuxt, React Native, Flutter, iOS, Android, and Hono.
 
 ## Instructions
 
 Follow these steps IN ORDER:
 
 STEP 1: Analyze the codebase and detect the platform.
-  - Look for dependency files (package.json, requirements.txt, go.mod, Gemfile, composer.json, etc.) to determine the language and framework.
-  - Look for lockfiles (pnpm-lock.yaml, package-lock.json, yarn.lock, bun.lockb) to determine the package manager.
+  -
+ Look for dependency files (package.json, pubspec.yaml, Podfile, Package.swift, requirements.txt, go.mod, Gemfile, composer.json, mix.exs, etc.) to determine the language and framework.
+  -
+ Look for lockfiles (pnpm-lock.yaml, package-lock.json, yarn.lock, bun.lockb, go.sum, pubspec.lock, Podfile.lock, Package.resolved, mix.lock) to determine the package manager.
   - Check for existing PostHog setup (SDK initialization, env vars, etc.). If PostHog is already installed and initialized, skip to STEP 4.
 
 STEP 2: Research instrumentation. (Skip if PostHog is already set up.)
@@ -65,14 +67,24 @@ STEP 8: Verify and clean up.
 - `references/nextjs.md` - Next.js error tracking installation - docs
 - `references/node.md` - Node.js error tracking installation - docs
 - `references/python.md` - Python error tracking installation - docs
+- `references/django.md` - Django - docs
+- `references/flask.md` - Flask - docs
+- `references/php.md` - Php error tracking installation - docs
+- `references/laravel.md` - Laravel - docs
 - `references/ruby.md` - Ruby error tracking installation - docs
 - `references/ruby-on-rails.md` - Ruby on rails error tracking installation - docs
+- `references/ruby-on-rails.md` - Ruby on rails - docs
 - `references/go.md` - Go error tracking installation - docs
+- `references/dotnet.md` - .net error tracking installation - docs
+- `references/dotnet.md` - .net - docs
+- `references/elixir.md` - Elixir error tracking installation - docs
 - `references/angular.md` - Angular error tracking installation - docs
 - `references/svelte.md` - Sveltekit error tracking installation - docs
-- `references/nuxt.md` - Nuxt error tracking installation (v3.7 and above) - docs
+- `references/nuxt-3-7.md` - Nuxt error tracking installation (v3.7 and above) - docs
+- `references/nuxt-3-6.md` - Nuxt error tracking installation (v3.6 and below) - docs
 - `references/react-native.md` - React native error tracking installation - docs
 - `references/flutter.md` - Flutter error tracking installation - docs
+- `references/ios.md` - Ios error tracking installation - docs
 - `references/android.md` - Android error tracking installation - docs
 - `references/hono.md` - Hono error tracking installation - docs
 - `references/fingerprints.md` - Fingerprints - docs

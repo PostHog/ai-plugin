@@ -155,11 +155,7 @@ posthogService.posthog.capture('burrito_considered', {
 ### Error tracking (pages/profile/profile.component.ts)
 
 ```typescript
-posthogService.posthog.capture('$exception', {
-  $exception_message: error.message,
-  $exception_type: error.name,
-  $exception_stack_trace_raw: error.stack,
-});
+posthogService.posthog.captureException(error);
 ```
 
 ## Angular-specific details
@@ -678,11 +674,7 @@ export class ProfileComponent {
       throw new Error('Test error for PostHog error tracking');
     } catch (err) {
       const error = err as Error;
-      this.posthogService.posthog.capture('$exception', {
-        $exception_message: error.message,
-        $exception_type: error.name,
-        $exception_stack_trace_raw: error.stack,
-      });
+      this.posthogService.posthog.captureException(error);
       console.error('Captured error:', err);
       alert('Error captured and sent to PostHog!');
     }

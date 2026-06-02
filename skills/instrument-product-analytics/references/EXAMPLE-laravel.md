@@ -802,13 +802,8 @@ class PostHogService
 
         $eventId = uniqid('error_', true);
 
-        $this->capture($distinctId, '$exception', [
+        PostHog::captureException($exception, $distinctId, [
             'error_id' => $eventId,
-            'exception_type' => get_class($exception),
-            'exception_message' => $exception->getMessage(),
-            'exception_file' => $exception->getFile(),
-            'exception_line' => $exception->getLine(),
-            'stack_trace' => $exception->getTraceAsString(),
         ]);
 
         return $eventId;

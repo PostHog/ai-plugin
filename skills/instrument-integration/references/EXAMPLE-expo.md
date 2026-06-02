@@ -15,7 +15,7 @@ A React Native Expo app demonstrating PostHog product analytics integration with
 
 - **Product Analytics**: Full PostHog integration with event tracking
 - **Autocapture**: Touch events and screen tracking
-- **Error Tracking**: Manual exception capture with `$exception` events
+- **Error Tracking**: Manual exception capture with `captureException`
 - **User Authentication**: Demo login with PostHog user identification
 - **Session Persistence**: AsyncStorage for session management
 - **Modern React**: React 19 with React Compiler for automatic memoization
@@ -156,11 +156,7 @@ useEffect(() => {
 Manual exception capture:
 
 ```typescript
-posthog.capture('$exception', {
-  $exception_type: error.name,
-  $exception_message: error.message,
-  $exception_stack_trace_raw: error.stack,
-})
+posthog.captureException(error)
 ```
 
 ## Modern React Features
@@ -250,6 +246,7 @@ POSTHOG_HOST=https://us.i.posthog.com
 
 ```
 legacy-peer-deps=true
+min-release-age=7
 
 ```
 
@@ -822,7 +819,7 @@ export default function ProfileScreen() {
   /**
    * Triggers a test error and captures it in PostHog
    *
-   * This demonstrates manual exception capture using the $exception event.
+   * This demonstrates manual exception capture via captureException.
    * In production, you would typically set up automatic exception capture
    * or use the before_send callback for customization.
    *
@@ -834,21 +831,8 @@ export default function ProfileScreen() {
     } catch (err) {
       const error = err as Error
 
-      // Capture exception in PostHog
       // @see https://posthog.com/docs/error-tracking
-      posthog.capture('$exception', {
-        $exception_list: [
-          {
-            type: error.name,
-            value: error.message,
-            stacktrace: {
-              type: 'raw',
-              frames: error.stack ?? '',
-            },
-          },
-        ],
-        $exception_source: 'react-native',
-        // Additional context
+      posthog.captureException(error, {
         username: user.username,
         screen: 'Profile',
       })

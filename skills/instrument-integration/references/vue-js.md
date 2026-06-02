@@ -63,7 +63,7 @@ import App from './App.vue'
 import router from './router'
 import posthog from "posthog-js";
 const app = createApp(App);
-posthog.init(import.meta.env.VITE_POSTHOG_TOKEN || '<ph_project_token>', {
+posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN || '<ph_project_token>', {
   api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com',
   defaults: '2026-01-30',
 });

@@ -1,6 +1,6 @@
 # Django - Docs
 
-PostHog makes it easy to get data about traffic and usage of your Django app. Integrating PostHog enables analytics, custom events capture, feature flags, and more.
+PostHog makes it easy to get data about traffic and usage of your Django app. Integrating PostHog enables analytics, custom events capture, feature flags, error tracking, and more.
 
 This guide walks you through integrating PostHog into your Django app using the [Python SDK](/docs/libraries/python.md).
 
@@ -18,7 +18,9 @@ Or, to integrate manually, continue with the rest of this guide.
 
 To start, run `pip install posthog` to install PostHog’s Python SDK.
 
-Then, set the PostHog API key and host in your `AppConfig` in your `your_app/apps.py` so that's it's available everywhere:
+> **Note:** Version `7.x` of the PostHog Python SDK requires Python 3.10 or higher.
+
+Then, configure PostHog in your app config so it's initialized when Django starts:
 
 your\_app/apps.py
 
@@ -28,15 +30,13 @@ PostHog AI
 from django.apps import AppConfig
 import posthog
 class YourAppConfig(AppConfig):
-    name = "your_app_name"
+    name = 'your_app_name'
     def ready(self):
         posthog.api_key = '<ph_project_token>'
         posthog.host = 'https://us.i.posthog.com'
 ```
 
-You can find your project token and instance address in [your project settings](https://us.posthog.com/project/settings).
-
-Next, if you haven't done so already, make sure you add your `AppConfig` to your `settings.py` under `INSTALLED_APPS`:
+Next, if you haven't done so already, add your `AppConfig` to `INSTALLED_APPS` in `settings.py`:
 
 settings.py
 
@@ -44,12 +44,14 @@ PostHog AI
 
 ```python
 INSTALLED_APPS = [
-    # other apps
-    'your_app_name.apps.MyAppConfig',  # Add your app config
+    # ... other apps
+    'your_app_name.apps.YourAppConfig',
 ]
 ```
 
-Lastly, to access PostHog in any file, simply `import posthog` and call the method you'd like. For example, to capture an event:
+You can find your project token and instance address in [your project settings](https://app.posthog.com/project/settings).
+
+To capture events from any file, import `posthog` and call the method you need. For example:
 
 Python
 
@@ -57,11 +59,17 @@ PostHog AI
 
 ```python
 import posthog
+from posthog import identify_context
 def some_request(request):
     with posthog.new_context():
-        posthog.identify_context(request.user.id)
+        # Django includes request.user for anonymous visitors too. Only identify
+        # the context when the visitor is logged in.
+        if request.user.is_authenticated:
+            identify_context(str(request.user.pk))
         posthog.capture('event_name')
 ```
+
+Events captured without a context or explicit `distinct_id` are sent as [anonymous events](/docs/data/anonymous-vs-identified-events.md) with an auto-generated `distinct_id`. See the [Python SDK docs](/docs/libraries/python.md#person-profiles-and-properties) for more details.
 
 ## Identifying users
 
@@ -71,11 +79,11 @@ def some_request(request):
 
 ## Django contexts middleware
 
-The Python SDK provides a Django middleware that automatically wraps all requests with a [context](/docs/libraries/python.md#contexts). This middleware extracts session and user information from request headers and tags all events captured during the request with relevant metadata.
+The Python SDK provides a Django middleware that automatically wraps all requests with a [context](/docs/libraries/python.md#contexts). This middleware extracts session and user information from each request and tags all events captured during that request with relevant metadata.
 
 ### Basic setup
 
-Add the middleware to your Django settings:
+Add the middleware to your Django settings. If your app uses Django authentication, place it after `django.contrib.auth.middleware.AuthenticationMiddleware` so the middleware can use the authenticated Django user as a distinct ID fallback and capture the user's email.
 
 Python
 
@@ -89,14 +97,22 @@ MIDDLEWARE = [
 ]
 ```
 
+The middleware uses the globally configured `posthog` client by default, so you don't need to create or pass it a separate client instance.
+
 The middleware automatically extracts and uses:
 
 -   **Session ID** from the `X-POSTHOG-SESSION-ID` header, if present
--   **Distinct ID** from the `X-POSTHOG-DISTINCT-ID` header, if present
+-   **Distinct ID** from the `X-POSTHOG-DISTINCT-ID` header, if present, falling back to the authenticated Django user's `pk` (Django's primary-key alias, which works with custom user models)
+-   **User email** from the authenticated Django user's `email` as `email`
 -   **Current URL** as `$current_url`
 -   **Request method** as `$request_method`
+-   **Request path** as `$request_path`
+-   **Forwarded IP address** from `X-Forwarded-For` as `$ip`
+-   **User agent** from `User-Agent` as `$user_agent`
 
-All events captured during the request (including exceptions) will include these properties and be associated with the extracted session and distinct ID.
+The session and distinct ID headers are sanitized before use. Empty values are ignored, control characters are removed, values are trimmed, and values are capped at 1000 characters.
+
+All events captured during the request (including exceptions) include these properties and are associated with the extracted session and distinct ID.
 
 If you are using PostHog on your frontend, the JavaScript Web SDK will add the session and distinct ID headers automatically if you enable tracing headers.
 
@@ -112,7 +128,9 @@ posthog.init('<ph_project_token>', {
 
 ### Exception capture
 
-By default, the middleware captures exceptions and sends them to PostHog's error tracking. Disable this by setting:
+By default, the middleware captures exceptions and sends them to PostHog's error tracking using the globally configured `posthog` client. This includes Django view exceptions that Django converts into error responses.
+
+Disable this by setting:
 
 Python
 
@@ -137,7 +155,8 @@ def add_user_tags(request):
     # type: (HttpRequest) -> Dict[str, Any]
     tags = {}
     if hasattr(request, 'user') and request.user.is_authenticated:
-        tags['user_id'] = request.user.id
+        # Use pk instead of id so this works with custom User primary keys.
+        tags['user_id'] = str(request.user.pk)
         tags['email'] = request.user.email
     return tags
 POSTHOG_MW_EXTRA_TAGS = add_user_tags
@@ -196,7 +215,8 @@ def add_request_context(request):
     tags = {}
     if hasattr(request, 'user') and request.user.is_authenticated:
         tags['user_type'] = 'authenticated'
-        tags['user_id'] = str(request.user.id)
+        # Use pk instead of id so this works with custom User primary keys.
+        tags['user_id'] = str(request.user.pk)
     else:
         tags['user_type'] = 'anonymous'
     # Add request info
@@ -217,7 +237,9 @@ POSTHOG_MW_TAG_MAP = clean_tags
 POSTHOG_MW_CAPTURE_EXCEPTIONS = True
 ```
 
-All events captured within the request context automatically include the configured tags and are associated with the session and user identified from the request headers.
+All events captured within the request context automatically include the configured tags and are associated with the session and user identified from the request headers or Django authentication.
+
+The middleware supports both sync (WSGI) and async (ASGI) Django applications. In async mode, it uses Django's `request.auser()` API when available to avoid synchronous user access.
 
 ## Next steps
 
