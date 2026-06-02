@@ -623,6 +623,34 @@ If you're using Flutter Web, also enable the [Canvas capture](/docs/session-repl
 
 [Surveys](/docs/surveys.md) launched with [popover presentation](/docs/surveys/creating-surveys.md#presentation) are automatically shown to users matching the [display conditions](/docs/surveys/creating-surveys.md#display-conditions) you set up.
 
+## Flush
+
+You can configure how many events queue before flushing with `flushAt`. Setting this to `1` will send events immediately and will use more battery. The default is `20`.
+
+You can also configure the flush interval with `flushInterval` (default 30 seconds), after which queued events are sent regardless of how many have been gathered:
+
+Dart
+
+PostHog AI
+
+```dart
+final config = PostHogConfig('<ph_project_token>');
+config.flushAt = 20;
+config.flushInterval = const Duration(seconds: 30);
+```
+
+You can also manually flush the queue to start sending events immediately instead of waiting for the next batch:
+
+Dart
+
+PostHog AI
+
+```dart
+await Posthog().flush();
+```
+
+Flushing is best-effort and asynchronous – it starts sending queued events in the background but doesn't wait for the request to finish, so it isn't a delivery guarantee.
+
 ## Offline behavior
 
 The PostHog Flutter SDK will continue to capture events when the device is offline for Android and Apple platforms. The events are stored in a queue in the device's file storage and are flushed when the device is online.

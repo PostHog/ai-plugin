@@ -1,6 +1,6 @@
 # PostHog JavaScript Web SDK
 
-**SDK Version:** 1.376.6
+**SDK Version:** 1.378.1
 
 Posthog-js allows you to automatically capture usage and send events to PostHog.
 
