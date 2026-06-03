@@ -19,17 +19,17 @@ SELECT
     sum(s.console_error_count) AS console_error_count,
     max(s.retention_period_days) AS retention_period_days,
     plus(dateTrunc('DAY', start_time), toIntervalDay(coalesce(retention_period_days, 30))) AS expiry_time,
-    date_diff('DAY', toDateTime('2026-06-01 08:10:51.074772'), expiry_time) AS recording_ttl,
-    greaterOrEquals(max(s._timestamp), toDateTime('2026-06-01 08:05:51.073948')) AS ongoing,
+    date_diff('DAY', toDateTime('2026-06-03 11:52:30.386695'), expiry_time) AS recording_ttl,
+    greaterOrEquals(max(s._timestamp), toDateTime('2026-06-03 11:47:30.385880')) AS ongoing,
     round(multiply(divide(plus(plus(plus(divide(sum(s.active_milliseconds), 1000), sum(s.click_count)), sum(s.keypress_count)), sum(s.console_error_count)), plus(plus(plus(plus(sum(s.mouse_activity_count), dateDiff('SECOND', start_time, end_time)), sum(s.console_error_count)), sum(s.console_log_count)), sum(s.console_warn_count))), 100), 2) AS activity_score
 FROM
     raw_session_replay_events AS s
 WHERE
-    and(greaterOrEquals(s.min_first_timestamp, toDateTime('2026-05-29 00:00:00.000000')), lessOrEquals(s.min_first_timestamp, toDateTime('2026-06-01 08:10:51.074127')))
+    and(greaterOrEquals(s.min_first_timestamp, toDateTime('2026-05-31 00:00:00.000000')), lessOrEquals(s.min_first_timestamp, toDateTime('2026-06-03 11:52:30.386035')))
 GROUP BY
     session_id
 HAVING
-    and(greaterOrEquals(expiry_time, toDateTime('2026-06-01 08:10:51.074633')), equals(max(s.is_deleted), 0), greater(active_seconds, 5.0))
+    and(greaterOrEquals(expiry_time, toDateTime('2026-06-03 11:52:30.386576')), equals(max(s.is_deleted), 0), greater(active_seconds, 5.0))
 ORDER BY
     start_time DESC,
     session_id DESC

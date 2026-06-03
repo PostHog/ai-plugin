@@ -7,7 +7,9 @@ configuring-experiment-analytics
 configuring-experiment-rollout
 copying-flags-across-projects
 creating-experiments
+creating-replay-vision-scanners
 debugging-local-replay
+debugging-signals-pipeline
 diagnosing-experiment-results
 diagnosing-failed-warehouse-syncs
 diagnosing-missing-recordings
