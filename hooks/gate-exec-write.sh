@@ -23,6 +23,16 @@
 
 set -u
 
+# Codex compatibility: Codex's PreToolUse protocol does not support
+# `permissionDecision: "ask"` (it is parsed then rejected as unsupported), and
+# Codex already gates tool calls through its own approval flow. Detect Codex via
+# its native PLUGIN_ROOT env var — Claude Code only ever sets CLAUDE_PLUGIN_ROOT,
+# never PLUGIN_ROOT — and skip the gate so the hook neither errors nor fights
+# Codex's prompt. See https://developers.openai.com/codex/hooks
+if [[ -n "${PLUGIN_ROOT:-}" ]]; then
+    exit 0
+fi
+
 input="$(cat)"
 
 # Extract `tool_name` — simple identifier, no escaping inside the value.
