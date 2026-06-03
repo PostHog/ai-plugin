@@ -618,11 +618,22 @@ posthog.has_opted_out_capturing()
 
 ## Flush
 
-You can set the number of events in the configuration that should queue before flushing. Setting this to `1` will send events immediately and will use more battery. This is set to `20` by default.
+You can configure how many events queue before flushing with `flushAt`. Setting this to `1` will send events immediately and will use more battery. The default is `20`.
 
-You can also configure the flush interval. By default we flush all events after `30` seconds, no matter how many events have gathered.
+You can also configure the flush interval with `flushInterval`, in milliseconds (default `10000`), after which queued events are sent regardless of how many have been gathered:
 
-You can also manually flush the queue. If a flush is already in progress it returns a promise for the existing flush.
+JavaScript
+
+PostHog AI
+
+```javascript
+const posthog = new PostHog('<ph_project_token>', {
+  flushAt: 20,
+  flushInterval: 10000,
+})
+```
+
+You can also manually flush the queue to start sending events immediately instead of waiting for the next batch:
 
 JavaScript
 
@@ -631,6 +642,10 @@ PostHog AI
 ```javascript
 await posthog.flush()
 ```
+
+If a flush is already in progress, it returns a promise for the existing flush.
+
+Flushing is best-effort and asynchronous – it starts sending queued events in the background but doesn't wait for the request to finish, so it isn't a delivery guarantee.
 
 ## Reset after logout
 

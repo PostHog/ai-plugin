@@ -8,9 +8,9 @@ You can enable or disable autocapture through the `PostHogConfig` object.
 
 The iOS SDK uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your mobile app.
 
-You can set the number of events in the configuration that should queue before flushing.
+You can configure how many events queue before flushing with `flushAt`. Setting this to `1` will send events immediately and will use more battery. The default is `20`.
 
-Setting this to `1` will send events immediately and will use more battery. This is set to `20` by default.
+You can also configure the flush interval with `flushIntervalSeconds` (default `30`), after which queued events are sent regardless of how many have been gathered:
 
 Swift
 
@@ -18,9 +18,10 @@ PostHog AI
 
 ```swift
 configuration.flushAt = 1
+configuration.flushIntervalSeconds = 30
 ```
 
-You can also manually flush the queue:
+You can also manually flush the queue to start sending events immediately instead of waiting for the next batch:
 
 Swift
 
@@ -30,6 +31,8 @@ PostHog AI
 PostHogSDK.shared.capture("logged_out")
 PostHogSDK.shared.flush()
 ```
+
+Flushing is best-effort and asynchronous – it starts sending queued events in the background but doesn't wait for the request to finish, so it isn't a delivery guarantee.
 
 ## Amending, dropping or sampling events
 
