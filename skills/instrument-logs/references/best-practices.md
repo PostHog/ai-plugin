@@ -63,7 +63,7 @@ PostHog AI
 {
   "event": "payment.completed",
   "duration_ms": 342,
-  "posthog_distinct_id": "user_abc123",
+  "posthogDistinctId": "user_abc123",
   "order_id": "ord_789",
   "amount_cents": 4999,
   "currency": "USD",
@@ -103,7 +103,7 @@ PostHog AI
 ```json
 {
   "event": "payment.failed",
-  "posthog_distinct_id": "user_abc123",
+  "posthogDistinctId": "user_abc123",
   "error_type": "card_declined",
   "provider": "stripe",
   "amount_cents": 4999
@@ -122,7 +122,7 @@ Two concepts that separate useful logs from noise. You want both high cardinalit
 
 What is cardinality?
 
-Cardinality is the number of unique values a field has. `posthog_distinct_id` has high cardinality (millions of unique values). `log_level` has low cardinality (5 values). High-cardinality fields are what enable you to debug specific requests and users.
+Cardinality is the number of unique values a field has. `posthogDistinctId` has high cardinality (millions of unique values). `log_level` has low cardinality (5 values). High-cardinality fields are what enable you to debug specific requests and users.
 
 Some teams avoid high-cardinality fields because older logging tools can't handle them efficiently. Modern columnar databases (like ClickHouse, which PostHog uses under the hood) handle high cardinality just fine. Don't let outdated tooling concerns stop you from logging the fields that matter.
 
@@ -147,7 +147,7 @@ This lets you move from "500 errors spiked" to "500 errors spiked for enterprise
 In OpenTelemetry, this context splits into two layers.
 
 1.  **Resource attributes** are set once when your service starts. They describe the service itself: `service.name`, `deployment.environment`, `service.version`, `cloud.region`. Every log from that process automatically includes them.
-2.  **Log attributes** are set per event. They describe what happened in that specific request: `posthog_distinct_id`, `order_id`, `payment_method`, `duration_ms`.
+2.  **Log attributes** are set per event. They describe what happened in that specific request: `posthogDistinctId`, `order_id`, `payment_method`, `duration_ms`.
 
 **Correlate with Product Analytics**
 
@@ -173,7 +173,7 @@ logger = logging.getLogger(__name__)
 def handle_checkout(request):
     attrs = {
         "event": "checkout",
-        "posthog_distinct_id": request.user.id,
+        "posthogDistinctId": request.user.id,
         "subscription_tier": request.user.tier,
     }
     cart = get_cart(request.user)
@@ -210,7 +210,7 @@ const logger = logs.getLogger("my-app");
 function handleCheckout(req, res) {
   const attrs = {
     event: "checkout",
-    posthog_distinct_id: req.user.id,
+    posthogDistinctId: req.user.id,
     subscription_tier: req.user.tier,
   };
   const cart = getCart(req.user);
@@ -244,7 +244,7 @@ PostHog AI
 func HandleCheckout(w http.ResponseWriter, r *http.Request) {
     log := slog.With(
         "event", "checkout",
-        "posthog_distinct_id", r.Context().Value("posthog_distinct_id"),
+        "posthogDistinctId", r.Context().Value("posthogDistinctId"),
     )
     cart, _ := getCart(r.Context())
     log = log.With(
@@ -338,7 +338,7 @@ Some things should never appear in your logs:
 
 -   **Secrets:** API keys, passwords, tokens, credit card numbers. If you log these by accident, you now have a security incident *and* a logging problem.
 -   **Request and response bodies:** Logging full payloads is one of the fastest ways to blow up storage costs and accidentally capture PII, auth tokens, or sensitive user data. Log the metadata (status code, content length, duration), not the body.
--   **Personal data you don't need:** Full email addresses, IP addresses, or other PII beyond what's required for debugging. If you need to correlate logs to a user but can't store raw identifiers, hash or tokenize them. Check your GDPR, HIPAA, or other compliance requirements, as even fields like `posthog_distinct_id` or `email` may need masking depending on your jurisdiction.
+-   **Personal data you don't need:** Full email addresses, IP addresses, or other PII beyond what's required for debugging. If you need to correlate logs to a user but can't store raw identifiers, hash or tokenize them. Check your GDPR, HIPAA, or other compliance requirements, as even fields like `posthogDistinctId` or `email` may need masking depending on your jurisdiction.
 -   **High-frequency health checks:** Load balancer pings and liveness probes generate massive volume with zero debugging value. Exclude them.
 -   **Unnecessary duplication:** If a downstream service logs the same event, you don't always need to log it again upstream. That said, when you're debugging a production incident at 2am, having key context from downstream calls in your own service's logs can save you from correlating across multiple systems under pressure. The rule of thumb: don't log a play-by-play of every call you make, but do include the outcome and any data you'd need to debug without switching to another service's logs.
 
@@ -355,7 +355,7 @@ Use this to audit your existing logging or as a starting point for a new service
 
 ### Business and trace context
 
--   **The "Who":** `posthog_distinct_id`, `org_id`, `account_tier`, or equivalent
+-   **The "Who":** `posthogDistinctId`, `org_id`, `account_tier`, or equivalent
 -   **The "What":** `order_id`, `transaction_id`, `feature_flag_variants`, or equivalent
 -   **The "Where":** `service.name`, `service.version`, `deployment.environment` set as OTel resource attributes
 -   **Trace IDs:** OpenTelemetry `trace_id` is attached so you can jump from logs to traces

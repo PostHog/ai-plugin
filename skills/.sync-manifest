@@ -1,4 +1,5 @@
 analyzing-experiment-session-replays
+assessing-heatmaps
 auditing-experiments-flags
 auditing-warehouse-data-health
 authoring-log-alerts
@@ -7,7 +8,9 @@ configuring-experiment-analytics
 configuring-experiment-rollout
 copying-flags-across-projects
 creating-experiments
+creating-replay-vision-scanners
 debugging-local-replay
+debugging-signals-pipeline
 diagnosing-experiment-results
 diagnosing-failed-warehouse-syncs
 diagnosing-missing-recordings
@@ -44,7 +47,14 @@ planning-user-interviews
 querying-posthog-data
 setting-up-a-data-warehouse-source
 signals
+signals-scout-csp-violations
+signals-scout-error-tracking
 signals-scout-general
+signals-scout-llm-analytics
+signals-scout-logs
+signals-scout-observability-gaps
+signals-scout-revenue-analytics
+signals-scout-surveys
 skills-store
 suggesting-data-imports
 suppressing-noisy-errors

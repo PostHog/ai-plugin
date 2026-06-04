@@ -138,6 +138,7 @@ If no session ID is found in the log entry, the tab displays a message prompting
 
 ## See also
 
+-   [Link logs to a person](/docs/logs/link-person.md): same `posthogDistinctId` attribute, surfaced on the person profile's Logs tab.
 -   [Session replay installation](/docs/session-replay/installation.md)
 -   [Logs installation](/docs/logs/installation.md)
 -   [Search logs](/docs/logs/search.md)
