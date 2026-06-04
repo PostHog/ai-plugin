@@ -286,6 +286,7 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
     | [Search logs](/docs/logs/search.md) | Use the search interface to find specific log entries |
     | Filter by level | Filter by INFO, WARN, ERROR, etc. |
     | [Link session replay](/docs/logs/link-session-replay.md) | Connect logs to users and session replays by passing posthogDistinctId and sessionId |
+    | [Link logs to a person](/docs/logs/link-person.md) | Surface every log emitted on behalf of a user on their PostHog person profile |
     | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
