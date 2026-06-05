@@ -1,6 +1,6 @@
 # PostHog Node.js SDK
 
-**SDK Version:** 5.35.13
+**SDK Version:** 5.36.1
 
 PostHog Node.js SDK allows you to capture events and send them to PostHog from your Node.js applications.
 

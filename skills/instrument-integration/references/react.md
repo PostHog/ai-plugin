@@ -26,7 +26,7 @@ Or, to integrate manually, continue with the rest of this guide.
 
 ## Installation
 
-> For React-based frameworks, we recommend the [Next.js integration guide](/docs/libraries/next-js.md) and [Next.js integration guide](/docs/libraries/remix.md) instead.
+> For React-based frameworks, we recommend the [Next.js integration guide](/docs/libraries/next-js.md) and [Remix integration guide](/docs/libraries/remix.md) instead.
 
 1.  Install [`posthog-js`](https://github.com/posthog/posthog-js) and `@posthog/react` using your package manager:
 
