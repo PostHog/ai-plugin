@@ -53,16 +53,13 @@ PostHog AI
 
 ```typescript
 // src/app/services/posthog.service.ts
-import { DestroyRef, Injectable, NgZone } from "@angular/core";
+import { Injectable, NgZone } from "@angular/core";
 import posthog from "posthog-js";
 import { environment } from "../../environments/environment";
-import { Router } from "@angular/router";
 @Injectable({ providedIn: "root" })
 export class PosthogService {
   constructor(
     private ngZone: NgZone,
-    private router: Router,
-    private destroyRef: DestroyRef,
   ) {
     this.initPostHog();
   }
@@ -234,22 +231,21 @@ posthog.service.ts
 PostHog AI
 
 ```typescript
-import { isPlatformBrowser } from "@angular/common";
-import { PLATFORM_ID } from "@angular/core";
-import { isPlatformBrowser } from "@angular/common";
 import { PLATFORM_ID } from "@angular/core";
 @Injectable({ providedIn: "root" })
 export class PosthogService {
   constructor(
     private ngZone: NgZone,
-    private router: Router,
-    private destroyRef: DestroyRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     // Only initialize PostHog in browser environment
     if (isPlatformBrowser(this.platformId)) {
       this.initPostHog(); //+
     }
+  }
+  private initPostHog() {
+    this.ngZone.runOutsideAngular(() => {
+      posthog.init(environment.posthogKey, {
 ```
 
 ### 2\. Add server-side initialization
@@ -319,11 +315,9 @@ app.get('**', async (req, res, next) => {
   const distinctId = getDistinctIdFromCookie(headers.cookie);
   let isFeatureEnabled = false;
   const client = new PostHog(
-      const client = new PostHog(
       environment.posthogKey,
       { host: environment.posthogHost }
-  )
-  )
+  );
   if (distinctId) {
     client.capture({
       distinctId: distinctId,

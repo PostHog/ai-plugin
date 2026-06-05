@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.16.4
+**SDK Version:** 7.17.0
 
 Integrate PostHog into any python application.
 
@@ -46,6 +46,7 @@ Initialize a new PostHog client instance.
 - **`personal_api_key`** (`any`) - Personal API key used for local feature flag         evaluation and remote config payloads.
 - **`disabled`** (`bool`) - If True, disable captures and API requests. Useful in tests.
 - **`disable_geoip`** (`bool`) - Whether to disable server-side GeoIP enrichment.         Defaults to True.
+- **`is_server`** (`bool`) - Whether events are emitted from a server-side runtime.         Defaults to True; set to False when using the SDK as a client/CLI         so the device OS is attributed to the person normally.
 - **`historical_migration`** (`bool`) - Mark events as historical migration imports.
 - **`feature_flags_request_timeout_seconds`** (`int`) - Timeout in seconds for feature         flag and remote config requests.
 - **`super_properties`** (`any`) - Properties merged into every captured event.

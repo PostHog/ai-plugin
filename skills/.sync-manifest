@@ -28,6 +28,7 @@ feature-usage-feed
 finding-deleted-feature-flags
 finding-experiments
 finding-replay-for-issue
+finding-sessions-to-watch
 formatting-insight-axes
 grouping-noisy-errors
 inbox-exploration
