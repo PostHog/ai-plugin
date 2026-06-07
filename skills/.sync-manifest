@@ -3,6 +3,7 @@ assessing-heatmaps
 auditing-experiments-flags
 auditing-warehouse-data-health
 authoring-log-alerts
+authoring-signals-scouts
 cleaning-up-stale-feature-flags
 configuring-experiment-analytics
 configuring-experiment-rollout
@@ -24,6 +25,7 @@ exploring-llm-clusters
 exploring-llm-costs
 exploring-llm-evaluations
 exploring-llm-traces
+exploring-signals-scouts
 feature-usage-feed
 finding-deleted-feature-flags
 finding-experiments
