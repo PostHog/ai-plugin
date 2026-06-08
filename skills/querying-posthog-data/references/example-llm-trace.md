@@ -8,6 +8,8 @@ Key properties of the $ai_generation event: $ai_input and $ai_output_choices.
 
 **IMPORTANT:** The `$ai_input`, `$ai_input_state`, and `$ai_output_state` properties can be extremely large (containing full conversation histories, system prompts, or application state). When your query selects these properties, you MUST dump the results to a file and use bash commands to explore the output. Never output them directly into the conversation.
 
+These heavy fields live only on `posthog.ai_events` (read it directly by `trace_id`), not on `events.properties` — see [AI observability events](./models-ai-observability-events.md) for the column mapping and query patterns.
+
 ```sql
 SELECT
     trace_id AS id,
