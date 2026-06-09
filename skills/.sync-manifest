@@ -10,6 +10,7 @@ configuring-experiment-analytics
 configuring-experiment-rollout
 consuming-endpoints-from-client-code
 copying-flags-across-projects
+creating-ai-subscription
 creating-an-endpoint
 creating-experiments
 creating-replay-vision-scanners
@@ -60,6 +61,7 @@ signals-scout-anomaly-detection
 signals-scout-csp-violations
 signals-scout-error-tracking
 signals-scout-general
+signals-scout-health-checks
 signals-scout-logs
 signals-scout-observability-gaps
 signals-scout-revenue-analytics
