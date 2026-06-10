@@ -16,6 +16,7 @@ creating-experiments
 creating-replay-vision-scanners
 debugging-local-replay
 debugging-signals-pipeline
+diagnosing-ci-and-merge-bottlenecks
 diagnosing-endpoint-performance
 diagnosing-experiment-results
 diagnosing-failed-warehouse-syncs
@@ -59,13 +60,18 @@ signals
 signals-scout-ai-observability
 signals-scout-anomaly-detection
 signals-scout-csp-violations
+signals-scout-data-pipelines
 signals-scout-error-tracking
+signals-scout-experiments
+signals-scout-feature-flags
 signals-scout-general
 signals-scout-health-checks
 signals-scout-logs
 signals-scout-observability-gaps
 signals-scout-revenue-analytics
+signals-scout-session-replay
 signals-scout-surveys
+signals-scout-web-analytics
 skills-store
 suggesting-data-imports
 suppressing-noisy-errors
