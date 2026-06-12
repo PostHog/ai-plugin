@@ -1,5 +1,7 @@
 # Supported functions
 abs
+accurateCast
+accurateCastOrNull
 acos
 acosh
 addDays

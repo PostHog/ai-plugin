@@ -26,6 +26,7 @@ diagnosing-stacktrace-symbolication
 downloading-batch-export-files
 exploring-apm-traces
 exploring-autocapture-events
+exploring-endpoint-execution-logs
 exploring-live-traffic
 exploring-llm-clusters
 exploring-llm-costs
@@ -66,6 +67,7 @@ signals-scout-experiments
 signals-scout-feature-flags
 signals-scout-general
 signals-scout-health-checks
+signals-scout-inbox-validation
 signals-scout-logs
 signals-scout-observability-gaps
 signals-scout-revenue-analytics

@@ -17,13 +17,21 @@ SELECT
     instrumentation_scope,
     event_name,
     (SELECT
-            min(max_observed_timestamp)
+            min(partition_checkpoint)
         FROM
-            logs_kafka_metrics) AS live_logs_checkpoint
+            (SELECT
+                _topic,
+                _partition,
+                max(max_observed_timestamp) AS partition_checkpoint
+            FROM
+                logs_kafka_metrics
+            GROUP BY
+                _topic,
+                _partition)) AS live_logs_checkpoint
 FROM
     logs
 WHERE
-    and(and(greaterOrEquals(toStartOfDay(time_bucket), toStartOfDay(assumeNotNull(toDateTime('2025-12-09 00:00:00')))), lessOrEquals(toStartOfDay(time_bucket), toStartOfDay(assumeNotNull(toDateTime('2025-12-10 00:00:00'))))), 1, greaterOrEquals(timestamp, toDateTime('2026-06-09 07:18:26.263696')), indexHint(like(lower(body), '%timeout%')), ilike(toString(body), '%timeout%'), in(severity_text, tuple('warn', 'error', 'fatal')))
+    and(and(greaterOrEquals(toStartOfDay(time_bucket), toStartOfDay(assumeNotNull(toDateTime('2025-12-09 00:00:00')))), lessOrEquals(toStartOfDay(time_bucket), toStartOfDay(assumeNotNull(toDateTime('2025-12-10 00:00:00'))))), 1, greaterOrEquals(timestamp, toDateTime('2026-06-11 01:33:08.440865')), indexHint(like(lower(body), '%timeout%')), ilike(toString(body), '%timeout%'), in(severity_text, tuple('warn', 'error', 'fatal')))
 ORDER BY
     timestamp DESC,
     uuid DESC
