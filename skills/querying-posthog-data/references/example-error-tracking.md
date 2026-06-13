@@ -2,21 +2,44 @@
 
 ```sql
 SELECT
-    e.issue_id AS id,
-    max(timestamp) AS last_seen,
-    min(timestamp) AS first_seen,
-    argMax(properties.$exception_functions.-1, timestamp) AS function,
-    argMax(properties.$exception_sources.-1, timestamp) AS source,
-    count(DISTINCT uuid) AS occurrences,
-    count(DISTINCT nullIf($session_id, '')) AS sessions,
-    count(DISTINCT coalesce(nullIf(toString(person_id), '00000000-0000-0000-0000-000000000000'), distinct_id)) AS users,
-    sumForEach(arrayMap(bin -> if(and(greater(timestamp, bin), lessOrEquals(dateDiff('seconds', bin, timestamp), divide(dateDiff('seconds', toDateTime(toDateTime('2026-06-09 07:18:23.179033')), toDateTime(toDateTime('2026-06-10 07:18:23.179768'))), 20))), 1, 0), arrayMap(i -> dateAdd(toDateTime(toDateTime('2026-06-09 07:18:23.179033')), toIntervalSecond(multiply(i, divide(dateDiff('seconds', toDateTime(toDateTime('2026-06-09 07:18:23.179033')), toDateTime(toDateTime('2026-06-10 07:18:23.179768'))), 20)))), range(0, 20)))) AS volumeRange,
-    argMin(tuple(uuid, distinct_id, timestamp, properties), timestamp) AS first_event,
-    argMax(properties.$lib, timestamp) AS library
+    fp_state.issue_id AS id,
+    any(fp_state.issue_status) AS status,
+    any(fp_state.issue_name) AS name,
+    any(fp_state.issue_description) AS description,
+    any(fp_state.assigned_user_id) AS assignee_user_id,
+    any(fp_state.assigned_role_id) AS assignee_role_id,
+    min(fp_state.first_seen) AS first_seen,
+    max(ev.last_seen_fp) AS last_seen,
+    argMaxMerge(ev.function_state) AS function,
+    argMaxMerge(ev.source_state) AS source,
+    sum(ev.occ) AS occurrences,
+    uniqMerge(ev.sessions_state) AS sessions,
+    uniqMerge(ev.users_state) AS users,
+    sumForEach(arrayMap(i -> if(equals(ev.bin_idx, i), ev.occ, _toUInt64(0)), range(0, 20))) AS volumeRange,
+    argMinMerge(ev.first_event_uuid_state) AS first_event_uuid,
+    argMaxMerge(ev.library_state) AS library
 FROM
-    events AS e
+    (SELECT
+        cityHash64(e.properties.$exception_fingerprint) AS fp_hash,
+        max(timestamp) AS last_seen_fp,
+        argMaxState(properties.$exception_functions.-1, timestamp) AS function_state,
+        argMaxState(properties.$exception_sources.-1, timestamp) AS source_state,
+        argMaxState(properties.$lib, timestamp) AS library_state,
+        least(19, intDiv(dateDiff('seconds', toDateTime(toDateTime('2026-06-12 11:33:46.754520')), timestamp), greatest(1, intDiv(dateDiff('seconds', toDateTime(toDateTime('2026-06-12 11:33:46.754520')), toDateTime(toDateTime('2026-06-13 11:33:46.756156'))), 20)))) AS bin_idx,
+        count() AS occ,
+        uniqState(nullIf(e.$session_id, '')) AS sessions_state,
+        uniqState(coalesce(nullIf(toString(e.person_id), '00000000-0000-0000-0000-000000000000'), e.distinct_id)) AS users_state,
+        argMinState(e.uuid, e.timestamp) AS first_event_uuid_state
+    FROM
+        events AS e
+    WHERE
+        and(equals(e.event, '$exception'), isNotNull(e.properties.$exception_fingerprint), true, greaterOrEquals(e.timestamp, toDateTime(toDateTime('2026-06-12 11:33:46.754520'))), lessOrEquals(e.timestamp, toDateTime(toDateTime('2026-06-13 11:33:46.756156'))), or(greater(position(lower(e.properties.$exception_types), lower('constant')), 0), greater(position(lower(e.properties.$exception_values), lower('constant')), 0), greater(position(lower(e.properties.$exception_sources), lower('constant')), 0), greater(position(lower(e.properties.$exception_functions), lower('constant')), 0), greater(position(lower(e.properties.email), lower('constant')), 0), greater(position(lower(e.person.properties.email), lower('constant')), 0)), equals(properties.tag, 'max_ai'))
+    GROUP BY
+        fp_hash,
+        bin_idx) AS ev
+    INNER JOIN error_tracking_fingerprint_issue_state AS fp_state ON equals(ev.fp_hash, fp_state.fp_hash)
 WHERE
-    and(equals(event, '$exception'), isNotNull(e.issue_id), equals(properties.tag, 'max_ai'), greaterOrEquals(timestamp, toDateTime(toDateTime('2026-06-09 07:18:23.179033'))), lessOrEquals(timestamp, toDateTime(toDateTime('2026-06-10 07:18:23.179768'))), or(greater(position(lower(properties.$exception_types), lower('constant')), 0), greater(position(lower(properties.$exception_values), lower('constant')), 0), greater(position(lower(properties.$exception_sources), lower('constant')), 0), greater(position(lower(properties.$exception_functions), lower('constant')), 0), greater(position(lower(properties.email), lower('constant')), 0), greater(position(lower(person.properties.email), lower('constant')), 0)))
+    isNotNull(fp_state.issue_id)
 GROUP BY
     id
 ORDER BY
