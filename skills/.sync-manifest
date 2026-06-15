@@ -71,6 +71,7 @@ signals-scout-health-checks
 signals-scout-inbox-validation
 signals-scout-logs
 signals-scout-observability-gaps
+signals-scout-replay-vision
 signals-scout-revenue-analytics
 signals-scout-session-replay
 signals-scout-surveys
