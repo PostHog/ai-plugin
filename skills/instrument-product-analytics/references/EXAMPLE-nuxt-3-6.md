@@ -1,7 +1,7 @@
 # PostHog nuxt-3-6 Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/nuxt-3-6
+Path: example-apps/nuxt-3-6
 
 ---
 

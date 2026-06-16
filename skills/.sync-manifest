@@ -5,6 +5,7 @@ auditing-experiments-flags
 auditing-warehouse-data-health
 authoring-log-alerts
 authoring-signals-scouts
+choosing-trend-or-slope-view
 cleaning-up-stale-feature-flags
 configuring-experiment-analytics
 configuring-experiment-rollout
@@ -62,6 +63,7 @@ signals
 signals-scout-ai-observability
 signals-scout-anomaly-detection
 signals-scout-csp-violations
+signals-scout-customer-analytics
 signals-scout-data-pipelines
 signals-scout-error-tracking
 signals-scout-experiments
@@ -71,6 +73,7 @@ signals-scout-health-checks
 signals-scout-inbox-validation
 signals-scout-logs
 signals-scout-observability-gaps
+signals-scout-product-analytics
 signals-scout-replay-vision
 signals-scout-revenue-analytics
 signals-scout-session-replay

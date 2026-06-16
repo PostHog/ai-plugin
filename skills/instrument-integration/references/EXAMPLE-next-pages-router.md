@@ -1,7 +1,7 @@
 # PostHog next-pages-router Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/next-pages-router
+Path: example-apps/next-pages-router
 
 ---
 

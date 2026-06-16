@@ -1,7 +1,7 @@
 # PostHog django Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/django
+Path: example-apps/django
 
 ---
 

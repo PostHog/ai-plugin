@@ -1,7 +1,7 @@
 # PostHog javascript-web Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/javascript-web
+Path: example-apps/javascript-web
 
 ---
 

@@ -53,7 +53,18 @@ bun add @posthog/nuxt
 
 ## Configuration
 
-Add the module to your `nuxt.config.ts` file:
+Store your PostHog keys in environment variables rather than hard-coding them. Add them to a `.env` file (and to your hosting provider). You can find these values in [your project settings](https://us.posthog.com/settings/project).
+
+.env
+
+PostHog AI
+
+```shell
+NUXT_PUBLIC_POSTHOG_KEY=<ph_project_token>
+NUXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+Then reference them when you add the module to your `nuxt.config.ts` file:
 
 nuxt.config.ts
 
@@ -63,14 +74,22 @@ PostHog AI
 export default defineNuxtConfig({
   modules: ['@posthog/nuxt'],
   posthogConfig: {
-    publicKey: '<ph_project_token>', // Find it in project settings https://app.posthog.com/settings/project
-    host: 'https://us.i.posthog.com', // Optional: defaults to https://us.i.posthog.com. Use https://eu.i.posthog.com for EU region
+    publicKey: process.env.NUXT_PUBLIC_POSTHOG_KEY, // Find it in project settings https://app.posthog.com/settings/project
+    host: process.env.NUXT_PUBLIC_POSTHOG_HOST, // Optional: defaults to https://us.i.posthog.com. Use https://eu.i.posthog.com for EU region
     clientConfig: {
       // Optional: PostHog client configuration options
     },
   },
 })
 ```
+
+**Keep your personal API key out of the client bundle**
+
+Anything shipped to the browser – the token you pass to `posthog.init()`, anything under Nuxt's `runtimeConfig.public`, or the `@posthog/nuxt` module's `posthogConfig` – ends up in your client-side JavaScript and is visible to anyone who visits your site. This is fine for your **project token** (`<ph_project_token>`), which is designed to be public.
+
+Your **[personal API key](/docs/api.md#authentication)** is different. It can grant full access to your PostHog account, so it must never reach the browser. If you need it – for example, for [source map uploads](/docs/error-tracking/upload-source-maps/nuxt.md) or [server-side local evaluation](/docs/feature-flags/local-evaluation.md) – read it from a server-only environment variable (or top-level `runtimeConfig`, never `runtimeConfig.public`) and only use it in server code.
+
+Either way, prefer reading keys from environment variables rather than hard-coding them in `nuxt.config`, so you can keep them out of source control and use different values per environment.
 
 ## Usage on the client side
 

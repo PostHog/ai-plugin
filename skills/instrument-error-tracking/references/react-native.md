@@ -108,6 +108,7 @@
           uncaughtExceptions: true,
           unhandledRejections: true,
           console: ['error', 'warn'],
+          nativeCrashes: true, // native iOS/Android crashes (see below)
         },
       },
     })
@@ -120,6 +121,15 @@
     | uncaughtExceptions | Captures Uncaught exceptions (ReactNativeGlobal.ErrorUtils.setGlobalHandler) |
     | unhandledRejections | Captures Unhandled rejections (ReactNativeGlobal.onunhandledrejection) |
     | console | Captures console logs as errors according to the reported LogLevel |
+    | nativeCrashes | Captures native iOS/Android crashes. Requires @posthog/react-native-plugin and uploaded native symbols (see below) |
+
+    **Capturing native crashes**
+
+    `nativeCrashes` captures native iOS and Android crashes that the JavaScript layer can't see. Beyond the config above, it needs:
+
+    1.  The optional native plugin installed — `npx expo install @posthog/react-native-plugin` (Expo) or `npm i @posthog/react-native-plugin` (bare React Native). If it's missing, native capture is a no-op and your JS-level autocapture is unaffected.
+    2.  Your project's **Enable exception autocapture** setting enabled in [error tracking settings](https://app.posthog.com/settings/project-error-tracking#exception-autocapture) — the same server-side setting that gates JavaScript autocapture.
+    3.  Native debug symbols uploaded at build time, so crash stack traces are readable. See [native crash symbolication](/docs/error-tracking/upload-source-maps/react-native.md#native-crash-symbolication).
 
 5.  5
 
@@ -197,10 +207,9 @@
 
     We currently don't support the following features:
 
-    -   No native Android and iOS exception capture
     -   No automatic source map uploads on React Native web
 
-    These features will be added in future releases. We recommend you stay up to date with the latest version of the PostHog React Native SDK.
+    This will be added in a future release. We recommend you stay up to date with the latest version of the PostHog React Native SDK.
 
 8.  ## Verify error tracking
 
@@ -216,15 +225,15 @@
 
 9.  8
 
-    ## Upload source maps
+    ## Upload source maps & native symbols
 
     Required
 
-    Great, you're capturing exceptions! If you serve minified bundles, the next step is to upload source maps to generate accurate stack traces.
+    Great, you're capturing exceptions! The next step is to upload source maps (for JavaScript stack traces) and native symbols (for native iOS/Android crash symbolication) so PostHog can generate accurate stack traces.
 
     Let's continue to the next section.
 
-    [Upload source maps](/docs/error-tracking/upload-source-maps/react-native.md)
+    [Upload source maps & native symbols](/docs/error-tracking/upload-source-maps/react-native.md)
 
 ### Community questions
 

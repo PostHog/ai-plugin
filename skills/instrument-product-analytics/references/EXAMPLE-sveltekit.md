@@ -1,7 +1,7 @@
 # PostHog sveltekit Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/sveltekit
+Path: example-apps/sveltekit
 
 ---
 

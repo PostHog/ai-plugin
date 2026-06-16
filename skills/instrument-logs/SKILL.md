@@ -68,6 +68,7 @@ STEP 7: Set up environment variables.
 - `references/android.md` - Android logs installation - docs
 - `references/react-native.md` - React native logs installation - docs
 - `references/ios.md` - Ios logs installation - docs
+- `references/flutter.md` - Flutter logs installation - docs
 - `references/other.md` - Other languages logs installation - docs
 - `references/start-here.md` - Getting started with logs - docs
 - `references/search.md` - Search logs - docs

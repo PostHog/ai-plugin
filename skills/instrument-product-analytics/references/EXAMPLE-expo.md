@@ -1,7 +1,7 @@
 # PostHog expo Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/expo
+Path: example-apps/expo
 
 ---
 

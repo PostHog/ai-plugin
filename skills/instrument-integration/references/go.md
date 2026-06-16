@@ -159,7 +159,7 @@ We strongly recommend reading our docs on [alias](/docs/data/identify.md#alias-a
 
 Use request context to apply a distinct ID, session ID, and common request properties to capture and exception events inside a `net/http` request. This is useful when connecting frontend activity to backend events, session replay, error tracking, and feature flag evaluation.
 
-If you're using PostHog on your frontend, enable tracing headers for your backend domain:
+If you're using PostHog on your frontend, enable tracing headers for your backend hostname:
 
 JavaScript
 
@@ -167,11 +167,11 @@ PostHog AI
 
 ```javascript
 posthog.init('<ph_project_token>', {
-    __add_tracing_headers: ['your-backend-domain.com']
+    tracing_headers: ['your-backend-domain.com']
 })
 ```
 
-Then wrap your handler with `NewRequestContextMiddleware` and use the context-aware helpers:
+Use hostnames only, without the protocol or path. Then wrap your handler with `NewRequestContextMiddleware` and use the context-aware helpers:
 
 Go
 

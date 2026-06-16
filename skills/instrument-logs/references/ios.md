@@ -23,7 +23,7 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
     PostHog AI
 
     ```ruby
-    pod "PostHog", "~> 3.58.0"
+    pod "PostHog", "~> 3.59.3"
     ```
 
     ### Swift Package Manager
@@ -38,7 +38,7 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     ```swift
     dependencies: [
-      .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.58.0")
+      .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.59.3")
     ],
     ```
 

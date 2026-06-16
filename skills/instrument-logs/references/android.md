@@ -12,58 +12,7 @@ The PostHog Android SDK has built-in support for capturing structured Logs from 
 
     Required
 
-    If you haven't installed `posthog-android` yet, follow the steps below. For full details, see the [Android SDK guide](/docs/libraries/android.md).
-
-    The best way to install the PostHog Android library is with a build system like [Gradle](https://gradle.org/). This ensures you can easily upgrade to the latest versions.
-
-    All you need to do is add the `posthog-android` module to your App's `build.gradle` or `build.gradle.kts`:
-
-    PostHog AI
-
-    ### app/build.gradle
-
-    ```gradle
-    dependencies {
-      implementation 'com.posthog:posthog-android:3.+'
-    }
-    ```
-
-    ### app/build.gradle.kts
-
-    ```kotlin
-    dependencies {
-      implementation("com.posthog:posthog-android:3.+")
-    }
-    ```
-
-    ### Configuration
-
-    The best place to initialize the client is in your `Application` subclass.
-
-    Kotlin
-
-    PostHog AI
-
-    ```kotlin
-    import android.app.Application
-    import com.posthog.android.PostHogAndroid
-    import com.posthog.android.PostHogAndroidConfig
-    class SampleApp : Application() {
-        companion object {
-            const val POSTHOG_API_KEY = "<ph_project_token>"
-            // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
-            const val POSTHOG_HOST = "https://us.i.posthog.com"
-        }
-        override fun onCreate() {
-            super.onCreate()
-            val config = PostHogAndroidConfig(
-                apiKey = POSTHOG_API_KEY,
-                host = POSTHOG_HOST
-            )
-            PostHogAndroid.setup(this, config)
-        }
-    }
-    ```
+    If you haven't installed `posthog-android` yet, follow the [Android SDK installation guide](/docs/libraries/android.md#installation).
 
 2.  2
 
@@ -78,21 +27,13 @@ The PostHog Android SDK has built-in support for capturing structured Logs from 
     PostHog AI
 
     ```kotlin
-    import com.posthog.android.PostHogAndroid
-    import com.posthog.android.PostHogAndroidConfig
-    class SampleApp : Application() {
-        override fun onCreate() {
-            super.onCreate()
-            val config = PostHogAndroidConfig(
-                apiKey = "<ph_project_token>",
-                host = "https://us.i.posthog.com",
-            ).apply {
-                logs.serviceName = "my-app"        // OTLP service.name – shown in the Logs UI
-                logs.environment = "production"    // OTLP deployment.environment
-                logs.serviceVersion = "1.2.3"      // OTLP service.version
-            }
-            PostHogAndroid.setup(this, config)
-        }
+    val config = PostHogAndroidConfig(
+        apiKey = "<ph_project_token>",
+        host = "https://us.i.posthog.com",
+    ).apply {
+        logs.serviceName = "my-app"        // OTLP service.name – shown in the Logs UI
+        logs.environment = "production"    // OTLP deployment.environment
+        logs.serviceVersion = "1.2.3"      // OTLP service.version
     }
     ```
 
@@ -122,6 +63,23 @@ The PostHog Android SDK has built-in support for capturing structured Logs from 
     ```
 
     Available severity levels: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL`.
+
+    If you need W3C trace correlation, call `PostHog.captureLog(...)` directly and pass `traceId`, `spanId`, and `traceFlags`.
+
+    Kotlin
+
+    PostHog AI
+
+    ```kotlin
+    PostHog.captureLog(
+        "payment failed",
+        severity = PostHogLogSeverity.ERROR,
+        attributes = mapOf("code" to "PAY_3001"),
+        traceId = "4bf92f3577b34da6a3ce929d0e0e4736",
+        spanId = "00f067aa0ba902b7",
+        traceFlags = 0x01,
+    )
+    ```
 
     Records are buffered, batched, persisted to disk, and flushed automatically – every 30 seconds, when the buffer hits the threshold, when the app moves to the background, or on `PostHog.flush()`. `flush()` drains events, Session Replay, and Logs together.
 

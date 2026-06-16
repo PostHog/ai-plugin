@@ -1,7 +1,7 @@
 # PostHog astro-view-transitions Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/astro-view-transitions
+Path: example-apps/astro-view-transitions
 
 ---
 

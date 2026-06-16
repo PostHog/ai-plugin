@@ -90,7 +90,7 @@ This guide walks you through setting up PostHog for React Router V7 in framework
     posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {
       api_host: import.meta.env.VITE_POSTHOG_HOST,
       defaults: '2026-01-30',
-      __add_tracing_headers: [ window.location.host, 'localhost' ],
+      tracing_headers: [ window.location.hostname, 'localhost' ],
     });
     startTransition(() => {
       hydrateRoot(
@@ -105,7 +105,7 @@ This guide walks you through setting up PostHog for React Router V7 in framework
     });
     ```
 
-    To help PostHog track your user sessions across the client and server, you'll need to add the `__add_tracing_headers: ['your-backend-domain1.com', 'your-backend-domain2.com', ...]` option to your PostHog initialization. This adds the `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` headers to your requests, which we'll later use on the server-side.
+    To help PostHog track your user sessions across the client and server, you'll need to add the `tracing_headers: ['your-backend-hostname1.com', 'your-backend-hostname2.com', ...]` option to your PostHog initialization. This adds the `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` headers to requests sent to the configured hostnames, which we'll later use on the server-side.
 
     TypeError: Cannot read properties of undefined
 

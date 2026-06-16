@@ -376,9 +376,11 @@ PostHog autocapture can automatically track the following events for you:
 >
 > For React Navigation v7, we recommend disabling automatic screen capture for screens and manually calling `posthog.screen()` inside each screen component. See the [Capturing screen views](/docs/libraries/react-native.md#capturing-screen-views) section below.
 
-With autocapture, all touch events for children of `PosthogProvider` are tracked, capturing a snapshot of the view hierarchy at that point. This enables you to create [insights](/docs/product-analytics/insights.md) in PostHog without having to add custom events.
+Application lifecycle events are enabled by default. Screen capture is enabled by default in `PostHogProvider` unless you set `captureScreens: false`. Touch capture is disabled by default and requires `captureTouches: true`.
 
-PostHog will try to generate a sensible name for the touched element based on the React component `displayName` or `name`. If you prefer, you can set your own name using the `ph-label` prop:
+When touch capture is enabled, touch events for children of `PostHogProvider` are tracked, capturing a snapshot of the view hierarchy at that point. This enables you to create [insights](/docs/product-analytics/insights.md) in PostHog without adding custom events.
+
+PostHog will try to generate a sensible name for touched elements based on the React component `displayName` or `name`. If you prefer, you can set your own name using the `ph-label` prop:
 
 React Native
 
@@ -396,8 +398,8 @@ PostHog AI
 
 ```jsx
 <PostHogProvider apiKey="<ph_project_token>" autocapture={{
-    captureTouches: true,
-    captureScreens: true,
+    captureTouches: true, // Disabled by default
+    captureScreens: true, // Enabled by default
     ignoreLabels: [], // Any labels here will be ignored from the stack in touch events
     customLabelProp: "ph-label",
     maxElementsCaptured: 20,
@@ -572,49 +574,7 @@ If you are doing this as part of a user logging out you can instead simply [`pos
 
 ## Opt out of data capture
 
-You can completely opt-out users from data capture. To do this, there are two options:
-
-1.  Opt users out by default by setting `opt_out_capturing_by_default` to `true` in your PostHog config:
-
-JavaScript
-
-PostHog AI
-
-```javascript
-posthog.init('<ph_project_token>', {
-    opt_out_capturing_by_default: true,
-});
-```
-
-2.  Opt users out on a per-person basis by calling `opt_out_capturing()`:
-
-JavaScript
-
-PostHog AI
-
-```javascript
-posthog.opt_out_capturing()
-```
-
-Similarly, you can opt users in:
-
-JavaScript
-
-PostHog AI
-
-```javascript
-posthog.opt_in_capturing()
-```
-
-To check if a user is opted out:
-
-JavaScript
-
-PostHog AI
-
-```javascript
-posthog.has_opted_out_capturing()
-```
+You can completely opt users out from data capture by default or on a per-person basis. See [Opt in/out](#opt-inout) for the current React Native API.
 
 ## Flush
 
@@ -960,64 +920,25 @@ For details on how to implement bootstrapping, see our [bootstrapping guide](/do
 
 ## Experiments (A/B tests)
 
-Since [experiments](/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
-
-React Native
-
-PostHog AI
-
-```jsx
-// With the useFeatureFlag hook
-import { useFeatureFlag } from 'posthog-react-native'
-const MyComponent = () => {
-    const variant = useFeatureFlag('experiment-feature-flag-key')
-    if (variant === undefined) {
-        // the response is undefined if the flags are being loaded
-        return null
-    }
-    if (variant == 'variant-name') {
-        // do something
-    }
-}
-```
+Since [experiments](/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code. See [adding experiment code](/docs/experiments/adding-experiment-code.md) for React Native examples.
 
 It's also possible to [run experiments without using feature flags](/docs/experiments/running-experiments-without-feature-flags.md).
 
 ## Group analytics
 
-Group analytics allows you to associate the events for that person's session with a group (e.g. teams, organizations, etc.). Read the [Group Analytics](/docs/user-guides/group-analytics.md) guide for more information.
+Group analytics allows you to associate the events for that person's session with a group (e.g. teams, organizations, etc.). See [Group Analytics](/docs/product-analytics/group-analytics.md) for implementation details.
 
 > **Note:** This is a paid feature and is not available on the open-source or free cloud plan. Learn more on the [pricing page](/pricing.md).
-
--   Associate the events for this session with a group
-
-JavaScript
-
-PostHog AI
-
-```javascript
-posthog.group('company', 'company_id_in_your_db')
-posthog.capture('upgraded_plan') // this event is associated with company ID `company_id_in_your_db`
-```
-
--   Associate the events for this session with a group AND update the properties of that group
-
-JavaScript
-
-PostHog AI
-
-```javascript
-posthog.group('company', 'company_id_in_your_db', {
-    name: 'Awesome Inc.',
-    employees: 11,
-})
-```
-
-The `name` is a special property which is used in the PostHog UI for the name of the group. If you don't specify a `name` property, the group ID will be used instead.
 
 ## Error tracking
 
 To set up error tracking in your project, follow the [React Native installation guide](/docs/error-tracking/installation/react-native.md).
+
+### Native crash autocapture
+
+The JavaScript-level autocapture only covers exceptions thrown in your JS/TS code. To also capture native iOS and Android crashes – for example, a crash inside a native module or the platform runtime – install the optional `@posthog/react-native-plugin` package and enable `errorTracking.autocapture.nativeCrashes`. Native capture is gated by your project's **Enable exception autocapture** setting, and crash reports need native debug symbols uploaded at build time to produce readable stack traces.
+
+Follow the [React Native installation guide](/docs/error-tracking/installation/react-native.md) for the full setup, and [native crash symbolication](/docs/error-tracking/upload-source-maps/react-native.md#native-crash-symbolication) to upload symbols.
 
 ### Error boundaries
 
@@ -1124,7 +1045,7 @@ PostHog AI
 
 ```jsx
 <PostHogProvider
-    debug: {true}
+    debug={true}
     apiKey="<ph_project_token>"
     options={{
         host: "https://us.i.posthog.com",

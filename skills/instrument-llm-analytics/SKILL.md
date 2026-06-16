@@ -57,7 +57,7 @@ STEP 6: Set up environment variables.
 
 - `references/openai.md` - Openai observability installation - docs
 - `references/azure-openai.md` - Azure openai observability installation - docs
-- `references/README.md` - PostHog.ai
+- `references/README.md` - PostHog.ai for .net
 - `references/anthropic.md` - Anthropic ai observability installation - docs
 - `references/google.md` - Google ai observability installation - docs
 - `references/cohere.md` - Cohere ai observability installation - docs

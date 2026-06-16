@@ -54,9 +54,10 @@ posthog.identify('distinct_id', { // Replace "distinct_id" with your user's uniq
 await Posthog().identify(
   userId: 'distinct_id', // Replace "distinct_id" with your user's unique identifier
   userProperties: {
-    email: "max@hedgehogmail.com", // optional: set additional person properties
-    name: "Max Hedgehog"
-});
+    'email': 'max@hedgehogmail.com', // optional: set additional person properties
+    'name': 'Max Hedgehog',
+  },
+);
 ```
 
 Events captured after calling `identify` are identified events and this creates a person profile if one doesn't exist already.
@@ -141,7 +142,7 @@ posthog.reset()
 ### Dart
 
 ```dart
-Posthog().reset()
+await Posthog().reset();
 ```
 
 If you *also* want to reset the `device_id` so that the device will be considered a new device in future events, you can pass `true` as an argument:

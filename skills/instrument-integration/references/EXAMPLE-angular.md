@@ -1,7 +1,7 @@
 # PostHog angular Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/angular
+Path: example-apps/angular
 
 ---
 
