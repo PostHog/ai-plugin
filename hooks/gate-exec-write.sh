@@ -17,62 +17,42 @@
 #
 #     export POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*,annotation-create"
 #
-# Pure bash; no jq or other third-party tools required. Relies on the fact
-# that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
-# the raw JSON payload is safe.
+# Pure bash; no jq or other third-party tools required. Write-verb matching and
+# payload parsing live in hooks/lib-exec-gate.sh, shared with the Codex gate.
 
 set -u
 
 # Codex compatibility: Codex's PreToolUse protocol does not support
 # `permissionDecision: "ask"` (it is parsed then rejected as unsupported), and
-# Codex already gates tool calls through its own approval flow. Detect Codex via
-# its native PLUGIN_ROOT env var — Claude Code only ever sets CLAUDE_PLUGIN_ROOT,
-# never PLUGIN_ROOT — and skip the gate so the hook neither errors nor fights
-# Codex's prompt. See https://developers.openai.com/codex/hooks
+# Codex gates `exec` writes through its own PermissionRequest hook
+# (hooks/codex-gate-exec-write.sh). Detect Codex via its native PLUGIN_ROOT env
+# var — Claude Code only ever sets CLAUDE_PLUGIN_ROOT, never PLUGIN_ROOT — and
+# skip this gate so the hook neither errors nor fights Codex's prompt.
+# See https://developers.openai.com/codex/hooks
 if [[ -n "${PLUGIN_ROOT:-}" ]]; then
     exit 0
 fi
 
-input="$(cat)"
+# shellcheck source=hooks/lib-exec-gate.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib-exec-gate.sh"
 
-# Extract `tool_name` — simple identifier, no escaping inside the value.
-tool_name=""
-if [[ "$input" =~ \"tool_name\"[[:space:]]*:[[:space:]]*\"([^\"]+)\" ]]; then
-    tool_name="${BASH_REMATCH[1]}"
-fi
+input="$(cat)"
 
 # Match any MCP tool whose name ends in `__exec` regardless of plugin/server
 # namespacing (bare `mcp__posthog__exec` or plugin-prefixed variants like
 # `mcp__posthog_posthog__exec`).
+tool_name="$(posthog_extract_tool_name "$input")"
 [[ "$tool_name" =~ __exec$ ]] || exit 0
 
-# Extract the PostHog tool name from `"command":"call [--json] <tool>..."`.
-# Tool names are kebab-case [a-zA-Z0-9_-]+ so the regex stops cleanly at the
-# first space or escaped quote without needing to parse the trailing JSON.
-posthog_tool=""
-if [[ "$input" =~ \"command\"[[:space:]]*:[[:space:]]*\"call[[:space:]]+(--json[[:space:]]+)?([a-zA-Z0-9_-]+) ]]; then
-    posthog_tool="${BASH_REMATCH[2]}"
-fi
+# Only write `call`s are gated; reads and non-`call` verbs fall through.
+posthog_tool="$(posthog_extract_call_tool "$input")"
 [[ -n "$posthog_tool" ]] || exit 0
 
-# Match write-verb fragments as whole hyphen-separated words within the tool
-# name. Keep this list in sync with the PostHog MCP write surface.
-write_re='(^|-)(archive|cancel|create|delete|destroy|disable|duplicate|enable|end|invocations|launch|materialize|merge|move|partial-update|pause|rearrange|reload|rename|reorder|reset|restore|resume|resync|retry|set|ship|unarchive|unmaterialize|update)(-|$)'
+if posthog_is_write "$posthog_tool"; then
+    # User-controlled allowlist — skip the prompt for matching tools.
+    posthog_is_allowlisted "$posthog_tool" && exit 0
 
-shopt -s nocasematch
-if [[ "$posthog_tool" =~ $write_re ]]; then
-    # User-controlled allowlist — skip the prompt for tools matching any glob
-    # in POSTHOG_MCP_EXEC_GATE_ALLOW. Patterns use bash glob syntax (`*`, `?`).
-    if [[ -n "${POSTHOG_MCP_EXEC_GATE_ALLOW:-}" ]]; then
-        IFS=',' read -ra _allow_patterns <<< "$POSTHOG_MCP_EXEC_GATE_ALLOW"
-        for _pat in "${_allow_patterns[@]}"; do
-            _pat="${_pat#"${_pat%%[![:space:]]*}"}"
-            _pat="${_pat%"${_pat##*[![:space:]]}"}"
-            [[ -n "$_pat" && "$posthog_tool" == $_pat ]] && exit 0
-        done
-    fi
-
-    # `posthog_tool` is restricted to [a-zA-Z0-9_-]+ by the regex above, so
+    # `posthog_tool` is restricted to [a-zA-Z0-9_-]+ by the parser, so
     # interpolating it into the JSON response is safe — no characters that
     # would need escaping for JSON or printf.
     printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"`%s` modifies PostHog data — approve to run."}}' "$posthog_tool"

@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "matcher": "__exec$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}/hooks/codex-gate-exec-write.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

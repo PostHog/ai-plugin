@@ -53,6 +53,13 @@ Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add man
     /plugins
     ```
 
+3. Trust the write-approval hook:
+    ```
+    # In Codex, run /hooks, review the PostHog PermissionRequest hook, and trust it
+    /hooks
+    ```
+    The plugin asks for approval before `exec` calls that **modify** PostHog data (create, update, delete, …) while letting reads run uninterrupted. A freshly installed plugin hook is untrusted and does not run until you trust it — Codex prints a startup warning pointing you to `/hooks`. You only need to re-trust if the hook definition itself changes (not on plugin version bumps). Opt specific write tools out of the prompt with `POSTHOG_MCP_EXEC_GATE_ALLOW` — a comma-separated list of glob patterns matched against the PostHog tool name, e.g. `export POSTHOG_MCP_EXEC_GATE_ALLOW="annotation-create,llma-skill-*"`.
+
 ### Gemini CLI
 
 ```bash
