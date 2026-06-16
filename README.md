@@ -115,6 +115,15 @@ The plugin also ships 30+ task-specific skills that your AI client loads on dema
 > Show me the top 10 pages by pageviews
 ```
 
+## Plugin usage telemetry
+
+The plugin collects anonymous telemetry. To turn it off, set either of these (in your shell or the `env` block of `~/.claude/settings.json`):
+
+```bash
+export DO_NOT_TRACK=1                       # disables all telemetry (widely honored)
+export POSTHOG_PLUGIN_TELEMETRY_DISABLED=1  # disables just this plugin's telemetry
+```
+
 ## Self-hosted
 
 For self-hosted PostHog instances, set the `POSTHOG_MCP_URL` environment variable to point to your instance:
