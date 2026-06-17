@@ -1822,7 +1822,7 @@ Get feature flag payload value matching key for user (supports multivariate flag
 
 ```ts
 if(posthog.getFeatureFlag('beta-feature') === 'some-value') {
-     const someValue = posthog.getFeatureFlagPayload('beta-feature')
+     const someValue = posthog.getFeatureFlagResult('beta-feature')?.payload
      // do something
 }
 ```

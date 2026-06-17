@@ -14,7 +14,7 @@ PostHog AI
 if (posthog.isFeatureEnabled('flag-key') ) {
     // Do something differently for this user
     // Optional: fetch the payload
-    const matchedFlagPayload = posthog.getFeatureFlagPayload('flag-key')
+    const matchedFlagPayload = posthog.getFeatureFlagResult('flag-key')?.payload
 }
 ```
 
@@ -28,7 +28,7 @@ PostHog AI
 if (posthog.getFeatureFlag('flag-key')  == 'variant-key') { // replace 'variant-key' with the key of your variant
     // Do something differently for this user
     // Optional: fetch the payload
-    const matchedFlagPayload = posthog.getFeatureFlagPayload('flag-key')
+    const matchedFlagPayload = posthog.getFeatureFlagResult('flag-key')?.payload
 }
 ```
 
@@ -1648,7 +1648,7 @@ posthog.getFeatureFlag('key-for-your-boolean-flag')
 // Multivariant feature flags are returned as a string
 posthog.getFeatureFlag('key-for-your-multivariate-flag')
 // Optional fetch the payload returns 'JsonType' or undefined if not loaded yet or if there was a problem loading
-posthog.getFeatureFlagPayload('key-for-your-multivariate-flag')
+posthog.getFeatureFlagResult('key-for-your-multivariate-flag')?.payload
 ```
 
 ### Ensuring flags are loaded before usage
@@ -1859,7 +1859,7 @@ import com.posthog.PostHog
 if (PostHog.isFeatureEnabled("flag-key")) {
     // Do something differently for this user
     // Optional: fetch the payload
-    val matchedFlagPayload = PostHog.getFeatureFlagPayload("flag-key")
+    val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key")?.payload
 }
 ```
 
@@ -1874,7 +1874,7 @@ import com.posthog.PostHog
 if (PostHog.getFeatureFlag("flag-key") == "variant-key") { // replace 'variant-key' with the key of your variant
     // Do something differently for this user
     // Optional: fetch the payload
-    val matchedFlagPayload = PostHog.getFeatureFlagPayload("flag-key")
+    val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key")?.payload
 }
 ```
 
