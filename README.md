@@ -59,6 +59,17 @@ Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add man
 gemini extensions install https://github.com/PostHog/ai-plugin
 ```
 
+### Grok
+
+1. Install the plugin:
+    ```bash
+    grok plugin install PostHog/ai-plugin --trust
+    ```
+
+2. Authenticate via OAuth:
+
+    On first use of a PostHog tool, Grok prompts you to authorize in your browser. Log into PostHog to connect.
+
 ## How to develop
 
 1. Clone and install the plugin:
