@@ -34,6 +34,9 @@ exploring-llm-clusters
 exploring-llm-costs
 exploring-llm-evaluations
 exploring-llm-traces
+exploring-mcp-intent-clusters
+exploring-mcp-sessions
+exploring-mcp-tool-quality
 exploring-signals-scouts
 feature-usage-feed
 finding-deleted-feature-flags
@@ -51,6 +54,7 @@ instrument-logs
 instrument-product-analytics
 investigate-metric
 investigating-error-issue
+investigating-metric-anomalies
 investigating-replay
 managing-endpoint-versions
 managing-experiment-lifecycle
