@@ -99,7 +99,7 @@ PostHog autocapture automatically tracks the following events for you:
 -   **Application Installed** - when the app is installed.
 -   **Application Updated** - when the app is updated.
 -   **$screen** - when the user navigates. (if using `android.app.Activity`)
--   **$exception** - when the app throws exceptions.
+-   **$exception** - when uncaught exception autocapture is enabled. To use this, enable [Android error tracking](/docs/error-tracking/installation/android.md) and exception autocapture in the SDK config.
 
 ### Capturing screen views
 
@@ -463,6 +463,25 @@ if (PostHog.getFeatureFlag("flag-key") == "variant-key") { // replace 'variant-k
 }
 ```
 
+### Feature flag values and payloads together
+
+If you need both the flag value and payload, use `getFeatureFlagResult` so both values come from the same evaluation result.
+
+Kotlin
+
+PostHog AI
+
+```kotlin
+import com.posthog.PostHog
+val result = PostHog.getFeatureFlagResult("flag-key")
+if (result?.value == "variant-key") {
+    val payload = result.payload
+    // Do something with the variant and payload
+}
+```
+
+You can also inspect all currently loaded feature flag results with `PostHog.getAllFeatureFlags()`.
+
 ### Ensuring flags are loaded before usage
 
 Every time a user opens the app, we send a request in the background to fetch the feature flags that apply to that user. We store those flags in the storage.
@@ -487,7 +506,7 @@ val config = PostHogAndroidConfig(apiKey = "<ph_project_token>").apply {
         }
     }
 }
-// And/Or manually the SDK is initialized
+// And/or after the SDK is initialized
 PostHog.reloadFeatureFlags {
     if (PostHog.isFeatureEnabled("flag-key")) {
         // do something
@@ -506,6 +525,20 @@ PostHog AI
 ```kotlin
 import com.posthog.PostHog
 PostHog.reloadFeatureFlags()
+```
+
+### Tracking feature usage
+
+To track when someone sees or interacts with a feature, use `captureFeatureView` and `captureFeatureInteraction`.
+
+Kotlin
+
+PostHog AI
+
+```kotlin
+import com.posthog.PostHog
+PostHog.captureFeatureView("flag-key", flagVariant = "variant-key")
+PostHog.captureFeatureInteraction("flag-key", flagVariant = "variant-key")
 ```
 
 ## Experiments (A/B tests)
@@ -577,6 +610,10 @@ To set up [logs](/docs/logs.md) in your Android app, follow the [Android logs in
 
 To set up [session replay](/docs/session-replay/mobile.md) in your project, all you need to do is install the Android SDK, enable "Record user sessions" in [your project settings](https://us.posthog.com/settings/project-replay) and enable the `sessionReplay` option.
 
+## Surveys
+
+To set up surveys, follow the [additional installation instructions for Android](/docs/surveys/installation/android.md). Surveys launched with [popover presentation](/docs/surveys/creating-surveys.md#presentation) are automatically shown to users matching the [display conditions](/docs/surveys/creating-surveys.md#display-conditions) you set up.
+
 ## Offline behavior
 
 The PostHog Android SDK will continue to capture events when the device is offline. The events are stored in a queue in the device's file storage and are flushed when the device is online.
@@ -588,7 +625,7 @@ The PostHog Android SDK will continue to capture events when the device is offli
 
 ## Debug mode
 
-If you're not seeing the expected events being captured, the feature flags being evaluated, or the surveys being shown, you can enable debug mode to see what's happening.
+If you're not seeing the expected events being captured, the feature flags being evaluated, surveys being shown, or session replay/error tracking behavior, you can enable debug mode to see what's happening.
 
 You can enable debug mode by setting the `debug` option to `true` in the `PostHogAndroidConfig` object. This will enable verbose logs about the inner workings of the SDK.
 
@@ -605,72 +642,118 @@ val config = PostHogAndroidConfig(apiKey = POSTHOG_API_KEY, host = POSTHOG_HOST)
 
 ## All configuration options
 
-When creating the PostHog client, there are many options you can set:
+When creating the PostHog client, pass a `PostHogAndroidConfig`. It inherits the core `PostHogConfig` options and adds Android-specific options.
 
 Kotlin
 
 PostHog AI
 
 ```kotlin
-val config = PostHogAndroidConfig(apiKey = POSTHOG_API_KEY, host = POSTHOG_HOST).apply {
-    // Capture certain application events automatically. (on/true by default)
+import com.posthog.PersonProfiles
+import com.posthog.android.PostHogAndroidConfig
+val config = PostHogAndroidConfig(
+    apiKey = POSTHOG_API_KEY,
+    host = POSTHOG_HOST
+).apply {
     captureApplicationLifecycleEvents = true
-    // Capture screen views automatically. (on/true by default)
-    captureScreenViews = true // (on/true by default)
-    // Capture deep links as part of the screen call. (on/true by default)
+    captureScreenViews = true
     captureDeepLinks = true
-    // Maximum number of events to keep in queue before flushing (20 by default)
     flushAt = 20
-    // Number of maximum events in memory and disk, when the maximum is exceed, the oldest event is deleted and the new one takes place. (1000 by default)
     maxQueueSize = 1000
-    // Number of maximum events in a batch call. (50 by default)
     maxBatchSize = 50
-    // Maximum delay before flushing the queue (30 seconds)
+    maxRetries = 3
     flushIntervalSeconds = 30
-    // Logs the SDK messages into Logcat. (off/false by default)
     debug = false
-    // Prevents capturing any data if enabled. (off/false by default)
     optOut = false
-    // Send a '$feature_flag_called' event when a feature flag is used automatically. (on/true by default)
     sendFeatureFlagEvent = true
-    // Preload feature flags automatically. (on/true by default)
+    featureFlagCalledCacheSize = 1000
     preloadFeatureFlags = true
-    // Evaluation context tags that constrain which feature flags are evaluated. (not set by default)
-    // When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned.
-    // Available in version 3.25.0+. The legacy parameter `evaluationEnvironments` (version 3.24.0+) is also supported.
     evaluationContexts = listOf("production", "android", "mobile")
-    // Callback that is called when feature flags are loaded (not set by default)
-    onFeatureFlags = { ... }
-    // Callback that allows to sanitize the event properties (not set by default)
-    propertiesSanitizer = { properties -> ... }
-    // Hook for encrypt and decrypt events
-    // Devices are sandbox already
-    // Defaults to no encryption
-    encryption = object : PostHogEncryption { ... }
-    // Hook that allows for modification of the default mechanism for
-    // generating anonymous id (which as of now is just random UUID v7)
-    getAnonymousId = { ... }
-    // Determines the behavior for processing user profiles.
-    // Defaults to PersonProfiles.IDENTIFIED_ONLY
+    setDefaultPersonProperties = true
     personProfiles = PersonProfiles.IDENTIFIED_ONLY
-    // Enable Recording of Session Replay. (off/false by default)
-    sessionReplay = false
-    // Session Replay configuration
-    // https://posthog.com/docs/session-replay/installation for more details
-    sessionReplayConfig = PostHogSessionReplayConfig(...)
-    // Whether the SDK should reuse the anonymous Id between user changes.
-    // When enabled, a single Id will be used for all anonymous users on this device (off/false by default)
     reuseAnonymousId = false
-    // Error tracking configuration
-    errorTrackingConfig = PostHogErrorTrackingConfig(...)
+    sessionReplay = false
+    errorTrackingConfig.autoCapture = false
+}
+```
+
+### Android-specific options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| captureApplicationLifecycleEvents | true | Captures Application Installed, Application Updated, Application Opened, and Application Backgrounded. |
+| captureScreenViews | true | Captures $screen for foreground android.app.Activity screens. |
+| captureDeepLinks | true | Captures Deep Link Opened with URL/query/referrer properties. |
+
+### Core options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| debug | false | Enables verbose SDK logs in Logcat. You can also call PostHog.debug(true). |
+| optOut | false | Prevents data capture when enabled. You can also call PostHog.optOut() and PostHog.optIn(). |
+| flushAt | 20 | Number of queued events that triggers a flush. |
+| maxQueueSize | 1000 | Maximum number of events kept across memory and disk before FIFO eviction. |
+| maxBatchSize | 50 | Maximum number of events sent in one batch request. |
+| maxRetries | 3 | Maximum retry attempts for failed requests. |
+| flushIntervalSeconds | 30 | Maximum delay before queued data is flushed. |
+| encryption | null | Optional PostHogEncryption implementation for encrypting persisted queued events. |
+| proxy | null | Optional java.net.Proxy for PostHog API requests. |
+| getAnonymousId | generated UUID | Optional hook to customize anonymous ID generation. |
+| reuseAnonymousId | false | Reuses one anonymous ID across user changes on the same device. |
+| personProfiles | PersonProfiles.IDENTIFIED_ONLY | Controls when person profiles are processed: IDENTIFIED_ONLY, ALWAYS, or NEVER. |
+| setDefaultPersonProperties | true | Includes default person properties for person profile updates. |
+| releaseIdentifier | app/version fallback | Release identifier used by error tracking and uploaded ProGuard/R8 mappings. The Android Gradle plugin can inject this automatically. |
+| tracingHeaders | null | Exact hostnames that should receive PostHog tracing headers when using PostHogOkHttpInterceptor. |
+
+### Feature flag options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| sendFeatureFlagEvent | true | Sends $feature_flag_called when a feature flag is evaluated. |
+| featureFlagCalledCacheSize | 1000 | Number of feature flag calls cached for deduplicating $feature_flag_called events. |
+| preloadFeatureFlags | true | Fetches feature flags automatically during setup. |
+| evaluationContexts | null | Context tags that constrain which feature flags are evaluated. Available in version 3.25.0+. |
+| onFeatureFlags | null | Callback invoked when feature flags are loaded. |
+
+### Product configuration objects
+
+| Option | Default | Description |
+| --- | --- | --- |
+| sessionReplay | false | Enables session replay when project settings also allow recording. |
+| sessionReplayConfig | PostHogSessionReplayConfig() | Configures masking, screenshots, Logcat capture, sampling, and custom drawable conversion. |
+| logs | PostHogLogsConfig() | Configures [Android logs](/docs/logs/installation/android.md). |
+| errorTrackingConfig | PostHogErrorTrackingConfig() | Configures error tracking. autoCapture defaults to false; set it to true to autocapture uncaught exceptions when project settings also enable error tracking. |
+| surveys | false | Internal/experimental native Android survey support. Native Android survey UI is not fully supported or documented yet. |
+| surveysConfig | PostHogSurveysConfig() | Internal/experimental survey display delegate configuration, primarily for hybrid SDKs. |
+
+### Event filtering with `beforeSend`
+
+Use `addBeforeSend` to redact, modify, or drop events before they are queued. Return `null` to drop an event.
+
+Kotlin
+
+PostHog AI
+
+```kotlin
+config.addBeforeSend { event ->
+    event.properties?.remove("password")
+    if (event.event == "internal_debug_event") {
+        null
+    } else {
+        event
+    }
 }
 ```
 
 ## FAQ
 
+## What Android API level is required?
+
+The Android SDK supports Android API 23 and newer.
+
 ## Do I need to declare permissions in the AndroidManifest.xml?
 
-We don't declare nor use any 'Service', so no permissions are needed.
+Usually, no. The SDK declares `android.permission.INTERNET` and `android.permission.ACCESS_NETWORK_STATE`, and Android's manifest merger adds them to your app. The SDK does not declare or require an Android `Service`.
 
 ### Community questions
 

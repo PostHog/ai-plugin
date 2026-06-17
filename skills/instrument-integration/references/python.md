@@ -280,7 +280,7 @@ with new_context():
 
 **Using PostHog on your frontend too?**
 
-If you're using the PostHog JavaScript Web SDK on your frontend, it generates a session ID for you. You can pass it to your backend by adding your backend domain to `__add_tracing_headers` in your config. This will automatically add tracing headers to your requests.
+If you're using the PostHog JavaScript Web SDK on your frontend, it generates a session ID for you. You can pass it to your backend by adding your backend hostname to `tracing_headers` in your config. This will automatically add tracing headers to your requests.
 
 JavaScript
 
@@ -288,11 +288,11 @@ PostHog AI
 
 ```javascript
 posthog.init('<ph_project_token>', {
-    __add_tracing_headers: ['your-backend-domain.com']
+    tracing_headers: ['your-backend-domain.com']
 });
 ```
 
-Alternatively, you can retrieve it on the frontend by calling `posthog.get_session_id()`. You then need to pass that session ID to your backend by setting the `X-POSTHOG-SESSION-ID` header on each fetch request.
+Use hostnames only, without the protocol or path. Alternatively, you can retrieve it on the frontend by calling `posthog.get_session_id()`. You then need to pass that session ID to your backend by setting the `X-POSTHOG-SESSION-ID` header on each fetch request.
 
 You need to extract the header in your request handler (if you're using our Django middleware integration, this happens automatically).
 
@@ -771,6 +771,33 @@ posthog.set_socket_options([
 ```
 
 Pass `None` to `set_socket_options()` to reset to default behavior.
+
+## Filtering or modifying events before sending
+
+Use `before_send` to modify or drop events before they are queued for delivery. Return the modified event dictionary to send it, or `None` to drop it.
+
+Python
+
+PostHog AI
+
+```python
+from typing import Any
+import posthog
+def scrub_pii(event: dict[str, Any]) -> dict[str, Any] | None:
+    properties = event.get("properties", {})
+    if "email" in properties:
+        email = properties["email"]
+        properties["email"] = f"***@{email.split('@', 1)[1]}" if "@" in email else "***"
+    if event.get("event") == "test_event":
+        return None
+    return event
+client = posthog.Client(
+    api_key="<ph_project_api_key>",
+    before_send=scrub_pii,
+)
+```
+
+If your callback raises an exception, the SDK logs the error and continues with the original unmodified event.
 
 ## Historical migrations
 

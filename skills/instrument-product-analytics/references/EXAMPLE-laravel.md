@@ -1,7 +1,7 @@
 # PostHog laravel Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/laravel
+Path: example-apps/laravel
 
 ---
 

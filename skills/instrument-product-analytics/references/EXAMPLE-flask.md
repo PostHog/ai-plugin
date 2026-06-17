@@ -1,7 +1,7 @@
 # PostHog flask Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/flask
+Path: example-apps/flask
 
 ---
 

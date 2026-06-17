@@ -1,7 +1,7 @@
 # PostHog react-tanstack-router-file-based Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/react-tanstack-router-file-based
+Path: example-apps/react-tanstack-router-file-based
 
 ---
 

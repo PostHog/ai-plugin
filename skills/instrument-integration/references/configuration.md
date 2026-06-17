@@ -182,7 +182,7 @@ Method swizzling is enabled by default, but can be disabled by setting the relev
 | Rage clicks | Automatically captures $rageclick events for rapid repeated taps in the same area (iOS/macCatalyst, UIKit) | config.rageClickConfig.enabled |
 | Session replay | Records user sessions | config.sessionReplay |
 | Surveys | Displays surveys at appropriate times | config.surveys |
-| Advanced metrics tracking | Provides more precise session ID calculation and rotation by detecting user activity and idleness | — |
+| Advanced metrics tracking | Provides more precise session ID calculation and rotation by detecting user activity and idleness | N/A |
 
 ### Disabling all method swizzling
 
@@ -214,13 +214,13 @@ Users must explicitly grant Open Access in **Settings > General > Keyboard > Key
 
 ## All configuration options
 
-The [`PostHogConfig` object](https://github.com/PostHog/posthog.com/pull/13379/files?new_files_changed=true#r2480032424:~:text=gonna%20link%20to-,config%20object,-in%20posthog%20for) contains several other settings you can toggle:
+The [`PostHogConfig` object](https://github.com/PostHog/posthog-ios/blob/main/PostHog/PostHogConfig.swift) contains several other settings you can toggle:
 
 | Attribute | Description |
 | --- | --- |
-| flushAtType: IntegerDefault: 20 | The number of queued events that the posthog client should flush at. Setting this to 1 will not queue any events and will use more battery. |
+| flushAtType: IntegerDefault: 20 (5 on tvOS) | The number of queued events that the posthog client should flush at. Setting this to 1 will not queue any events and will use more battery. |
 | flushIntervalSecondsType: IntegerDefault: 30 | The amount of time to wait before each tick of the flush timer. Smaller values will make events delivered in a more real-time manner and also use more battery. A value smaller than 10 seconds will seriously degrade overall performance. |
-| maxQueueSizeType: IntegerDefault: 1000 | The maximum number of items to queue before starting to drop old ones. This should be a value greater than zero, the behavior is undefined otherwise. |
+| maxQueueSizeType: IntegerDefault: 1000 (100 on tvOS) | The maximum number of items to queue before starting to drop old ones. This should be a value greater than zero, the behavior is undefined otherwise. |
 | maxBatchSizeType: IntegerDefault: 50 | Number of maximum events in a batch call. |
 | maxRetriesType: IntegerDefault: 3 | Maximum number of consecutive flush attempts before the entire queue is dropped to avoid infinite retries against a permanently-broken backend (e.g. wrong API key, exhausted quota, deterministic 5xx). Increments on every retriable failure including HTTP 413 cap halving; resets on a successful 2xx response. |
 | captureApplicationLifecycleEventsType: BooleanDefault: true | Whether the posthog client should automatically make a capture call for application lifecycle events, such as "Application Installed", "Application Updated" and "Application Opened". |
@@ -231,13 +231,19 @@ The [`PostHogConfig` object](https://github.com/PostHog/posthog.com/pull/13379/f
 | sendFeatureFlagEventType: BooleanDefault: true | Send a $feature_flag_called event when a feature flag is used automatically. |
 | preloadFeatureFlagsType: BooleanDefault: true | Preload feature flags automatically. |
 | evaluationContextsType: Array of StringsDefault: undefined | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. See [evaluation contexts documentation](/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 3.34.0+. The legacy parameter evaluationEnvironments (version 3.33.0+) is also supported for backward compatibility. |
-| debugType: BooleanDefault: false | Logs the SDK messages into Logcat. |
+| debugType: BooleanDefault: false | Logs the SDK messages to the Xcode console. |
 | optOutType: BooleanDefault: false | Prevents capturing any data if enabled. |
 | getAnonymousIdType: FunctionDefault: undefined | Hook that allows for modification of the default mechanism for generating anonymous id (which as of now is just random UUID v7). |
 | dataModeType: EnumDefault: .any | Allows to send your data only if the data mode matches your configuration such as wifi only, cellular only or any. |
 | personProfilesType: EnumDefault: .identifiedOnly | Determines the behavior for processing user profiles. |
+| setDefaultPersonPropertiesType: BooleanDefault: true | Automatically set common device and app properties (such as $app_version, $os_name, and $device_type) as person properties for feature flag evaluation. See [property overrides](/docs/feature-flags/property-overrides.md) for more details. |
 | sessionReplayType: BooleanDefault: false | Enable Recording of Session Replays. |
-| sessionReplayConfigType: ObjectDefault: .init() | Session Replay configuration. [https://posthog.com/docs/session-replay/installation](https://posthog.com/docs/session-replay/installation) for more details |
+| sessionReplayConfigType: ObjectDefault: .init() | Session Replay configuration. See [Session Replay installation](/docs/session-replay/installation/ios.md) for more details. |
+| tracingHeadersType: Array of StringsDefault: nil | Exact hostnames that should receive PostHog tracing headers when the SDK instruments URLSession requests. |
+| errorTrackingConfigType: ObjectDefault: .init() | Error Tracking configuration. See [Error Tracking installation](/docs/error-tracking/installation/ios.md) for more details. |
+| logsType: ObjectDefault: .init() | Structured Logs configuration. See [Logs installation](/docs/logs/installation/ios.md) for more details. |
+| surveysConfigType: ObjectDefault: .init() | Surveys configuration, including custom survey delegates and display language overrides. |
+| urlSessionConfigurationType: URLSessionConfigurationDefault: .default | Custom URLSessionConfiguration used by the SDK for PostHog API requests. |
 | appGroupIdentifierType: StringDefault: nil | The identifier of the App Group that should be used to store shared analytics data. PostHog will try to get the physical location of the App Group's shared container, otherwise fallback to the default location. |
 | reuseAnonymousIdType: BooleanDefault: false | Whether the SDK should reuse the anonymous Id between user changes. When enabled, a single Id will be used for all anonymous users on this device. |
 | surveysType: BooleanDefault: true | Enable Surveys. |

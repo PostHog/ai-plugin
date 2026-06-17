@@ -1,7 +1,7 @@
 # PostHog react-react-router-6 Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/react-react-router-6
+Path: example-apps/react-react-router-6
 
 ---
 

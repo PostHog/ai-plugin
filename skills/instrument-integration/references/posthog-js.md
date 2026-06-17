@@ -1,6 +1,6 @@
 # PostHog JavaScript Web SDK
 
-**SDK Version:** 1.380.1
+**SDK Version:** 1.386.8
 
 Posthog-js allows you to automatically capture usage and send events to PostHog.
 
@@ -29,7 +29,11 @@ This SDK is designed for browser environments. Use the PostHog [Node.js SDK](/do
 
 **Release Tag:** public
 
-Constructs a new instance of the `PostHog` class
+Creates an uninitialized PostHog instance.
+
+**Notes:**
+
+Most browser applications should use the default exported singleton and call `posthog.init()`. Construct a new instance only when you need to manage a separate SDK instance manually.
 
 ### Returns
 
@@ -38,8 +42,8 @@ Constructs a new instance of the `PostHog` class
 ### Examples
 
 ```ts
-// Generated example for PostHog
-posthog.PostHog();
+const instance = new PostHog()
+instance.init('<ph_project_api_key>', { api_host: 'https://us.i.posthog.com' })
 ```
 
 ---
@@ -125,7 +129,7 @@ push() keeps the standard async-array-push behavior around after the lib is load
 
 ### Parameters
 
-- **`item`** (`SnippetArrayItem`) - A [function_name, args...] array to be executed
+- **`item`** (`SnippetArrayItem`) - A `[function_name, ...args]` array to be executed.
 
 ### Returns
 
@@ -176,8 +180,8 @@ Add a breadcrumb-like step that will be attached to the next captured exception.
 
 ### Parameters
 
-- **`message`** (`string`)
-- **`properties?`** (`Properties`)
+- **`message`** (`string`) - The step message.
+- **`properties?`** (`Properties`) - Additional context for this step.
 
 ### Returns
 
@@ -201,8 +205,8 @@ Capture a caught exception manually
 
 ### Parameters
 
-- **`error`** (`unknown`) - The error to capture
-- **`additionalProperties?`** (`Properties`) - Any additional properties to add to the error event
+- **`error`** (`unknown`) - The error or exception-like value to capture.
+- **`additionalProperties?`** (`Properties`) - Any additional properties to add to the error event.
 
 ### Returns
 
@@ -601,7 +605,7 @@ This clears: - Session ID and super properties - User identification (sets new r
 
 ### Parameters
 
-- **`reset_device_id?`** (`boolean`)
+- **`reset_device_id?`** (`boolean`) - Whether to generate a new device ID as well as a new distinct ID.
 
 ### Returns
 
@@ -722,7 +726,7 @@ Cancels a pending survey that is waiting to be displayed (e.g., due to a popup d
 
 ### Parameters
 
-- **`surveyId`** (`string`)
+- **`surveyId`** (`string`) - The survey ID whose pending display should be cancelled.
 
 ### Returns
 
@@ -801,8 +805,8 @@ Display a survey programmatically as either a popover or inline element.
 
 ### Parameters
 
-- **`surveyId`** (`string`) - The survey ID to display
-- **`options?`** (`DisplaySurveyOptions`) - Display configuration
+- **`surveyId`** (`string`) - The survey ID to display.
+- **`options?`** (`DisplaySurveyOptions`) - Display configuration. Defaults to a popover that respects dashboard conditions and delays.
 
 ### Returns
 
@@ -823,6 +827,8 @@ posthog.displaySurvey('survey-id-123')
 // Display inline in a specific element
 posthog.displaySurvey('survey-id-123', {
   displayType: DisplaySurveyType.Inline,
+  ignoreConditions: false,
+  ignoreDelay: false,
   selector: '#survey-container'
 })
 ```
@@ -873,8 +879,8 @@ Get list of all surveys.
 
 ### Parameters
 
-- **`callback`** (`SurveyCallback`) - Function that receives the array of surveys
-- **`forceReload?`** (`boolean`) - Optional boolean to force an API call for updated surveys
+- **`callback`** (`SurveyCallback`) - Function that receives the array of surveys.
+- **`forceReload?`** (`boolean`) - Optional boolean to force an API call for updated surveys.
 
 ### Returns
 
@@ -1386,7 +1392,7 @@ Enables event tracking and data persistence (cookies/localStorage) for this Post
 - **`options?`** (`{
         captureEventName?: EventName | null | false; /** event name to be used for capturing the opt-in action */
         captureProperties?: Properties; /** set of properties to be captured along with the opt-in action */
-    }`)
+    }`) - A dictionary of opt-in options.
 
 ### Returns
 
@@ -1512,7 +1518,7 @@ Initializes a new instance of the PostHog capturing object.
 
 **Notes:**
 
-All new instances are added to the main posthog object as sub properties (such as `posthog.library_name`) and also returned by this function. [Learn more about configuration options](https://github.com/posthog/posthog-js/blob/6e0e873/src/posthog-core.js#L57-L91)
+All new instances are added to the main posthog object as sub properties (such as `posthog.library_name`) and also returned by this function. [Learn more about configuration options](https://posthog.com/docs/libraries/js/config)
 
 ### Parameters
 
@@ -1581,7 +1587,7 @@ Returns the Replay url for the current session.
 - **`options?`** (`{
         withTimestamp?: boolean;
         timestampLookBack?: number;
-    }`) - Options for the url
+    }`) - Options for the URL.
 
 ### Returns
 
@@ -1589,18 +1595,28 @@ Returns the Replay url for the current session.
 
 ### Examples
 
+#### basic usage
+
 ```ts
 // basic usage
 posthog.get_session_replay_url()
+```
 
-@example
+#### timestamp
 
-js // timestamp posthog.get_session_replay_url({ withTimestamp: true })
+```ts
+// timestamp
+posthog.get_session_replay_url({ withTimestamp: true })
+```
 
+#### timestamp and lookback
 
-@example
-
-js // timestamp and lookback posthog.get_session_replay_url({ withTimestamp: true, timestampLookBack: 30 // look back 30 seconds }) ```
+```ts
+// timestamp and lookback
+posthog.get_session_replay_url({
+  withTimestamp: true,
+  timestampLookBack: 30 // look back 30 seconds
+})
 ```
 
 ---
@@ -1755,8 +1771,8 @@ Returns the feature flag value which can be a boolean, string, or undefined. Sup
 
 ### Parameters
 
-- **`key`** (`string`)
-- **`options?`** (`FeatureFlagOptions`) - (optional) If send_event: false, we won't send an $feature_flag_call event to PostHog. If fresh: true, we won't return cached values from localStorage - only values loaded from the server.
+- **`key`** (`string`) - Key of the feature flag.
+- **`options?`** (`FeatureFlagOptions`) - Optional lookup settings. If `{ send_event: false }`, we won't send a `$feature_flag_called` event to PostHog. If `{ fresh: true }`, we won't return cached values from localStorage - only values loaded from the server.
 
 ### Returns
 
@@ -1796,7 +1812,7 @@ Get feature flag payload value matching key for user (supports multivariate flag
 
 ### Parameters
 
-- **`key`** (`string`)
+- **`key`** (`string`) - Key of the feature flag.
 
 ### Returns
 
@@ -1866,8 +1882,8 @@ Returns true if the flag is enabled, false if disabled, or undefined if not foun
 
 ### Parameters
 
-- **`key`** (`string`)
-- **`options?`** (`FeatureFlagOptions`) - (optional) If send_event: false, we won't send an $feature_flag_call event to PostHog. If fresh: true, we won't return cached values from localStorage - only values loaded from the server.
+- **`key`** (`string`) - Key of the feature flag.
+- **`options?`** (`FeatureFlagOptions`) - Optional lookup settings. If `{ send_event: false }`, we won't send a `$feature_flag_called` event to PostHog. If `{ fresh: true }`, we won't return cached values from localStorage - only values loaded from the server.
 
 ### Returns
 
@@ -1891,7 +1907,7 @@ if (posthog.isFeatureEnabled('new-checkout')) {
 ```ts
 // disable event tracking
 if (posthog.isFeatureEnabled('feature', { send_event: false })) {
-    // flag checked without sending $feature_flag_call event
+    // flag checked without sending $feature_flag_called event
 }
 ```
 
@@ -1947,7 +1963,7 @@ Resets the group properties for feature flags.
 
 ### Parameters
 
-- **`group_type?`** (`string`)
+- **`group_type?`** (`string`) - Optional group type to reset. If omitted, all group properties are reset.
 
 ### Returns
 
@@ -1967,14 +1983,27 @@ posthog.resetGroupPropertiesForFlags()
 
 Resets the person properties for feature flags.
 
+### Parameters
+
+- **`reloadFeatureFlags?`** (`boolean`) - Whether to reload feature flags.
+
 ### Returns
 
 - `void`
 
 ### Examples
 
+#### 
+
 ```ts
 posthog.resetPersonPropertiesForFlags()
+```
+
+#### Reset properties without reloading
+
+```ts
+// Reset properties without reloading
+posthog.resetPersonPropertiesForFlags(false)
 ```
 
 ---
@@ -2158,7 +2187,7 @@ returns a boolean indicating whether the [toolbar](/docs/toolbar) loaded
 
 ### Parameters
 
-- **`params`** (`ToolbarParams`)
+- **`params`** (`ToolbarParams`) - Toolbar parameters.
 
 ### Returns
 

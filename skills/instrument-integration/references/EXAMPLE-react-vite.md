@@ -1,7 +1,7 @@
 # PostHog react-vite Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/react-vite
+Path: example-apps/react-vite
 
 ---
 

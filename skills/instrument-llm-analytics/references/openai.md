@@ -197,6 +197,68 @@
     | [Spans](/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
     | [Anaylze LLM performance](/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
 
+## .NET support
+
+`PostHog.AI` adds AI observability for .NET applications using OpenAI. It is currently pre-release, so expect breaking changes before a stable release.
+
+Install the package:
+
+Terminal
+
+PostHog AI
+
+```bash
+dotnet add package PostHog.AI
+```
+
+When using dependency injection, register PostHog first, then register an OpenAI client with the PostHog handler:
+
+C#
+
+PostHog AI
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using OpenAI;
+using PostHog.AI;
+using PostHog.Config;
+var services = new ServiceCollection();
+services.AddPostHog(options =>
+{
+    options.PostConfigure(posthogOptions =>
+    {
+        posthogOptions.ProjectToken = "<ph_project_token>";
+        posthogOptions.HostUrl = new Uri("https://us.i.posthog.com");
+    });
+});
+services.AddPostHogOpenAIClient("<openai_api_key>");
+var serviceProvider = services.BuildServiceProvider();
+var openAIClient = serviceProvider.GetRequiredService<OpenAIClient>();
+```
+
+Use `PostHogAIContext` to attach trace, session, span, and user context to AI calls made inside a scope:
+
+C#
+
+PostHog AI
+
+```csharp
+using PostHog.AI;
+using (PostHogAIContext.BeginScope(
+    distinctId: "user-123",
+    traceId: "trace-abc",
+    sessionId: "session-xyz",
+    spanId: "span-1",
+    spanName: "summarize_text",
+    parentId: null))
+{
+    var chatClient = openAIClient.GetChatClient("gpt-4o-mini");
+    await chatClient.CompleteChatAsync("Summarize this text");
+}
+```
+
+The integration captures `$ai_generation` and `$ai_embedding` events with model, latency, token, error, trace, session, and span properties. For more .NET SDK details, see the [.NET library docs](/docs/libraries/dotnet.md#ai-observability).
+
 ### Community questions
 
 Ask a question

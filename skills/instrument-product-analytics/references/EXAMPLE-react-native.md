@@ -1,7 +1,7 @@
 # PostHog react-native Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/react-native
+Path: example-apps/react-native
 
 ---
 

@@ -379,6 +379,69 @@ posthog.withContext(
 )
 ```
 
+## Add request context to Express
+
+> Requires `posthog-node` version >= 5.31.0.
+
+If you use Express, add request-scoped PostHog context with the built-in middleware helpers. Register `setupExpressRequestContext` before your routes so events captured during a request automatically use the incoming session and distinct ID headers. Register `setupExpressErrorHandler` after your routes if you want to send Express errors to PostHog Error Tracking.
+
+server.ts
+
+PostHog AI
+
+```typescript
+import express from 'express'
+import { PostHog, setupExpressRequestContext, setupExpressErrorHandler } from 'posthog-node'
+const app = express()
+const posthog = new PostHog('<ph_project_token>', {
+  host: 'https://us.i.posthog.com',
+})
+// Register before routes.
+setupExpressRequestContext(posthog, app)
+app.post('/checkout', (req, res) => {
+  posthog.capture({ event: 'checkout_started' })
+  res.json({ status: 'ok' })
+})
+// Optional: register after routes to capture Express errors.
+setupExpressErrorHandler(posthog, app)
+```
+
+The request context middleware reads the following incoming headers:
+
+| Header | Context property | Description |
+| --- | --- | --- |
+| x-posthog-session-id | sessionId | Links server events to a client session |
+| x-posthog-distinct-id | distinctId | Sets the event distinct ID |
+
+It also automatically adds request metadata as event properties:
+
+-   `$current_url` – the request URL
+-   `$request_method` – the HTTP method (GET, POST, etc.)
+-   `$request_path` – the request path
+-   `$user_agent` – the user agent string
+-   `$ip` – the client IP (parsed from `x-forwarded-for` if behind a proxy)
+
+Properties and `distinctId` passed directly to `capture` take precedence over request context.
+
+### Send headers from the client
+
+If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure `tracing_headers` to automatically inject session and identity headers on requests to your Express backend:
+
+> Requires `posthog-js` version >= 1.380.0. In earlier versions, this option was named `__add_tracing_headers`.
+
+JavaScript
+
+PostHog AI
+
+```javascript
+posthog.init('<ph_project_token>', {
+  api_host: 'https://us.i.posthog.com',
+  tracing_headers: ['api.example.com'],
+})
+```
+
+Use hostnames only, without the protocol or path. Matching `fetch` and `XMLHttpRequest` calls include `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID`, which the Express middleware reads automatically.
+
 ## Feature flags
 
 PostHog's [feature flags](/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.

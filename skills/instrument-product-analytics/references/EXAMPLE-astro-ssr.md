@@ -1,7 +1,7 @@
 # PostHog astro-ssr Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/astro-ssr
+Path: example-apps/astro-ssr
 
 ---
 

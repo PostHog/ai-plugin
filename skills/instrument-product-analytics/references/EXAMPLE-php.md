@@ -1,7 +1,7 @@
 # PostHog php Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/php
+Path: example-apps/php
 
 ---
 

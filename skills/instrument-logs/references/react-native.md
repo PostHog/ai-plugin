@@ -283,7 +283,7 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
     })
     ```
 
-    You can also pass an array of functions to form a chain (evaluated left-to-right). A `null` return from any link short-circuits and drops the record. A throwing filter is caught and skipped – the chain continues with the previous return value, so a buggy filter degrades to a no-op rather than crashing your app.
+    You can also pass an array of functions to form a chain (evaluated left-to-right). A `null` return from any link short-circuits and drops the record. A throwing filter never crashes your app: the error is logged and the record is dropped (fail-closed).
 
 8.  ## Next steps
 

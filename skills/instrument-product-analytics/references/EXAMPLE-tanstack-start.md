@@ -1,7 +1,7 @@
 # PostHog tanstack-start Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/tanstack-start
+Path: example-apps/tanstack-start
 
 ---
 

@@ -1,7 +1,7 @@
 # PostHog astro-hybrid Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/astro-hybrid
+Path: example-apps/astro-hybrid
 
 ---
 

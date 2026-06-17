@@ -122,9 +122,11 @@ PostHog AI
 
 ```javascript
 posthog.init('<ph_project_token>', {
-    __add_tracing_headers: ['your-backend-domain.com']
+    tracing_headers: ['your-backend-domain.com']
 })
 ```
+
+Use hostnames only, without the protocol or path.
 
 ### Exception capture
 

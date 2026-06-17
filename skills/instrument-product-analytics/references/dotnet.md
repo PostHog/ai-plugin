@@ -8,7 +8,7 @@ The `PostHog` package supports any .NET platform that targets .NET Standard 2.1 
 
 > **Note:** We actively test with ASP.NET Core. Other platforms should work but haven't been specifically tested. If you encounter issues, please [report them on GitHub](https://github.com/PostHog/posthog-dotnet/issues).
 
-> **Not supported:** Classic UWP (requires .NET Standard 2.0 only). Microsoft has [deprecated UWP](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/migrate-to-windows-app-sdk/migrate-to-windows-app-sdk-ovw) in favor of the Windows App SDK. For Unity projects, see our dedicated [Unity SDK](/docs/libraries/unity.md) (currently in beta).
+> **Not supported:** Classic UWP (requires .NET Standard 2.0 only). Microsoft has [deprecated UWP](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/migrate-to-windows-app-sdk/migrate-to-windows-app-sdk-ovw) in favor of the Windows App SDK. For Unity projects, see our dedicated [Unity SDK](/docs/libraries/unity.md).
 
 Terminal
 
@@ -290,6 +290,8 @@ posthog.CapturePageView(
 ## Error tracking
 
 You can manually capture exceptions using `CaptureException`. This sends a `$exception` event with stack frames, inner exceptions, aggregate exceptions, source context when available, and .NET runtime metadata.
+
+File names, line numbers, and source context depend on debug information already available from the captured .NET stack trace. PostHog doesn't support uploading .NET PDB files yet, so production builds without runtime-accessible debug information may show less detailed stack frames.
 
 C#
 
@@ -699,6 +701,12 @@ if (variant == "variant-name")
 ```
 
 It's also possible to [run experiments without using feature flags](/docs/experiments/running-experiments-without-feature-flags.md).
+
+## AI observability
+
+`PostHog.AI` adds [AI observability](/docs/ai-observability.md) for .NET applications using OpenAI or Azure OpenAI. It is currently pre-release, so expect breaking changes before a stable release.
+
+For installation instructions, see the [OpenAI guide for .NET](/docs/ai-observability/installation/openai.md#net-support) or the [Azure OpenAI guide for .NET](/docs/ai-observability/installation/azure-openai.md#net-support).
 
 ## GeoIP properties
 

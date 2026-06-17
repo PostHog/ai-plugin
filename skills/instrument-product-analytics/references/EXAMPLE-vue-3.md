@@ -1,7 +1,7 @@
 # PostHog vue-3 Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/vue-3
+Path: example-apps/vue-3
 
 ---
 

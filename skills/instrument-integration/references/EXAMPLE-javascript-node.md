@@ -1,7 +1,7 @@
 # PostHog javascript-node Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/javascript-node
+Path: example-apps/javascript-node
 
 ---
 

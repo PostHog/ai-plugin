@@ -1,7 +1,7 @@
 # PostHog astro-static Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/astro-static
+Path: example-apps/astro-static
 
 ---
 

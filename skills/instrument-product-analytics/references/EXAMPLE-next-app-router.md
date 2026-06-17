@@ -1,7 +1,7 @@
 # PostHog next-app-router Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/next-app-router
+Path: example-apps/next-app-router
 
 ---
 

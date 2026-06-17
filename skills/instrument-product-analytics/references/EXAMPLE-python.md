@@ -1,7 +1,7 @@
 # PostHog python Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/python
+Path: example-apps/python
 
 ---
 

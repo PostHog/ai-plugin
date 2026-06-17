@@ -34,7 +34,18 @@ pnpm add posthog-js
 bun add posthog-js
 ```
 
-2.  Add your PostHog API key and host to your `nuxt.config.js` file. You can find these in [your project settings](https://us.posthog.com/settings/project).
+2.  Store your PostHog key and host in environment variables rather than hard-coding them. Add them to a `.env` file (and to your hosting provider). You can find these in [your project settings](https://us.posthog.com/settings/project).
+
+.env
+
+PostHog AI
+
+```shell
+NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN=<ph_project_token>
+NUXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+Then reference them in your `nuxt.config.js` file:
 
 nuxt.config.js
 
@@ -51,6 +62,14 @@ export default defineNuxtConfig({
   }
 })
 ```
+
+**Keep your personal API key out of the client bundle**
+
+Anything shipped to the browser – the token you pass to `posthog.init()`, anything under Nuxt's `runtimeConfig.public`, or the `@posthog/nuxt` module's `posthogConfig` – ends up in your client-side JavaScript and is visible to anyone who visits your site. This is fine for your **project token** (`<ph_project_token>`), which is designed to be public.
+
+Your **[personal API key](/docs/api.md#authentication)** is different. It can grant full access to your PostHog account, so it must never reach the browser. If you need it – for example, for [source map uploads](/docs/error-tracking/upload-source-maps/nuxt.md) or [server-side local evaluation](/docs/feature-flags/local-evaluation.md) – read it from a server-only environment variable (or top-level `runtimeConfig`, never `runtimeConfig.public`) and only use it in server code.
+
+Either way, prefer reading keys from environment variables rather than hard-coding them in `nuxt.config`, so you can keep them out of source control and use different values per environment.
 
 3.  Create a new plugin by creating a new file `posthog.client.js` in your [plugins directory](https://nuxt.com/docs/guide/directory-structure/plugins).
 
@@ -153,7 +172,7 @@ pnpm add posthog-node
 bun add posthog-node
 ```
 
-Add your PostHog API key and host to your `nuxt.config.js` file. If you've already done this when adding PostHog to the client side, you can skip this step.
+Add your PostHog API key and host to your `nuxt.config.js` file, reading them from environment variables. If you've already done this when adding PostHog to the client side, you can skip this step.
 
 nuxt.config.js
 
@@ -163,8 +182,8 @@ PostHog AI
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      posthogToken: '<ph_project_token>',
-      posthogHost: 'https://us.i.posthog.com',
+      posthogToken: process.env.NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN || '<ph_project_token>',
+      posthogHost: process.env.NUXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
       posthogDefaults: '2026-01-30',
     }
   }

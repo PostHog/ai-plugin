@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.17.0
+**SDK Version:** 7.19.1
 
 Integrate PostHog into any python application.
 
@@ -62,6 +62,11 @@ Initialize a new PostHog client instance.
 - **`code_variables_mask_patterns`** (`any`) - Variable-name patterns to mask when         capturing code variables.
 - **`code_variables_ignore_patterns`** (`any`) - Variable-name patterns to omit when         capturing code variables.
 - **`in_app_modules`** (`UnionType[list[str], any]`) - Module/package prefixes treated as in-app frames in         captured exceptions.
+- **`enable_exception_autocapture_rate_limiting`** (`bool`) - Rate limit         autocaptured exceptions client-side with a token bucket per         exception type. Disabled by default.
+- **`exception_autocapture_bucket_size`** (`int`) - Maximum burst of autocaptured         exceptions allowed per exception type (token bucket size,         clamped to 0-100).
+- **`exception_autocapture_refill_rate`** (`int`) - Tokens restored per refill         interval for each exception type's bucket.
+- **`exception_autocapture_refill_interval_seconds`** (`int`) - Seconds between         token refills for autocaptured exception rate limiting.
+- **`_dedicated_ai_endpoint`** (`bool`)
 
 ### Returns
 
@@ -257,7 +262,7 @@ Capture an exception for error tracking.
 
 ### Returns
 
-- `None`
+- `Optional[str]`
 
 ### Examples
 
@@ -632,7 +637,7 @@ Force a flush from the internal queue to the server. Do not use directly, call `
 
 ### Returns
 
-- `None`
+- `any`
 
 ### Examples
 
@@ -685,7 +690,7 @@ End the consumer thread once the queue is empty. Do not use directly, call `shut
 
 ### Returns
 
-- `None`
+- `any`
 
 ### Examples
 
@@ -703,7 +708,7 @@ Flush all messages and cleanly shutdown the client. Call this before the process
 
 ### Returns
 
-- `None`
+- `any`
 
 ### Examples
 
@@ -977,7 +982,7 @@ Capture exception is idempotent - if it is called twice with the same exception 
 
 ### Returns
 
-- `None`
+- `Optional[str]`
 
 ### Examples
 
@@ -1238,7 +1243,7 @@ Tell the client to flush all queued events.
 
 ### Returns
 
-- `None`
+- `any`
 
 ### Examples
 
@@ -1257,7 +1262,7 @@ Block program until the client clears the queue. Used during program shutdown. Y
 
 ### Returns
 
-- `None`
+- `any`
 
 ### Examples
 
@@ -1276,7 +1281,7 @@ Flush all messages and cleanly shutdown the client.
 
 ### Returns
 
-- `None`
+- `any`
 
 ### Examples
 

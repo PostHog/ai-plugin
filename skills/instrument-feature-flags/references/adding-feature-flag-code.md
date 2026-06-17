@@ -1878,6 +1878,25 @@ if (PostHog.getFeatureFlag("flag-key") == "variant-key") { // replace 'variant-k
 }
 ```
 
+### Feature flag values and payloads together
+
+If you need both the flag value and payload, use `getFeatureFlagResult` so both values come from the same evaluation result.
+
+Kotlin
+
+PostHog AI
+
+```kotlin
+import com.posthog.PostHog
+val result = PostHog.getFeatureFlagResult("flag-key")
+if (result?.value == "variant-key") {
+    val payload = result.payload
+    // Do something with the variant and payload
+}
+```
+
+You can also inspect all currently loaded feature flag results with `PostHog.getAllFeatureFlags()`.
+
 ### Ensuring flags are loaded before usage
 
 Every time a user opens the app, we send a request in the background to fetch the feature flags that apply to that user. We store those flags in the storage.
@@ -1902,7 +1921,7 @@ val config = PostHogAndroidConfig(apiKey = "<ph_project_token>").apply {
         }
     }
 }
-// And/Or manually the SDK is initialized
+// And/or after the SDK is initialized
 PostHog.reloadFeatureFlags {
     if (PostHog.isFeatureEnabled("flag-key")) {
         // do something
@@ -1923,6 +1942,20 @@ import com.posthog.PostHog
 PostHog.reloadFeatureFlags()
 ```
 
+### Tracking feature usage
+
+To track when someone sees or interacts with a feature, use `captureFeatureView` and `captureFeatureInteraction`.
+
+Kotlin
+
+PostHog AI
+
+```kotlin
+import com.posthog.PostHog
+PostHog.captureFeatureView("flag-key", flagVariant = "variant-key")
+PostHog.captureFeatureInteraction("flag-key", flagVariant = "variant-key")
+```
+
 ## iOS
 
 ### Boolean feature flags
@@ -1932,10 +1965,10 @@ Swift
 PostHog AI
 
 ```swift
-if (PostHogSDK.shared.isFeatureEnabled("flag-key")) {
+if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.enabled {
     // Do something differently for this user
-    // Optional: fetch the payload
-    let matchedFlagPayload = PostHogSDK.shared.getFeatureFlagPayload("flag-key")
+    // Optional: fetch the payload from the same evaluation result
+    let matchedFlagPayload = result.payload
 }
 ```
 
@@ -1946,10 +1979,28 @@ Swift
 PostHog AI
 
 ```swift
-if (PostHogSDK.shared.getFeatureFlag("flag-key") as? String == "variant-key") { // replace "variant-key" with the key of your variant
+if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.variant == "variant-key" { // replace "variant-key" with the key of your variant
     // Do something differently for this user
-    // Optional: fetch the payload
-    let matchedFlagPayload = PostHogSDK.shared.getFeatureFlagPayload("flag-key")
+    // Optional: fetch the payload from the same evaluation result
+    let matchedFlagPayload = result.payload
+}
+```
+
+### Typed payloads
+
+If your payload is a JSON object, you can decode it into a `Decodable` type:
+
+Swift
+
+PostHog AI
+
+```swift
+struct FlagPayload: Decodable {
+    let title: String
+}
+if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"),
+   let payload = result.payloadAs(FlagPayload.self) {
+    // Use payload.title
 }
 ```
 
@@ -2016,6 +2067,19 @@ PostHogSDK.shared.reloadFeatureFlags {
 }
 ```
 
+### Tracking feature usage
+
+To track when someone sees or interacts with a feature, use `captureFeatureView` and `captureFeatureInteraction`.
+
+Swift
+
+PostHog AI
+
+```swift
+PostHogSDK.shared.captureFeatureView(flag: "flag-key", flagVariant: "variant-key")
+PostHogSDK.shared.captureFeatureInteraction(flag: "flag-key", flagVariant: "variant-key")
+```
+
 ## Flutter
 
 ### Boolean feature flags
@@ -2025,10 +2089,11 @@ Dart
 PostHog AI
 
 ```dart
-if (await Posthog().isFeatureEnabled('flag-key')) {
+final result = await Posthog().getFeatureFlagResult('flag-key');
+if (result != null && result.enabled) {
   // Do something differently for this user
-  // Optional: fetch the payload
-  final matchedFlagPayload = await Posthog().getFeatureFlagPayload('flag-key');
+  // Optional: fetch the payload from the same evaluation result
+  final matchedFlagPayload = result.payload;
 }
 ```
 
@@ -2039,16 +2104,17 @@ Dart
 PostHog AI
 
 ```dart
-if (await Posthog().getFeatureFlag('flag-key') == 'variant-key') { // replace 'variant-key' with the key of your variant
+final result = await Posthog().getFeatureFlagResult('flag-key');
+if (result != null && result.variant == 'variant-key') { // replace 'variant-key' with the key of your variant
   // Do something differently for this user
-  // Optional: fetch the payload
-  final matchedFlagPayload = await Posthog().getFeatureFlagPayload('flag-key');
+  // Optional: fetch the payload from the same evaluation result
+  final matchedFlagPayload = result.payload;
 }
 ```
 
 ### Ensuring flags are loaded before usage
 
-> To use the `onFeatureFlags` callback, you must [set up the SDK manually](#installation) by disabling the `com.posthog.posthog.AUTO_INIT` mode.
+> To use the `onFeatureFlags` callback, you must [set up the SDK manually](#installation). On Android and iOS, disable `com.posthog.posthog.AUTO_INIT` first.
 
 Every time a user opens the app, we send a request in the background to fetch the feature flags that apply to that user. We store those flags in the storage.
 

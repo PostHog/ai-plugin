@@ -1,7 +1,7 @@
 # PostHog react-react-router-7-framework Example Project
 
 Repository: https://github.com/PostHog/context-mill
-Path: basics/react-react-router-7-framework
+Path: example-apps/react-react-router-7-framework
 
 ---
 
