@@ -1,6 +1,6 @@
 # PostHog JavaScript Web SDK
 
-**SDK Version:** 1.386.8
+**SDK Version:** 1.390.1
 
 Posthog-js allows you to automatically capture usage and send events to PostHog.
 
@@ -712,6 +712,42 @@ posthog.setPersonProperties(
     { name: 'Max Hedgehog' },  // $set properties
     { initial_url: '/blog' }   // $set_once properties
 )
+```
+
+---
+
+#### unsetPersonProperties()
+
+**Release Tag:** public
+
+Removes properties from the person profile associated with the current `distinct_id`. Learn more about [identifying users](/docs/product-analytics/identify)
+
+**Notes:**
+
+Deletes the given person properties from the person profile in PostHog. This is the counterpart to  — instead of hand-passing `$unset` inside a `capture()` call, you can remove properties with a dedicated method. If `person_profiles` is set to `never`, this call is ignored.
+
+### Parameters
+
+- **`propertyNames`** (`string | string[]`) - The name (or names) of the person properties to remove.
+
+### Returns
+
+- `void`
+
+### Examples
+
+#### remove a single property
+
+```ts
+// remove a single property
+posthog.unsetPersonProperties('plan')
+```
+
+#### remove multiple properties
+
+```ts
+// remove multiple properties
+posthog.unsetPersonProperties(['plan', 'email'])
 ```
 
 ---

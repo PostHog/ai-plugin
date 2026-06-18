@@ -114,19 +114,7 @@ The session and distinct ID headers are sanitized before use. Empty values are i
 
 All events captured during the request (including exceptions) include these properties and are associated with the extracted session and distinct ID.
 
-If you are using PostHog on your frontend, the JavaScript Web SDK will add the session and distinct ID headers automatically if you enable tracing headers.
-
-JavaScript
-
-PostHog AI
-
-```javascript
-posthog.init('<ph_project_token>', {
-    tracing_headers: ['your-backend-domain.com']
-})
-```
-
-Use hostnames only, without the protocol or path.
+If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](/docs/libraries/js/config.md#tracing-headers) for your Django backend hostname so browser requests include the session and distinct ID headers.
 
 ### Exception capture
 

@@ -1,6 +1,6 @@
 # PostHog Node.js SDK
 
-**SDK Version:** 5.37.1
+**SDK Version:** 5.38.0
 
 PostHog Node.js SDK allows you to capture events and send them to PostHog from your Node.js applications.
 
@@ -633,6 +633,57 @@ await client.identifyImmediate({
     name: 'John Doe',
     email: 'john@example.com'
   }
+})
+```
+
+---
+
+#### setPersonProperties()
+
+**Release Tag:** public
+
+Set properties on a person profile.
+
+### Parameters
+
+- **`{ distinctId, properties, propertiesOnce }`** (`SetPersonPropertiesMessage`)
+
+### Returns
+
+- `void`
+
+### Examples
+
+```node
+client.setPersonProperties({
+  distinctId: 'user_123',
+  properties: { plan: 'premium' },
+  propertiesOnce: { first_seen: '2026-06-15' }
+})
+```
+
+---
+
+#### unsetPersonProperties()
+
+**Release Tag:** public
+
+Remove properties from a person profile.
+
+### Parameters
+
+- **`{ distinctId, properties }`** (`UnsetPersonPropertiesMessage`)
+
+### Returns
+
+- `void`
+
+### Examples
+
+```node
+client.unsetPersonProperties({
+  distinctId: 'user_123',
+  properties: ['plan', 'email']
 })
 ```
 

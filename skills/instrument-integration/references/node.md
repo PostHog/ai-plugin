@@ -69,6 +69,7 @@ You can find your project token and instance address in the [project settings](h
 | requestTimeout | Timeout in milliseconds for any calls | 10000 |
 | maxCacheSize | Maximum size of cache that deduplicates $feature_flag_called calls per user. | 50000 |
 | disableGeoip | When true, disables automatic GeoIP resolution for events and feature flags. | true |
+| isServer | Controls the $is_server event property. Keep the default for server-side events. Set to false when using posthog-node from a client-like runtime, CLI, or desktop app so device OS attribution is handled normally. | true |
 | evaluation_contexts | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. This helps reduce unnecessary flag evaluations and improves performance. See [evaluation contexts documentation](/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 5.10.0+. The legacy parameter evaluation_environments (version 5.9.6+) is also supported for backward compatibility. | undefined |
 
 > **Note:** When using PostHog in an AWS Lambda function or a similar serverless function environment, make sure you set `flushAt` to `1` and `flushInterval` to `0`. Also, remember to always call `await posthog.shutdown()` at the end to flush and send all pending events.
@@ -147,6 +148,8 @@ client.capture({
 ```
 
 For more details on the difference between `$set` and `$set_once`, see our [person properties docs](/docs/data/user-properties.md#what-is-the-difference-between-set-and-set_once).
+
+You can also use helper methods to set or remove person properties without hand-building `$set`, `$set_once`, or `$unset` payloads. See [person properties](/docs/product-analytics/person-properties.md) for examples.
 
 To capture [anonymous events](/docs/data/anonymous-vs-identified-events.md) without person profiles, set the event's `$process_person_profile` property to `false`:
 
@@ -421,26 +424,11 @@ It also automatically adds request metadata as event properties:
 -   `$user_agent` – the user agent string
 -   `$ip` – the client IP (parsed from `x-forwarded-for` if behind a proxy)
 
-Properties and `distinctId` passed directly to `capture` take precedence over request context.
+Properties and `distinctId` passed directly to `capture` take precedence over request context. Tracing headers are client-controlled analytics context, not authentication or authorization. Pass an authenticated `distinctId` explicitly for security-sensitive server-side decisions.
 
 ### Send headers from the client
 
-If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure `tracing_headers` to automatically inject session and identity headers on requests to your Express backend:
-
-> Requires `posthog-js` version >= 1.380.0. In earlier versions, this option was named `__add_tracing_headers`.
-
-JavaScript
-
-PostHog AI
-
-```javascript
-posthog.init('<ph_project_token>', {
-  api_host: 'https://us.i.posthog.com',
-  tracing_headers: ['api.example.com'],
-})
-```
-
-Use hostnames only, without the protocol or path. Matching `fetch` and `XMLHttpRequest` calls include `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID`, which the Express middleware reads automatically.
+If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](/docs/libraries/js/config.md#tracing-headers) for your Express backend hostname so browser requests include `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID`, which the Express middleware reads automatically.
 
 ## Feature flags
 

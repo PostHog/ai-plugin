@@ -123,6 +123,8 @@ import { PostHogProvider} from '@posthog/react'
 posthog.init(process.env.REACT_APP_PUBLIC_POSTHOG_PROJECT_TOKEN, {
   api_host: process.env.REACT_APP_PUBLIC_POSTHOG_HOST,
   defaults: '2026-01-30',
+  // Optional: send PostHog session/user context to your backend
+  tracing_headers: ['api.example.com'],
 });
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -145,6 +147,8 @@ To call PostHog methods for actions like identifying users, capturing events, us
 Always use the `usePostHog` hook to access the PostHog library. Directly importing `posthog` will likely cause errors as the library might not be initialized yet. Initialization is handled automatically when you use the `PostHogProvider` and hook.
 
 All the methods of the library are available and can be used as described in the [posthog-js documentation](/docs/libraries/js.md).
+
+If your React app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
 
 React
 
@@ -311,7 +315,7 @@ PostHog provides several hooks to make it easy to use feature flags in your Reac
 
 | Hook | Description |
 | --- | --- |
-| useFeatureFlagEnabled | Returns a boolean indicating whether the feature flag is enabled. This sends a $feature_flag_called event. |
+| useFeatureFlagEnabled | Returns whether the feature flag is enabled. This sends a $feature_flag_called event. Without a default value, it returns boolean \\\| undefined while flags are loading or absent. Pass an optional default value to return that value instead and narrow the return type to boolean. |
 | useFeatureFlagVariantKey | Returns the variant key of the feature flag. This sends a $feature_flag_called event. |
 | useActiveFeatureFlags | Returns an array of active feature flags. This does not send a $feature_flag_called event. |
 | useFeatureFlagPayload | Returns the payload of the feature flag. This does not send a $feature_flag_called event. Always use this with useFeatureFlagEnabled or useFeatureFlagVariantKey. |
@@ -323,7 +327,7 @@ React
 PostHog AI
 
 ```jsx
-import { useFeatureFlagEnabled } from '@posthog/react'
+import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
 function App() {
   const showWelcomeMessage = useFeatureFlagEnabled('flag-key')
   const payload = useFeatureFlagPayload('flag-key')
@@ -346,6 +350,16 @@ function App() {
   );
 }
 export default App;
+```
+
+To avoid handling `undefined` while flags are loading, pass a default value as the second argument:
+
+React
+
+PostHog AI
+
+```jsx
+const showWelcomeMessage = useFeatureFlagEnabled('flag-key', false)
 ```
 
 #### Example 2: Using a multivariate feature flag
@@ -396,7 +410,7 @@ React
 PostHog AI
 
 ```jsx
-import { useFeatureFlagPayload } from '@posthog/react'
+import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
 function App() {
   const variant = useFeatureFlagEnabled('show-welcome-message')
   const payload = useFeatureFlagPayload('show-welcome-message')

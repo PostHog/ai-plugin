@@ -139,6 +139,41 @@ PostHog.capture("$groupidentify", %{
 })
 ```
 
+## Request context
+
+For Phoenix or Plug apps, add `PostHog.Integrations.Plug` before your router to attach request metadata and PostHog tracing headers to events captured during the request.
+
+lib/my\_app\_web/endpoint.ex
+
+PostHog AI
+
+```elixir
+plug PostHog.Integrations.Plug
+plug MyAppWeb.Router
+```
+
+For plain Plug routers, add it before `:match` and `:dispatch`:
+
+Elixir
+
+PostHog AI
+
+```elixir
+defmodule MyRouter do
+  use Plug.Router
+  plug PostHog.Integrations.Plug
+  plug :match
+  plug :dispatch
+  # ... routes
+end
+```
+
+The plug adds request metadata such as `$current_url`, `$host`, `$pathname`, `$request_method`, `$user_agent`, and `$ip`. It also reads `X-PostHog-Distinct-Id` and `X-PostHog-Session-Id` as analytics context so backend events and errors can be linked to frontend users and sessions.
+
+If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](/docs/libraries/js/config.md#tracing-headers) for your Phoenix or Plug backend hostname so browser requests include these headers.
+
+Tracing headers are client-controlled analytics context, not authentication or authorization. Pass an authenticated `distinct_id` explicitly for security-sensitive server-side decisions.
+
 ## Feature flags
 
 PostHog's [feature flags](/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.

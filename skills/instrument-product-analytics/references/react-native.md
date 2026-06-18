@@ -160,6 +160,7 @@ You can further customize how PostHog works through its configuration on initial
 | sendFeatureFlagEventType: BooleanDefault: true | Whether to track that getFeatureFlag was called (used by experiments). |
 | preloadFeatureFlagsType: BooleanDefault: true | Whether to load feature flags when initialized or not. |
 | bootstrapType: ObjectDefault: {} | An object containing the distinctId, isIdentifiedId, featureFlags, and featureFlagPayloads keys. distinctId is a string, and featureFlags and featureFlagPayloads are objects of key-value pairs. Used to ensure data is available as soon as the SDK loads. |
+| disableRemoteFeatureFlagsType: BooleanDefault: false | When true, the SDK never fetches or evaluates feature flags from PostHog, and identify(), group(), and reset() stop triggering /flags requests. Supply flag values yourself via bootstrap (at startup) and updateFlags() (at runtime). Available in version 4.49.0+. |
 | fetchRetryCountType: NumberDefault: 3 | How many times HTTP requests will be retried. |
 | fetchRetryDelayType: NumberDefault: 3000 | The delay between HTTP request retries. |
 | requestTimeoutType: NumberDefault: 10000 | Timeout in milliseconds for any calls. |
@@ -174,7 +175,25 @@ You can further customize how PostHog works through its configuration on initial
 | sessionReplayConfigType: ObjectDefault: null | Session replay configuration. See the [replay install docs](/docs/session-replay/installation.md) for more details. |
 | enablePersistSessionIdAcrossRestartType: BooleanDefault: false | When true, persists the $session_id across app restarts. If false, $session_id always resets on app restart. |
 | evaluationContextsType: Array of StringsDefault: undefined | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. This helps reduce unnecessary flag evaluations and improves performance. See [evaluation contexts documentation](/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 4.21.0+. The legacy parameter evaluationEnvironments (version 4.7.2+) is also supported for backward compatibility. |
+| addTracingHeadersType: Array of StringsDefault: undefined | Hostnames for which PostHog should add tracing headers to outgoing fetch requests. Matching requests include X-POSTHOG-DISTINCT-ID and X-POSTHOG-SESSION-ID, which lets backend events, errors, and LLM traces link back to frontend sessions and replays. Use hostnames only, without the protocol or path. |
 | before_sendType: FunctionDefault: undefined | A callback function that is called before each event is sent to PostHog. You can use it to modify, filter, or suppress events. Return null to drop the event, or return the modified event to send it. See [customizing exception capture](#customizing-exception-capture-with-before_send) for details. |
+
+### Tracing headers
+
+Use `addTracingHeaders` to connect React Native network requests to backend events, errors, and LLM traces captured by a server-side PostHog SDK:
+
+typescript
+
+PostHog AI
+
+```typescript
+const posthog = new PostHog('<ph_project_token>', {
+  host: 'https://us.i.posthog.com',
+  addTracingHeaders: ['api.example.com'],
+})
+```
+
+Hostnames are matched exactly. The SDK patches global `fetch` and sends `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` on matching requests when those values are available.
 
 ## Capturing events
 
@@ -533,6 +552,8 @@ PostHog AI
 posthog.capture('some_event', { $set_once: { userProperty: 'value' } })
 ```
 
+You can also use `setPersonProperties()` and `unsetPersonProperties()` to manage person properties directly. See [person properties](/docs/product-analytics/person-properties.md) for examples.
+
 ## Super properties
 
 Super properties are properties associated with events that are set once and then sent with every `capture` call, be it a `$screen`, an autocaptured touch, or anything else.
@@ -711,8 +732,8 @@ posthog.isFeatureEnabled('key-for-your-boolean-flag')
 posthog.getFeatureFlag('key-for-your-boolean-flag')
 // Multivariant feature flags are returned as a string
 posthog.getFeatureFlag('key-for-your-multivariate-flag')
-// Optional fetch the payload returns 'JsonType' or undefined if not loaded yet or if there was a problem loading
-posthog.getFeatureFlagPayload('key-for-your-multivariate-flag')
+// Optional: fetch the payload (returns 'JsonType' or undefined if not loaded yet or if there was a problem loading)
+posthog.getFeatureFlagResult('key-for-your-multivariate-flag')?.payload
 ```
 
 ### Ensuring flags are loaded before usage
@@ -917,6 +938,41 @@ Since there is a delay between initializing PostHog and fetching feature flags, 
 To have your feature flags available immediately, you can initialize PostHog with precomputed values until it has had a chance to fetch them. This is called bootstrapping. After the SDK fetches feature flags from PostHog, it will use those flag values instead of bootstrapped ones.
 
 For details on how to implement bootstrapping, see our [bootstrapping guide](/docs/feature-flags/bootstrapping.md).
+
+### Supplying flags from your own backend
+
+If you evaluate feature flags outside the SDK – for example on your own server with [`posthog-node` local evaluation](/docs/feature-flags/local-evaluation.md), then pass the results into your app – you can have the SDK use those values and never fetch flags itself.
+
+Set `disableRemoteFeatureFlags: true` so the SDK never requests `/flags` (including the refetches that `identify()`, `group()`, and `reset()` normally trigger), then push your evaluated flags at runtime with `updateFlags(flags, payloads?, { merge })`:
+
+React Native
+
+PostHog AI
+
+```jsx
+const posthog = new PostHog('<ph_project_token>', {
+  host: 'https://us.i.posthog.com',
+  // Don't fetch or evaluate flags on-device – we supply them ourselves.
+  disableRemoteFeatureFlags: true,
+  // Optional: values that must be available at startup, before updateFlags() runs.
+  // Without this, reads return their not-loaded defaults until you push flags.
+  bootstrap: {
+    featureFlags: { 'my-flag': true },
+    featureFlagPayloads: { 'my-flag': { color: 'blue' } },
+  },
+})
+// Later – e.g. after login, once your backend has evaluated flags for this user:
+posthog.updateFlags(
+  { 'my-flag': true, 'my-variant-flag': 'test' },
+  { 'my-flag': { color: 'blue' } }
+)
+posthog.getFeatureFlag('my-variant-flag') // 'test'
+posthog.getFeatureFlagResult('my-flag')?.payload // { color: 'blue' }
+```
+
+`updateFlags` replaces the stored flags by default; pass `{ merge: true }` to merge into the existing set instead. Values persist across app restarts, and `getFeatureFlag()` / `getFeatureFlagResult()` read them back like any other flag.
+
+Note that `reset()` (called on logout) clears the supplied flags, so re-push them with `updateFlags()` after the next identity change. Use `bootstrap` for any flag values that must be available at startup before `updateFlags()` runs.
 
 ## Experiments (A/B tests)
 
