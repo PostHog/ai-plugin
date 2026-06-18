@@ -4,6 +4,24 @@
 
 You can enable or disable autocapture through the `PostHogConfig` object.
 
+## Tracing headers
+
+Use `tracingHeaders` to connect iOS network requests to backend events, errors, and LLM traces captured by a server-side PostHog SDK:
+
+Swift
+
+PostHog AI
+
+```swift
+let configuration = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
+configuration.tracingHeaders = ["api.example.com"]
+PostHogSDK.shared.setup(configuration)
+```
+
+Hostnames are matched exactly and should not include protocols, paths, ports, or wildcard subdomains. Matching `URLSession` requests include `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` when those values are available.
+
+Tracing headers require method swizzling, so `configuration.enableSwizzling` must remain `true`.
+
 ## Flush configuration
 
 The iOS SDK uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your mobile app.

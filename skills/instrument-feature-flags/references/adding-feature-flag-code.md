@@ -14,7 +14,7 @@ PostHog AI
 if (posthog.isFeatureEnabled('flag-key') ) {
     // Do something differently for this user
     // Optional: fetch the payload
-    const matchedFlagPayload = posthog.getFeatureFlagPayload('flag-key')
+    const matchedFlagPayload = posthog.getFeatureFlagResult('flag-key')?.payload
 }
 ```
 
@@ -28,7 +28,7 @@ PostHog AI
 if (posthog.getFeatureFlag('flag-key')  == 'variant-key') { // replace 'variant-key' with the key of your variant
     // Do something differently for this user
     // Optional: fetch the payload
-    const matchedFlagPayload = posthog.getFeatureFlagPayload('flag-key')
+    const matchedFlagPayload = posthog.getFeatureFlagResult('flag-key')?.payload
 }
 ```
 
@@ -231,7 +231,7 @@ PostHog provides several hooks to make it easy to use feature flags in your Reac
 
 | Hook | Description |
 | --- | --- |
-| useFeatureFlagEnabled | Returns a boolean indicating whether the feature flag is enabled. This sends a $feature_flag_called event. |
+| useFeatureFlagEnabled | Returns whether the feature flag is enabled. This sends a $feature_flag_called event. Without a default value, it returns boolean \\\| undefined while flags are loading or absent. Pass an optional default value to return that value instead and narrow the return type to boolean. |
 | useFeatureFlagVariantKey | Returns the variant key of the feature flag. This sends a $feature_flag_called event. |
 | useActiveFeatureFlags | Returns an array of active feature flags. This does not send a $feature_flag_called event. |
 | useFeatureFlagPayload | Returns the payload of the feature flag. This does not send a $feature_flag_called event. Always use this with useFeatureFlagEnabled or useFeatureFlagVariantKey. |
@@ -243,7 +243,7 @@ React
 PostHog AI
 
 ```jsx
-import { useFeatureFlagEnabled } from '@posthog/react'
+import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
 function App() {
   const showWelcomeMessage = useFeatureFlagEnabled('flag-key')
   const payload = useFeatureFlagPayload('flag-key')
@@ -266,6 +266,16 @@ function App() {
   );
 }
 export default App;
+```
+
+To avoid handling `undefined` while flags are loading, pass a default value as the second argument:
+
+React
+
+PostHog AI
+
+```jsx
+const showWelcomeMessage = useFeatureFlagEnabled('flag-key', false)
 ```
 
 #### Example 2: Using a multivariate feature flag
@@ -316,7 +326,7 @@ React
 PostHog AI
 
 ```jsx
-import { useFeatureFlagPayload } from '@posthog/react'
+import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
 function App() {
   const variant = useFeatureFlagEnabled('show-welcome-message')
   const payload = useFeatureFlagPayload('show-welcome-message')
@@ -1647,8 +1657,8 @@ posthog.isFeatureEnabled('key-for-your-boolean-flag')
 posthog.getFeatureFlag('key-for-your-boolean-flag')
 // Multivariant feature flags are returned as a string
 posthog.getFeatureFlag('key-for-your-multivariate-flag')
-// Optional fetch the payload returns 'JsonType' or undefined if not loaded yet or if there was a problem loading
-posthog.getFeatureFlagPayload('key-for-your-multivariate-flag')
+// Optional: fetch the payload (returns 'JsonType' or undefined if not loaded yet or if there was a problem loading)
+posthog.getFeatureFlagResult('key-for-your-multivariate-flag')?.payload
 ```
 
 ### Ensuring flags are loaded before usage
@@ -1859,7 +1869,7 @@ import com.posthog.PostHog
 if (PostHog.isFeatureEnabled("flag-key")) {
     // Do something differently for this user
     // Optional: fetch the payload
-    val matchedFlagPayload = PostHog.getFeatureFlagPayload("flag-key")
+    val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key")?.payload
 }
 ```
 
@@ -1874,7 +1884,7 @@ import com.posthog.PostHog
 if (PostHog.getFeatureFlag("flag-key") == "variant-key") { // replace 'variant-key' with the key of your variant
     // Do something differently for this user
     // Optional: fetch the payload
-    val matchedFlagPayload = PostHog.getFeatureFlagPayload("flag-key")
+    val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key")?.payload
 }
 ```
 
