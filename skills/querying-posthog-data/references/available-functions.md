@@ -761,7 +761,9 @@ toDayOfWeek
 toDayOfYear
 toDecimal
 toFloat
+toFloat64OrNull
 toFloatOrDefault
+toFloatOrNull
 toFloatOrZero
 toHour
 toInt
