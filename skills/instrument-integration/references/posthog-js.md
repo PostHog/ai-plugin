@@ -1,6 +1,6 @@
 # PostHog JavaScript Web SDK
 
-**SDK Version:** 1.390.1
+**SDK Version:** 1.391.6
 
 Posthog-js allows you to automatically capture usage and send events to PostHog.
 
@@ -1857,8 +1857,9 @@ Get feature flag payload value matching key for user (supports multivariate flag
 ### Examples
 
 ```ts
-if(posthog.getFeatureFlag('beta-feature') === 'some-value') {
-     const someValue = posthog.getFeatureFlagPayload('beta-feature')
+const betaFeature = posthog.getFeatureFlagResult('beta-feature')
+if (betaFeature?.variant === 'some-value') {
+     const someValue = betaFeature?.payload
      // do something
 }
 ```

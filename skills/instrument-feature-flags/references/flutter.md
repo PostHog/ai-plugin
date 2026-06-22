@@ -154,7 +154,7 @@
     if (isMyFlagEnabled) {
         // Do something differently for this user
         // Optional: fetch the payload
-        final matchedFlagPayload = await Posthog().getFeatureFlagPayload('flag-key');
+        final matchedFlagPayload = (await Posthog().getFeatureFlagResult('flag-key'))?.payload;
     }
     ```
 
@@ -175,7 +175,7 @@
     if (enabledVariant == 'variant-key') { // replace 'variant-key' with the key of your variant
         // Do something differently for this user
         // Optional: fetch the payload
-        final matchedFlagPayload = await Posthog().getFeatureFlagPayload('flag-key');
+        final matchedFlagPayload = (await Posthog().getFeatureFlagResult('flag-key'))?.payload;
     }
     ```
 

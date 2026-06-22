@@ -8,7 +8,7 @@ PostHog AI
 
 ```toml
 [dependencies]
-posthog-rs = "0.3.5"
+posthog-rs = "0.13.1"
 ```
 
 Next, set up the client with your PostHog project key.
@@ -18,7 +18,7 @@ Rust
 PostHog AI
 
 ```rust
-let client = posthog_rs::client(env!("<ph_project_token>"));
+let client = posthog_rs::client("<ph_project_token>").await;
 ```
 
 ### Blocking client
@@ -33,7 +33,7 @@ PostHog AI
 
 ```toml
 [dependencies]
-posthog-rs = { version = "0.3.5", default-features = false }
+posthog-rs = { version = "0.13.1", default-features = false }
 ```
 
 In blocking mode, calls to `capture` and related methods will block until the PostHog event capture API returns – generally this is on the order of tens of milliseconds, but you may want to `thread::spawn` a background thread when you send an event.

@@ -94,7 +94,7 @@
     if (posthog.isFeatureEnabled('flag-key')) {
         // Do something differently for this user
         // Optional: fetch the payload
-        const matchedFlagPayload = posthog.getFeatureFlagPayload('flag-key')
+        const matchedFlagPayload = posthog.getFeatureFlagResult('flag-key')?.payload
     }
     ```
 
@@ -107,10 +107,11 @@
     For multivariate flags, check which variant the user has been assigned:
 
     ```javascript
-    if (posthog.getFeatureFlag('flag-key') == 'variant-key') { // replace 'variant-key' with the key of your variant
+    const matchedFlag = posthog.getFeatureFlagResult('flag-key')
+    if (matchedFlag?.variant == 'variant-key') { // replace 'variant-key' with the key of your variant
         // Do something differently for this user
-        // Optional: fetch the payload
-        const matchedFlagPayload = posthog.getFeatureFlagPayload('flag-key')
+        // Optional: read the payload from the same result
+        const matchedFlagPayload = matchedFlag?.payload
     }
     ```
 
@@ -123,7 +124,7 @@
     Feature flags can include payloads with additional data. Fetch the payload like this:
 
     ```javascript
-    const matchedFlagPayload = posthog.getFeatureFlagPayload('flag-key')
+    const matchedFlagPayload = posthog.getFeatureFlagResult('flag-key')?.payload
     ```
 
 6.  6

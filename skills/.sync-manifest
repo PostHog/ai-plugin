@@ -41,6 +41,7 @@ exploring-mcp-intent-clusters
 exploring-mcp-sessions
 exploring-mcp-tool-quality
 exploring-signals-scouts
+exporting-session-recordings
 feature-usage-feed
 finding-deleted-feature-flags
 finding-experiments
@@ -70,6 +71,7 @@ setting-up-a-data-warehouse-source
 signals
 signals-scout-ai-observability
 signals-scout-anomaly-detection
+signals-scout-apm
 signals-scout-csp-violations
 signals-scout-customer-analytics
 signals-scout-data-pipelines
