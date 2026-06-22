@@ -237,7 +237,7 @@ The [`PostHogConfig` object](https://github.com/PostHog/posthog-ios/blob/main/Po
 | Attribute | Description |
 | --- | --- |
 | flushAtType: IntegerDefault: 20 (5 on tvOS) | The number of queued events that the posthog client should flush at. Setting this to 1 will not queue any events and will use more battery. |
-| flushIntervalSecondsType: IntegerDefault: 30 | The amount of time to wait before each tick of the flush timer. Smaller values will make events delivered in a more real-time manner and also use more battery. A value smaller than 10 seconds will seriously degrade overall performance. |
+| flushIntervalSecondsType: TimeIntervalDefault: 30 | The amount of time to wait before each tick of the flush timer, in seconds. Smaller values will make events delivered in a more real-time manner and also use more battery. A value smaller than 10 seconds will seriously degrade overall performance. |
 | maxQueueSizeType: IntegerDefault: 1000 (100 on tvOS) | The maximum number of items to queue before starting to drop old ones. This should be a value greater than zero, the behavior is undefined otherwise. |
 | maxBatchSizeType: IntegerDefault: 50 | Number of maximum events in a batch call. |
 | maxRetriesType: IntegerDefault: 3 | Maximum number of consecutive flush attempts before the entire queue is dropped to avoid infinite retries against a permanently-broken backend (e.g. wrong API key, exhausted quota, deterministic 5xx). Increments on every retriable failure including HTTP 413 cap halving; resets on a successful 2xx response. |
@@ -248,17 +248,17 @@ The [`PostHogConfig` object](https://github.com/PostHog/posthog-ios/blob/main/Po
 | rageClickConfigType: ObjectDefault: .init() | (iOS/macCatalyst, UIKit) Rage click detection configuration. Includes enabled (default true), minimumTapCount (default 3), thresholdPoints (default 30), and timeoutInterval (default 1.0). Works independently of captureElementInteractions. Available in version 3.51.0+. |
 | sendFeatureFlagEventType: BooleanDefault: true | Send a $feature_flag_called event when a feature flag is used automatically. |
 | preloadFeatureFlagsType: BooleanDefault: true | Preload feature flags automatically. |
-| evaluationContextsType: Array of StringsDefault: undefined | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. See [evaluation contexts documentation](/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 3.34.0+. The legacy parameter evaluationEnvironments (version 3.33.0+) is also supported for backward compatibility. |
+| evaluationContextsType: Array of StringsDefault: undefined | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. See [evaluation contexts documentation](/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 3.38.0+. The legacy parameter evaluationEnvironments (version 3.33.0+) is also supported for backward compatibility. |
 | debugType: BooleanDefault: false | Logs the SDK messages to the Xcode console. |
 | optOutType: BooleanDefault: false | Prevents capturing any data if enabled. |
 | getAnonymousIdType: FunctionDefault: undefined | Hook that allows for modification of the default mechanism for generating anonymous id (which as of now is just random UUID v7). |
-| dataModeType: EnumDefault: .any | Allows to send your data only if the data mode matches your configuration such as wifi only, cellular only or any. |
+| dataModeType: EnumDefault: .any | Controls when queued data is flushed. Use .wifi to flush only on Wi-Fi; .cellular is a legacy value and behaves like .any. |
 | personProfilesType: EnumDefault: .identifiedOnly | Determines the behavior for processing user profiles. |
 | setDefaultPersonPropertiesType: BooleanDefault: true | Automatically set common device and app properties (such as $app_version, $os_name, and $device_type) as person properties for feature flag evaluation. See [property overrides](/docs/feature-flags/property-overrides.md) for more details. |
 | sessionReplayType: BooleanDefault: false | Enable Recording of Session Replays. |
 | sessionReplayConfigType: ObjectDefault: .init() | Session Replay configuration. See [Session Replay installation](/docs/session-replay/installation/ios.md) for more details. |
 | tracingHeadersType: Array of StringsDefault: nil | Exact hostnames that should receive PostHog tracing headers when the SDK instruments URLSession requests. |
-| errorTrackingConfigType: ObjectDefault: .init() | Error Tracking configuration. See [Error Tracking installation](/docs/error-tracking/installation/ios.md) for more details. |
+| errorTrackingConfigType: ObjectDefault: .init() | Error Tracking configuration. See the [error tracking docs](/docs/error-tracking.md) for more details. |
 | logsType: ObjectDefault: .init() | Structured Logs configuration. See [Logs installation](/docs/logs/installation/ios.md) for more details. |
 | surveysConfigType: ObjectDefault: .init() | Surveys configuration, including custom survey delegates and display language overrides. |
 | urlSessionConfigurationType: URLSessionConfigurationDefault: .default | Custom URLSessionConfiguration used by the SDK for PostHog API requests. |

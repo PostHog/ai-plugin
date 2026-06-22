@@ -28,6 +28,8 @@ Follow the guides below to set up your logging client:
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/flutter.svg)Flutter](/docs/logs/installation/flutter.md)
 
+-   [![](https://res.cloudinary.com/dmukukwp6/image/upload/rails_581d31c82d.svg)Ruby on Rails](/docs/logs/installation/ruby-on-rails.md)
+
 -   [Datadog](/docs/logs/installation/datadog.md)
 
 -   [Other languages](/docs/logs/installation/other.md)

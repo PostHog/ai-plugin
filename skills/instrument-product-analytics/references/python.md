@@ -780,7 +780,7 @@ def scrub_pii(event: dict[str, Any]) -> dict[str, Any] | None:
         return None
     return event
 client = posthog.Client(
-    api_key="<ph_project_api_key>",
+    "<ph_project_api_key>",
     before_send=scrub_pii,
 )
 ```

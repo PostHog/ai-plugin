@@ -22,6 +22,7 @@ Or, to integrate manually, continue with the rest of this guide.
 -   **Smart filtering** – Excludes common Rails exceptions (404s, etc.) by default
 -   **Request context** – Adds request metadata and optional PostHog tracing header identity/session context to captured events
 -   **Rails 7.0+ error reporter** – Integrates with Rails' built-in error reporting
+-   **Log forwarding** – Optionally forwards `Rails.logger` output to [PostHog Logs](/docs/logs.md) over OpenTelemetry, automatically correlated with request context (Ruby 3.3+)
 
 ## Installation
 
@@ -32,7 +33,7 @@ Gemfile
 PostHog AI
 
 ```ruby
-gem 'posthog-ruby'
+gem 'posthog-ruby', require: 'posthog'
 gem 'posthog-rails'
 ```
 
@@ -206,6 +207,10 @@ PostHog AI
 ```ruby
 PostHog::Rails.config.use_tracing_headers = false
 ```
+
+## Logs
+
+To set up [PostHog Logs](/docs/logs.md) in your Rails app, follow the [Ruby on Rails logs installation guide](/docs/logs/installation/ruby-on-rails.md). The integration forwards `Rails.logger` output to PostHog Logs over OpenTelemetry, automatically correlated with each request's distinct ID and session ID. Requires Ruby 3.3+.
 
 ## Error tracking
 

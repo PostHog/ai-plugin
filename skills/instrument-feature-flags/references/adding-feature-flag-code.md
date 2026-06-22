@@ -11,10 +11,11 @@ Web
 PostHog AI
 
 ```javascript
-if (posthog.isFeatureEnabled('flag-key') ) {
+const result = posthog.getFeatureFlagResult('flag-key')
+if (result?.enabled) {
     // Do something differently for this user
-    // Optional: fetch the payload
-    const matchedFlagPayload = posthog.getFeatureFlagResult('flag-key')?.payload
+    // Optional: fetch the payload from the same evaluation result
+    const matchedFlagPayload = result?.payload
 }
 ```
 
@@ -25,10 +26,11 @@ Web
 PostHog AI
 
 ```javascript
-if (posthog.getFeatureFlag('flag-key')  == 'variant-key') { // replace 'variant-key' with the key of your variant
+const result = posthog.getFeatureFlagResult('flag-key')
+if (result?.variant == 'variant-key') { // replace 'variant-key' with the key of your variant
     // Do something differently for this user
-    // Optional: fetch the payload
-    const matchedFlagPayload = posthog.getFeatureFlagResult('flag-key')?.payload
+    // Optional: fetch the payload from the same evaluation result
+    const matchedFlagPayload = result?.payload
 }
 ```
 
@@ -662,7 +664,7 @@ Simply include any of these properties in the `person_properties` parameter alon
 
 ### Request timeout
 
-You can configure the `feature_flag_request_timeout_ms` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked if PostHog's servers are too slow to respond. By default, this is set to 3 seconds.
+You can configure the `featureFlagsRequestTimeoutMs` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked if PostHog's servers are too slow to respond. By default, this is set to 3 seconds.
 
 JavaScript
 
@@ -670,8 +672,8 @@ PostHog AI
 
 ```javascript
 const client = new PostHog('<ph_project_token>', {
-    api_host: 'https://us.i.posthog.com',
-    feature_flag_request_timeout_ms: 3000, // Time in milliseconds. Defaults to 3000 (3 seconds).
+    host: 'https://us.i.posthog.com',
+    featureFlagsRequestTimeoutMs: 3000, // Time in milliseconds. Defaults to 3000 (3 seconds).
 })
 ```
 
@@ -1585,12 +1587,13 @@ Go
 PostHog AI
 
 ```go
+// import "time"
 client, _ := posthog.NewWithConfig(
     os.Getenv("<ph_project_token>"),
     posthog.Config{
         PersonalApiKey:            "your personal API key", // Optional, but much more performant. If this token is not supplied, then fetching feature flag values will be slower.
         Endpoint:                  "https://us.i.posthog.com",
-        FeatureFlagRequestTimeout: 3, // Time in seconds. Defaults to 3.
+        FeatureFlagRequestTimeout: 3 * time.Second, // Defaults to 3 seconds.
     },
 )
 ```
@@ -1866,10 +1869,11 @@ PostHog AI
 
 ```kotlin
 import com.posthog.PostHog
-if (PostHog.isFeatureEnabled("flag-key")) {
+val result = PostHog.getFeatureFlagResult("flag-key")
+if (result?.enabled == true) {
     // Do something differently for this user
-    // Optional: fetch the payload
-    val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key")?.payload
+    // Optional: fetch the payload from the same evaluation result
+    val matchedFlagPayload = result.payload
 }
 ```
 
@@ -1881,31 +1885,17 @@ PostHog AI
 
 ```kotlin
 import com.posthog.PostHog
-if (PostHog.getFeatureFlag("flag-key") == "variant-key") { // replace 'variant-key' with the key of your variant
-    // Do something differently for this user
-    // Optional: fetch the payload
-    val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key")?.payload
-}
-```
-
-### Feature flag values and payloads together
-
-If you need both the flag value and payload, use `getFeatureFlagResult` so both values come from the same evaluation result.
-
-Kotlin
-
-PostHog AI
-
-```kotlin
-import com.posthog.PostHog
 val result = PostHog.getFeatureFlagResult("flag-key")
-if (result?.value == "variant-key") {
-    val payload = result.payload
-    // Do something with the variant and payload
+if (result?.variant == "variant-key") { // replace "variant-key" with the key of your variant
+    // Do something differently for this user
+    // Optional: fetch the payload from the same evaluation result
+    val matchedFlagPayload = result.payload
 }
 ```
 
-You can also inspect all currently loaded feature flag results with `PostHog.getAllFeatureFlags()`.
+### Inspecting all feature flags
+
+You can inspect all currently loaded feature flags with `PostHog.getAllFeatureFlags()`.
 
 ### Ensuring flags are loaded before usage
 
@@ -2605,7 +2595,7 @@ PostHog AI
 
 ```elixir
 {:ok, snapshot} = PostHog.FeatureFlags.evaluate_flags("distinct_id_of_your_user")
-# Attach only flags accessed with enabled?/2, get_flag/2, or get_flag_payload/2 before this call
+# Attach only flags accessed with enabled?/2 or get_flag/2 before this call
 PostHog.FeatureFlags.Evaluations.enabled?(snapshot, "flag-key")
 PostHog.FeatureFlags.set_in_context(
   PostHog.FeatureFlags.Evaluations.only_accessed(snapshot)
@@ -2616,7 +2606,7 @@ PostHog.FeatureFlags.set_in_context(
 )
 ```
 
-`only_accessed/1` is order-dependent. If you call it before accessing any flags with `enabled?/2`, `get_flag/2`, or `get_flag_payload/2`, no feature flag properties are attached.
+`only_accessed/1` is order-dependent. If you call it before accessing any flags with `enabled?/2` or `get_flag/2`, no feature flag properties are attached.
 
 #### Method 2: Include the `$feature/feature_flag_name` property manually
 

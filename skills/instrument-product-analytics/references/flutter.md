@@ -439,7 +439,7 @@ config.personProfiles = PostHogPersonProfiles.identifiedOnly;
 
 ### How to capture identified events
 
-If you've set the [`personProfiles` config](/docs/libraries/flutter.md#person-profiles-anonymous-vs-identified-persons) to `IDENTIFIED_ONLY` (the default option), anonymous events are captured by default. Then, to capture identified events, call any of the following functions:
+If you've set the [`personProfiles` config](/docs/libraries/flutter.md#person-profiles-anonymous-vs-identified-persons) to `PostHogPersonProfiles.identifiedOnly` (the default option), anonymous events are captured by default. Then, to capture identified events, call any of the following functions:
 
 -   [`identify()`](/docs/product-analytics/identify.md)
 -   [`alias()`](/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user)
@@ -447,7 +447,7 @@ If you've set the [`personProfiles` config](/docs/libraries/flutter.md#person-pr
 
 When you call any of these functions, it creates a [person profile](/docs/data/persons.md) for the user. Once this profile is created, all subsequent events for this user will be captured as identified events.
 
-Alternatively, you can set `personProfiles` to `ALWAYS` to capture identified events by default.
+Alternatively, you can set `personProfiles` to `PostHogPersonProfiles.always` to capture identified events by default.
 
 ## Super properties
 
@@ -592,7 +592,7 @@ It's also possible to [run experiments without using feature flags](/docs/experi
 
 ## Error tracking
 
-To set up error tracking in your project, follow the [Flutter installation guide](/docs/error-tracking/installation/flutter.md).
+To set up error tracking in your project, see the [error tracking docs](/docs/error-tracking.md).
 
 ## Logs
 

@@ -296,7 +296,7 @@ PostHogSDK.shared.setup(config)
 
 ### How to capture identified events
 
-If you've set the [`personProfiles` config](/docs/libraries/ios/configuration.md#all-configuration-options) to `IDENTIFIED_ONLY` (the default option), anonymous events are captured by default. Then, to capture identified events, call any of the following functions:
+If you've set the [`personProfiles` config](/docs/libraries/ios/configuration.md#all-configuration-options) to `.identifiedOnly` (the default option), anonymous events are captured by default. Then, to capture identified events, call any of the following functions:
 
 -   [`identify()`](/docs/product-analytics/identify.md)
 -   [`alias()`](/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user)
@@ -304,7 +304,7 @@ If you've set the [`personProfiles` config](/docs/libraries/ios/configuration.md
 
 When you call any of these functions, it creates a [person profile](/docs/data/persons.md) for the user. Once this profile is created, all subsequent events for this user will be captured as identified events.
 
-Alternatively, you can set `personProfiles` to `ALWAYS` to capture identified events by default.
+Alternatively, you can set `personProfiles` to `.always` to capture identified events by default.
 
 ## Setting person properties
 
@@ -541,6 +541,10 @@ To set up [session replay](/docs/session-replay/mobile.md) in your project, all 
 ## Surveys
 
 [Surveys](/docs/surveys.md) launched with [popover presentation](/docs/surveys/creating-surveys.md#presentation) are automatically shown to users matching the [display conditions](/docs/surveys/creating-surveys.md#display-conditions) you set up.
+
+## Error tracking
+
+To set up error tracking in your project, see the [error tracking docs](/docs/error-tracking.md).
 
 ## Debug mode
 

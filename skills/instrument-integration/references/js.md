@@ -145,7 +145,7 @@ PostHog AI
 import posthog from 'posthog-js/dist/module.no-external'
 // No external code loading possible but all external dependencies pre-bundled
 import posthog from 'posthog-js/dist/module.full.no-external'
-// All external dependencies pre-bundled and with the ability to load external scripts (primarily useful is you use Site Apps)
+// All external dependencies pre-bundled and with the ability to load external scripts (primarily useful is you use JS snippets)
 import posthog from 'posthog-js/dist/module.full'
 // Finally you can also import specific extra dependencies
 import "posthog-js/dist/posthog-recorder"
@@ -196,7 +196,7 @@ posthog.init('<ph_project_token>', {
 | ErrorTrackingExtensions | [Error Tracking](/docs/error-tracking.md) |
 | SurveysExtensions | [Surveys](/docs/surveys.md) |
 | ExperimentsExtensions | [Experiments](/docs/experiments.md) |
-| SiteAppsExtensions | [Site apps](/docs/site-apps.md) |
+| SiteAppsExtensions | [JS snippets](/docs/js-snippets.md) |
 | TracingExtensions | Distributed tracing header injection |
 | ToolbarExtensions | [Toolbar](/docs/toolbar.md) |
 | LogsExtensions | [Log capture](/docs/logs.md) |

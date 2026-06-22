@@ -375,8 +375,8 @@ PostHog AI
 
 ```kotlin
 val config = PostHogAndroidConfig(
-    apiKey = <ph_project_token>,
-    host = https://us.i.posthog.com
+    apiKey = "<ph_project_token>",
+    host = "https://us.i.posthog.com"
 )
 config.optOut = true
 PostHogAndroid.setup(this, config)
@@ -468,10 +468,11 @@ PostHog AI
 
 ```kotlin
 import com.posthog.PostHog
-if (PostHog.isFeatureEnabled("flag-key")) {
+val result = PostHog.getFeatureFlagResult("flag-key")
+if (result?.enabled == true) {
     // Do something differently for this user
-    // Optional: fetch the payload
-    val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key")?.payload
+    // Optional: fetch the payload from the same evaluation result
+    val matchedFlagPayload = result.payload
 }
 ```
 
@@ -483,31 +484,17 @@ PostHog AI
 
 ```kotlin
 import com.posthog.PostHog
-if (PostHog.getFeatureFlag("flag-key") == "variant-key") { // replace 'variant-key' with the key of your variant
-    // Do something differently for this user
-    // Optional: fetch the payload
-    val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key")?.payload
-}
-```
-
-### Feature flag values and payloads together
-
-If you need both the flag value and payload, use `getFeatureFlagResult` so both values come from the same evaluation result.
-
-Kotlin
-
-PostHog AI
-
-```kotlin
-import com.posthog.PostHog
 val result = PostHog.getFeatureFlagResult("flag-key")
-if (result?.value == "variant-key") {
-    val payload = result.payload
-    // Do something with the variant and payload
+if (result?.variant == "variant-key") { // replace "variant-key" with the key of your variant
+    // Do something differently for this user
+    // Optional: fetch the payload from the same evaluation result
+    val matchedFlagPayload = result.payload
 }
 ```
 
-You can also inspect all currently loaded feature flag results with `PostHog.getAllFeatureFlags()`.
+### Inspecting all feature flags
+
+You can inspect all currently loaded feature flags with `PostHog.getAllFeatureFlags()`.
 
 ### Ensuring flags are loaded before usage
 
@@ -625,7 +612,7 @@ The `name` is a special property which is used in the PostHog UI for the name of
 
 ## Error tracking
 
-To set up error tracking in your project, follow the [Android installation guide](/docs/error-tracking/installation/android.md).
+To set up error tracking in your project, see the [error tracking docs](/docs/error-tracking.md).
 
 ## Logs
 
@@ -728,7 +715,7 @@ val config = PostHogAndroidConfig(
 | getAnonymousId | generated UUID | Optional hook to customize anonymous ID generation. |
 | reuseAnonymousId | false | Reuses one anonymous ID across user changes on the same device. |
 | personProfiles | PersonProfiles.IDENTIFIED_ONLY | Controls when person profiles are processed: IDENTIFIED_ONLY, ALWAYS, or NEVER. |
-| setDefaultPersonProperties | true | Includes default person properties for person profile updates. |
+| setDefaultPersonProperties | true | Includes default device and app properties in feature flag evaluation requests. |
 | releaseIdentifier | app/version fallback | Release identifier used by error tracking and uploaded ProGuard/R8 mappings. The Android Gradle plugin can inject this automatically. |
 | tracingHeaders | null | Exact hostnames that should receive PostHog tracing headers when using PostHogOkHttpInterceptor. |
 
@@ -739,7 +726,7 @@ val config = PostHogAndroidConfig(
 | sendFeatureFlagEvent | true | Sends $feature_flag_called when a feature flag is evaluated. |
 | featureFlagCalledCacheSize | 1000 | Number of feature flag calls cached for deduplicating $feature_flag_called events. |
 | preloadFeatureFlags | true | Fetches feature flags automatically during setup. |
-| evaluationContexts | null | Context tags that constrain which feature flags are evaluated. Available in version 3.25.0+. |
+| evaluationContexts | null | Context tags that constrain which feature flags are evaluated. Available in version 3.29.1+. The legacy evaluationEnvironments option is available in version 3.24.0+. |
 | onFeatureFlags | null | Callback invoked when feature flags are loaded. |
 
 ### Product configuration objects
