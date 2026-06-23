@@ -50,7 +50,7 @@
           '<ph_project_token>',
           {
             api_host: 'https://us.i.posthog.com',
-            defaults: '2026-01-30'
+            defaults: '2026-05-30'
           }
         )
       }

@@ -65,7 +65,7 @@
     import posthog from 'posthog-js'
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
         api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-        defaults: '2026-01-30'
+        defaults: '2026-05-30'
     })
     ```
 
@@ -87,7 +87,7 @@
       useEffect(() => {
         posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN as string, {
           api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-          defaults: '2026-01-30'
+          defaults: '2026-05-30'
         })
       }, [])
       return (
@@ -138,7 +138,7 @@
       useEffect(() => {
         posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN as string, {
           api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-          defaults: '2026-01-30',
+          defaults: '2026-05-30',
           loaded: (posthog) => {
             if (process.env.NODE_ENV === 'development') posthog.debug()
           }

@@ -83,7 +83,7 @@ import posthog from 'posthog-js';
 import { PostHogProvider } from '@posthog/react'
 posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {
   api_host: import.meta.env.VITE_POSTHOG_HOST,
-  defaults: '2026-01-30',
+  defaults: '2026-05-30',
 });
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -122,7 +122,7 @@ import posthog from 'posthog-js';
 import { PostHogProvider} from '@posthog/react'
 posthog.init(process.env.REACT_APP_PUBLIC_POSTHOG_PROJECT_TOKEN, {
   api_host: process.env.REACT_APP_PUBLIC_POSTHOG_HOST,
-  defaults: '2026-01-30',
+  defaults: '2026-05-30',
   // Optional: send PostHog session/user context to your backend
   tracing_headers: ['api.example.com'],
 });
@@ -503,7 +503,7 @@ PostHog AI
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
-  defaults: '2026-01-30'
+  defaults: '2026-05-30'
   feature_flag_request_timeout_ms: 3000 // Time in milliseconds. Default is 3000 (3 seconds).
 }
 )
