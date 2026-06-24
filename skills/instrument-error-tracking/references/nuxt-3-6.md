@@ -50,7 +50,7 @@
         public: {
           posthogPublicKey: '<ph_project_token>',
           posthogHost: 'https://us.i.posthog.com',
-          posthogDefaults: '2026-01-30'
+          posthogDefaults: '2026-05-30'
         }
       }
     })

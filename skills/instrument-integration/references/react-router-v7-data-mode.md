@@ -74,7 +74,7 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
     import { PostHogProvider } from '@posthog/react'
     posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {
       api_host: import.meta.env.VITE_POSTHOG_HOST,
-      defaults: '2026-01-30',
+      defaults: '2026-05-30',
     });
     const router = createBrowserRouter([...]);
     createRoot(document.getElementById("root")!).render(
@@ -331,7 +331,7 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
     ```jsx
     posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {
       api_host: import.meta.env.VITE_POSTHOG_HOST,
-      defaults: '2026-01-30',
+      defaults: '2026-05-30',
       tracing_headers: [ window.location.hostname, 'localhost' ],
     });
     ```

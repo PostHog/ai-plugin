@@ -78,7 +78,7 @@ PostHog AI
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
-  defaults: '2026-01-30',
+  defaults: '2026-05-30',
   flag_keys: ['checkout-flow', 'new-dashboard'],
 })
 ```
@@ -179,7 +179,7 @@ PostHog AI
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
-  defaults: '2026-01-30'
+  defaults: '2026-05-30'
   feature_flag_request_timeout_ms: 3000 // Time in milliseconds. Default is 3000 (3 seconds).
 })
 ```
@@ -421,7 +421,7 @@ PostHog AI
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
-  defaults: '2026-01-30'
+  defaults: '2026-05-30'
   feature_flag_request_timeout_ms: 3000 // Time in milliseconds. Default is 3000 (3 seconds).
 }
 )

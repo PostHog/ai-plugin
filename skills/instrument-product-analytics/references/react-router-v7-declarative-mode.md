@@ -74,7 +74,7 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
     // Initialize PostHog
     posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {
       api_host: import.meta.env.VITE_POSTHOG_HOST,
-      defaults: '2026-01-30',
+      defaults: '2026-05-30',
     });
     const root = document.getElementById("root");
     ReactDOM.createRoot(root).render(
@@ -343,7 +343,7 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
     ```jsx
     posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {
       api_host: import.meta.env.VITE_POSTHOG_HOST,
-      defaults: '2026-01-30',
+      defaults: '2026-05-30',
       tracing_headers: [ window.location.hostname, 'localhost' ],
     });
     ```
