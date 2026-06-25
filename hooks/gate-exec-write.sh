@@ -37,6 +37,19 @@
 # that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
 # the raw JSON payload is safe.
 
+# Fail open — this gate must never break a Claude Code tool call.
+#
+# The "ask" decision is delivered entirely through the stdout JSON below; the
+# exit code is never used to signal it. So we force every exit path to 0 via an
+# EXIT trap. Any unexpected runtime failure — an unbound variable under `set -u`,
+# a failed builtin, an unusually old bash — then falls through to normal
+# permission flow instead of surfacing as a hook error. Crucially, it can never
+# exit 2, which Claude Code interprets as a hard *block* of the tool call.
+#
+# The one failure a trap can't catch is a parse-time syntax error (the trap
+# isn't installed yet); `tests/test_gate_exec_write.sh` guards that with `bash -n`.
+trap 'exit 0' EXIT
+
 set -u
 
 # Codex compatibility: Codex's PreToolUse protocol does not support

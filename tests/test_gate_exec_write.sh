@@ -246,6 +246,36 @@ run_case "embedded substring is not a write verb (e.g. updates-feed)" \
     "$(exec_call some-updates-feed)" \
     silent
 
+# --- fail-open contract: the hook must never break a tool call ---
+#
+# The hook signals "ask" only via stdout JSON + exit 0. Every other path must
+# also exit 0 so a hook failure can never reach Claude Code as exit 2 — which it
+# treats as a hard *block* of the user's tool call.
+
+# The only thing that can make the hook exit 2 is a parse-time syntax error,
+# which the runtime EXIT trap cannot catch. Guard it here.
+if bash -n "$HOOK" 2>/dev/null; then
+    pass=$((pass + 1)); printf "  ok   hook passes 'bash -n' syntax check\n"
+else
+    fail=$((fail + 1)); printf "  FAIL hook has a syntax error ('bash -n')\n"
+fi
+
+# No input, however malformed, may yield exit code 2 (block). Fail open instead.
+for _payload in \
+    '' \
+    'not json at all {{{' \
+    '{"tool_name":"mcp__posthog__exec"}' \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call ' \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call delete-feature-flag {}"}}'
+do
+    env -i PATH="$PATH" bash "$HOOK" <<<"$_payload" >/dev/null 2>&1
+    if (( $? != 2 )); then
+        pass=$((pass + 1)); printf "  ok   never exits 2 (block) for: %q\n" "$_payload"
+    else
+        fail=$((fail + 1)); printf "  FAIL exited 2 (would block) for: %q\n" "$_payload"
+    fi
+done
+
 # --- summary ---
 
 echo
