@@ -16,7 +16,6 @@ SELECT
     uniqMerge(ev.sessions_state) AS sessions,
     uniqMerge(ev.users_state) AS users,
     sumForEach(arrayMap(i -> if(equals(ev.bin_idx, i), ev.occ, _toUInt64(0)), range(0, 20))) AS volumeRange,
-    argMinMerge(ev.first_event_uuid_state) AS first_event_uuid,
     argMaxMerge(ev.library_state) AS library
 FROM
     (SELECT
@@ -25,15 +24,14 @@ FROM
         argMaxState(properties.$exception_functions.-1, timestamp) AS function_state,
         argMaxState(properties.$exception_sources.-1, timestamp) AS source_state,
         argMaxState(properties.$lib, timestamp) AS library_state,
-        least(19, intDiv(dateDiff('seconds', toDateTime(toDateTime('2026-06-21 07:09:26.002999')), timestamp), greatest(1, intDiv(dateDiff('seconds', toDateTime(toDateTime('2026-06-21 07:09:26.002999')), toDateTime(toDateTime('2026-06-22 07:09:26.004646'))), 20)))) AS bin_idx,
+        least(19, intDiv(dateDiff('seconds', toDateTime(toDateTime('2026-06-24 06:02:51.846967')), timestamp), greatest(1, intDiv(dateDiff('seconds', toDateTime(toDateTime('2026-06-24 06:02:51.846967')), toDateTime(toDateTime('2026-06-25 06:02:51.848558'))), 20)))) AS bin_idx,
         count() AS occ,
         uniqState(nullIf(e.$session_id, '')) AS sessions_state,
-        uniqState(coalesce(nullIf(toString(e.person_id), '00000000-0000-0000-0000-000000000000'), e.distinct_id)) AS users_state,
-        argMinState(e.uuid, e.timestamp) AS first_event_uuid_state
+        uniqState(coalesce(nullIf(toString(e.person_id), '00000000-0000-0000-0000-000000000000'), e.distinct_id)) AS users_state
     FROM
         events AS e
     WHERE
-        and(equals(e.event, '$exception'), isNotNull(e.properties.$exception_fingerprint), true, greaterOrEquals(e.timestamp, toDateTime(toDateTime('2026-06-21 07:09:26.002999'))), lessOrEquals(e.timestamp, toDateTime(toDateTime('2026-06-22 07:09:26.004646'))), or(greater(position(lower(e.properties.$exception_types), lower('constant')), 0), greater(position(lower(e.properties.$exception_values), lower('constant')), 0), greater(position(lower(e.properties.$exception_sources), lower('constant')), 0), greater(position(lower(e.properties.$exception_functions), lower('constant')), 0), greater(position(lower(e.properties.email), lower('constant')), 0), greater(position(lower(e.person.properties.email), lower('constant')), 0)), equals(properties.tag, 'max_ai'))
+        and(equals(e.event, '$exception'), isNotNull(e.properties.$exception_fingerprint), true, greaterOrEquals(e.timestamp, toDateTime(toDateTime('2026-06-24 06:02:51.846967'))), lessOrEquals(e.timestamp, toDateTime(toDateTime('2026-06-25 06:02:51.848558'))), or(greater(position(lower(e.properties.$exception_types), lower('constant')), 0), greater(position(lower(e.properties.$exception_values), lower('constant')), 0), greater(position(lower(e.properties.$exception_sources), lower('constant')), 0), greater(position(lower(e.properties.$exception_functions), lower('constant')), 0), greater(position(lower(e.properties.email), lower('constant')), 0), greater(position(lower(e.person.properties.email), lower('constant')), 0)), equals(properties.tag, 'max_ai'))
     GROUP BY
         fp_hash,
         bin_idx) AS ev

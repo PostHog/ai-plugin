@@ -82,7 +82,7 @@ PostHog AI
 import posthog from 'posthog-js'
 posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
   api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-  defaults: '2026-01-30'
+  defaults: '2026-05-30'
 });
 ```
 
@@ -92,7 +92,7 @@ posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
 import posthog from 'posthog-js'
 posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
   api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-  defaults: '2026-01-30'
+  defaults: '2026-05-30'
 });
 ```
 
@@ -131,7 +131,7 @@ This makes it possible to track users across their entire journey (e.g. from vis
 
 Add IPs to Firewall/WAF allowlists (recommended)
 
-For certain features like [heatmaps](/docs/toolbar/heatmaps.md), your Web Application Firewall (WAF) may be blocking PostHog’s requests to your site. Add these IP addresses to your WAF allowlist or rules to let PostHog access your site.
+For certain features like [heatmaps](/docs/toolbar/heatmaps.md), your Web Application Firewall (WAF) may be blocking PostHog's requests to your site. Add these IP addresses to your WAF allowlist or rules to let PostHog access your site.
 
 **EU**: `3.75.65.221`, `18.197.246.42`, `3.120.223.253`
 
