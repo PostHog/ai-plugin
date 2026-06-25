@@ -55,7 +55,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           apiKey="<ph_project_token>"
           options={{
             api_host: 'https://us.i.posthog.com',
-            defaults: '2026-01-30',
+            defaults: '2026-05-30',
             capture_exceptions: true
           }}
         >

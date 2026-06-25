@@ -1,3 +1,4 @@
+analysing-exported-session-recordings
 analyzing-experiment-session-replays
 assessing-heatmaps
 auditing-endpoints
@@ -43,6 +44,7 @@ exploring-mcp-tool-quality
 exploring-signals-scouts
 exporting-session-recordings
 feature-usage-feed
+filtering-bot-traffic
 finding-deleted-feature-flags
 finding-experiments
 finding-replay-for-issue

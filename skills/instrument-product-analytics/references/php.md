@@ -422,7 +422,7 @@ PostHog::init(
 );
 ```
 
-For details on how to implement local evaluation, see our [local evaluation guide](/docs/feature-flags/local-evaluation.md).
+For details on how to implement local evaluation, see our [local evaluation guide](/docs/feature-flags/local-evaluation.md). For distributed or stateless PHP applications, use `flag_definition_cache_provider` to share flag definitions across workers or requests. See [local evaluation in distributed environments](/docs/feature-flags/local-evaluation/distributed-environments?tab=PHP.md).
 
 ### Experiments (A/B tests)
 
@@ -584,6 +584,7 @@ All possible options below:
 | timeoutType: IntegerDefault: 10000 | Request timeout in milliseconds. |
 | verify_batch_events_requestType: BooleanDefault: true | Whether to verify successful delivery of batch events (true, synchronous) or fire and forget (false, asynchronous) with the lib_curl consumer. |
 | feature_flag_request_timeout_msType: IntegerDefault: 3000 | Request timeout for feature flags in milliseconds. |
+| flag_definition_cache_providerType: PostHog\\FlagDefinitionCacheProviderDefault: null | Provider for distributed local-evaluation flag definition caching. See [local evaluation in distributed environments](/docs/feature-flags/local-evaluation/distributed-environments?tab=PHP.md). |
 | maximum_backoff_durationType: IntegerDefault: 10000 | Request retry backoff. Retries stop after this duration is hit. |
 | consumerType: StringDefault: lib_curl | One of socket, file, lib_curl, fork_curl, and noop. Determines what transport option to use for analytics capture. |
 | debugType: BooleanDefault: false | Output debug logs or not. |
@@ -603,6 +604,18 @@ All possible options below:
 | excluded_exceptionsType: Array of class stringsDefault: [] | Throwable classes to skip during automatic capture. |
 | max_framesType: IntegerDefault: 20 | Maximum number of stack frames included in $exception_list. |
 | context_providerType: Callable or nullDefault: null | Callback that returns distinctId and extra event properties for automatic captures. |
+
+## Flushing and shutting down
+
+Call `PostHog::flush()` to send queued events without closing resources. When a script or long-running worker stops, call `PostHog::shutdown()` instead; it flushes queued events and releases resources held by providers such as `flag_definition_cache_provider`.
+
+PHP
+
+PostHog AI
+
+```php
+PostHog::shutdown();
+```
 
 ## Debug mode
 
