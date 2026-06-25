@@ -88,71 +88,125 @@ run_case "read-only call with allowlist set is still silent" \
     silent "" \
     POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*"
 
-# --- write cases without allowlist (should prompt) ---
+# --- default deny set: sensitive writes prompt, other writes are silent ---
 
-run_case "write call (experiment-update) prompts" \
-    "$(exec_call experiment-update)" \
-    prompt experiment-update
+run_case "default: feature-flag write (create-feature-flag) prompts" \
+    "$(exec_call create-feature-flag)" \
+    prompt create-feature-flag
 
-run_case "write call (notebooks-destroy) prompts" \
+run_case "default: feature-flag write (update-feature-flag) prompts" \
+    "$(exec_call update-feature-flag)" \
+    prompt update-feature-flag
+
+run_case "default: feature-flag bulk write prompts" \
+    "$(exec_call feature-flags-bulk-update-tags-create)" \
+    prompt feature-flags-bulk-update-tags-create
+
+run_case "default: destroy write (notebooks-destroy) prompts" \
     "$(exec_call notebooks-destroy)" \
     prompt notebooks-destroy
 
-run_case "write call (cdp-functions-delete) prompts" \
+run_case "default: delete write (cdp-functions-delete) prompts" \
     "$(exec_call cdp-functions-delete)" \
     prompt cdp-functions-delete
 
-run_case "write call via plugin-prefixed exec name prompts" \
-    "$(exec_call llma-skill-update mcp__posthog_posthog__exec)" \
-    prompt llma-skill-update
+run_case "default: non-sensitive write (experiment-update) is silent" \
+    "$(exec_call experiment-update)" \
+    silent
 
-run_case "write call with --json flag still extracts tool" \
-    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --json experiment-update {\"id\":1}"}}' \
-    prompt experiment-update
-
-run_case "empty POSTHOG_MCP_EXEC_GATE_ALLOW behaves as unset" \
+run_case "default: non-sensitive write (llma-skill-update) is silent" \
     "$(exec_call llma-skill-update)" \
-    prompt llma-skill-update \
-    POSTHOG_MCP_EXEC_GATE_ALLOW=""
+    silent
 
-# --- write cases with allowlist (should be silent on match) ---
+run_case "default: feature-flag read (feature-flag-get-all) is silent" \
+    "$(exec_call feature-flag-get-all)" \
+    silent
 
-run_case "allowlist glob matches (llma-skill-*)" \
+# --- POSTHOG_MCP_EXEC_GATE_DISABLE turns the gate off entirely ---
+
+run_case "disable=1 silences a sensitive feature-flag write" \
+    "$(exec_call delete-feature-flag)" \
+    silent "" \
+    POSTHOG_MCP_EXEC_GATE_DISABLE="1"
+
+run_case "disable=0 leaves the gate active" \
+    "$(exec_call delete-feature-flag)" \
+    prompt delete-feature-flag \
+    POSTHOG_MCP_EXEC_GATE_DISABLE="0"
+
+# --- POSTHOG_MCP_EXEC_GATE_DENY overrides the default set ---
+
+run_case 'deny="*" restores prompting on every write' \
+    "$(exec_call experiment-update)" \
+    prompt experiment-update \
+    POSTHOG_MCP_EXEC_GATE_DENY="*"
+
+run_case "deny narrowed to feature flags: experiment-update is silent" \
+    "$(exec_call experiment-update)" \
+    silent "" \
+    POSTHOG_MCP_EXEC_GATE_DENY="*feature-flag*"
+
+run_case "deny narrowed to feature flags: create-feature-flag prompts" \
+    "$(exec_call create-feature-flag)" \
+    prompt create-feature-flag \
+    POSTHOG_MCP_EXEC_GATE_DENY="*feature-flag*"
+
+run_case "empty POSTHOG_MCP_EXEC_GATE_DENY falls back to default set" \
+    "$(exec_call notebooks-destroy)" \
+    prompt notebooks-destroy \
+    POSTHOG_MCP_EXEC_GATE_DENY=""
+
+run_case "deny with --json flag still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --json delete-feature-flag {\"id\":1}"}}' \
+    prompt delete-feature-flag
+
+run_case "sensitive write via plugin-prefixed exec name prompts" \
+    "$(exec_call delete-feature-flag mcp__posthog_posthog__exec)" \
+    prompt delete-feature-flag
+
+# --- allowlist wins over the deny set (silent on match) ---
+
+run_case "allowlist glob matches (feature-flag-*) over default deny" \
+    "$(exec_call create-feature-flag)" \
+    silent "" \
+    POSTHOG_MCP_EXEC_GATE_ALLOW="create-feature-flag"
+
+run_case "allowlist glob matches (llma-skill-*) under deny=*" \
     "$(exec_call llma-skill-update)" \
     silent "" \
-    POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*"
+    POSTHOG_MCP_EXEC_GATE_DENY="*" POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*"
 
 run_case "allowlist glob matches multiple skill writes (file-create)" \
     "$(exec_call llma-skill-file-create)" \
     silent "" \
-    POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*"
+    POSTHOG_MCP_EXEC_GATE_DENY="*" POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*"
 
 run_case "allowlist exact match" \
     "$(exec_call annotation-create)" \
     silent "" \
-    POSTHOG_MCP_EXEC_GATE_ALLOW="annotation-create"
+    POSTHOG_MCP_EXEC_GATE_DENY="*" POSTHOG_MCP_EXEC_GATE_ALLOW="annotation-create"
 
 run_case "allowlist multi-entry with whitespace" \
     "$(exec_call llma-skill-update)" \
     silent "" \
-    POSTHOG_MCP_EXEC_GATE_ALLOW=" annotation-create , llma-skill-update "
+    POSTHOG_MCP_EXEC_GATE_DENY="*" POSTHOG_MCP_EXEC_GATE_ALLOW=" annotation-create , llma-skill-update "
 
 run_case "allowlist ? glob matches single char" \
     "$(exec_call experiment-end)" \
     silent "" \
-    POSTHOG_MCP_EXEC_GATE_ALLOW="experiment-en?"
+    POSTHOG_MCP_EXEC_GATE_DENY="*" POSTHOG_MCP_EXEC_GATE_ALLOW="experiment-en?"
 
-# --- write cases with non-matching allowlist (should still prompt) ---
+# --- non-matching allowlist still prompts ---
 
-run_case "non-matching allowlist still prompts" \
-    "$(exec_call llma-skill-update)" \
-    prompt llma-skill-update \
+run_case "non-matching allowlist still prompts a feature-flag write" \
+    "$(exec_call create-feature-flag)" \
+    prompt create-feature-flag \
     POSTHOG_MCP_EXEC_GATE_ALLOW="annotation-*"
 
-run_case "allowlist does not bypass an unrelated write tool" \
-    "$(exec_call experiment-update)" \
-    prompt experiment-update \
-    POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*,annotation-create"
+run_case "empty POSTHOG_MCP_EXEC_GATE_ALLOW behaves as unset" \
+    "$(exec_call create-feature-flag)" \
+    prompt create-feature-flag \
+    POSTHOG_MCP_EXEC_GATE_ALLOW=""
 
 # --- regex word-boundary cases ---
 
