@@ -56,11 +56,30 @@ if [[ -n "${POSTHOG_MCP_EXEC_GATE_DISABLE:-}" && "${POSTHOG_MCP_EXEC_GATE_DISABL
     exit 0
 fi
 
-# Default set of write tools that prompt. Comma-separated bash globs. Covers the
-# sensitive surface — feature-flag writes and any delete/destroy — and is
-# overridden wholesale by POSTHOG_MCP_EXEC_GATE_DENY when that is set. Use
+# Default set of write tools that prompt. Comma-separated bash globs, grounded in
+# the live PostHog MCP tool registry. Covers the genuinely sensitive surface:
+#
+#   *feature-flag*  — feature-flag rollout writes: create-feature-flag,
+#                     update-feature-flag, delete-feature-flag,
+#                     feature-flags-bulk-{delete,update-tags}-create,
+#                     feature-flags-copy-flags-create
+#   *delete*        — any deletion: insight-delete, dashboard-delete,
+#                     cdp-functions-delete, persons-bulk-delete,
+#                     external-data-schemas-delete-data, session-recording-delete, …
+#   *destroy*       — any destroy: notebooks-destroy, accounts-destroy,
+#                     experiment-saved-metrics-destroy, agent-applications-destroy, …
+#   experiment-launch / experiment-ship-variant / experiment-reset
+#                   — start exposing users / roll a variant to everyone / wipe results
+#   survey-launch   — start showing a survey to real users
+#   workflows-enable — activate a user-facing automation
+#
+# Deliberately silent by default (lower blast radius / easily reverted): routine
+# create & update (insight, dashboard, annotation, cohort, alert, skill, …),
+# experiment-pause/resume/end, survey-stop, persons-property-set,
+# error-tracking-issues-merge/split. Add any of these via
+# POSTHOG_MCP_EXEC_GATE_DENY, which overrides this set wholesale; use
 # POSTHOG_MCP_EXEC_GATE_DENY="*" to restore prompting on every write.
-DEFAULT_DENY='*feature-flag*,*delete*,*destroy*'
+DEFAULT_DENY='*feature-flag*,*delete*,*destroy*,experiment-launch,experiment-ship-variant,experiment-reset,survey-launch,workflows-enable'
 
 input="$(cat)"
 

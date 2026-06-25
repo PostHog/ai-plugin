@@ -110,8 +110,32 @@ run_case "default: delete write (cdp-functions-delete) prompts" \
     "$(exec_call cdp-functions-delete)" \
     prompt cdp-functions-delete
 
+run_case "default: rollout write (experiment-launch) prompts" \
+    "$(exec_call experiment-launch)" \
+    prompt experiment-launch
+
+run_case "default: rollout write (experiment-ship-variant) prompts" \
+    "$(exec_call experiment-ship-variant)" \
+    prompt experiment-ship-variant
+
+run_case "default: rollout write (survey-launch) prompts" \
+    "$(exec_call survey-launch)" \
+    prompt survey-launch
+
+run_case "default: rollout write (workflows-enable) prompts" \
+    "$(exec_call workflows-enable)" \
+    prompt workflows-enable
+
 run_case "default: non-sensitive write (experiment-update) is silent" \
     "$(exec_call experiment-update)" \
+    silent
+
+run_case "default: reversible lifecycle write (experiment-pause) is silent" \
+    "$(exec_call experiment-pause)" \
+    silent
+
+run_case "default: routine write (insight-create) is silent" \
+    "$(exec_call insight-create)" \
     silent
 
 run_case "default: non-sensitive write (llma-skill-update) is silent" \
@@ -120,6 +144,10 @@ run_case "default: non-sensitive write (llma-skill-update) is silent" \
 
 run_case "default: feature-flag read (feature-flag-get-all) is silent" \
     "$(exec_call feature-flag-get-all)" \
+    silent
+
+run_case "default: feature-flag read (feature-flags-status-retrieve) is silent" \
+    "$(exec_call feature-flags-status-retrieve)" \
     silent
 
 # --- POSTHOG_MCP_EXEC_GATE_DISABLE turns the gate off entirely ---
