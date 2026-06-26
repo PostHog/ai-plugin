@@ -6,6 +6,7 @@ SELECT
     sum(step_2) AS step_2,
     arrayMap(x -> if(isNaN(x), NULL, x), [avgArray(step_1_conversion_times)])[1] AS step_1_average_conversion_time,
     arrayMap(x -> if(isNaN(x), NULL, x), [medianArray(step_1_conversion_times)])[1] AS step_1_median_conversion_time,
+    arrayMap(x -> if(isNaN(x), NULL, x), [arrayReduce('median', arrayFlatten(groupArray(arrayFlatten(groupArray(total_conversion_times))) OVER ()))])[1] AS total_median_conversion_time,
     groupArray(row_number) AS row_number,
     final_prop
 FROM
@@ -13,6 +14,7 @@ FROM
         countIf(notEquals(bitAnd(steps_bitfield, 1), 0)) AS step_1,
         countIf(notEquals(bitAnd(steps_bitfield, 2), 0)) AS step_2,
         groupArrayIf(timings[1], greater(timings[1], 0)) AS step_1_conversion_times,
+        groupArrayIf(arraySum(timings), greaterOrEquals(step_reached, 1)) AS total_conversion_times,
         rowNumberInAllBlocks() AS row_number,
         if(less(row_number, 25), breakdown, ['Other']) AS final_prop
     FROM

@@ -45,11 +45,11 @@ The search bar provides two modes of filtering:
 
 This operates like property filters elsewhere in PostHog, enabling you to add terms like `where 'http_referer' is set` or `where 'library' equals 'web'`. You add a property filter by clicking the property name shown here:
 
-![Adding a property to the property filter](https://res.cloudinary.com/dmukukwp6/image/upload/filtering_issues_light_2b2dd25208.png)![Adding a property to the property filter](https://res.cloudinary.com/dmukukwp6/image/upload/filtering_issues_dark_17d1e67da6.png)
+![Adding a property to the property filter](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_06_35_277_Z_54ad9274ba.png)![Adding a property to the property filter](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_07_25_246_Z_709bdb93ad.png)
 
 Added property filters look like this:
 
-![Search bar with property filter](https://res.cloudinary.com/dmukukwp6/image/upload/added_property_filter_1e823a16e9.png)![Search bar with property filter](https://res.cloudinary.com/dmukukwp6/image/upload/property_filter_added_dark_2d4c065baa.png)
+![Search bar with property filter](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_08_41_220_Z_ac7ad6c492.png)![Search bar with property filter](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_08_14_625_Z_6c0ba08732.png)
 
 The results of both of these filter types (property filters and freeform search) are combined with `AND` logic, such that only exceptions that match all filters are included in the search results.
 
@@ -103,7 +103,7 @@ This page shows you the following:
 -   Name, description, status, assignee, and external tracking links for the issue.
 -   A filterable list of all exceptions in the issue. **Selecting an exception** will show you the stack trace, properties, and sessions related to that exception at the top of the page.
 
-![An issue, with an unfiltered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/issue_exception_no_filter_light_405a3332d7.png)![An issue, with an unfiltered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/issue_exception_no_filter_dark_dfce08c4b0.png)
+![An issue, with an unfiltered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_50_11_322_Z_dfe9b9dd79.png)![An issue, with an unfiltered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_49_48_664_Z_30d13a2ef1.png)
 
 ### Filtering exception occurrences within an issue
 
@@ -111,7 +111,7 @@ Once you've found and opened the issue you want to investigate, you can use the 
 
 For example, you can add a property filter on `http_referer` that shows all exceptions where the `http_referer` is set:
 
-![An issue, with a filtered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/issue_exception_with_filter_light_0fc6e1cb2d.png)![An issue, with a filtered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/issue_exception_with_filter_dark_bf74dca1d9.png)
+![An issue, with a filtered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_11_45_290_Z_bf3b371db8.png)![An issue, with a filtered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_11_28_842_Z_fe608ddf0a.png)
 
 **Alerts**
 
