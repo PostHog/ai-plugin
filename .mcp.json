@@ -5,7 +5,8 @@
       "url": "https://mcp.posthog.com/mcp",
       "headers": {
         "x-posthog-mcp-consumer": "plugin"
-      }
+      },
+      "default_tools_approval_mode": "prompt"
     }
   }
 }

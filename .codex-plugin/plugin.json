@@ -22,6 +22,7 @@
   ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/codex-hooks.json",
   "interface": {
     "displayName": "PostHog",
     "shortDescription": "Analytics, feature flags, experiments, and error tracking",
