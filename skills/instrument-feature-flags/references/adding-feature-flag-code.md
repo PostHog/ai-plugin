@@ -1895,7 +1895,18 @@ if (result?.variant == "variant-key") { // replace "variant-key" with the key of
 
 ### Inspecting all feature flags
 
-You can inspect all currently loaded feature flags with `PostHog.getAllFeatureFlags()`.
+You can inspect all currently loaded feature flags with `PostHog.getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
+
+Kotlin
+
+PostHog AI
+
+```kotlin
+import com.posthog.PostHog
+PostHog.getAllFeatureFlags()?.forEach { flag ->
+    println("${flag.key} ${flag.enabled} ${flag.variant} ${flag.payload}")
+}
+```
 
 ### Ensuring flags are loaded before usage
 
@@ -2001,6 +2012,20 @@ struct FlagPayload: Decodable {
 if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"),
    let payload = result.payloadAs(FlagPayload.self) {
     // Use payload.title
+}
+```
+
+### Inspecting all feature flags
+
+You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
+
+Swift
+
+PostHog AI
+
+```swift
+for flag in PostHogSDK.shared.getAllFeatureFlags() ?? [] {
+    print(flag.key, flag.enabled, flag.variant as Any, flag.payload as Any)
 }
 ```
 
@@ -2432,7 +2457,7 @@ if flags.is_enabled("flag-key") {
 }
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags);
-client.capture(event).await.unwrap();
+client.capture(event);
 ```
 
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
@@ -2447,11 +2472,11 @@ PostHog AI
 // Attach only flags accessed with is_enabled() or get_flag() before this call
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags.only_accessed());
-client.capture(event).await.unwrap();
+client.capture(event);
 // Attach only specific flags
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags.only(&["checkout-flow", "new-dashboard"]));
-client.capture(event).await.unwrap();
+client.capture(event);
 ```
 
 `only_accessed()` is order-dependent. If you call it before accessing any flags with `is_enabled()` or `get_flag()`, no feature flag properties are attached.
@@ -2468,7 +2493,7 @@ PostHog AI
 use posthog_rs::Event;
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.insert_prop("$feature/feature-flag-key", "variant-key").unwrap();
-client.capture(event).await.unwrap();
+client.capture(event);
 ```
 
 ### Evaluating only specific flags

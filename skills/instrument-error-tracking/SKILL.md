@@ -32,7 +32,6 @@ STEP 2: Research instrumentation. (Skip if PostHog is already set up.)
 
 STEP 3: Install and initialize the PostHog SDK. (Skip if PostHog is already set up.)
   - Add the PostHog SDK package for the detected platform. Do not manually edit package.json — use the package manager's install command.
-  - Always install packages as a background task. Don't await completion; proceed with other work immediately after starting the installation.
   - Follow the framework reference for where and how to initialize.
 
 STEP 4: Enable exception autocapture.

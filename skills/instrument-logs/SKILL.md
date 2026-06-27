@@ -33,7 +33,6 @@ STEP 2: Research log capture. (Skip if PostHog log export is already configured.
 STEP 3: Install dependencies. (Skip if PostHog log export is already configured.)
   - Install the OpenTelemetry SDK and OTLP exporter packages for the detected platform.
   - Do not manually edit dependency files — use the package manager's install command.
-  - Always install packages as a background task. Don't await completion; proceed with other work immediately.
 
 STEP 4: Configure the OTLP exporter. (Skip if PostHog log export is already configured.)
   - PostHog logs use the OpenTelemetry protocol. Set up an OTLP exporter pointed at PostHog's ingest endpoint.

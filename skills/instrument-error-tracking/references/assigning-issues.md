@@ -4,23 +4,31 @@ Error tracking enables you to assign issues to specific PostHog [roles](https://
 
 ## Assign issues
 
-You can manually assign issues as you triage them in the UI. This can be done both in the issue list and issue detail pages.
+You can manually assign issues as you triage them in the UI, either from the issue list or an issue's details page.
 
-![Error tracking assignment UI](https://res.cloudinary.com/dmukukwp6/image/upload/assignment_ui_light_109b2bf454.png)![Error tracking assignment UI](https://res.cloudinary.com/dmukukwp6/image/upload/assignment_ui_dark_4682b2ac80.png)
+From your error tracking [issue list](https://app.posthog.com/error_tracking), click the **Unassigned** selector under any issue to assign it to a role or user.
 
-1.  In your error tracking [issue list](https://app.posthog.com/error_tracking), click the **unassigned** selector under each issue to assign it to a role or user.
+![Assigning an issue from the issue list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_52_16_655_Z_b73751c99d.png)![Assigning an issue from the issue list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_52_59_843_Z_d3d394bf7e.png)
 
-2.  On the detail page of each issue, click the **Assignee** selector to assign it to a role or user.
+Alternatively, open an issue and click the **Assignee** selector on its details page.
+
+![Assigning an issue from its details page](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_53_43_196_Z_4fe353e323.png)![Assigning an issue from its details page](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_54_12_467_Z_35902a2f98.png)
 
 Want to assign issues to a **team** rather than an individual teammate? You can create a role in [your project settings](https://app.posthog.com/settings/organization-roles).
 
-![Error tracking role assignees](https://res.cloudinary.com/dmukukwp6/image/upload/roles_light_6c7ea17be9.png)![Error tracking role assignees](https://res.cloudinary.com/dmukukwp6/image/upload/roles_dark_f721b94577.png)
+![Error tracking role assignees](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_55_26_069_Z_ecff46f618.png)![Error tracking role assignees](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_55_55_647_Z_085f6efe19.png)
 
 ## Automatic issue assignment
 
 You can set up automatic issue assignment through a set of rules. This can be configured in the [error tracking settings](https://app.posthog.com/error_tracking/configuration#selectedSetting=error-tracking-auto-assignment) using **auto assignment rules**. You can also create assignment rules programmatically using the [PostHog MCP server](/docs/error-tracking/debug-errors-mcp.md).
 
-![Error tracking auto assignment rules](https://res.cloudinary.com/dmukukwp6/image/upload/assignment_rules_light_1cf9a2437a.png)![Error tracking auto assignment rules](https://res.cloudinary.com/dmukukwp6/image/upload/assignment_rules_dark_11e0830b0c.png)
+The settings show a list of your existing assignment rules:
+
+![List of auto assignment rules](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_57_06_125_Z_a7f920a3dc.png)![List of auto assignment rules](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_56_47_967_Z_3ddddd1841.png)
+
+When adding or editing a rule, you can test it before saving. Click **Test** to see how many exceptions matched the rule's conditions over the last 7 days, so you can confirm it behaves as expected.
+
+![Adding an auto assignment rule](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_30_30_887_Z_7a01202bc4.png)![Adding an auto assignment rule](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_30_54_381_Z_d468514190.png)
 
 Assignment conditions are evaluated against the properties of the exception event that created the issue. Because assignment rules are evaluated during ingestion, the stack trace (if present) will be unminified, which enables filtering on exception properties such as function name and source file.
 

@@ -53,6 +53,12 @@ Here's a breakdown of this hierarchy:
 | [Generation](/docs/ai-observability/generations.md) | An LLM call, tracked as $ai_generation events | Sending a prompt to Claude |
 | [Embedding](/docs/ai-observability/embeddings.md) | Converts text into vectors | Vectorizing documents for RAG |
 
+**A session here usually means a conversation**
+
+In AI Observability, a session (`$ai_session_id`) typically represents a single **conversation** – one thread of back-and-forth turns with your assistant. This is different from a standard PostHog [session](/docs/data/sessions.md) (`$session_id`), like the ones you see in [Session replay](/docs/session-replay.md), which represents one continuous visit to your app.
+
+A single PostHog session can contain multiple AI Observability sessions: a user might start several separate conversations during one visit. See [sessions](/docs/ai-observability/sessions.md#note-on-posthog-session-ids) for more on the distinction.
+
 ### Community questions
 
 Ask a question
