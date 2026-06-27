@@ -1,4 +1,3 @@
-analysing-exported-session-recordings
 analyzing-experiment-session-replays
 assessing-heatmaps
 auditing-endpoints
@@ -9,6 +8,7 @@ authoring-error-tracking-alerts
 authoring-log-alerts
 authoring-signals-scouts
 building-workflows
+checking-deploy-timing
 choosing-trend-or-slope-view
 cleaning-up-stale-feature-flags
 configuring-experiment-analytics
@@ -42,7 +42,6 @@ exploring-mcp-intent-clusters
 exploring-mcp-sessions
 exploring-mcp-tool-quality
 exploring-signals-scouts
-exporting-session-recordings
 feature-usage-feed
 filtering-bot-traffic
 finding-deleted-feature-flags
@@ -67,8 +66,9 @@ managing-experiment-lifecycle
 managing-path-cleaning-rules
 managing-reminders
 managing-subscriptions
-planning-user-interviews
+planning-voice-agent-user-interviews
 querying-posthog-data
+setting-up-a-custom-rest-source
 setting-up-a-data-warehouse-source
 signals
 signals-scout-ai-observability

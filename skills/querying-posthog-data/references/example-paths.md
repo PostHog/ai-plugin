@@ -84,3 +84,5 @@ ORDER BY
     target_event ASC
 LIMIT 50
 ```
+
+**Wildcard groups are a paid feature.** Wildcard groups (`pathGroupings`) — glob-like patterns using `*` to collapse similar paths into a single node, also usable in exclusions — are part of "Advanced paths", which is only available on paid plans. On the free plan these controls are hidden or disabled in the paths UI. If a user on the free plan asks to add wildcard groups (including in exclusions), explain that this requires upgrading to a paid plan rather than suggesting workarounds.

@@ -35,7 +35,6 @@ STEP 2: Research instrumentation. (Skip if PostHog LLM tracing is already set up
 STEP 3: Install the PostHog SDK. (Skip if PostHog is already set up.)
   - Add the PostHog SDK and any required callback/integration packages.
   - Do not manually edit dependency files — use the package manager's install command.
-  - Always install packages as a background task. Don't await completion; proceed with other work immediately.
 
 STEP 4: Add LLM tracing.
   - Instrument LLM calls to capture input tokens, output tokens, model name, latency, and costs for every generation.

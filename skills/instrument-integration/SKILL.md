@@ -31,7 +31,6 @@ STEP 2: Research integration.
 
 STEP 3: Install the PostHog SDK.
   - Add the PostHog SDK package for the detected platform. Do not manually edit package.json — use the package manager's install command.
-  - Always install packages as a background task. Don't await completion; proceed with other work immediately after starting the installation.
 
 STEP 4: Initialize PostHog.
   - Follow the framework reference for where and how to initialize. This varies significantly by framework (e.g., instrumentation-client.ts for Next.js 15.3+, AppConfig.ready() for Django, create_app() for Flask).
