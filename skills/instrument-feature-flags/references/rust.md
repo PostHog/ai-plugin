@@ -8,7 +8,7 @@ PostHog AI
 
 ```toml
 [dependencies]
-posthog-rs = "0.13.1"
+posthog-rs = "0.14"
 ```
 
 Next, set up the client with your PostHog project key.
@@ -33,10 +33,10 @@ PostHog AI
 
 ```toml
 [dependencies]
-posthog-rs = { version = "0.13.1", default-features = false }
+posthog-rs = { version = "0.14", default-features = false }
 ```
 
-In blocking mode, calls to `capture` and related methods will block until the PostHog event capture API returns – generally this is on the order of tens of milliseconds, but you may want to `thread::spawn` a background thread when you send an event.
+With the blocking client, the same methods are available without `.await`. Either way, `capture` is non-blocking: it hands the event to a background worker that batches and sends it, so it returns immediately instead of waiting on the network. Because delivery happens in the background, call `flush()` or `shutdown()` before your program exits, or buffered events may be lost.
 
 ## Using feature flags
 
@@ -118,7 +118,7 @@ if flags.is_enabled("flag-key") {
 }
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags);
-client.capture(event).await.unwrap();
+client.capture(event);
 ```
 
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
@@ -133,11 +133,11 @@ PostHog AI
 // Attach only flags accessed with is_enabled() or get_flag() before this call
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags.only_accessed());
-client.capture(event).await.unwrap();
+client.capture(event);
 // Attach only specific flags
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags.only(&["checkout-flow", "new-dashboard"]));
-client.capture(event).await.unwrap();
+client.capture(event);
 ```
 
 `only_accessed()` is order-dependent. If you call it before accessing any flags with `is_enabled()` or `get_flag()`, no feature flag properties are attached.
@@ -154,7 +154,7 @@ PostHog AI
 use posthog_rs::Event;
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.insert_prop("$feature/feature-flag-key", "variant-key").unwrap();
-client.capture(event).await.unwrap();
+client.capture(event);
 ```
 
 ### Evaluating only specific flags

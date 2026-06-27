@@ -105,7 +105,7 @@ Try out these prompts:
 
 ## Integrate your product data
 
-With PostHog, your logs live alongside your [Product Analytics](/docs/product-analytics.md), [Session Replays](/docs/session-replay.md), and [Error Tracking](/docs/error-tracking.md), so you can go from a log line to a user's session to the flag variant they were on without switching tools.
+With PostHog, your logs live alongside your [Product Analytics](/docs/product-analytics.md), [Session Replays](/docs/session-replay.md), [Error Tracking](/docs/error-tracking.md), and [Dashboards](/docs/product-analytics/dashboards.md), so you can go from a log line to a user's session to the flag variant they were on without switching tools.
 
 ### Session Replay
 
@@ -124,6 +124,10 @@ Turn log patterns into trends, funnels, and retention insights. Know which logge
 Logs with `$exception` events become issues you can assign, resolve, and alert on. No separate error tracking tool needed.
 
 ![logs and session replay](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_tpic_6c27c8b1e0.png)![logs and session replay](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_tlie_6ffdbd4369.png)
+
+### Dashboards
+
+Add a Recent logs [widget](/docs/product-analytics/dashboards.md#adding-widgets) to any dashboard to monitor log entries alongside your other metrics and insights. Filter by severity level and service, and click a row to jump to that log on the Logs page.
 
 ## Use for free
 
