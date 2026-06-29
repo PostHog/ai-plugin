@@ -41,6 +41,7 @@ exploring-llm-traces
 exploring-mcp-intent-clusters
 exploring-mcp-sessions
 exploring-mcp-tool-quality
+exploring-mcp-tool-usage
 exploring-replay-vision-observations
 exploring-signals-scouts
 feature-usage-feed
