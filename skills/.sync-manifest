@@ -6,7 +6,7 @@ auditing-warehouse-source-health
 auditing-warehouse-view-health
 authoring-error-tracking-alerts
 authoring-log-alerts
-authoring-signals-scouts
+authoring-scouts
 building-workflows
 checking-deploy-timing
 choosing-trend-or-slope-view
@@ -21,6 +21,7 @@ creating-experiments
 creating-replay-vision-scanners
 debugging-local-replay
 debugging-signals-pipeline
+debugging-surveys
 designing-email-templates
 diagnosing-ci-and-merge-bottlenecks
 diagnosing-endpoint-performance
@@ -43,7 +44,7 @@ exploring-mcp-sessions
 exploring-mcp-tool-quality
 exploring-mcp-tool-usage
 exploring-replay-vision-observations
-exploring-signals-scouts
+exploring-scouts
 feature-usage-feed
 filtering-bot-traffic
 finding-deleted-feature-flags
@@ -79,12 +80,14 @@ signals-scout-apm
 signals-scout-csp-violations
 signals-scout-customer-analytics
 signals-scout-data-pipelines
+signals-scout-data-warehouse
 signals-scout-error-tracking
 signals-scout-experiments
 signals-scout-feature-flags
 signals-scout-general
 signals-scout-health-checks
 signals-scout-inbox-validation
+signals-scout-insight-alerts
 signals-scout-logs
 signals-scout-observability-gaps
 signals-scout-product-analytics
