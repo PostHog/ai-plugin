@@ -43,6 +43,9 @@ The schema is authoritative; the prose and examples below are guidance.
                     "$ref": "#/$defs/PersonPropertyFilter"
                   },
                   {
+                    "$ref": "#/$defs/PersonMetadataPropertyFilter"
+                  },
+                  {
                     "$ref": "#/$defs/ElementPropertyFilter"
                   },
                   {
@@ -257,6 +260,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/PersonPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/PersonMetadataPropertyFilter"
                   },
                   {
                     "$ref": "#/$defs/ElementPropertyFilter"
@@ -1318,6 +1324,9 @@ The schema is authoritative; the prose and examples below are guidance.
                     "$ref": "#/$defs/PersonPropertyFilter"
                   },
                   {
+                    "$ref": "#/$defs/PersonMetadataPropertyFilter"
+                  },
+                  {
                     "$ref": "#/$defs/ElementPropertyFilter"
                   },
                   {
@@ -1558,6 +1567,9 @@ The schema is authoritative; the prose and examples below are guidance.
                     "$ref": "#/$defs/PersonPropertyFilter"
                   },
                   {
+                    "$ref": "#/$defs/PersonMetadataPropertyFilter"
+                  },
+                  {
                     "$ref": "#/$defs/ElementPropertyFilter"
                   },
                   {
@@ -1686,6 +1698,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/PersonPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/PersonMetadataPropertyFilter"
                   },
                   {
                     "$ref": "#/$defs/ElementPropertyFilter"
@@ -1898,6 +1913,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/PersonPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/PersonMetadataPropertyFilter"
                   },
                   {
                     "$ref": "#/$defs/ElementPropertyFilter"
@@ -3428,6 +3446,77 @@ The schema is authoritative; the prose and examples below are guidance.
       ],
       "title": "MultipleBreakdownType",
       "type": "string"
+    },
+    "PersonMetadataPropertyFilter": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "operator": {
+          "$ref": "#/$defs/PropertyOperator"
+        },
+        "type": {
+          "const": "person_metadata",
+          "default": "person_metadata",
+          "description": "Top-level columns on the persons table (e.g. created_at), not properties JSON",
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "key",
+        "operator"
+      ],
+      "title": "PersonMetadataPropertyFilter",
+      "type": "object"
     },
     "PersonPropertyFilter": {
       "additionalProperties": false,

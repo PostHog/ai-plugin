@@ -34,6 +34,20 @@ if (result?.variant == 'variant-key') { // replace 'variant-key' with the key of
 }
 ```
 
+### Inspecting all feature flags
+
+You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
+
+Web
+
+PostHog AI
+
+```javascript
+for (const flag of posthog.getAllFeatureFlags()) {
+    console.log(flag.key, flag.enabled, flag.variant, flag.payload)
+}
+```
+
 ### Ensuring flags are loaded before usage
 
 Every time a user loads a page, we send a request in the background to fetch the feature flags that apply to that user. We store those flags in your chosen persistence option (local storage by default).
@@ -179,7 +193,7 @@ PostHog AI
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
-  defaults: '2026-05-30'
+  defaults: '2026-05-30',
   feature_flag_request_timeout_ms: 3000 // Time in milliseconds. Default is 3000 (3 seconds).
 })
 ```
@@ -421,7 +435,7 @@ PostHog AI
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
-  defaults: '2026-05-30'
+  defaults: '2026-05-30',
   feature_flag_request_timeout_ms: 3000 // Time in milliseconds. Default is 3000 (3 seconds).
 }
 )
@@ -1662,6 +1676,20 @@ posthog.getFeatureFlag('key-for-your-boolean-flag')
 posthog.getFeatureFlag('key-for-your-multivariate-flag')
 // Optional: fetch the payload (returns 'JsonType' or undefined if not loaded yet or if there was a problem loading)
 posthog.getFeatureFlagResult('key-for-your-multivariate-flag')?.payload
+```
+
+### Inspecting all feature flags
+
+You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
+
+React Native
+
+PostHog AI
+
+```jsx
+for (const flag of posthog.getAllFeatureFlags()) {
+    console.log(flag.key, flag.enabled, flag.variant, flag.payload)
+}
 ```
 
 ### Ensuring flags are loaded before usage
@@ -3391,7 +3419,7 @@ headers = {
 payload = {
     "api_key": "<ph_project_token>",
     "event": "your_event_name",
-    "distinct_id": "distinct_id_of_your_user,
+    "distinct_id": "distinct_id_of_your_user",
     "properties": {
       "$feature/feature-flag-key": "variant-key" # Replace feature-flag-key with your flag key. Replace 'variant-key' with the key of your variant
     }
@@ -3437,7 +3465,7 @@ headers = {
 payload = {
     "api_key": "<ph_project_token>",
     "event": "feature_flag_called",
-    "distinct_id": "distinct_id_of_your_user,
+    "distinct_id": "distinct_id_of_your_user",
     "properties": {
       "$feature_flag": "feature-flag-key",
       "$feature_flag_response": "variant-name"

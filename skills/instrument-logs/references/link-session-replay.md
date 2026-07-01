@@ -34,7 +34,7 @@ PostHog AI
 ```javascript
 import posthog from 'posthog-js'
 // Get the current session ID
-const sessionId = posthog.getSessionId()
+const sessionId = posthog.get_session_id()
 // Send it with your API request
 const response = await fetch('/api/chat', {
   method: 'POST',
@@ -51,7 +51,7 @@ const response = await fetch('/api/chat', {
 ```jsx
 import { posthog } from './posthog'
 // Get the current session ID
-const sessionId = posthog.getSessionId()
+const sessionId = posthog.get_session_id()
 // Send it with your API request
 const response = await fetch('https://api.example.com/chat', {
   method: 'POST',

@@ -563,6 +563,37 @@ client.groupIdentify({
 
 ---
 
+#### groupIdentifyImmediate()
+
+**Release Tag:** public
+
+Create or update a group and its properties immediately (synchronously).
+
+### Parameters
+
+- **`{ groupType, groupKey, properties, distinctId, disableGeoip, }`** (`GroupIdentifyMessage`)
+
+### Returns
+
+- `Promise<void>`
+
+### Examples
+
+```node
+// Immediately create or update a company group
+await client.groupIdentifyImmediate({
+  groupType: 'company',
+  groupKey: 'acme-corp',
+  properties: {
+    name: 'Acme Corporation',
+    industry: 'Technology',
+    employee_count: 500
+  }
+})
+```
+
+---
+
 #### identify()
 
 **Release Tag:** public

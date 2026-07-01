@@ -217,7 +217,7 @@ kit: {
 
 ## Next steps
 
-For any technical questions for how to integrate specific PostHog features into Svelte (such as analytics, feature flags, A/B testing, surveys, etc.), have a look at our [JavaScript Web](/docs/libraries/js/features.md) and [Node]((/docs/libraries/node)) SDK docs.
+For any technical questions for how to integrate specific PostHog features into Svelte (such as analytics, feature flags, A/B testing, surveys, etc.), have a look at our [JavaScript Web](/docs/libraries/js/features.md) and [Node](/docs/libraries/node.md) SDK docs.
 
 Alternatively, the following tutorials can help you get started:
 
