@@ -89,11 +89,13 @@ signals-scout-health-checks
 signals-scout-inbox-validation
 signals-scout-insight-alerts
 signals-scout-logs
+signals-scout-mcp-tool-calls
 signals-scout-observability-gaps
 signals-scout-product-analytics
 signals-scout-replay-vision
 signals-scout-revenue-analytics
 signals-scout-session-replay
+signals-scout-skills-store
 signals-scout-surveys
 signals-scout-web-analytics
 skills-store
