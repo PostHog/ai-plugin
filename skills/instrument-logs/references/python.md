@@ -34,18 +34,21 @@
 
     Set up the OpenTelemetry SDK to send logs to PostHog.
 
+    > **Note:** The logs API is still experimental in `opentelemetry-python`, so it's only exposed under the private `_logs` import path (e.g. `opentelemetry._logs`). Use these imports rather than `opentelemetry.logs`, which doesn't exist yet.
+
     Python
 
     PostHog AI
 
     ```python
-    from opentelemetry import logs
-    from opentelemetry.sdk.logs import LoggerProvider, LoggingHandler
-    from opentelemetry.sdk.logs.export import BatchLogRecordProcessor
+    import logging
+    from opentelemetry._logs import set_logger_provider
+    from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+    from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
     from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
     # Configure the logger provider
     logger_provider = LoggerProvider()
-    logs.set_logger_provider(logger_provider)
+    set_logger_provider(logger_provider)
     # Create OTLP exporter with API key in header
     otlp_exporter = OTLPLogExporter(
         endpoint="https://us.i.posthog.com/i/v1/logs",
@@ -55,8 +58,8 @@
     logger_provider.add_log_record_processor(
         BatchLogRecordProcessor(otlp_exporter)
     )
-    # Get logger
-    logger = logs.get_logger("my-app")
+    # Attach the OpenTelemetry handler to the root logger
+    logging.getLogger().addHandler(LoggingHandler(logger_provider=logger_provider))
     ```
 
     Alternatively, you can pass the API key as a query parameter:
@@ -77,7 +80,7 @@
 
     Required
 
-    Now you can start logging with OpenTelemetry:
+    With the handler attached in the previous step, you can start logging with standard Python logging and the records flow to PostHog:
 
     Python
 
@@ -85,9 +88,7 @@
 
     ```python
     import logging
-    # Configure logging to use OpenTelemetry
     logging.basicConfig(level=logging.INFO)
-    logging.getLogger().addHandler(LoggingHandler())
     # Use standard Python logging
     logger = logging.getLogger("my-app")
     logger.info("User action", extra={"userId": "123", "action": "login"})

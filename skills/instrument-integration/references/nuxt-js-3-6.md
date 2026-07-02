@@ -206,7 +206,7 @@ const runtimeConfig = useRuntimeConfig()
   );
   posthog.capture({
     event: 'api_call',
-    distinctId: distinctId,
+    distinctId: distinctID,
     properties: {
       $current_url: url,
       query: query

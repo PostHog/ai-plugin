@@ -66,13 +66,25 @@ A common use case for automatic issue assignment is to alert assignees of new is
 
 ## Create external issues
 
-You can also create issues in external tracking systems like GitHub Issues, Linear, GitLab, or Jira.
+You can create issues in external tracking systems like GitHub Issues, Linear, GitLab, or Jira. This links PostHog error tracking issues to your existing issue tracking workflows.
 
-First, set up an [integration](/docs/error-tracking/integrations.md) with your tracking system. Then, from an issue's details page, under **External references**, click **Create issue**.
+First, set up an [integration](/docs/error-tracking/integrations.md) with your tracking system.
+
+### From the UI
+
+From an issue's details page, under **External references**, click **Create issue**.
 
 ![Error tracking create issue in external tracking system](https://res.cloudinary.com/dmukukwp6/image/upload/create_issue_error_light_b89cd91da1.png)![Error tracking create issue in external tracking system](https://res.cloudinary.com/dmukukwp6/image/upload/create_issue_error_dark_7d158087f8.png)
 
-The new issue will have a partial stack trace and a link to the issue in PostHog.
+The new issue has a partial stack trace and a link to the issue in PostHog.
+
+### Via the API
+
+You can also create external references programmatically using the [PostHog API](/docs/api.md) with a [personal API key](/docs/api.md#personal-api-keys) that has the `error_tracking:write` scope.
+
+### Via MCP
+
+AI agents using the [PostHog MCP server](/docs/model-context-protocol.md) can create external references with the `error-tracking-external-references-create` tool. See the [MCP debugging guide](/docs/error-tracking/debug-errors-mcp.md) for more.
 
 > If you use another issue tracking system and would like to request it, [let us know in-app](https://app.posthog.com#panel=support%3Afeedback%3Aerror_tracking%3Alow%3Atrue).
 
