@@ -8,7 +8,7 @@ This guide walks you through integrating PostHog into your SvelteKit app using t
 
 Install PostHog for Svelte in seconds with our wizard by running this prompt with [LLM coding agents](/blog/envoy-wizard-llm-agent.md) like Cursor and Bolt, or by running it in your terminal.
 
-`npx @posthog/wizard@latest`
+`npx @posthog/wizard`
 
 [Learn more](/wizard.md)
 

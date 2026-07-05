@@ -18,6 +18,7 @@ copying-flags-across-projects
 creating-ai-subscription
 creating-an-endpoint
 creating-experiments
+creating-online-evaluations
 creating-replay-vision-scanners
 debugging-local-replay
 debugging-signals-pipeline
@@ -31,6 +32,7 @@ diagnosing-missing-recordings
 diagnosing-sdk-health
 diagnosing-stacktrace-symbolication
 downloading-batch-export-files
+exploring-ai-failures
 exploring-apm-traces
 exploring-autocapture-events
 exploring-endpoint-execution-logs
@@ -53,6 +55,7 @@ finding-replay-for-issue
 finding-sessions-to-watch
 formatting-insight-axes
 grouping-noisy-errors
+improving-mcp-tools
 inbox-exploration
 instrument-error-tracking
 instrument-feature-flags
@@ -89,13 +92,16 @@ signals-scout-health-checks
 signals-scout-inbox-validation
 signals-scout-insight-alerts
 signals-scout-logs
+signals-scout-mcp-tool-calls
 signals-scout-observability-gaps
 signals-scout-product-analytics
 signals-scout-replay-vision
 signals-scout-revenue-analytics
 signals-scout-session-replay
+signals-scout-skills-store
 signals-scout-surveys
 signals-scout-web-analytics
+signals-scout-web-vitals
 skills-store
 suggesting-data-imports
 suppressing-noisy-errors
