@@ -21,7 +21,7 @@ To follow this guide along, you need:
 
 Install PostHog for Next.js in seconds with our wizard by running this prompt with [LLM coding agents](/blog/envoy-wizard-llm-agent.md) like Cursor and Bolt, or by running it in your terminal.
 
-`npx @posthog/wizard@latest`
+`npx @posthog/wizard`
 
 [Learn more](/wizard.md)
 

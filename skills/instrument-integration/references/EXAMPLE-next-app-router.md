@@ -248,7 +248,6 @@ export async function POST(request: Request) {
     distinctId: username,
     event: 'server_login',
     properties: {
-      username: username,
       isNewUser: isNewUser,
       source: 'api'
     }
