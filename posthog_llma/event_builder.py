@@ -2,6 +2,7 @@
 
 import json
 import os
+import subprocess
 import uuid
 from datetime import datetime as dt
 from typing import Optional
@@ -12,6 +13,58 @@ from posthog_llma.trace_naming import find_trace_name
 # Stable namespace for deriving deterministic event UUIDs via uuid5.
 # Don't change — would break dedup against previously ingested events.
 _UUID_NAMESPACE = uuid.UUID("a3c3f6c2-9b8e-4a3e-b3a1-7e6b8e9a0f00")
+
+
+def parse_git_remote_url(url: str) -> Optional[str]:
+    """Extract `owner/name` from a git remote URL.
+
+    Handles the two common forms Claude Code sessions run under:
+      - ssh scp-like: `git@github.com:owner/name.git`
+      - https: `https://github.com/owner/name.git`
+    Returns None when the URL doesn't resolve to an `owner/name` pair.
+    """
+    url = (url or "").strip()
+    if not url:
+        return None
+    if url.endswith(".git"):
+        url = url[:-4]
+
+    if "://" in url:
+        # scheme://[user@]host/owner/name -> drop scheme + host
+        rest = url.split("://", 1)[1]
+        parts = rest.split("/", 1)
+        url = parts[1] if len(parts) > 1 else ""
+    elif ":" in url:
+        # scp-like git@host:owner/name -> drop host
+        url = url.split(":", 1)[1]
+
+    segments = [s for s in url.split("/") if s]
+    if len(segments) < 2:
+        return None
+    return "/".join(segments[-2:])
+
+
+def _git_repo_for_cwd(cwd: str) -> Optional[str]:
+    """Best-effort `owner/name` for the session's working directory.
+
+    Shells out to `git remote get-url origin` and parses the result. The
+    cwd may no longer exist by ingest time, so every failure is swallowed.
+    """
+    if not cwd:
+        return None
+
+    repo = None
+    try:
+        result = subprocess.run(
+            ["git", "-C", cwd, "remote", "get-url", "origin"],
+            capture_output=True, text=True, timeout=2,
+        )
+        if result.returncode == 0:
+            repo = parse_git_remote_url(result.stdout)
+    except Exception:
+        repo = None
+
+    return repo
 
 
 def _insert_id(*parts: str) -> str:
@@ -63,6 +116,15 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
     session_id = parsed["session_id"]
     cwd = parsed["metadata"].get("cwd", "")
     project_name = os.path.basename(cwd) if cwd else ""
+
+    # Git context attached to every emitted event. Branch comes straight
+    # from the transcript; repo is derived at ingest time via a single
+    # `git remote get-url origin` shellout. Filtered to truthy values so
+    # a single `properties.update(git_properties)` is a no-op when unknown.
+    git_branch = parsed["metadata"].get("git_branch", "") or ""
+    git_repo = _git_repo_for_cwd(cwd) or ""
+    git_properties = {k: v for k, v in {"$ai_git_branch": git_branch, "$ai_git_repo": git_repo}.items() if v}
+
     privacy_mode = config.get("privacy_mode", False)
     trace_grouping = config.get("trace_grouping", "session")
     custom_properties = config.get("custom_properties") or None
@@ -127,6 +189,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
             output_choices=output_choices,
             user_prompt=user_prompt,
             project_name=project_name,
+            git_properties=git_properties,
             privacy_mode=privacy_mode,
             extra_properties=custom_properties,
             timestamp=gen.get("timestamp"),
@@ -172,6 +235,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
             is_error=is_error,
             error_message=error_message,
             project_name=project_name,
+            git_properties=git_properties,
             privacy_mode=privacy_mode,
             max_attribute_length=config.get("max_attribute_length", 12000),
             extra_properties=custom_properties,
@@ -186,9 +250,9 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
 
     # -- $ai_trace events --
     if trace_grouping == "session":
-        _build_session_trace(events, parsed, all_generations, session_trace_id, session_id, project_name, custom_properties)
+        _build_session_trace(events, parsed, all_generations, session_trace_id, session_id, project_name, custom_properties, git_properties)
     else:
-        _build_message_traces(events, parsed, all_generations, session_id, project_name, fallback_trace_ids, custom_properties)
+        _build_message_traces(events, parsed, all_generations, session_id, project_name, fallback_trace_ids, custom_properties, git_properties)
 
     return events
 
@@ -205,7 +269,7 @@ def _compute_latency(timestamps: list[str]) -> Optional[float]:
         return None
 
 
-def _build_session_trace(events, parsed, all_generations, trace_id, session_id, project_name, custom_properties=None):
+def _build_session_trace(events, parsed, all_generations, trace_id, session_id, project_name, custom_properties=None, git_properties=None):
     total_input = sum(g["input_tokens"] for g in all_generations)
     total_output = sum(g["output_tokens"] for g in all_generations)
     has_error = any(g["is_error"] for g in all_generations)
@@ -225,13 +289,14 @@ def _build_session_trace(events, parsed, all_generations, trace_id, session_id, 
         is_error=has_error,
         error_message=error_msg,
         project_name=project_name,
+        git_properties=git_properties,
         extra_properties=custom_properties,
         timestamp=trace_ts,
         insert_id=_insert_id("cc-trace-session", session_id),
     ))
 
 
-def _build_message_traces(events, parsed, all_generations, session_id, project_name, fallback_trace_ids=None, custom_properties=None):
+def _build_message_traces(events, parsed, all_generations, session_id, project_name, fallback_trace_ids=None, custom_properties=None, git_properties=None):
     prompt_generations = {}
     for gen in all_generations:
         pid = gen.get("prompt_id", "")
@@ -261,6 +326,7 @@ def _build_message_traces(events, parsed, all_generations, session_id, project_n
             is_error=has_error,
             error_message=error_msg,
             project_name=project_name,
+            git_properties=git_properties,
             extra_properties=custom_properties,
             timestamp=prompt_ts,
             insert_id=_insert_id("cc-trace-msg", session_id, pid),
@@ -291,6 +357,7 @@ def _build_message_traces(events, parsed, all_generations, session_id, project_n
                 is_error=has_error,
                 error_message=error_msg,
                 project_name=project_name,
+                git_properties=git_properties,
                 extra_properties=custom_properties,
                 timestamp=timestamps[0] if timestamps else None,
                 insert_id=_insert_id("cc-trace-fallback", session_id, trace_id),
