@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.21.2
+**SDK Version:** 7.21.3
 
 Integrate PostHog into any python application.
 
@@ -49,6 +49,7 @@ Initialize a new PostHog client instance.
 - **`is_server`** (`bool`) - Whether events are emitted from a server-side runtime.         Defaults to True; set to False when using the SDK as a client/CLI         so the device OS is attributed to the person normally.
 - **`historical_migration`** (`bool`) - Mark events as historical migration imports.
 - **`feature_flags_request_timeout_seconds`** (`int`) - Timeout in seconds for feature         flag and remote config requests.
+- **`feature_flags_request_max_retries`** (`int`) - Number of retries for feature flag         requests after network, transport, or timeout failures. Defaults         to 1. Set to 0 to disable retries.
 - **`super_properties`** (`any`) - Properties merged into every captured event.
 - **`enable_exception_autocapture`** (`bool`) - Automatically capture uncaught         exceptions.
 - **`log_captured_exceptions`** (`bool`) - Also log exceptions captured by error         tracking.

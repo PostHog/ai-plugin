@@ -18,7 +18,7 @@ Using React with a framework like Next.js, Remix, or React Router requires addit
 
 Install PostHog for React in seconds with our wizard by running this prompt with [LLM coding agents](/blog/envoy-wizard-llm-agent.md) like Cursor and Bolt, or by running it in your terminal.
 
-`npx @posthog/wizard@latest`
+`npx @posthog/wizard`
 
 [Learn more](/wizard.md)
 

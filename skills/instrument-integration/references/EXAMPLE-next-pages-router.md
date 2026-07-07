@@ -468,7 +468,6 @@ export default async function handler(
     distinctId: username,
     event: 'server_login',
     properties: {
-      username: username,
       isNewUser: isNewUser,
       source: 'api'
     }
