@@ -408,7 +408,7 @@ Evaluating feature flags requires making a request to PostHog for each flag. How
 
 It is best practice to use local evaluation flags when possible, since this enables you to resolve flags faster and with fewer API calls.
 
-To load feature flag definitions for local evaluation, initialize the SDK with your feature flags secure API key as `personalAPIKey`:
+To load feature flag definitions for local evaluation, initialize the SDK with your secret API key as `personalAPIKey`:
 
 PHP
 
@@ -418,7 +418,7 @@ PostHog AI
 PostHog::init(
     '<ph_project_token>',
     ['host' => 'https://us.i.posthog.com'],
-    personalAPIKey: 'your feature flags secure API key'
+    personalAPIKey: 'your secret API key'
 );
 ```
 

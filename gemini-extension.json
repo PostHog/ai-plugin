@@ -1,6 +1,6 @@
 {
   "name": "posthog",
-  "version": "1.0.44",
+  "version": "1.0.45",
   "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from Gemini CLI",
   "mcpServers": {
     "posthog": {

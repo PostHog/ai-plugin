@@ -646,7 +646,7 @@ const client = new PostHog('<ph_project_token>', {
 })
 ```
 
-> **Note:** For remote config flags, see the [remote config documentation](/docs/feature-flags/remote-config.md). Remote config requires the [Feature Flags secure API key](/docs/feature-flags/remote-config.md#step-1-find-your-feature-flags-secure-api-key) passed as the `personalApiKey` option.
+> **Note:** For remote config flags, see the [remote config documentation](/docs/feature-flags/remote-config.md). Remote config requires the [secret API key](/docs/feature-flags/remote-config.md#step-1-get-a-secret-api-key) passed as the `personalApiKey` option.
 
 ### Local evaluation
 
