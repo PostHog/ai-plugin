@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.21.3
+**SDK Version:** 7.22.0
 
 Integrate PostHog into any python application.
 
@@ -69,6 +69,8 @@ Initialize a new PostHog client instance.
 - **`exception_autocapture_bucket_size`** (`int`) - Maximum burst of autocaptured         exceptions allowed per exception type (token bucket size,         clamped to 0-100).
 - **`exception_autocapture_refill_rate`** (`int`) - Tokens restored per refill         interval for each exception type's bucket.
 - **`exception_autocapture_refill_interval_seconds`** (`int`) - Seconds between         token refills for autocaptured exception rate limiting.
+- **`capture_mode`** (`CaptureMode`) - Capture wire protocol to use. Defaults to         ``CaptureMode.V0`` (legacy ``/batch/``). Set ``CaptureMode.V1``         (or pass the string ``"v1"``) to opt into         ``/i/v1/analytics/events``. When omitted, the         ``POSTHOG_CAPTURE_MODE`` env var is consulted, then ``V0``.
+- **`capture_compression`** (`CaptureCompression`) - Request-body compression for capture-v1 uploads         (ignored in V0, which uses ``gzip``). ``CaptureCompression.GZIP``         or ``DEFLATE`` (or the strings ``"gzip"``/``"deflate"``). When         omitted, the ``POSTHOG_CAPTURE_COMPRESSION`` env var is consulted,         then the legacy ``gzip`` flag, then no compression.
 - **`_dedicated_ai_endpoint`** (`bool`)
 
 ### Returns

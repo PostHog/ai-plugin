@@ -1,3 +1,4 @@
+analyzing-expensive-users
 analyzing-experiment-session-replays
 assessing-heatmaps
 auditing-endpoints
@@ -108,4 +109,5 @@ suppressing-noisy-errors
 triaging-error-issues
 triaging-visual-review-runs
 tuning-incremental-sync-config
+turning-engineering-analytics-into-insights
 working-with-skills
