@@ -91,6 +91,9 @@ The schema is authoritative; the prose and examples below are guidance.
                     "$ref": "#/$defs/LogPropertyFilter"
                   },
                   {
+                    "$ref": "#/$defs/MetricPropertyFilter"
+                  },
+                  {
                     "$ref": "#/$defs/SpanPropertyFilter"
                   },
                   {
@@ -308,6 +311,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/LogPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/MetricPropertyFilter"
                   },
                   {
                     "$ref": "#/$defs/SpanPropertyFilter"
@@ -1372,6 +1378,9 @@ The schema is authoritative; the prose and examples below are guidance.
                     "$ref": "#/$defs/LogPropertyFilter"
                   },
                   {
+                    "$ref": "#/$defs/MetricPropertyFilter"
+                  },
+                  {
                     "$ref": "#/$defs/SpanPropertyFilter"
                   },
                   {
@@ -1615,6 +1624,9 @@ The schema is authoritative; the prose and examples below are guidance.
                     "$ref": "#/$defs/LogPropertyFilter"
                   },
                   {
+                    "$ref": "#/$defs/MetricPropertyFilter"
+                  },
+                  {
                     "$ref": "#/$defs/SpanPropertyFilter"
                   },
                   {
@@ -1746,6 +1758,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/LogPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/MetricPropertyFilter"
                   },
                   {
                     "$ref": "#/$defs/SpanPropertyFilter"
@@ -1961,6 +1976,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/LogPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/MetricPropertyFilter"
                   },
                   {
                     "$ref": "#/$defs/SpanPropertyFilter"
@@ -3430,6 +3448,76 @@ The schema is authoritative; the prose and examples below are guidance.
       ],
       "title": "MathGroupTypeIndex",
       "type": "number"
+    },
+    "MetricPropertyFilter": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "operator": {
+          "$ref": "#/$defs/PropertyOperator"
+        },
+        "type": {
+          "const": "metric_attribute",
+          "default": "metric_attribute",
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "key",
+        "operator"
+      ],
+      "title": "MetricPropertyFilter",
+      "type": "object"
     },
     "MultipleBreakdownType": {
       "enum": [
