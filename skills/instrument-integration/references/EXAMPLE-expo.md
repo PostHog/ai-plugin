@@ -114,7 +114,7 @@ PostHog is configured in `src/config/posthog.ts` using environment variables fro
 ```typescript
 import Constants from 'expo-constants'
 
-const apiKey = Constants.expoConfig?.extra?.posthogProjectToken
+const projectToken = Constants.expoConfig?.extra?.posthogProjectToken
 ```
 
 ### Event Tracking
@@ -592,7 +592,7 @@ export default function HomeScreen() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <Text style={styles.title}>Welcome back, {user.username}!</Text>
-          <Text style={styles.text}>You are now logged in. Feel free to explore:</Text>
+          <Text style={styles.text}>You are logged in. Feel free to explore:</Text>
 
           <View style={styles.buttonGroup}>
             <TouchableOpacity
@@ -997,13 +997,13 @@ import Constants from 'expo-constants'
 
 // Configuration loaded from app.config.js extras via expo-constants
 // Environment variables are read at build time in app.config.js
-const apiKey = Constants.expoConfig?.extra?.posthogProjectToken as string | undefined
+const projectToken = Constants.expoConfig?.extra?.posthogProjectToken as string | undefined
 const host = (Constants.expoConfig?.extra?.posthogHost as string) || 'https://us.i.posthog.com'
-const isPostHogConfigured = apiKey && apiKey !== 'phc_your_project_token_here'
+const isPostHogConfigured = projectToken && projectToken !== 'phc_your_project_token_here'
 
 if (__DEV__) {
   console.log('PostHog config:', {
-    apiKey: apiKey ? `SET` : 'NOT SET',
+    projectToken: projectToken ? `SET` : 'NOT SET',
     host,
     isConfigured: isPostHogConfigured,
   })
@@ -1028,11 +1028,11 @@ if (!isPostHogConfigured) {
  *
  * @see https://posthog.com/docs/libraries/react-native
  */
-export const posthog = new PostHog(apiKey || 'placeholder_key', {
+export const posthog = new PostHog(projectToken || 'placeholder_key', {
   // PostHog API host
   host,
 
-  // Disable PostHog if project token is not configured
+  // Enable PostHog only when a project token is configured
   disabled: !isPostHogConfigured,
 
   // Capture app lifecycle events:

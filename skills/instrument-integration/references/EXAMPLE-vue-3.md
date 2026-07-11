@@ -652,7 +652,7 @@ h3 {
   <div class="container">
     <template v-if="authStore.user && authStore.user.username">
       <h1>Welcome back, {{ authStore.user.username }}!</h1>
-      <p>You are now logged in. Feel free to explore:</p>
+      <p>You are logged in. Feel free to explore:</p>
       <ul>
         <li>Consider the potential of burritos</li>
         <li>View your profile and statistics</li>

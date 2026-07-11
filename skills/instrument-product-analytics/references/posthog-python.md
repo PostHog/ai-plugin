@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.22.0
+**SDK Version:** 7.22.1
 
 Integrate PostHog into any python application.
 
@@ -43,7 +43,7 @@ Initialize a new PostHog client instance.
 - **`timeout`** (`int`) - HTTP request timeout in seconds for event uploads.
 - **`thread`** (`int`) - Number of background consumer threads.
 - **`poll_interval`** (`int`) - Seconds between local feature flag definition refreshes.
-- **`personal_api_key`** (`any`) - Personal API key used for local feature flag         evaluation and remote config payloads.
+- **`personal_api_key`** (`any`) - Deprecated alias for ``secret_key``. Still honored         for backwards compatibility; prefer ``secret_key``, which also         accepts a Project Secret API Key.
 - **`disabled`** (`bool`) - If True, disable captures and API requests. Useful in tests.
 - **`disable_geoip`** (`bool`) - Whether to disable server-side GeoIP enrichment.         Defaults to True.
 - **`is_server`** (`bool`) - Whether events are emitted from a server-side runtime.         Defaults to True; set to False when using the SDK as a client/CLI         so the device OS is attributed to the person normally.
@@ -71,6 +71,7 @@ Initialize a new PostHog client instance.
 - **`exception_autocapture_refill_interval_seconds`** (`int`) - Seconds between         token refills for autocaptured exception rate limiting.
 - **`capture_mode`** (`CaptureMode`) - Capture wire protocol to use. Defaults to         ``CaptureMode.V0`` (legacy ``/batch/``). Set ``CaptureMode.V1``         (or pass the string ``"v1"``) to opt into         ``/i/v1/analytics/events``. When omitted, the         ``POSTHOG_CAPTURE_MODE`` env var is consulted, then ``V0``.
 - **`capture_compression`** (`CaptureCompression`) - Request-body compression for capture-v1 uploads         (ignored in V0, which uses ``gzip``). ``CaptureCompression.GZIP``         or ``DEFLATE`` (or the strings ``"gzip"``/``"deflate"``). When         omitted, the ``POSTHOG_CAPTURE_COMPRESSION`` env var is consulted,         then the legacy ``gzip`` flag, then no compression.
+- **`secret_key`** (`any`) - A Personal API Key or Project Secret API Key, used to         authenticate local feature flag evaluation, remote config         payloads, and decrypted flag payloads. Example::              posthog.Client(project_api_key, secret_key="phx_...")
 - **`_dedicated_ai_endpoint`** (`bool`)
 
 ### Returns

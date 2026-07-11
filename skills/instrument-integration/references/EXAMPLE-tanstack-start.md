@@ -592,6 +592,9 @@ export const Route = createFileRoute('/api/auth/login')({
           },
         })
 
+        // This handler is short-lived; flush so the enqueued events send before it returns
+        await posthog.flush()
+
         return json({ success: true, user })
       },
     },
@@ -636,6 +639,9 @@ export const Route = createFileRoute('/api/burrito/consider')({
             source: 'api',
           },
         })
+
+        // This handler is short-lived; flush so the enqueued event sends before it returns
+        await posthog.flush()
 
         return json({ success: true })
       },
@@ -805,7 +811,7 @@ function Home() {
       {user ? (
         <div className="container">
           <h1>Welcome back, {user.username}!</h1>
-          <p>You are now logged in. Feel free to explore:</p>
+          <p>You are logged in. Feel free to explore:</p>
           <ul>
             <li>Consider the potential of burritos</li>
             <li>View your profile and statistics</li>
