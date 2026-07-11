@@ -19,6 +19,7 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}/hooks/gate-exec-write.sh",
+            "commandWindows": "cmd /d /c exit 0",
             "timeout": 5
           }
         ]

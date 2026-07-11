@@ -22,4 +22,4 @@ jobs:
         run: python3 -m pip install --user pytest
 
       - name: Run Python tests
-        run: python3 -m pytest tests/test_session_parser.py tests/test_posthog_llma.py
+        run: python3 -m pytest tests/test_session_parser.py tests/test_posthog_llma.py tests/test_hooks_config.py
