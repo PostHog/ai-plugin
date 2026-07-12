@@ -209,10 +209,10 @@ The PostHog client is configured with V4 SDK options. If no project token is pro
 import PostHog from 'posthog-react-native'
 import Config from 'react-native-config'
 
-const apiKey = Config.POSTHOG_PROJECT_TOKEN
-const isPostHogConfigured = apiKey && apiKey !== 'phc_your_project_token_here'
+const projectToken = Config.POSTHOG_PROJECT_TOKEN
+const isPostHogConfigured = projectToken && projectToken !== 'phc_your_project_token_here'
 
-export const posthog = new PostHog(apiKey || 'placeholder_key', {
+export const posthog = new PostHog(projectToken || 'placeholder_key', {
   host: Config.POSTHOG_HOST || 'https://us.i.posthog.com',
   disabled: !isPostHogConfigured,  // Disable if no project token
   captureAppLifecycleEvents: true,
@@ -616,9 +616,9 @@ import Config from 'react-native-config'
 
 // Environment variables are embedded at build time via react-native-config
 // Ensure .env file exists with POSTHOG_PROJECT_TOKEN and POSTHOG_HOST
-const apiKey = Config.POSTHOG_PROJECT_TOKEN
+const projectToken = Config.POSTHOG_PROJECT_TOKEN
 const host = Config.POSTHOG_HOST || 'https://us.i.posthog.com'
-const isPostHogConfigured = apiKey && apiKey !== 'phc_your_project_token_here'
+const isPostHogConfigured = projectToken && projectToken !== 'phc_your_project_token_here'
 
 if (!isPostHogConfigured) {
   console.warn(
@@ -636,11 +636,11 @@ if (!isPostHogConfigured) {
  *
  * @see https://posthog.com/docs/libraries/react-native
  */
-export const posthog = new PostHog(apiKey || 'placeholder_key', {
+export const posthog = new PostHog(projectToken || 'placeholder_key', {
   // PostHog API host (usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com')
   host,
 
-  // Disable PostHog if project token is not configured
+  // Enable PostHog only when a project token is configured
   disabled: !isPostHogConfigured,
 
   // Capture app lifecycle events:
@@ -1192,7 +1192,7 @@ export default function HomeScreen() {
         <View style={styles.card}>
           <Text style={styles.title}>Welcome back, {user.username}!</Text>
           <Text style={styles.text}>
-            You are now logged in. Feel free to explore:
+            You are logged in. Feel free to explore:
           </Text>
 
           <View style={styles.buttonGroup}>

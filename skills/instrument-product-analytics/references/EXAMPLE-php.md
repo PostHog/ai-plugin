@@ -40,8 +40,8 @@ composer install
 # Copy environment template
 cp .env.example .env
 
-# Edit .env and add your PostHog API key
-# POSTHOG_API_KEY=phc_your_api_key_here
+# Edit .env and add your PostHog project token
+# POSTHOG_PROJECT_TOKEN=phc_your_project_token_here
 # POSTHOG_HOST=https://us.i.posthog.com
 ```
 
@@ -93,7 +93,7 @@ basics/php/
 ### 1. Initialize Once
 
 ```php
-PostHog::init($apiKey, [
+PostHog::init($projectToken, [
     'host' => $host,
     'error_tracking' => [
         'enabled' => true,
@@ -161,7 +161,7 @@ The app works fine without PostHog configured - it simply won't track analytics.
 
 ```example
 # PostHog configuration
-POSTHOG_API_KEY=phc_your_api_key_here
+POSTHOG_PROJECT_TOKEN=phc_your_project_token_here
 POSTHOG_HOST=https://us.i.posthog.com
 
 ```
@@ -219,14 +219,14 @@ function initializePostHog(): bool
 {
     loadEnvFile(__DIR__ . '/.env');
 
-    $apiKey = getenv('POSTHOG_API_KEY');
-    if (!$apiKey || str_starts_with($apiKey, 'phc_your_')) {
-        echo "WARNING: PostHog not configured (POSTHOG_API_KEY not set)\n";
+    $projectToken = getenv('POSTHOG_PROJECT_TOKEN');
+    if (!$projectToken || str_starts_with($projectToken, 'phc_your_')) {
+        echo "WARNING: PostHog not configured (POSTHOG_PROJECT_TOKEN not set)\n";
         echo "         App will work but analytics won't be tracked\n";
         return false;
     }
 
-    PostHog::init($apiKey, [
+    PostHog::init($projectToken, [
         'host' => getenv('POSTHOG_HOST') ?: 'https://us.i.posthog.com',
         'error_tracking' => [
             'enabled' => true,

@@ -618,7 +618,7 @@ const handleConsideration = async () => {
     <h1 v-else>Welcome to Burrito Consideration App</h1>
 
     <div v-if="user">
-      <p>You are now logged in. Feel free to explore:</p>
+      <p>You are logged in. Feel free to explore:</p>
       <ul>
         <li>Consider the potential of burritos</li>
         <li>View your profile and statistics</li>
@@ -946,6 +946,9 @@ export default defineEventHandler(async (event) => {
     },
   })
 
+  // This handler is short-lived; flush so the enqueued event sends before it returns
+  await posthog.flush()
+
   return {
     success: true,
     user,
@@ -1001,6 +1004,9 @@ export default defineEventHandler(async (event) => {
     },
   })
 
+  // This handler is short-lived; flush so the enqueued event sends before it returns
+  await posthog.flush()
+
   return {
     success: true,
     user: { ...user },
@@ -1025,6 +1031,8 @@ export function useServerPostHog(): PostHog {
     const posthogConfig = config.public.posthog
     client = new PostHog(posthogConfig.publicKey, {
       host: posthogConfig.host,
+      flushAt: 1,
+      flushInterval: 0,
     })
   }
   return client

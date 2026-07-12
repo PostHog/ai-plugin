@@ -452,7 +452,7 @@ struct DashboardView: View {
                 .font(.largeTitle)
                 .padding(.top, 40)
 
-            Text("You are now logged in. Feel free to explore:")
+            Text("You are logged in. Feel free to explore:")
                 .foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 12) {

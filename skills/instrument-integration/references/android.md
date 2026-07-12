@@ -770,6 +770,28 @@ config.addBeforeSend { event ->
 }
 ```
 
+#### Filtering autocaptured screens
+
+You can stop specific screens from being autocaptured by filtering them in your before-send hook. Return `null` for any `$screen` event whose `$screen_name` matches a screen you don't want to track, and it's dropped before being sent – keeping unwanted screen views out of your event log.
+
+Because it's just a function, you can filter however you like – an **ignorelist** (drop the screens you name), an **allowlist** (invert the check to capture only the screens you name), or any custom rule such as a name prefix, a regex, or a check against the event's properties.
+
+Kotlin
+
+PostHog AI
+
+```kotlin
+val ignoredScreens = setOf("Splash", "Debug")
+config.addBeforeSend { event ->
+    val screenName = event.properties?.get("$screen_name") as? String
+    if (event.event == "$screen" && screenName in ignoredScreens) {
+        null
+    } else {
+        event
+    }
+}
+```
+
 ## FAQ
 
 ## What Android API level is required?

@@ -262,6 +262,9 @@ export async function POST(request: Request) {
     }
   });
 
+  // This handler is short-lived; flush so the enqueued events send before it returns
+  await posthog.flush();
+
   return NextResponse.json({ success: true, user });
 }
 ```
@@ -402,7 +405,7 @@ export default function Home() {
     return (
       <div className="container">
         <h1>Welcome back, {user.username}!</h1>
-        <p>You are now logged in. Feel free to explore:</p>
+        <p>You are logged in. Feel free to explore:</p>
         <ul>
           <li>Consider the potential of burritos</li>
           <li>View your profile and statistics</li>

@@ -768,6 +768,29 @@ config.beforeSend = [
 ];
 ```
 
+### Filtering autocaptured screens
+
+You can stop specific screens from being autocaptured by filtering them in your before-send hook. Return `null` for any `$screen` event whose `$screen_name` matches a screen you don't want to track, and it's dropped before being sent – keeping unwanted screen views out of your event log.
+
+Because it's just a function, you can filter however you like – an **ignorelist** (drop the screens you name), an **allowlist** (invert the check to capture only the screens you name), or any custom rule such as a name prefix, a regex, or a check against the event's properties.
+
+Dart
+
+PostHog AI
+
+```dart
+const ignoredScreens = {'Splash', 'Debug'};
+config.beforeSend = [
+  (event) {
+    final screenName = event.properties?['$screen_name'];
+    if (event.event == '$screen' && ignoredScreens.contains(screenName)) {
+      return null;
+    }
+    return event;
+  },
+];
+```
+
 ### Limitations
 
 The `beforeSend` callbacks only apply to events captured via Dart APIs:
