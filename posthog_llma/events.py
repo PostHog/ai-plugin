@@ -31,6 +31,7 @@ def build_ai_generation(
     user_prompt: Optional[str] = None,
     project_name: str = "",
     agent_name: str = "",
+    git_properties: Optional[dict] = None,
     privacy_mode: bool = False,
     extra_properties: Optional[dict] = None,
     timestamp: Optional[str] = None,
@@ -75,6 +76,12 @@ def build_ai_generation(
     if user_prompt and not privacy_mode:
         properties["$ai_user_prompt"] = user_prompt
 
+    # Git context lets engineering analytics attribute token spend to PRs by
+    # joining $ai_git_branch against a PR head ref. Already filtered to
+    # truthy values by the caller, so this is a no-op when unknown.
+    if git_properties:
+        properties.update(git_properties)
+
     if extra_properties:
         properties.update(extra_properties)
 
@@ -103,6 +110,7 @@ def build_ai_span(
     error_message: Optional[str] = None,
     project_name: str = "",
     agent_name: str = "",
+    git_properties: Optional[dict] = None,
     privacy_mode: bool = False,
     max_attribute_length: int = 12000,
     extra_properties: Optional[dict] = None,
@@ -136,6 +144,9 @@ def build_ai_span(
         "$ai_agent_name": agent_name,
     }
 
+    if git_properties:
+        properties.update(git_properties)
+
     if extra_properties:
         properties.update(extra_properties)
 
@@ -162,6 +173,7 @@ def build_ai_trace(
     error_message: Optional[str] = None,
     project_name: str = "",
     agent_name: str = "",
+    git_properties: Optional[dict] = None,
     extra_properties: Optional[dict] = None,
     timestamp: Optional[str] = None,
     insert_id: Optional[str] = None,
@@ -184,6 +196,9 @@ def build_ai_trace(
         "$ai_project_name": project_name,
         "$ai_agent_name": agent_name,
     }
+
+    if git_properties:
+        properties.update(git_properties)
 
     if extra_properties:
         properties.update(extra_properties)

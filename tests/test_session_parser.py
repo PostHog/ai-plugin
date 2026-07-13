@@ -11,7 +11,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from posthog_llma.parser import parse_session, find_session_log
-from posthog_llma.event_builder import build_events
+from posthog_llma.event_builder import build_events, parse_git_remote_url
 from posthog_llma.config import load_config
 from posthog_llma.trace_naming import find_trace_name, clean_trace_name
 
@@ -702,6 +702,62 @@ class TestBuildEvents:
         finally:
             os.unlink(path)
 
+    def test_git_metadata_on_all_event_types(self, monkeypatch):
+        # Derive a stable repo so we can assert it without touching real git.
+        monkeypatch.setattr(
+            "posthog_llma.event_builder._git_repo_for_cwd",
+            lambda cwd: "PostHog/ai-plugin",
+        )
+        path = _write_jsonl(_make_session([{"prompt": "run ls", "tools": ["Bash"]}]))
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            events = build_events(parsed, DEFAULT_CONFIG)
+            # Generation, span, and trace must all be present and carry git context.
+            kinds = {e["event"] for e in events}
+            assert {"$ai_generation", "$ai_span", "$ai_trace"} <= kinds
+            for e in events:
+                assert e["properties"]["$ai_git_branch"] == "main"
+                assert e["properties"]["$ai_git_repo"] == "PostHog/ai-plugin"
+        finally:
+            os.unlink(path)
+
+    def test_git_branch_omitted_when_absent(self, monkeypatch):
+        monkeypatch.setattr(
+            "posthog_llma.event_builder._git_repo_for_cwd",
+            lambda cwd: None,
+        )
+        # Session with no gitBranch and no derivable repo.
+        entries = [
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "hi"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
+                    "usage": {"input_tokens": 5, "output_tokens": 10, "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0},
+                    "content": [{"type": "text", "text": "hello"}],
+                },
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            events = build_events(parsed, DEFAULT_CONFIG)
+            for e in events:
+                assert "$ai_git_branch" not in e["properties"]
+                assert "$ai_git_repo" not in e["properties"]
+        finally:
+            os.unlink(path)
+
     def test_tool_use_blocks_in_output_choices(self):
         path = _write_jsonl(_make_session([{"prompt": "run ls", "tools": ["Bash"]}]))
         try:
@@ -987,3 +1043,21 @@ class TestLoadConfig:
         finally:
             os.environ.clear()
             os.environ.update(env)
+
+
+class TestParseGitRemoteUrl:
+    @pytest.mark.parametrize("url,expected", [
+        ("git@github.com:PostHog/ai-plugin.git", "PostHog/ai-plugin"),
+        ("git@github.com:PostHog/ai-plugin", "PostHog/ai-plugin"),
+        ("https://github.com/PostHog/ai-plugin.git", "PostHog/ai-plugin"),
+        ("https://github.com/PostHog/ai-plugin", "PostHog/ai-plugin"),
+        ("ssh://git@github.com/PostHog/ai-plugin.git", "PostHog/ai-plugin"),
+        ("https://user@gitlab.com/PostHog/ai-plugin.git", "PostHog/ai-plugin"),
+        ("  git@github.com:PostHog/ai-plugin.git\n", "PostHog/ai-plugin"),
+        ("", None),
+        ("   ", None),
+        ("not-a-url", None),
+        ("git@github.com:justname", None),
+    ])
+    def test_parse(self, url, expected):
+        assert parse_git_remote_url(url) == expected
