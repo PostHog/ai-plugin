@@ -69,6 +69,14 @@ def build_ai_generation(
         "$ai_framework": "claude-code",
         "$ai_project_name": project_name,
         "$ai_agent_name": agent_name,
+        # $ai_-prefixed cache properties are what PostHog's ingestion cost
+        # pipeline reads — without them, cached input (the vast majority of
+        # Claude Code request volume) is priced at zero and $ai_total_cost_usd
+        # understates real cost by an order of magnitude on cache-heavy
+        # workloads. Legacy unprefixed names kept for compatibility with
+        # existing queries.
+        "$ai_cache_read_input_tokens": cache_read_tokens,
+        "$ai_cache_creation_input_tokens": cache_creation_tokens,
         "cache_read_input_tokens": cache_read_tokens,
         "cache_creation_input_tokens": cache_creation_tokens,
     }

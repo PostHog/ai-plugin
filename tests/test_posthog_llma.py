@@ -96,6 +96,10 @@ class TestBuildAiGeneration:
             cache_read_tokens=5, cache_creation_tokens=3,
         )
         props = ev["properties"]
+        # $ai_-prefixed names are what PostHog's cost pipeline reads
+        assert props["$ai_cache_read_input_tokens"] == 5
+        assert props["$ai_cache_creation_input_tokens"] == 3
+        # legacy unprefixed names kept for compatibility
         assert props["cache_read_input_tokens"] == 5
         assert props["cache_creation_input_tokens"] == 3
 
