@@ -75,6 +75,7 @@ managing-reminders
 managing-subscriptions
 planning-voice-agent-user-interviews
 querying-posthog-data
+resolving-ingestion-warnings
 setting-up-a-custom-rest-source
 setting-up-a-data-warehouse-source
 signals
@@ -91,6 +92,7 @@ signals-scout-feature-flags
 signals-scout-general
 signals-scout-health-checks
 signals-scout-inbox-validation
+signals-scout-ingestion-warnings
 signals-scout-insight-alerts
 signals-scout-logs
 signals-scout-mcp-tool-calls

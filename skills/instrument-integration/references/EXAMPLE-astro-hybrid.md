@@ -559,6 +559,9 @@ export const POST: APIRoute = async ({ request }) => {
       },
     });
 
+    // This endpoint is short-lived; flush so the enqueued events send before it returns
+    await posthog.flush();
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -617,6 +620,9 @@ export const POST: APIRoute = async ({ request }) => {
         timestamp: new Date().toISOString(),
       },
     });
+
+    // This endpoint is short-lived; flush so the enqueued event sends before it returns
+    await posthog.flush();
 
     return new Response(
       JSON.stringify({
@@ -763,7 +769,7 @@ import PostHogLayout from '../layouts/PostHogLayout.astro';
   <div class="container">
     <div id="logged-in-view" style="display: none;">
       <h1>Welcome back, <span id="welcome-username"></span>!</h1>
-      <p>You are now logged in. Feel free to explore:</p>
+      <p>You are logged in. Feel free to explore:</p>
       <ul>
         <li>Consider the potential of burritos</li>
         <li>View your profile and statistics</li>

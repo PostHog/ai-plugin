@@ -2069,7 +2069,7 @@ public function considerBurrito(PostHogService $posthog)
                 Capture Error in PostHog
             </button>
             <button wire:click="testErrorWithoutCapture" class="btn" style="background: #c82333; color: white;">
-                Skip PostHog Capture
+                Skip Capture in PostHog
             </button>
         </div>
 
@@ -2172,7 +2172,7 @@ $featureConfig = $posthog->getFeatureFlagPayload(
                 Capture Error in PostHog
             </button>
             <button wire:click="testErrorWithoutCapture" class="btn" style="background: #c82333; color: white;">
-                Skip PostHog Capture
+                Skip Capture in PostHog
             </button>
         </div>
 

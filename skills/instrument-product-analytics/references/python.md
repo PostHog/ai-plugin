@@ -37,9 +37,23 @@ You can find your project token and instance address in the [project settings](h
 
 ## Identifying users
 
-> **Identifying users is required.** Backend events need a `distinct_id` that matches the ID your frontend uses when calling `posthog.identify()`. Without this, backend events are orphaned — they can't be linked to frontend event captures, [session replays](/docs/session-replay.md), [LLM traces](/docs/ai-engineering.md), or [error tracking](/docs/error-tracking.md).
+> **Identifying users is required.** Backend events need a `distinct_id` to associate events with the correct user.
 >
-> See our guide on [identifying users](/docs/getting-started/identify-users.md) for how to set this up.
+> In Python, you can do this through a context. All event captures in the same context will be tagged automatically with the correct `distinct_id`. Typically, you would set a fresh context and identify at the top of each route.
+>
+> Python
+>
+> PostHog AI
+>
+> ```python
+> from posthog import new_context, identify_context, capture
+> @app.get("/foo")
+> def foo(current_user: User = Depends(get_current_user)):
+>     with new_context(): # Set context at the top of a route
+>         identify_context(current_user.id)
+>         capture("foo_viewed")
+>     return {"status": "ok"}
+> ```
 
 ## Capturing events
 

@@ -790,6 +790,7 @@ toIntervalQuarter
 toIntervalSecond
 toIntervalWeek
 toIntervalYear
+toIntOrDefault
 toIntOrZero
 toIPv4
 toIPv4OrDefault
