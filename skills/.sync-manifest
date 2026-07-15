@@ -65,6 +65,7 @@ instrument-llm-analytics
 instrument-logs
 instrument-product-analytics
 investigate-metric
+investigating-ci-failures
 investigating-error-issue
 investigating-metric-anomalies
 investigating-replay
@@ -76,6 +77,12 @@ managing-subscriptions
 planning-voice-agent-user-interviews
 querying-posthog-data
 resolving-ingestion-warnings
+review-hog-authoring
+review-hog-blind-spots-general
+review-hog-perspective-contracts-security
+review-hog-perspective-logic-correctness
+review-hog-perspective-performance-reliability
+review-hog-validation-criteria
 setting-up-a-custom-rest-source
 setting-up-a-data-warehouse-source
 signals
