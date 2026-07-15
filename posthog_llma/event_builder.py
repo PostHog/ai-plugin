@@ -123,7 +123,18 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
     # a single `properties.update(git_properties)` is a no-op when unknown.
     git_branch = parsed["metadata"].get("git_branch", "") or ""
     git_repo = _git_repo_for_cwd(cwd) or ""
-    git_properties = {k: v for k, v in {"$ai_git_branch": git_branch, "$ai_git_repo": git_repo}.items() if v}
+    # $ai_purpose declares what kind of work this wrapped session is doing
+    # relative to the repo (documented values: "authoring", "review"). Read
+    # from POSTHOG_AI_PURPOSE so a harness that can't modify the agent it
+    # wraps — e.g. a CI job running Claude Code as a reviewer — can declare
+    # it. Absent means unknown; never defaulted. Passed through as-is (only
+    # trimmed and lowercased), no enum enforcement.
+    purpose = os.environ.get("POSTHOG_AI_PURPOSE", "").strip().lower()
+    git_properties = {
+        k: v
+        for k, v in {"$ai_git_branch": git_branch, "$ai_git_repo": git_repo, "$ai_purpose": purpose}.items()
+        if v
+    }
 
     privacy_mode = config.get("privacy_mode", False)
     trace_grouping = config.get("trace_grouping", "session")

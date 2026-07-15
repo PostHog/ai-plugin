@@ -758,6 +758,29 @@ class TestBuildEvents:
         finally:
             os.unlink(path)
 
+    def test_purpose_emitted_when_env_set(self, monkeypatch):
+        # Trimmed and lowercased, passed through without enum enforcement.
+        monkeypatch.setenv("POSTHOG_AI_PURPOSE", "  Review  ")
+        path = _write_jsonl(_make_session())
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            events = build_events(parsed, DEFAULT_CONFIG)
+            for e in events:
+                assert e["properties"]["$ai_purpose"] == "review"
+        finally:
+            os.unlink(path)
+
+    def test_purpose_absent_when_env_unset(self, monkeypatch):
+        monkeypatch.delenv("POSTHOG_AI_PURPOSE", raising=False)
+        path = _write_jsonl(_make_session())
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            events = build_events(parsed, DEFAULT_CONFIG)
+            for e in events:
+                assert "$ai_purpose" not in e["properties"]
+        finally:
+            os.unlink(path)
+
     def test_tool_use_blocks_in_output_choices(self):
         path = _write_jsonl(_make_session([{"prompt": "run ls", "tools": ["Bash"]}]))
         try:

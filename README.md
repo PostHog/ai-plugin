@@ -33,7 +33,7 @@ Official PostHog plugin for AI clients. Access PostHog products directly from yo
     }
     ```
 
-    Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Sessions are sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content. Add custom properties to all events with `POSTHOG_LLMA_CUSTOM_PROPERTIES` (JSON string, e.g. `'{"ai_product": "my-app"}'`).
+    Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Sessions are sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content. Add custom properties to all events with `POSTHOG_LLMA_CUSTOM_PROPERTIES` (JSON string, e.g. `'{"ai_product": "my-app"}'`). Set `POSTHOG_AI_PURPOSE` to declare what the session is doing relative to the repo — documented values are `authoring` and `review`, emitted as `$ai_purpose`. Useful when a harness wraps an agent it can't modify (e.g. a CI job running Claude Code as a reviewer); left unset the property is omitted.
 
 ### Cursor
 
