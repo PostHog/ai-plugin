@@ -57,7 +57,7 @@ STEP 7: Set up environment variables.
 STEP 8: Verify and clean up.
   - Check the project for errors. Look for type checking or build scripts in package.json.
   - Ensure any components created were actually used.
-  - Run any linter or prettier-like scripts found in the package.json.
+  - Run any linter or prettier-like scripts found in the package.json, but ONLY on the files you have edited or created during this session. Never run formatting or linting across the entire project's codebase.
 
 ## Reference files
 

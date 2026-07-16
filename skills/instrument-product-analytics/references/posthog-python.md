@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.22.1
+**SDK Version:** 7.23.0
 
 Integrate PostHog into any python application.
 
@@ -73,6 +73,7 @@ Initialize a new PostHog client instance.
 - **`capture_compression`** (`CaptureCompression`) - Request-body compression for capture-v1 uploads         (ignored in V0, which uses ``gzip``). ``CaptureCompression.GZIP``         or ``DEFLATE`` (or the strings ``"gzip"``/``"deflate"``). When         omitted, the ``POSTHOG_CAPTURE_COMPRESSION`` env var is consulted,         then the legacy ``gzip`` flag, then no compression.
 - **`secret_key`** (`any`) - A Personal API Key or Project Secret API Key, used to         authenticate local feature flag evaluation, remote config         payloads, and decrypted flag payloads. Example::              posthog.Client(project_api_key, secret_key="phx_...")
 - **`_dedicated_ai_endpoint`** (`bool`)
+- **`metrics?`** (`dict`)
 
 ### Returns
 

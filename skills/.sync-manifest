@@ -15,6 +15,7 @@ cleaning-up-stale-feature-flags
 configuring-experiment-analytics
 configuring-experiment-rollout
 consuming-endpoints-from-client-code
+copying-endpoints-across-projects
 copying-flags-across-projects
 creating-ai-subscription
 creating-an-endpoint
