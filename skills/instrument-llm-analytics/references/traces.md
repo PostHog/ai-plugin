@@ -84,7 +84,9 @@ A trace is a group that contains multiple spans, generations, and embeddings. Tr
 | Property | Description |
 | --- | --- |
 | $ai_trace_id | The trace ID (a UUID to group related AI events together)Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
-| $ai_session_id | (Optional) Groups related traces together. Use this to organize traces by whatever grouping makes sense for your application (user sessions, workflows, conversations, or other logical boundaries).Example: session-abc-123, conv-user-456 |
+| $ai_session_id | (Optional) Groups related traces together. Use this to organize traces by whatever grouping makes sense for your application (user sessions, workflows, conversations, or other logical boundaries).Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: session-abc-123, conv-user-456 |
+| $ai_input_state | The input of the whole traceExample:[ { "role": "user", "content": "What's the weather in SF?" }]or any JSON-serializable state |
+| $ai_output_state | The output of the whole traceExample:[ { "role": "assistant", "content": "The weather in San Francisco is..." }]or any JSON-serializable state |
 | $ai_latency | (Optional) The latency of the trace in seconds |
 | $ai_span_name | (Optional) The name of the traceExample: chat_completion, rag_pipeline |
 | $ai_is_error | (Optional) Boolean to indicate if the trace encountered an error |
