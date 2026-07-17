@@ -243,6 +243,7 @@ dateTrunc
 decodeURLComponent
 decodeURLFormComponent
 decodeXMLComponent
+defaultValueOfTypeName
 degrees
 deltaSum
 deltaSumTimestamp
@@ -252,6 +253,7 @@ divideDecimal
 domain
 domainWithoutWWW
 dotProduct
+dynamicType
 e
 empty
 encodeURLComponent

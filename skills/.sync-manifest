@@ -15,6 +15,7 @@ cleaning-up-stale-feature-flags
 configuring-experiment-analytics
 configuring-experiment-rollout
 consuming-endpoints-from-client-code
+copying-endpoints-across-projects
 copying-flags-across-projects
 creating-ai-subscription
 creating-an-endpoint
@@ -85,6 +86,7 @@ review-hog-perspective-performance-reliability
 review-hog-validation-criteria
 setting-up-a-custom-rest-source
 setting-up-a-data-warehouse-source
+setting-up-support-slack-locally
 signals
 signals-scout-ai-observability
 signals-scout-anomaly-detection

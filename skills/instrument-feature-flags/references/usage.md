@@ -534,6 +534,41 @@ PostHogSDK.shared.captureFeatureView(flag: "flag-key", flagVariant: "variant-key
 PostHogSDK.shared.captureFeatureInteraction(flag: "flag-key", flagVariant: "variant-key")
 ```
 
+### Bootstrapping flags
+
+Since there is a delay between initializing PostHog and fetching feature flags, feature flags are not always available immediately. This makes them unusable if you want to do something like redirecting a user to a different page based on a feature flag.
+
+To have your feature flags available immediately, you can initialize PostHog with precomputed values until it has had a chance to fetch them. This is called bootstrapping. After the SDK fetches feature flags from PostHog, it will use those flag values instead of bootstrapped ones.
+
+Set `config.bootstrap` before calling `setup()` to seed identity and flag values before the first `/flags` response (requires iOS SDK `3.66.0`+):
+
+Swift
+
+PostHog AI
+
+```swift
+let config = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
+config.bootstrap = PostHogBootstrapConfig(
+    distinctId: "distinct_id_of_your_user",
+    isIdentifiedId: true,
+    featureFlags: [
+        "flag-1": true,
+        "variant-flag": "control"
+    ],
+    featureFlagPayloads: nil
+)
+PostHogSDK.shared.setup(config)
+```
+
+-   **Bootstrapped identity applies to the first session.** Setting it before `setup()` means events captured synchronously during initialization (like `Application Installed`) carry your distinct ID instead of the SDK-generated UUID.
+    -   An **anonymous** bootstrap (`isIdentifiedId: false`, the default) seeds the anonymous ID only when none is persisted yet. Once an anonymous ID exists on disk, or the user has been identified, it is ignored.
+    -   An **identified** bootstrap (`isIdentifiedId: true`) is for a user you've already identified outside the SDK (for example, from a backend session token). On a fresh install it seeds the distinct ID and marks the user identified. On a returning install where an anonymous user already exists, it merges that user into the identified ID via `identify()`, which emits a `$identify` event during `setup()`. A *different*, already-identified user is left untouched. The identified ID never becomes the device ID.
+-   **Bootstrapped flags are served until the first `/flags` response, then replaced.** A complete `/flags` response takes over entirely, so bootstrapped-only keys don't persist past it. Only *enabled* flags are seeded: a `true` boolean or a non-empty variant string. A `false` or empty value is dropped, matching posthog-js. Seed payloads with the separate `featureFlagPayloads` option. Flag values and payloads must be JSON-serializable, or they're dropped. Bootstrapped flags are cleared on `reset()`.
+
+The feature-flags-loaded signal fires as soon as bootstrapped flags are applied, so startup logic can read them immediately. These SDKs don't support the `sessionID` bootstrap option.
+
+See the [bootstrapping guide](/docs/feature-flags/bootstrapping.md) for the cross-SDK overview.
+
 ## Experiments (A/B tests)
 
 Since [experiments](/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code. See [adding experiment code](/docs/experiments/adding-experiment-code.md) for iOS examples.
