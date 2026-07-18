@@ -117,6 +117,7 @@ signals-scout-web-vitals
 skills-store
 suggesting-data-imports
 suppressing-noisy-errors
+testing-mcp-tools-locally
 triaging-error-issues
 triaging-visual-review-runs
 tuning-incremental-sync-config
