@@ -8,6 +8,7 @@ auditing-warehouse-view-health
 authoring-error-tracking-alerts
 authoring-log-alerts
 authoring-scouts
+building-a-dashboard
 building-workflows
 checking-deploy-timing
 choosing-trend-or-slope-view
@@ -117,6 +118,7 @@ signals-scout-web-vitals
 skills-store
 suggesting-data-imports
 suppressing-noisy-errors
+testing-mcp-tools-locally
 triaging-error-issues
 triaging-visual-review-runs
 tuning-incremental-sync-config
