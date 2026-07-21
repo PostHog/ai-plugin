@@ -34,6 +34,18 @@ pnpm add posthog-js
 bun add posthog-js
 ```
 
+> **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
+>
+> PostHog AI
+>
+> ```
+> script-src 'self' https://*.posthog.com;
+> connect-src 'self' https://*.posthog.com;
+> worker-src 'self' blob: data:;
+> ```
+>
+> `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](/docs/advanced/content-security-policy.md), or use a [reverse proxy](/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
+
 2.  Store your PostHog key and host in environment variables rather than hard-coding them. Add them to a `.env` file (and to your hosting provider). You can find these in [your project settings](https://us.posthog.com/settings/project).
 
 .env
@@ -117,6 +129,24 @@ See the [JavaScript SDK docs](/docs/libraries/js/features.md) for all usable fun
 
 -   [Capture custom event capture, identify users, and more.](/docs/libraries/js/features.md#capturing-events)
 -   [Feature flags including variants and payloads.](/docs/libraries/js/features.md#feature-flags)
+
+If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
+
+JavaScript
+
+PostHog AI
+
+```javascript
+posthog.init('<ph_project_token>', {
+  api_host: 'https://us.i.posthog.com',
+  // Optional: send PostHog session/user context to your backend
+  tracing_headers: ['api.example.com'],
+})
+```
+
+This works in local development too, but match on the hostname alone: use `'localhost'`, not `'localhost:3000'`. Ports are never part of a hostname, so a value with one in it never matches anything. `localhost` and `127.0.0.1` are also different hostnames — use whichever your app actually calls.
+
+Tracing headers help you attribute events across front and backend consistently. When this isn't available, use your server-side stable IDs to deduce the matching `distinctId`, and pass it in when capturing the event.
 
 Set up a reverse proxy (recommended)
 

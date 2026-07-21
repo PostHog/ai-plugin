@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.25.0
+**SDK Version:** 7.27.0
 
 Integrate PostHog into any python application.
 
