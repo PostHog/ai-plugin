@@ -73,6 +73,14 @@ Once your logs are flowing into PostHog, you can:
 
 [Learn how to search logs](/docs/logs/search.md)
 
+## Analyze log patterns
+
+The Patterns view automatically mines your logs to find recurring message templates. Use it to spot noisy log lines consuming your log budget, find new error shapes by their template structure, and see which patterns dominate your log volume.
+
+Expand any pattern and click **View matching logs** to pivot to the Logs view filtered to lines matching that template. The filter lands in the filter bar as a visible, removable chip, and your date range, service, and severity selections carry over.
+
+[Explore log patterns](/docs/logs/patterns.md)
+
 ## Set up alerts
 
 Get notified when your logs match specific conditions. Create alerts to:
@@ -148,9 +156,9 @@ That's it! You're ready to start integrating.
 
 [Install logs](/docs/logs/installation.md)
 
-1/7
+1/8
 
-[**Use your logging client** ***Required***](#quest-item-use-your-logging-client)[**Send context-rich logs** ***Required***](#quest-item-send-context-rich-logs)[**Search and analyze your logs** ***Required***](#quest-item-search-and-analyze-your-logs)[**Set up alerts** ***Recommended***](#quest-item-set-up-alerts)[**Use MCP and AI to debug** ***Recommended***](#quest-item-use-mcp-and-ai-to-debug)[**Integrate your product data** ***Recommended***](#quest-item-integrate-your-product-data)[**Use for free** ***Free 10 GB/mo***](#quest-item-use-for-free)
+[**Use your logging client** ***Required***](#quest-item-use-your-logging-client)[**Send context-rich logs** ***Required***](#quest-item-send-context-rich-logs)[**Search and analyze your logs** ***Required***](#quest-item-search-and-analyze-your-logs)[**Analyze log patterns** ***Recommended***](#quest-item-analyze-log-patterns)[**Set up alerts** ***Recommended***](#quest-item-set-up-alerts)[**Use MCP and AI to debug** ***Recommended***](#quest-item-use-mcp-and-ai-to-debug)[**Integrate your product data** ***Recommended***](#quest-item-integrate-your-product-data)[**Use for free** ***Free 10 GB/mo***](#quest-item-use-for-free)
 
 **Use your logging client**
 

@@ -4,11 +4,11 @@ PostHog makes it easy to get data about traffic and usage of your Flask app. Int
 
 This guide walks you through integrating PostHog into your Flask app using the [Python SDK](/docs/libraries/python.md).
 
+> These docs cover version `7.x` of the Python SDK, which requires Python 3.10 or higher. On Python 3.9? See [supported versions](#supported-versions).
+
 ## Installation
 
 To start, run `pip install posthog` to install PostHog’s Python SDK.
-
-> **Note:** Version `7.x` of the PostHog Python SDK requires Python 3.10 or higher.
 
 Then, initialize PostHog where you'd like to use it. For example, here's how to capture an event in a simple route:
 
@@ -54,12 +54,14 @@ You can find your project token and instance address in [your project settings](
 >         capture("foo_viewed")
 >     return {"status": "ok"}
 > ```
+>
+> When possible, write a small piece of **middleware** that resolves your authenticated user, wrap a context around the request, and identifies it. Every `capture()` downstream is then attributed *automatically*. The SDK's Django middleware does this automatically and you can replicate it when using the plain Python SDK.
 
 ## Request contexts
 
 Use [contexts](/docs/libraries/python.md#contexts) to share identity, session IDs, and tags across multiple captures during a request.
 
-If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](/docs/libraries/js/config.md#tracing-headers) for your Flask backend hostname so browser requests include the session and distinct ID headers.
+If you're using [PostHog JavaScript Web](/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](/docs/libraries/js/config.md#tracing-headers) for your Flask backend hostname so browser requests include the session and distinct ID headers.
 
 Then read the incoming headers in your Flask request handler. Tracing headers are client-controlled analytics context, not authentication or authorization, so prefer your authenticated user ID when one is available:
 
@@ -121,6 +123,14 @@ Alternatively, the following tutorials can help you get started:
 -   [How to set up analytics in Python and Flask](/tutorials/python-analytics.md)
 -   [How to set up feature flags in Python and Flask](/tutorials/python-feature-flags.md)
 -   [How to set up A/B tests in Python and Flask](/tutorials/python-ab-testing.md)
+
+## Supported versions
+
+These docs cover version `7.x` of the PostHog Python SDK, which requires Python 3.10 or higher. Python 3.9 is no longer supported on `7.x.x` and higher — pin to the 6.x line with `pip install 'posthog<7'`, where `6.9.3` is the final release.
+
+Everything on this page works the same way on `6.9.3`. Event capture, the context API (`new_context`, `identify_context`, `set_context_session`), and `PosthogContextMiddleware` are identical on `6.9.3` and `7.0.0` — `7.0.0` only dropped Python 3.9 and bumped the optional LLM provider SDKs. That includes the middleware identifying the request context from the `X-POSTHOG-DISTINCT-ID` header and falling back to the authenticated user, which behaves the same across both lines.
+
+Later `7.x` releases add what the 6.x line does not receive, such as the Celery integration, tracing header sanitization, and `set_context_device_id`. They also changed the middleware's own captured properties: `7.x` sends the request IP as `$ip`, where `6.9.3` sends it as `$ip_address`, and `7.x` additionally captures `$request_path`, `$raw_user_agent`, and the authenticated user's `email`.
 
 ### Community questions
 

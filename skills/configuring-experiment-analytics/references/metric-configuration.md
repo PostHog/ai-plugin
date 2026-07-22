@@ -26,6 +26,77 @@ The schema is authoritative; the prose and examples below are guidance.
 ```json
 {
   "$defs": {
+    "AccountCustomPropertyFilter": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "operator": {
+          "$ref": "#/$defs/PropertyOperator"
+        },
+        "type": {
+          "const": "account_custom_property",
+          "default": "account_custom_property",
+          "description": "Customer analytics account custom property \u2014 the key is the property definition id",
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "key",
+        "operator"
+      ],
+      "title": "AccountCustomPropertyFilter",
+      "type": "object"
+    },
     "ActionsNode": {
       "additionalProperties": false,
       "properties": {
@@ -108,6 +179,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/RevenueAnalyticsPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/AccountCustomPropertyFilter"
                   },
                   {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
@@ -330,6 +404,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/RevenueAnalyticsPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/AccountCustomPropertyFilter"
                   },
                   {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
@@ -1397,6 +1474,9 @@ The schema is authoritative; the prose and examples below are guidance.
                     "$ref": "#/$defs/RevenueAnalyticsPropertyFilter"
                   },
                   {
+                    "$ref": "#/$defs/AccountCustomPropertyFilter"
+                  },
+                  {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
                   }
                 ]
@@ -1643,6 +1723,9 @@ The schema is authoritative; the prose and examples below are guidance.
                     "$ref": "#/$defs/RevenueAnalyticsPropertyFilter"
                   },
                   {
+                    "$ref": "#/$defs/AccountCustomPropertyFilter"
+                  },
+                  {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
                   }
                 ]
@@ -1777,6 +1860,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/RevenueAnalyticsPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/AccountCustomPropertyFilter"
                   },
                   {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
@@ -1995,6 +2081,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/RevenueAnalyticsPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/AccountCustomPropertyFilter"
                   },
                   {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
