@@ -125,6 +125,18 @@ pnpm add posthog-js
 bun add posthog-js
 ```
 
+> **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
+>
+> PostHog AI
+>
+> ```
+> script-src 'self' https://*.posthog.com;
+> connect-src 'self' https://*.posthog.com;
+> worker-src 'self' blob: data:;
+> ```
+>
+> `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](/docs/advanced/content-security-policy.md), or use a [reverse proxy](/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
+
 And then include it with your project token and host (which you can find in [your project settings](https://us.posthog.com/settings/project)):
 
 Web
@@ -245,7 +257,7 @@ posthog.init('<ph_project_token>', {
 | TracingExtensions | Distributed tracing header injection |
 | ToolbarExtensions | [Toolbar](/docs/toolbar.md) |
 | LogsExtensions | [Log capture](/docs/logs.md) |
-| ConversationsExtensions | Conversations |
+| ConversationsExtensions | [Support](/docs/support.md) |
 | AllExtensions | Everything (equivalent to the default posthog-js bundle) |
 
 **Note:** Each extension bundle includes its own dependencies. You don't need to worry about adding them separately.
@@ -271,6 +283,10 @@ The `defaults` is a date, such as `2026-05-30`, for a configuration snapshot use
 ## Identifying users
 
 > **Identifying users is required.** Call `posthog.identify('your-user-id')` after login to link events to a known user. This is what connects frontend event captures, [session replays](/docs/session-replay.md), [LLM traces](/docs/ai-engineering.md), and [error tracking](/docs/error-tracking.md) to the same person — and lets backend events link back too.
+>
+> Use a stable ID from your auth system when possible, not an email or display name. Send those as person properties instead. If your app has no other stable key, email works as a fallback if they are unique. Never a shared literal like `"anonymous"` or `"user"`, which pools many people onto one person and corrupts their data. When no ID is available at all, skip the identify and retain the anonymous distinct ID that's automatically assigned.
+>
+> Call `posthog.reset()` on logout, so the next person to use the browser doesn't inherit the last one's identity.
 >
 > See our guide on [identifying users](/docs/getting-started/identify-users.md) for how to set this up.
 

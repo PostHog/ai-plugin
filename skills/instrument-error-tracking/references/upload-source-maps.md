@@ -36,6 +36,8 @@ Otherwise, choose your platform below for manual instructions.
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/ios.svg)iOS](/docs/error-tracking/upload-source-maps/ios.md)
 
+-   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/rust.svg)Rust](/docs/error-tracking/upload-source-maps/rust.md)
+
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/Rollup_js_c306a2fde3.svg)Rollup](/docs/error-tracking/upload-source-maps/rollup.md)
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/webpack_3fc774b5a5.svg)Webpack](/docs/error-tracking/upload-source-maps/webpack.md)
