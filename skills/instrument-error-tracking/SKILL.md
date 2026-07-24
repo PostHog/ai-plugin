@@ -91,6 +91,7 @@ STEP 8: Verify and clean up.
 - `references/monitoring.md` - Monitor and search issues - docs
 - `references/assigning-issues.md` - Assign issues to teammates - docs
 - `references/upload-source-maps.md` - Upload source maps - docs
+- `references/COMMANDMENTS.md` - Framework-specific rules the integration must follow
 
 Each platform reference contains SDK-specific installation and manual capture patterns. Find the one matching the user's stack.
 
