@@ -1935,18 +1935,18 @@ Checks if a feature flag is enabled for the current user.
 
 **Notes:**
 
-Returns true if the flag is enabled, false if disabled, or undefined if not found. This is a convenience method that treats any truthy value as enabled.
+Returns true if the flag is enabled, false if disabled, or undefined if not found (unless `defaultValue` is given, which is returned instead of undefined). This is a convenience method that treats any truthy value as enabled.
 
 ### Parameters
 
 - **`key`** (`string`) - Key of the feature flag.
-- **`options?`** (`FeatureFlagOptions`) - Optional lookup settings. If `{ send_event: false }`, we won't send a `$feature_flag_called` event to PostHog. If `{ fresh: true }`, we won't return cached values from localStorage - only values loaded from the server.
+- **`options`** (`IsFeatureEnabledOptions & {
+        defaultValue: boolean;
+    }`) - Optional lookup settings. If `{ send_event: false }`, we won't send a `$feature_flag_called` event to PostHog. If `{ fresh: true }`, we won't return cached values from localStorage - only values loaded from the server. If `{ defaultValue: false }`, we return that value instead of undefined when the flag has no value.
 
 ### Returns
 
-**Union of:**
 - `boolean`
-- `undefined`
 
 ### Examples
 

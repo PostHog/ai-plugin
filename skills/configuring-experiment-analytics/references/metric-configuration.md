@@ -116,7 +116,7 @@ The schema is authoritative; the prose and examples below are guidance.
           "anyOf": [
             {
               "items": {
-                "anyOf": [
+                "oneOf": [
                   {
                     "$ref": "#/$defs/EventPropertyFilter"
                   },
@@ -341,7 +341,7 @@ The schema is authoritative; the prose and examples below are guidance.
           "anyOf": [
             {
               "items": {
-                "anyOf": [
+                "oneOf": [
                   {
                     "$ref": "#/$defs/EventPropertyFilter"
                   },
@@ -1409,7 +1409,7 @@ The schema is authoritative; the prose and examples below are guidance.
           "anyOf": [
             {
               "items": {
-                "anyOf": [
+                "oneOf": [
                   {
                     "$ref": "#/$defs/EventPropertyFilter"
                   },
@@ -1658,7 +1658,7 @@ The schema is authoritative; the prose and examples below are guidance.
           "anyOf": [
             {
               "items": {
-                "anyOf": [
+                "oneOf": [
                   {
                     "$ref": "#/$defs/EventPropertyFilter"
                   },
@@ -1797,7 +1797,7 @@ The schema is authoritative; the prose and examples below are guidance.
           "anyOf": [
             {
               "items": {
-                "anyOf": [
+                "oneOf": [
                   {
                     "$ref": "#/$defs/EventPropertyFilter"
                   },
@@ -2018,7 +2018,7 @@ The schema is authoritative; the prose and examples below are guidance.
           "anyOf": [
             {
               "items": {
-                "anyOf": [
+                "oneOf": [
                   {
                     "$ref": "#/$defs/EventPropertyFilter"
                   },

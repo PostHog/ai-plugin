@@ -24,14 +24,14 @@ This shows how to:
 - Opt specific pages into SSR with `export const prerender = false`
 - Keep most pages static for performance
 - Track events from API routes using `posthog-node`
-- Pass session IDs from client to server for unified sessions
+- Link client and server sessions automatically with the `tracing_headers` option
 
 ## Features
 
 - **Hybrid rendering**: Static pages by default, SSR when needed
 - **API routes**: Server-side endpoints for auth and event tracking
 - **Dual tracking**: Events captured on both client and server
-- **Session continuity**: Session ID passed to server via headers
+- **Session continuity**: Session and distinct ID forwarded automatically via `tracing_headers`
 - **Product analytics**: Track login and burrito consideration events
 - **Error tracking**: Manual error capture sent to PostHog
 
@@ -358,7 +358,10 @@ export default defineConfig({
   !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
   posthog.init(apiKey || '', {
     api_host: apiHost || 'https://us.i.posthog.com',
-    defaults: '2026-01-30'
+    defaults: '2026-01-30',
+    // Automatically add X-POSTHOG-SESSION-ID and X-POSTHOG-DISTINCT-ID headers
+    // to same-origin requests so server-side events join the same session.
+    tracing_headers: [window.location.hostname]
   })
 </script>
 
@@ -724,15 +727,13 @@ export const prerender = false;
       source: 'client'
     });
 
-    // Also send to server-side API for server tracking
+    // Also send to server-side API for server tracking. The session and distinct
+    // ID are added automatically by the tracing_headers option in posthog.init.
     try {
-      const sessionId = window.posthog?.get_session_id?.() || null;
-
       await fetch('/api/events/burrito', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'X-PostHog-Session-Id': sessionId || ''
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           username: currentUser,
@@ -844,15 +845,12 @@ import PostHogLayout from '../layouts/PostHogLayout.astro';
     }
 
     try {
-      // Get the session ID from PostHog to pass to the server
-      const sessionId = window.posthog?.get_session_id?.() || null;
-
-      // Call the server-side login API
+      // Call the server-side login API. The session and distinct ID are added
+      // automatically by the tracing_headers option configured in posthog.init.
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'X-PostHog-Session-Id': sessionId || ''
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ username, password })
       });

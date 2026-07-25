@@ -129,6 +129,7 @@ STEP 10: Verify and clean up.
 - `references/flutter.md` - Flutter - docs
 - `references/react-native.md` - React native - docs
 - `references/identify-users.md` - Identify users - docs
+- `references/COMMANDMENTS.md` - Framework-specific rules the integration must follow
 
 Each framework reference contains SDK-specific installation, initialization, and usage patterns. Find the one matching the user's stack.
 
