@@ -194,7 +194,7 @@ If you're using PostHog's JavaScript SDK on the frontend, enable tracing headers
 ```javascript
 posthog.init('<ph_project_token>', {
     api_host: 'https://us.i.posthog.com',
-    __add_tracing_headers: ['your-backend-domain.com'],
+    tracing_headers: ['your-backend-domain.com'],
 })
 ```
 
@@ -270,6 +270,49 @@ class CoreConfig(AppConfig):
         # Optional: Enable debug mode in development
         if settings.DEBUG:
             posthog.debug = True
+
+        # Register the auth signal that identifies the login request's context.
+        from . import signals  # noqa: F401
+
+```
+
+---
+
+## core/signals.py
+
+```py
+"""PostHog identity for the login request.
+
+The middleware reads request.user once, before any view runs. On a login request
+the visitor is still anonymous at that point, so the request's context has no
+distinct ID, and calling login() inside the view does not change that. This
+signal runs inside the login request and identifies the ambient context, so
+every capture later in that same request is attributed to the user who just
+logged in. Requests made after login don't need this: the middleware sees the
+authenticated user from the start.
+"""
+
+import posthog
+from posthog import identify_context
+from django.contrib.auth.signals import user_logged_in
+from django.dispatch import receiver
+
+
+@receiver(user_logged_in)
+def identify_posthog_user(sender, request, user, **kwargs):
+    identify_context(str(user.pk))
+
+    # PII belongs in person properties, never in event properties.
+    posthog.set(
+        distinct_id=str(user.pk),
+        properties={
+            'email': user.email,
+            'username': user.username,
+            'name': user.get_full_name() or user.username,
+            'is_staff': user.is_staff,
+            'date_joined': user.date_joined.isoformat(),
+        },
+    )
 
 ```
 
@@ -739,7 +782,7 @@ urlpatterns = [
 """Django views demonstrating PostHog integration patterns"""
 
 import posthog
-from posthog import new_context, identify_context, tag, capture
+from posthog import capture
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -762,20 +805,11 @@ def home_view(request):
         if user is not None:
             login(request, user)
 
-            # PostHog: Identify user and capture login event
-            with new_context():
-                identify_context(str(user.id))
-
-                # Set person properties (PII goes in tag, not capture)
-                tag('email', user.email)
-                tag('username', user.username)
-                tag('name', user.get_full_name() or user.username)
-                tag('is_staff', user.is_staff)
-                tag('date_joined', user.date_joined.isoformat())
-
-                capture('user_logged_in', properties={
-                    'login_method': 'email',
-                })
+            # PostHog: the user_logged_in signal (core/signals.py) has identified
+            # this request's context, so a plain capture is attributed.
+            capture('user_logged_in', properties={
+                'login_method': 'email',
+            })
 
             return redirect('dashboard')
         else:
@@ -787,12 +821,9 @@ def home_view(request):
 def logout_view(request):
     """Logout the current user"""
     if request.user.is_authenticated:
-        user_id = str(request.user.id)
-
-        # PostHog: Track logout before session ends
-        with new_context():
-            identify_context(user_id)
-            capture('user_logged_out')
+        # PostHog: the middleware identified this request's context from the
+        # still-authenticated user, so capture before calling logout().
+        capture('user_logged_out')
 
         logout(request)
 
@@ -804,12 +835,11 @@ def dashboard_view(request):
     """Dashboard page with feature flag example"""
     user_id = str(request.user.id)
 
-    # PostHog: Track dashboard view
-    with new_context():
-        identify_context(user_id)
-        capture('dashboard_viewed', properties={
-            'is_staff': request.user.is_staff,
-        })
+    # PostHog: the middleware already identified this request's context from the
+    # logged-in user, so a plain capture is attributed to them.
+    capture('dashboard_viewed', properties={
+        'is_staff': request.user.is_staff,
+    })
 
     # PostHog: Check feature flag
     show_new_feature = posthog.feature_enabled(
@@ -854,14 +884,10 @@ def consider_burrito_view(request):
     count = request.session.get('burrito_count', 0) + 1
     request.session['burrito_count'] = count
 
-    user_id = str(request.user.id)
-
     # PostHog: Track custom event
-    with new_context():
-        identify_context(user_id)
-        capture('burrito_considered', properties={
-            'total_considerations': count,
-        })
+    capture('burrito_considered', properties={
+        'total_considerations': count,
+    })
 
     return JsonResponse({
         'success': True,
@@ -875,9 +901,7 @@ def profile_view(request):
     user_id = str(request.user.id)
 
     # PostHog: Track profile view
-    with new_context():
-        identify_context(user_id)
-        capture('profile_viewed')
+    capture('profile_viewed')
 
     context = {
         'user': request.user,
@@ -906,12 +930,10 @@ def trigger_error_view(request):
         posthog.capture_exception(e)
 
         # PostHog: Track error trigger event
-        with new_context():
-            identify_context(str(request.user.id))
-            capture('error_triggered', properties={
-                'error_type': error_type,
-                'error_message': str(e),
-            })
+        capture('error_triggered', properties={
+            'error_type': error_type,
+            'error_message': str(e),
+        })
 
         return JsonResponse({
             'success': False,
@@ -939,17 +961,15 @@ def group_analytics_view(request):
     )
 
     # PostHog: Capture event with group
-    with new_context():
-        identify_context(user_id)
-        capture(
-            'feature_used',
-            properties={
-                'feature_name': 'group_analytics',
-            },
-            groups={
-                'company': 'acme-corp',
-            }
-        )
+    capture(
+        'feature_used',
+        properties={
+            'feature_name': 'group_analytics',
+        },
+        groups={
+            'company': 'acme-corp',
+        }
+    )
 
     return JsonResponse({
         'success': True,

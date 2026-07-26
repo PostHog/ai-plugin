@@ -265,7 +265,7 @@ def consider_burrito():
 
     # PostHog: Capture custom event
     with new_context():
-        identify_context(current_user.email)
+        identify_context(str(current_user.id))
         capture("burrito_considered", properties={"total_considerations": burrito_count})
 
     return jsonify({"success": True, "count": burrito_count})
@@ -291,7 +291,7 @@ def test_error():
         if should_capture:
             # Manually capture this specific exception in PostHog
             with new_context():
-                identify_context(current_user.email)
+                identify_context(str(current_user.id))
                 event_id = posthog.capture_exception(e)
 
             return jsonify({
@@ -398,7 +398,7 @@ from app.main import routes  # noqa: E402, F401
 import posthog
 from flask import flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
-from posthog import capture, identify_context, new_context, tag
+from posthog import capture, identify_context, new_context
 
 from app.main import main_bp
 from app.models import User
@@ -420,12 +420,17 @@ def home():
 
             # PostHog: Identify user and capture login event
             with new_context():
-                identify_context(user.email)
+                identify_context(str(user.id))
 
-                # Set person properties (PII goes in tag, not capture)
-                tag("email", user.email)
-                tag("is_staff", user.is_staff)
-                tag("date_joined", user.date_joined.isoformat())
+                # PII belongs in person properties, never in event properties
+                posthog.set(
+                    distinct_id=str(user.id),
+                    properties={
+                        "email": user.email,
+                        "is_staff": user.is_staff,
+                        "date_joined": user.date_joined.isoformat(),
+                    },
+                )
 
                 capture("user_logged_in", properties={"login_method": "password"})
 
@@ -464,11 +469,16 @@ def signup():
 
             # PostHog: Identify new user and capture signup event
             with new_context():
-                identify_context(user.email)
+                identify_context(str(user.id))
 
-                tag("email", user.email)
-                tag("is_staff", user.is_staff)
-                tag("date_joined", user.date_joined.isoformat())
+                posthog.set(
+                    distinct_id=str(user.id),
+                    properties={
+                        "email": user.email,
+                        "is_staff": user.is_staff,
+                        "date_joined": user.date_joined.isoformat(),
+                    },
+                )
 
                 capture("user_signed_up", properties={"signup_method": "form"})
 
@@ -486,7 +496,7 @@ def logout():
     """Logout and capture event."""
     # PostHog: Capture logout event before session ends
     with new_context():
-        identify_context(current_user.email)
+        identify_context(str(current_user.id))
         capture("user_logged_out")
 
     logout_user()
@@ -499,7 +509,7 @@ def dashboard():
     """Dashboard with feature flag demonstration."""
     # PostHog: Capture dashboard view
     with new_context():
-        identify_context(current_user.email)
+        identify_context(str(current_user.id))
         capture("dashboard_viewed", properties={"is_staff": current_user.is_staff})
 
     # Check feature flag
@@ -538,7 +548,7 @@ def profile():
     """User profile page."""
     # PostHog: Capture profile view
     with new_context():
-        identify_context(current_user.email)
+        identify_context(str(current_user.id))
         capture("profile_viewed")
 
     return render_template("profile.html")
