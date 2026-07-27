@@ -69,6 +69,7 @@ instrument-product-analytics
 investigate-metric
 investigating-ci-failures
 investigating-error-issue
+investigating-logs
 investigating-metric-anomalies
 investigating-replay
 managing-endpoint-versions
@@ -87,6 +88,7 @@ review-hog-perspective-performance-reliability
 review-hog-validation-criteria
 setting-up-a-custom-rest-source
 setting-up-a-data-warehouse-source
+setting-up-data-catalog
 setting-up-support-slack-locally
 signals
 signals-scout-ai-observability
@@ -114,6 +116,7 @@ signals-scout-revenue-analytics
 signals-scout-session-replay
 signals-scout-skills-store
 signals-scout-surveys
+signals-scout-tasks
 signals-scout-web-analytics
 signals-scout-web-vitals
 skills-store

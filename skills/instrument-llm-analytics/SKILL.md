@@ -92,6 +92,7 @@ STEP 6: Set up environment variables.
 - `references/basics.md` - Ai observability basics - docs
 - `references/traces.md` - Traces - docs
 - `references/calculating-costs.md` - Calculating llm costs - docs
+- `references/COMMANDMENTS.md` - Framework-specific rules the integration must follow
 
 Each provider reference contains installation instructions, SDK setup, and code examples specific to that provider or framework. Find the reference that matches the user's stack.
 
