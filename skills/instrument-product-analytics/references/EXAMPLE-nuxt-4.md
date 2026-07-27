@@ -117,7 +117,7 @@ export default defineNuxtConfig({
     host: process.env.NUXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
     clientConfig: {
       capture_exceptions: true, // Enables automatic exception capture on the client side (Vue)
-      __add_tracing_headers: ['localhost', 'yourdomain.com'], // Add your domain here
+      tracing_headers: ['localhost', 'yourdomain.com'], // Add your domain here
     },
     serverConfig: {
       enableExceptionAutocapture: true, // Enables automatic exception capture on the server side (Nitro)
@@ -138,7 +138,7 @@ export default defineNuxtConfig({
 - Client-side error tracking is enabled via `capture_exceptions: true`
 - Server-side error tracking is enabled via `enableExceptionAutocapture: true`
 - Source map uploads are configured for better error tracking
-- The `__add_tracing_headers` option automatically adds `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID` headers to requests
+- The `tracing_headers` option automatically adds `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID` headers to requests
 
 **Important**: do not identify users on the server-side.
 
@@ -161,7 +161,7 @@ const handleSubmit = async () => {
 }
 ```
 
-The session and distinct ID are automatically passed to the backend via the `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID` headers because we set the `__add_tracing_headers` option in the PostHog configuration.
+The session and distinct ID are automatically passed to the backend via the `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID` headers because we set the `tracing_headers` option in the PostHog configuration.
 
 **Important**: do not identify users on the server-side.
 
@@ -879,7 +879,7 @@ export default defineNuxtConfig({
     host: process.env.NUXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com', // Optional: defaults to https://us.i.posthog.com. Use https://eu.i.posthog.com for EU region
     clientConfig: {
       capture_exceptions: true, // Enables automatic exception capture on the client side (Vue)
-      __add_tracing_headers: [ 'localhost', 'yourdomain.com' ], // Add your domain here
+      tracing_headers: [ 'localhost', 'yourdomain.com' ], // Add your domain here
     },
     serverConfig: {
       enableExceptionAutocapture: true, // Enables automatic exception capture on the server side (Nitro)

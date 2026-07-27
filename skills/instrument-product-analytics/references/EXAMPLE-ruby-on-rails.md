@@ -117,9 +117,11 @@ end
 class User < ApplicationRecord
   has_secure_password
 
-  # Called by posthog-rails for automatic user association in error reports
+  # Called by posthog-rails for automatic user association in error reports.
+  # The primary key, not the email — an email can change, which splits one
+  # person's history in two, and it is PII on every event's identity.
   def posthog_distinct_id
-    email
+    id.to_s
   end
 
   def posthog_properties
@@ -218,7 +220,7 @@ This example includes the posthog-js snippet in the layout template to demonstra
 
 1. **posthog-js** (frontend) captures pageviews, clicks, and session replay
 2. **posthog-ruby + posthog-rails** (backend) captures business logic events, errors, and feature flag evaluations
-3. **Shared distinct_id** — frontend and backend events are linked when the same `distinct_id` is used on both sides. Call `posthog.identify(user.email)` in posthog-js after login, matching the `posthog_distinct_id` used on the backend
+3. **Shared distinct_id** — frontend and backend events are linked when the same `distinct_id` is used on both sides. Call `posthog.identify(user.id.to_s)` in posthog-js after login, matching the `posthog_distinct_id` used on the backend
 4. **Session replay** lets you watch user sessions where errors occurred
 
 **Note:** Unlike the Django SDK, posthog-rails does not include a context middleware that reads `X-POSTHOG-SESSION-ID` or `X-POSTHOG-DISTINCT-ID` tracing headers. Frontend and backend events are correlated through the shared `distinct_id`.
@@ -584,8 +586,10 @@ class User < ApplicationRecord
   # Called by posthog-rails for automatic user association in error reports.
   # When auto_capture_exceptions and capture_user_context are enabled,
   # posthog-rails calls this method on current_user to get the distinct_id.
+  # The primary key, not the email: an email can change, which would split one
+  # person's history in two, and it is PII on every event's identity.
   def posthog_distinct_id
-    email
+    id.to_s
   end
 
   # Helper used by controllers when calling PostHog.identify to set person properties.

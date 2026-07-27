@@ -122,16 +122,21 @@ This client is used in API routes to track server-side events.
 
 ### Server-side capture (routes/api/*)
 
-Server-side events include the client's `$session_id` so they appear in the same session in PostHog. The frontend sends it via a header:
+Server-side events include the client's `$session_id` so they appear in the same session in PostHog. The `tracing_headers` option on the `PostHogProvider` adds the `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID` headers to same-origin requests automatically, so the frontend fetch needs no PostHog headers of its own:
 
 ```typescript
-// Frontend: include session ID in API requests
+// Client: tracing_headers is configured once on the PostHogProvider
+options={{
+  api_host: '/ingest',
+  // ...
+  // Guarded for SSR, where `window` is undefined.
+  tracing_headers: typeof window !== 'undefined' ? [window.location.hostname] : [],
+}}
+
+// Frontend fetch — no manual header needed
 await fetch('/api/burrito/consider', {
   method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-PostHog-Session-Id': posthog.get_session_id() ?? '',
-  },
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ ... }),
 })
 ```
@@ -352,11 +357,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
   ): Promise<boolean> => {
     try {
+      // The session and distinct ID are added automatically by the
+      // tracing_headers option configured on the PostHogProvider.
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-PostHog-Session-Id': posthog.get_session_id() ?? '',
         },
         body: JSON.stringify({ username, password }),
       })
@@ -509,6 +515,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             defaults: '2025-05-24',
             capture_exceptions: true,
             debug: import.meta.env.DEV,
+            // Automatically add X-POSTHOG-SESSION-ID and X-POSTHOG-DISTINCT-ID
+            // headers to same-origin requests so server-side events join the
+            // same session. Guarded for SSR, where `window` is undefined.
+            tracing_headers:
+              typeof window !== 'undefined' ? [window.location.hostname] : [],
           }}
         >
           <AuthProvider>
@@ -704,11 +715,12 @@ function BurritoPage() {
     setHasConsidered(true)
     setTimeout(() => setHasConsidered(false), 2000)
 
+    // The session and distinct ID are added automatically by the
+    // tracing_headers option configured on the PostHogProvider.
     await fetch('/api/burrito/consider', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-PostHog-Session-Id': posthog.get_session_id() ?? '',
       },
       body: JSON.stringify({
         username: user.username,

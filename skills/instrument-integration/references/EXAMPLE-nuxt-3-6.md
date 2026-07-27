@@ -115,7 +115,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 })
 ```
 
-The session and distinct ID are automatically passed to the backend via the `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID` headers when `__add_tracing_headers` is configured in the PostHog initialization.
+The session and distinct ID are automatically passed to the backend via the `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID` headers when `tracing_headers` is configured in the PostHog initialization.
 
 **Important**: do not identify users on the server-side.
 
@@ -138,7 +138,7 @@ const handleSubmit = async () => {
 }
 ```
 
-The session and distinct ID are automatically passed to the backend via the `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID` headers because we set the `__add_tracing_headers` option in the PostHog initialization.
+The session and distinct ID are automatically passed to the backend via the `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID` headers because we set the `tracing_headers` option in the PostHog initialization.
 
 **Important**: do not identify users on the server-side.
 
@@ -153,7 +153,7 @@ import { getHeader } from 'h3'
 export default defineEventHandler(async (event) => {
   const runtimeConfig = useRuntimeConfig()
 
-  // Relies on __add_tracing_headers being set in the client-side SDK
+  // Relies on tracing_headers being set in the client-side SDK
   const sessionId = getHeader(event, 'x-posthog-session-id')
   const distinctId = getHeader(event, 'x-posthog-distinct-id')
 
@@ -711,6 +711,9 @@ export default defineNuxtPlugin((nuxtApp) => {
   const posthogClient = posthog.init(runtimeConfig.public.posthog.publicKey, {
     api_host: runtimeConfig.public.posthog.host,
     defaults: runtimeConfig.public.posthog.posthogDefaults as any,
+    // Automatically add X-POSTHOG-SESSION-ID and X-POSTHOG-DISTINCT-ID headers
+    // to same-origin requests so server-side events join the same session.
+    tracing_headers: [window.location.hostname],
     loaded: (posthog: PostHogInterface) => {
       if (import.meta.env.MODE === 'development') posthog.debug()
     },
@@ -772,7 +775,7 @@ export default defineEventHandler(async (event) => {
 
   const runtimeConfig = useRuntimeConfig()
 
-    // Relies on __add_tracing_headers being set in the client-side SDK
+    // Relies on tracing_headers being set in the client-side SDK
   const sessionId = getHeader(event, 'x-posthog-session-id')
   const distinctId = getHeader(event, 'x-posthog-distinct-id')
 
@@ -844,7 +847,7 @@ export default defineEventHandler(async (event) => {
 
   const runtimeConfig = useRuntimeConfig()
 
-  // Relies on __add_tracing_headers being set in the client-side SDK
+  // Relies on tracing_headers being set in the client-side SDK
   const sessionId = getHeader(event, 'x-posthog-session-id')
   const distinctId = getHeader(event, 'x-posthog-distinct-id')
 
