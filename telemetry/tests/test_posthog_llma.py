@@ -83,6 +83,43 @@ class TestBuildAiGeneration:
         )
         assert ev["timestamp"] == "2026-04-12T21:00:00Z"
 
+    def test_cache_tokens_use_ai_namespace(self):
+        """Cache token properties must carry the $ai_ prefix.
+
+        PostHog's LLM Analytics pipeline reads $ai_cache_read_input_tokens and
+        $ai_cache_creation_input_tokens when computing cost. Unprefixed keys are
+        ingested as ordinary custom properties and ignored by cost calculation,
+        which silently understates spend on prompt-cached workloads.
+        """
+        ev = build_ai_generation(
+            model="claude-opus-4-6",
+            input_tokens=4,
+            output_tokens=926,
+            cache_read_tokens=150109,
+            cache_creation_tokens=75729,
+            trace_id="t", session_id="s",
+        )
+        props = ev["properties"]
+        assert props["$ai_cache_read_input_tokens"] == 150109
+        assert props["$ai_cache_creation_input_tokens"] == 75729
+        # The unprefixed keys must not linger, or the same numbers get ingested
+        # twice under two different names.
+        assert "cache_read_input_tokens" not in props
+        assert "cache_creation_input_tokens" not in props
+
+    def test_cache_tokens_emitted_even_when_zero(self):
+        """Anthropic generations always carry cache fields, matching posthog-python.
+
+        See posthog/ai/utils.py: for the anthropic provider the official SDK
+        always includes both cache fields even at 0, rather than omitting them.
+        """
+        ev = build_ai_generation(
+            model="m", trace_id="t", session_id="s",
+        )
+        props = ev["properties"]
+        assert props["$ai_cache_read_input_tokens"] == 0
+        assert props["$ai_cache_creation_input_tokens"] == 0
+
     def test_no_timestamp_means_no_key(self):
         ev = build_ai_generation(
             model="m", trace_id="t", session_id="s",
@@ -96,8 +133,8 @@ class TestBuildAiGeneration:
             cache_read_tokens=5, cache_creation_tokens=3,
         )
         props = ev["properties"]
-        assert props["cache_read_input_tokens"] == 5
-        assert props["cache_creation_input_tokens"] == 3
+        assert props["$ai_cache_read_input_tokens"] == 5
+        assert props["$ai_cache_creation_input_tokens"] == 3
 
     def test_no_cost_properties(self):
         """Cost is calculated by PostHog ingestion, we should not send it."""
