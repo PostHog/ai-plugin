@@ -252,9 +252,7 @@
     | $ai_parent_id | (Optional) Parent span ID for tree view grouping |
     | $ai_model | The model usedExample: gpt-5-mini |
     | $ai_provider | The LLM providerExample: openai, anthropic, gemini |
-    | $ai_input | List of messages sent to the LLM. Each message should have a role property with one of: "user", "system", or "assistant"Example:[ { "role": "user", "content": [ { "type": "text", "text": "What's in this image?" }, { "type": "image", "image": "https://example.com/image.jpg" }, { "type": "function", "function": { "name": "get_weather", "arguments": { "location": "San Francisco" } } } ] }] |
     | $ai_input_tokens | The number of tokens in the input (often found in response.usage) |
-    | $ai_output_choices | List of response choices from the LLM. Each choice should have a role property with one of: "user", "system", or "assistant"Example:[ { "role": "assistant", "content": [ { "type": "text", "text": "I can see a hedgehog in the image." }, { "type": "function", "function": { "name": "get_weather", "arguments": { "location": "San Francisco" } } } ] }] |
     | $ai_output_tokens | The number of tokens in the output (often found in response.usage) |
     | $ai_latency | (Optional) The latency of the LLM call in seconds |
     | $ai_time_to_first_token | (Optional) Time to first token in seconds. Only applicable for streaming responses. |
@@ -307,7 +305,6 @@
     | $ai_temperature | (Optional) Temperature parameter used in the LLM request |
     | $ai_stream | (Optional) Whether the response was streamed |
     | $ai_max_tokens | (Optional) Maximum tokens setting for the LLM response |
-    | $ai_tools | (Optional) Tools/functions available to the LLMExample:[ { "type": "function", "function": { "name": "get_weather", "parameters": {} } }] |
 
     ## Trace
 
@@ -321,8 +318,6 @@
     | --- | --- |
     | $ai_trace_id | The trace ID (a UUID to group related AI events together)Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
     | $ai_session_id | (Optional) Groups related traces together. Use this to organize traces by whatever grouping makes sense for your application (user sessions, workflows, conversations, or other logical boundaries).Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: session-abc-123, conv-user-456 |
-    | $ai_input_state | The input of the whole traceExample:[ { "role": "user", "content": "What's the weather in SF?" }]or any JSON-serializable state |
-    | $ai_output_state | The output of the whole traceExample:[ { "role": "assistant", "content": "The weather in San Francisco is..." }]or any JSON-serializable state |
     | $ai_latency | (Optional) The latency of the trace in seconds |
     | $ai_span_name | (Optional) The name of the traceExample: chat_completion, rag_pipeline |
     | $ai_is_error | (Optional) Boolean to indicate if the trace encountered an error |
@@ -357,11 +352,8 @@
     | $ai_span_id | (Optional) Unique identifier for this spanExample: bdf42359-9364-4db7-8958-c001f28c9255 |
     | $ai_span_name | (Optional) The name of the spanExample: vector_search, data_retrieval, tool_call |
     | $ai_parent_id | (Optional) Parent ID for tree view grouping (trace_id or another span_id)Example: 537b7988-0186-494f-a313-77a5a8f7db26 |
-    | $ai_input_state | The input state of the spanExample:{ "query": "search for documents about hedgehogs"}or any JSON-serializable state |
-    | $ai_output_state | The output state of the spanExample:{ "results": ["doc1", "doc2"], "count": 2}or any JSON-serializable state |
     | $ai_latency | (Optional) The latency of the span in secondsExample: 0.361 |
     | $ai_is_error | (Optional) Boolean to indicate if the span encountered an error |
-    | $ai_error | (Optional) The error message or object if the span failedExample:{ "message": "Connection timeout", "code": "TIMEOUT"} |
 
     ## Embedding
 
