@@ -99,17 +99,15 @@ Connect the PostHog MCP server and your AI agent can query logs directly. Use Cu
 
 Your coding agent pulls the relevant logs it needs to debug and build faster without switching workflows.
 
-You can also ask [PostHog AI](/docs/posthog-ai.md) to search and analyze your logs.
+Try asking your agent for these:
 
-![PostHog AI logs](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_shqt_e667a5a091.png)![PostHog AI logs](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_shuk_901780b9f1.png)
+-   `Show me error logs from the API service in the last hour`
+-   `What services are logging errors right now?`
+-   `Compare log patterns from today against yesterday and show me what's new`
 
-Try out these prompts:
+In the web app, you can also open a single log record and have [PostHog AI explain it](/docs/logs/explain-logs-ai.md) – what it means, what probably caused it, and what to do next.
 
--   [`Show me error logs from the API service in the last hour`](https://app.posthog.com/#panel=max:Show%20me%20error%20logs%20from%20the%20API%20service%20in%20the%20last%20hour)
--   [`Find all logs related to authentication failures today`](https://app.posthog.com/#panel=max:Find%20all%20logs%20related%20to%20authentication%20failures%20today)
--   [`Show logs from the payment service around 2pm yesterday`](https://app.posthog.com/#panel=max:Show%20logs%20from%20the%20payment%20service%20around%202pm%20yesterday)
-
-[Explore logs with AI](/docs/logs/debug-logs-mcp.md)
+[Explore logs with AI](/docs/logs/surfaces/mcp.md)
 
 ## Integrate your product data
 
@@ -146,7 +144,7 @@ PostHog's Logs is built to be cost-effective by default, with a generous free ti
 -   No credit card required to start
 -   First 10 GB of ingested logs per month are free
 -   Above 10 GB we have usage-based pricing at $0.25/GB with discounts
--   All logs are retained 14 days by default, and we also offer 30-day or 90-day retention options for an additional storage charge – see [pricing](/pricing.md) for more details
+-   All logs are retained 14 days by default, and we also offer 30-day (and soon 90-day) retention options for an additional storage charge – see [pricing](/pricing.md) for more details
 -   Set billing limits to avoid surprise charges
 -   See our [pricing page](/docs/logs/pricing.md) for more up-to-date details
 

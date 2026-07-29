@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.29.0
+**SDK Version:** 7.32.0
 
 Integrate PostHog into any python application.
 
@@ -1668,7 +1668,7 @@ tag("user_id", "123")
 
 **Release Tag:** public
 
-Create or return the global PostHog client configured by module settings.  Most applications should either instantiate ``Posthog`` directly or set ``posthog.api_key``/other module settings before calling top-level helpers. ``setup()`` is called automatically by global APIs such as ``capture()``.  Returns:     The global ``Client`` instance. If ``api_key`` is missing or blank,     the client is disabled and module-level calls become no-ops.
+Create or return the global PostHog client configured by module settings.  Most applications should either instantiate ``Posthog`` directly or set ``posthog.api_key``/other module settings before calling top-level helpers. ``setup()`` is called automatically by global APIs such as ``capture()``.  Returns:     The global ``Client`` instance. If both ``api_key`` and     ``project_api_key`` are missing or blank, the client is disabled and     module-level calls become no-ops.
 
 ### Returns
 

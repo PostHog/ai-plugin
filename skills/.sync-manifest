@@ -76,6 +76,7 @@ managing-endpoint-versions
 managing-experiment-lifecycle
 managing-path-cleaning-rules
 managing-reminders
+managing-streamlit-apps
 managing-subscriptions
 planning-voice-agent-user-interviews
 querying-posthog-data
@@ -128,3 +129,4 @@ triaging-visual-review-runs
 tuning-incremental-sync-config
 turning-engineering-analytics-into-insights
 working-with-skills
+writing-streamlit-apps
