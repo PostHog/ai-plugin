@@ -20,7 +20,7 @@ Want to assign issues to a **team** rather than an individual teammate? You can 
 
 ## Automatic issue assignment
 
-You can set up automatic issue assignment through a set of rules. This can be configured in the [error tracking settings](https://app.posthog.com/error_tracking/configuration#selectedSetting=error-tracking-auto-assignment) using **auto assignment rules**. You can also create assignment rules programmatically using the [PostHog MCP server](/docs/error-tracking/debug-errors-mcp.md).
+You can set up automatic issue assignment through a set of rules. This can be configured in the [error tracking settings](https://app.posthog.com/error_tracking/configuration#selectedSetting=error-tracking-auto-assignment) using **auto assignment rules**. You can also create assignment rules programmatically using the [PostHog MCP server](/docs/error-tracking/surfaces/mcp.md).
 
 The settings show a list of your existing assignment rules:
 
@@ -84,7 +84,7 @@ You can also create external references programmatically using the [PostHog API]
 
 ### Via MCP
 
-AI agents using the [PostHog MCP server](/docs/model-context-protocol.md) can create external references with the `error-tracking-external-references-create` tool. See the [MCP debugging guide](/docs/error-tracking/debug-errors-mcp.md) for more.
+AI agents using the [PostHog MCP server](/docs/model-context-protocol.md) can create external references with the `error-tracking-external-references-create` tool. See the [MCP debugging guide](/docs/error-tracking/surfaces/mcp.md) for more.
 
 > If you use another issue tracking system and would like to request it, [let us know in-app](https://app.posthog.com#panel=support%3Afeedback%3Aerror_tracking%3Alow%3Atrue).
 
