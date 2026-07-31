@@ -94,6 +94,31 @@ You only need to call `identify` once per session, and you should avoid calling 
 
 If you call `identify` multiple times with the same data without reloading the page in between, PostHog will ignore the subsequent calls.
 
+#### Identify users when the web SDK loads
+
+If your app already knows the signed-in user when you initialize the JavaScript web SDK, the [`loaded` callback](/docs/libraries/js/config.md) is a convenient place to call `identify`. This identifies the user as soon as the SDK has loaded:
+
+Web
+
+PostHog AI
+
+```javascript
+posthog.init('<ph_project_token>', {
+    api_host: 'https://us.i.posthog.com',
+    defaults: '2026-05-30',
+    loaded: (posthog) => {
+        if (currentUser?.id) {
+            posthog.identify(currentUser.id, {
+                email: currentUser.email,
+                name: currentUser.name,
+            })
+        }
+    },
+})
+```
+
+In this example, `currentUser` represents user data already available from your authentication system. If your app loads the user asynchronously, call `posthog.identify()` as soon as that data becomes available instead.
+
 ### 2\. Use unique strings for distinct IDs
 
 If two users have the same distinct ID, their data is merged and they are considered one user in PostHog. Two common ways this can happen are:
