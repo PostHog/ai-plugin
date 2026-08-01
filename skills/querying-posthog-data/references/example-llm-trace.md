@@ -12,26 +12,51 @@ These heavy fields live only on `posthog.ai_events` (read it directly by `trace_
 
 ```sql
 SELECT
-    trace_id AS id,
-    any(session_id) AS ai_session_id,
-    min(timestamp) AS first_timestamp,
-    max(timestamp) AS last_timestamp,
-    ifNull(nullIf(argMinIf(distinct_id, timestamp, equals(event, '$ai_trace')), ''), argMin(distinct_id, timestamp)) AS first_distinct_id,
-    round(if(and(equals(countIf(and(greater(latency, 0), notEquals(event, '$ai_generation'))), 0), greater(countIf(and(greater(latency, 0), equals(event, '$ai_generation'))), 0)), sumIf(latency, and(equals(event, '$ai_generation'), greater(latency, 0))), sumIf(latency, or(equals(parent_id, NULL), equals(parent_id, trace_id)))), 2) AS total_latency,
-    nullIf(sumIf(input_tokens, in(event, tuple('$ai_generation', '$ai_embedding'))), 0) AS input_tokens,
-    nullIf(sumIf(output_tokens, in(event, tuple('$ai_generation', '$ai_embedding'))), 0) AS output_tokens,
-    nullIf(round(sumIf(input_cost_usd, in(event, tuple('$ai_generation', '$ai_embedding'))), 10), 0) AS input_cost,
-    nullIf(round(sumIf(output_cost_usd, in(event, tuple('$ai_generation', '$ai_embedding'))), 10), 0) AS output_cost,
-    nullIf(round(sumIf(total_cost_usd, in(event, tuple('$ai_generation', '$ai_embedding'))), 10), 0) AS total_cost,
-    arrayDistinct(arraySort(x -> x.3, groupArrayIf(tuple(uuid, event, timestamp, properties, input, output, output_choices, input_state, output_state, tools), notEquals(event, '$ai_trace')))) AS events,
-    argMinIf(input_state, timestamp, equals(event, '$ai_trace')) AS input_state,
-    argMinIf(output_state, timestamp, equals(event, '$ai_trace')) AS output_state,
-    ifNull(argMinIf(ifNull(nullIf(span_name, ''), nullIf(trace_name, '')), timestamp, equals(event, '$ai_trace')), argMin(ifNull(nullIf(span_name, ''), nullIf(trace_name, '')), timestamp)) AS trace_name
+    deduped.trace_id AS id,
+    any(deduped.session_id) AS ai_session_id,
+    min(deduped.timestamp) AS first_timestamp,
+    max(deduped.timestamp) AS last_timestamp,
+    ifNull(nullIf(argMinIf(deduped.distinct_id, deduped.timestamp, equals(deduped.event, '$ai_trace')), ''), argMin(deduped.distinct_id, deduped.timestamp)) AS first_distinct_id,
+    round(if(and(equals(countIf(and(greater(deduped.latency, 0), notEquals(deduped.event, '$ai_generation'))), 0), greater(countIf(and(greater(deduped.latency, 0), equals(deduped.event, '$ai_generation'))), 0)), sumIf(deduped.latency, and(equals(deduped.event, '$ai_generation'), greater(deduped.latency, 0))), sumIf(deduped.latency, or(equals(deduped.parent_id, NULL), equals(deduped.parent_id, deduped.trace_id)))), 2) AS total_latency,
+    nullIf(sumIf(deduped.input_tokens, in(deduped.event, tuple('$ai_generation', '$ai_embedding'))), 0) AS input_tokens,
+    nullIf(sumIf(deduped.output_tokens, in(deduped.event, tuple('$ai_generation', '$ai_embedding'))), 0) AS output_tokens,
+    nullIf(round(sumIf(deduped.input_cost_usd, in(deduped.event, tuple('$ai_generation', '$ai_embedding'))), 10), 0) AS input_cost,
+    nullIf(round(sumIf(deduped.output_cost_usd, in(deduped.event, tuple('$ai_generation', '$ai_embedding'))), 10), 0) AS output_cost,
+    nullIf(round(sumIf(deduped.total_cost_usd, in(deduped.event, tuple('$ai_generation', '$ai_embedding'))), 10), 0) AS total_cost,
+    arrayDistinct(arraySort(x -> x.3, groupArrayIf(tuple(deduped.uuid, deduped.event, deduped.timestamp, deduped.properties, deduped.input, deduped.output, deduped.output_choices, deduped.input_state, deduped.output_state, deduped.tools), notEquals(deduped.event, '$ai_trace')))) AS events,
+    argMinIf(deduped.input_state, deduped.timestamp, equals(deduped.event, '$ai_trace')) AS input_state,
+    argMinIf(deduped.output_state, deduped.timestamp, equals(deduped.event, '$ai_trace')) AS output_state,
+    ifNull(argMinIf(ifNull(nullIf(deduped.span_name, ''), nullIf(deduped.trace_name, '')), deduped.timestamp, equals(deduped.event, '$ai_trace')), argMin(ifNull(nullIf(deduped.span_name, ''), nullIf(deduped.trace_name, '')), deduped.timestamp)) AS trace_name
 FROM
-    ai_events
-WHERE
-    and(in(event, tuple('$ai_span', '$ai_generation', '$ai_embedding', '$ai_metric', '$ai_feedback', '$ai_trace')), and(greaterOrEquals(ai_events.timestamp, assumeNotNull(toDateTime('2025-12-09 23:35:41'))), lessOrEquals(ai_events.timestamp, assumeNotNull(toDateTime('2025-12-10 00:25:41'))), equals(trace_id, '79955c94-7453-488f-a84a-eabb6f084e4c')))
+    (SELECT
+        uuid,
+        event,
+        timestamp,
+        distinct_id,
+        properties,
+        trace_id,
+        session_id,
+        parent_id,
+        span_name,
+        trace_name,
+        latency,
+        input_tokens,
+        output_tokens,
+        input_cost_usd,
+        output_cost_usd,
+        total_cost_usd,
+        input,
+        output,
+        output_choices,
+        input_state,
+        output_state,
+        tools
+    FROM
+        ai_events
+    WHERE
+        and(in(event, tuple('$ai_span', '$ai_generation', '$ai_embedding', '$ai_metric', '$ai_feedback', '$ai_trace')), and(greaterOrEquals(ai_events.timestamp, assumeNotNull(toDateTime('2025-12-09 23:35:41'))), lessOrEquals(ai_events.timestamp, assumeNotNull(toDateTime('2025-12-17 00:15:41'))), equals(trace_id, '79955c94-7453-488f-a84a-eabb6f084e4c')))
+    LIMIT 1  BY uuid) AS deduped
 GROUP BY
-    trace_id
+    deduped.trace_id
 LIMIT 1
 ```

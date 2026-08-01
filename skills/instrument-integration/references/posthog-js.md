@@ -2269,12 +2269,12 @@ Flushes any queued events and resolves once teardown is complete.
 
 **Notes:**
 
-This exists primarily for parity with the server-side [Node.js SDK](/docs/libraries/node), whose `shutdown()` you call once before a process exits. In the browser there is no process to exit — the SDK already flushes pending events on `pagehide`/`unload` — so this method is mostly a graceful no-op that best-effort flushes the request queues and always resolves.
+This exists primarily for parity with the server-side [Node.js SDK](/docs/libraries/node), whose `shutdown()` you call once before a process exits. In the browser there is no process to exit, so this method performs synchronous best-effort extension cleanup, flushes the request queues, and always resolves.
 It is safe to call in isomorphic teardown code (for example a Nuxt/Next module that calls `shutdown()` on both the server and the client) so the same symmetric cleanup works in either environment without throwing.
 
 ### Parameters
 
-- **`_shutdownTimeoutMs?`** (`number`) - Accepted for call-site parity with the Node.js SDK. The browser flush is synchronous, so this is ignored.
+- **`_shutdownTimeoutMs?`** (`number`) - Retained for parity with the Node.js SDK; ignored in browsers.
 
 ### Returns
 

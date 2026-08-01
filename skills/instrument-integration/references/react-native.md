@@ -159,7 +159,7 @@ You can further customize how PostHog works through its configuration on initial
 | defaultOptInType: BooleanDefault: true | If set to false, the SDK will not track until the optIn() function is called. |
 | sendFeatureFlagEventType: BooleanDefault: true | Whether to track that getFeatureFlag was called (used by experiments). |
 | preloadFeatureFlagsType: BooleanDefault: true | Whether to load feature flags when initialized or not. |
-| bootstrapType: ObjectDefault: {} | An object containing the distinctId, isIdentifiedId, featureFlags, and featureFlagPayloads keys. distinctId is a string, and featureFlags and featureFlagPayloads are objects of key-value pairs. Used to ensure data is available as soon as the SDK loads. |
+| bootstrapType: ObjectDefault: {} | Seeds identity (distinctId, isIdentifiedId) and feature flag state (featureFlags, featureFlagPayloads) during initialization. See [SDK bootstrapping](/docs/libraries/bootstrapping.md). |
 | disableRemoteFeatureFlagsType: BooleanDefault: false | When true, the SDK never fetches or evaluates feature flags from PostHog, and identify(), group(), and reset() stop triggering /flags requests. Supply flag values yourself via bootstrap (at startup) and updateFlags() (at runtime). Available in version 4.49.0+. |
 | fetchRetryCountType: NumberDefault: 3 | How many times HTTP requests will be retried. |
 | fetchRetryDelayType: NumberDefault: 3000 | The delay between HTTP request retries. |
@@ -1050,13 +1050,38 @@ The list of properties that this overrides:
 
 This enables any geolocation-based flags to work without manually setting these properties.
 
-### Bootstrapping Flags
+### Bootstrapping flags
 
 Since there is a delay between initializing PostHog and fetching feature flags, feature flags are not always available immediately. This makes them unusable if you want to do something like redirecting a user to a different page based on a feature flag.
 
 To have your feature flags available immediately, you can initialize PostHog with precomputed values until it has had a chance to fetch them. This is called bootstrapping. After the SDK fetches feature flags from PostHog, it will use those flag values instead of bootstrapped ones.
 
-For details on how to implement bootstrapping, see our [bootstrapping guide](/docs/feature-flags/bootstrapping.md).
+Pass `bootstrap` in the initialization options to seed identity and flag values:
+
+React Native
+
+PostHog AI
+
+```jsx
+<PostHogProvider
+    apiKey="<ph_project_token>"
+    options={{
+        host: 'https://us.i.posthog.com',
+        bootstrap: {
+            distinctId: 'distinct_id_of_your_user',
+            isIdentifiedId: true,
+            featureFlags: {
+                'flag-1': true,
+                'variant-flag': 'control',
+            },
+        },
+    }}
+>
+    <MyComponent />
+</PostHogProvider>
+```
+
+See [bootstrapping Feature Flags](/docs/feature-flags/bootstrapping.md) for server-side evaluation and flag lifecycle, and [SDK bootstrapping](/docs/libraries/bootstrapping.md) for cross-SDK identity behavior.
 
 ### Supplying flags from your own backend
 
