@@ -34,6 +34,8 @@ Otherwise, choose your platform below for manual instructions.
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/flutter.svg)Flutter](/docs/error-tracking/upload-source-maps/flutter.md)
 
+-   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/go.svg)Go](/docs/error-tracking/upload-source-maps/go.md)
+
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/ios.svg)iOS](/docs/error-tracking/upload-source-maps/ios.md)
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/rust.svg)Rust](/docs/error-tracking/upload-source-maps/rust.md)

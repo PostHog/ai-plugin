@@ -633,14 +633,14 @@ await Posthog().setup(config);
 
 The values are forwarded to the native iOS and Android SDKs:
 
--   **Bootstrapped identity applies to the first session.** Setting it before `setup()` means events captured synchronously during initialization (like `Application Installed`) carry your distinct ID instead of the SDK-generated UUID.
-    -   An **anonymous** bootstrap (`isIdentifiedId: false`, the default) seeds the anonymous ID only when none is persisted yet. Once an anonymous ID exists on disk, or the user has been identified, it is ignored.
-    -   An **identified** bootstrap (`isIdentifiedId: true`) is for a user you've already identified outside the SDK (for example, from a backend session token). On a fresh install it seeds the distinct ID and marks the user identified. On a returning install where an anonymous user already exists, it merges that user into the identified ID via `identify()`, which emits a `$identify` event during `setup()`. A *different*, already-identified user is left untouched. The identified ID never becomes the device ID.
+-   **Bootstrapped identity applies during setup.** On a fresh install, setting it before `setup()` means events captured synchronously during initialization (like `Application Installed`) carry your distinct ID instead of the SDK-generated UUID.
+    -   An **anonymous** bootstrap (`isIdentifiedId: false`, the default) seeds the anonymous ID only when none is persisted yet. Once an anonymous ID exists on disk, or the person has been identified, the SDK ignores it.
+    -   An **identified** bootstrap (`isIdentifiedId: true`) is for a signed-in identity available to your app (for example, from a backend session token). On a fresh install, it seeds the distinct ID, marks the person identified, and generates a separate device ID. On a returning install, a matching anonymous ID is marked identified without emitting `$identify`; a different anonymous ID is merged via `identify()` when person profiles are enabled. This emits `$identify` unless capturing is opted out. A different, already-identified person is left untouched.
 -   **Bootstrapped flags are served until the first `/flags` response, then replaced.** A complete `/flags` response takes over entirely, so bootstrapped-only keys don't persist past it. Only *enabled* flags are seeded: a `true` boolean or a non-empty variant string. A `false` or empty value is dropped, matching posthog-js. Seed payloads with the separate `featureFlagPayloads` option. Flag values and payloads must be JSON-serializable, or they're dropped. Bootstrapped flags are cleared on `reset()`.
 
-The feature-flags-loaded signal fires as soon as bootstrapped flags are applied, so startup logic can read them immediately. These SDKs don't support the `sessionID` bootstrap option.
+The feature-flags-loaded signal fires as soon as bootstrapped flags are applied, so startup logic can read them immediately. These SDKs don't support the `sessionID` bootstrap option. When person profiles are set to `never`, the SDK preserves a different anonymous identity instead of merging it into an identified bootstrap.
 
-On Flutter web, `bootstrap` is not applied, so configure it in your `posthog.init({...})` snippet instead. See the [bootstrapping guide](/docs/feature-flags/bootstrapping.md) for the cross-SDK overview.
+On Flutter web, `bootstrap` is not applied, so configure it in your `posthog.init({...})` snippet instead. See the [SDK bootstrapping guide](/docs/libraries/bootstrapping.md) for the cross-SDK overview.
 
 ### Setting properties for flag evaluation
 
@@ -683,6 +683,8 @@ To set up [logs](/docs/logs.md) in your Flutter app, follow the [Flutter logs in
 To set up [session replay web](/docs/session-replay.md) or [mobile session replay](/docs/session-replay/mobile.md) in your project, all you need to do is install the Flutter SDK, follow the [additional installation instructions](/docs/session-replay/installation/flutter.md), and enable "Record user sessions" in [your project settings](https://us.posthog.com/settings/project-replay) and enable the `sessionReplay` option.
 
 If you're using Flutter Web, also enable the [Canvas capture](/docs/session-replay/canvas-recording.md) in [your project settings](https://us.posthog.com/settings/project-replay). This is needed as Flutter renders your app using a browser canvas element.
+
+On Flutter Web, masking (`maskAllTexts`, `maskAllImages`, `PostHogMaskWidget`) applies inside that canvas too — declare `session_recording.canvasCapture.maskRegionsFn` in the `posthog.init` call in your `web/index.html` to enable it (requires PostHog Flutter SDK 5.34.0+ and posthog-js 1.408.0+). See [masking on Flutter Web](/docs/session-replay/privacy.md) under the Flutter tab.
 
 ## Surveys
 
