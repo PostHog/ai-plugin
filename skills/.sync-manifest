@@ -76,6 +76,7 @@ managing-endpoint-versions
 managing-experiment-lifecycle
 managing-path-cleaning-rules
 managing-reminders
+managing-streamlit-apps
 managing-subscriptions
 planning-voice-agent-user-interviews
 querying-posthog-data
@@ -105,7 +106,6 @@ signals-scout-feature-flags
 signals-scout-general
 signals-scout-health-checks
 signals-scout-inbox-validation
-signals-scout-ingestion-warnings
 signals-scout-insight-alerts
 signals-scout-logs
 signals-scout-mcp-tool-calls
@@ -128,3 +128,4 @@ triaging-visual-review-runs
 tuning-incremental-sync-config
 turning-engineering-analytics-into-insights
 working-with-skills
+writing-streamlit-apps

@@ -74,7 +74,7 @@ STEP 7: Set up environment variables.
 - `references/best-practices.md` - Logging best practices - docs
 - `references/troubleshooting.md` - Logs troubleshooting - docs
 - `references/link-session-replay.md` - Link session replay - docs
-- `references/debug-logs-mcp.md` - Debug logs with mcp - docs
+- `references/mcp.md` - Use logs over PostHog mcp - docs
 - `references/COMMANDMENTS.md` - Framework-specific rules the integration must follow
 
 Each platform reference contains specific OTLP configuration, SDK setup, and integration patterns. Find the one matching the user's stack.

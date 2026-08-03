@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.29.0
+**SDK Version:** 7.35.4
 
 Integrate PostHog into any python application.
 
@@ -38,7 +38,7 @@ Initialize a new PostHog client instance.
 - **`flush_at`** (`int`) - Number of queued events that triggers a batch upload.
 - **`flush_interval`** (`float`) - Maximum seconds a background consumer waits before         flushing a partial batch.
 - **`gzip`** (`bool`) - Whether to gzip event upload payloads.
-- **`max_retries`** (`int`) - Number of upload retries for background consumers.
+- **`max_retries`** (`int`) - Number of upload retries. Values below 0 are treated as 0.
 - **`sync_mode`** (`bool`) - If True, send each event synchronously instead of using         background worker threads.
 - **`timeout`** (`int`) - HTTP request timeout in seconds for event uploads.
 - **`thread`** (`int`) - Number of background consumer threads.
@@ -1668,7 +1668,7 @@ tag("user_id", "123")
 
 **Release Tag:** public
 
-Create or return the global PostHog client configured by module settings.  Most applications should either instantiate ``Posthog`` directly or set ``posthog.api_key``/other module settings before calling top-level helpers. ``setup()`` is called automatically by global APIs such as ``capture()``.  Returns:     The global ``Client`` instance. If ``api_key`` is missing or blank,     the client is disabled and module-level calls become no-ops.
+Create or return the global PostHog client configured by module settings.  Most applications should either instantiate ``Posthog`` directly or set ``posthog.api_key``/other module settings before calling top-level helpers. ``setup()`` is called automatically by global APIs such as ``capture()``.  Returns:     The global ``Client`` instance. If both ``api_key`` and     ``project_api_key`` are missing or blank, the client is disabled and     module-level calls become no-ops.
 
 ### Returns
 
