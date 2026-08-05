@@ -1,5 +1,9 @@
 # Go logs installation - Docs
 
+Copy page
+
+# Go logs installation - Docs
+
 1.  1
 
     ## Install OpenTelemetry packages

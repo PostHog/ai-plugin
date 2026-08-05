@@ -1,5 +1,9 @@
 # React - Docs
 
+Copy page
+
+# React - Docs
+
 PostHog makes it easy to get data about traffic and usage of your React app. Integrating PostHog into your site enables analytics about user behavior, custom events capture, session recordings, feature flags, and more.
 
 This guide walks you through an example integration of PostHog using vanilla React and the [posthog-js library](/docs/integrate/client/js.md).

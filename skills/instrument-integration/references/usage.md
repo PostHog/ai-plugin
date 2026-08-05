@@ -1,5 +1,9 @@
 # iOS SDK usage - Docs
 
+Copy page
+
+# iOS SDK usage - Docs
+
 ## Capturing events
 
 You can send custom events using `capture`:

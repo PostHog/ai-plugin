@@ -1,5 +1,9 @@
 # AutoGen AI Observability installation - Docs
 
+Copy page
+
+# AutoGen AI Observability installation - Docs
+
 1.  1
 
     ## Install dependencies
@@ -8,7 +12,7 @@
 
     **Full working examples**
 
-    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-autogen) on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-autogen).
+    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-autogen) on GitHub. If you use the PostHog SDK wrapper instead of OpenTelemetry, see this example instead: [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-autogen).
 
     Install the OpenTelemetry SDK, the OpenAI instrumentation, and AutoGen.
 

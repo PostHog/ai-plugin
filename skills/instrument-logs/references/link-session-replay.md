@@ -1,5 +1,9 @@
 # Link session replay - Docs
 
+Copy page
+
+# Link session replay - Docs
+
 Connecting your backend logs to frontend session replays provides complete visibility into the user journey, helping you understand the full context around issues in your application.
 
 ## Why link to session replay?

@@ -1,5 +1,9 @@
 # Ruby error tracking installation - Docs
 
+Copy page
+
+# Ruby error tracking installation - Docs
+
 1.  1
 
     ## Install the gem

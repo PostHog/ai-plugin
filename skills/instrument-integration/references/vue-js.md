@@ -1,5 +1,9 @@
 # Vue.js - Docs
 
+Copy page
+
+# Vue.js - Docs
+
 PostHog makes it easy to get data about usage of your [Vue.js](https://vuejs.org/) app. Integrating PostHog into your app enables analytics about user behavior, custom events capture, session replays, feature flags, and more.
 
 This guide walks you through integrating PostHog into your app for both Vue 2 and Vue 3. We'll use the [JavaScript Web SDK](/docs/libraries/js.md) for this.

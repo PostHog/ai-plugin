@@ -1,5 +1,9 @@
 # Adding feature flag code - Docs
 
+Copy page
+
+# Adding feature flag code - Docs
+
 Once you've created your feature flag in PostHog, the next step is to add your code:
 
 ## Web

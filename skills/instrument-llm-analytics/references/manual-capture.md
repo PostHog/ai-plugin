@@ -1,10 +1,14 @@
 # Manual capture AI Observability installation - Docs
 
+Copy page
+
+# Manual capture AI Observability installation - Docs
+
 1.  1
 
     ## Capture LLM events manually
 
-    If you're using a different server-side SDK or prefer to use the API, you can manually capture the data by calling the `capture` method or using the [capture API](/docs/api/capture.md).
+    If you use a different server-side SDK, or prefer to use the API, capture the data manually. Call the `capture` method, or use the [capture API](/docs/api/capture.md).
 
     ## API
 

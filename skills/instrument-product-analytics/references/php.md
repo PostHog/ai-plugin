@@ -1,5 +1,9 @@
 # PHP - Docs
 
+Copy page
+
+# PHP - Docs
+
 This is an optional library you can install if you're working with PHP. It uses an internal queue to batch requests, flushes at the end of the request, and optionally does so in an async manner.
 
 ## Installation

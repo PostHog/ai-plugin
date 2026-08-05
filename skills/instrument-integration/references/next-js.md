@@ -1,5 +1,9 @@
 # Next.js - Docs
 
+Copy page
+
+# Next.js - Docs
+
 PostHog makes it easy to get data about traffic and usage of your [Next.js](https://nextjs.org/) app. Integrating PostHog into your site enables analytics about user behavior, custom events capture, session recordings, feature flags, and more.
 
 This guide walks you through integrating PostHog into your Next.js app using the [React](/docs/libraries/react.md) and the [Node.js](/docs/libraries/node.md) SDKs.

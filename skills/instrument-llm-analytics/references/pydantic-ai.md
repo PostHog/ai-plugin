@@ -1,5 +1,9 @@
 # Pydantic AI Observability installation - Docs
 
+Copy page
+
+# Pydantic AI Observability installation - Docs
+
 1.  1
 
     ## Install dependencies
@@ -8,7 +12,7 @@
 
     **Full working examples**
 
-    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-pydantic-ai) on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-pydantic-ai).
+    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-pydantic-ai) on GitHub. If you use the PostHog SDK wrapper instead of OpenTelemetry, see the [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-pydantic-ai).
 
     Install the OpenTelemetry SDK and Pydantic AI.
 

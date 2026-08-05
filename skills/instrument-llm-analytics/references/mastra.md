@@ -1,5 +1,9 @@
 # Mastra AI Observability installation - Docs
 
+Copy page
+
+# Mastra AI Observability installation - Docs
+
 1.  1
 
     ## Install dependencies

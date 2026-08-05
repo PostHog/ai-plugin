@@ -1,5 +1,9 @@
 # Elixir - Docs
 
+Copy page
+
+# Elixir - Docs
+
 This library provides an Elixir HTTP client for PostHog. [See the repository](https://github.com/posthog/posthog-elixir) for more information.
 
 ## Installation

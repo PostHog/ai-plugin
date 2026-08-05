@@ -1,5 +1,9 @@
 # Monitor and search issues - Docs
 
+Copy page
+
+# Monitor and search issues - Docs
+
 This guide covers how to find the most relevant, urgent, and impactful issues in your error tracking using the [issues page](https://app.posthog.com/error_tracking).
 
 ## Monitoring issues

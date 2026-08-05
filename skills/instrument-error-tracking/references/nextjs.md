@@ -1,5 +1,9 @@
 # Next.js error tracking installation - Docs
 
+Copy page
+
+# Next.js error tracking installation - Docs
+
 1.  1
 
     ## Install the package

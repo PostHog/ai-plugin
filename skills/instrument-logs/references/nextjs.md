@@ -1,5 +1,9 @@
 # Next.js logs installation - Docs
 
+Copy page
+
+# Next.js logs installation - Docs
+
 1.  1
 
     ## Install OpenTelemetry packages

@@ -1,5 +1,9 @@
 # LlamaIndex AI Observability installation - Docs
 
+Copy page
+
+# LlamaIndex AI Observability installation - Docs
+
 1.  1
 
     ## Install dependencies
@@ -8,12 +12,12 @@
 
     **Full working examples**
 
-    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-llamaindex) on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-llamaindex).
+    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-llamaindex) on GitHub. If you use the PostHog SDK wrapper instead of OpenTelemetry, see this example instead: [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-llamaindex).
 
     Install LlamaIndex, OpenAI, and the OpenTelemetry SDK with the LlamaIndex instrumentation.
 
     ```bash
-    pip install llama-index llama-index-llms-openai opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-llamaindex
+    pip install llama-index llama-index-llms-openai opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-openai-v2
     ```
 
 2.  2
@@ -29,7 +33,7 @@
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.resources import Resource, SERVICE_NAME
     from posthog.ai.otel import PostHogSpanProcessor
-    from opentelemetry.instrumentation.llamaindex import LlamaIndexInstrumentor
+    from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
     resource = Resource(attributes={
         SERVICE_NAME: "my-app",
         "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
@@ -43,8 +47,12 @@
         )
     )
     trace.set_tracer_provider(provider)
-    LlamaIndexInstrumentor().instrument()
+    OpenAIInstrumentor().instrument()
     ```
+
+    **What gets captured**
+
+    This instruments the OpenAI calls LlamaIndex makes underneath, so you get one `$ai_generation` per LLM call. Retrieval and query-engine steps are not captured as spans. To record those, capture `$ai_span` events yourself with a shared `$ai_trace_id`. See [manual capture](/docs/ai-observability/installation/manual-capture.md).
 
 3.  3
 
