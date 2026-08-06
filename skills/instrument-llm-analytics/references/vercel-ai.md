@@ -1,15 +1,35 @@
 # Vercel AI SDK observability installation - Docs
 
+Copy page
+
+# Vercel AI SDK observability installation - Docs
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
+
+Let AI instrument your LLM calls for you
+
+Skip the manual setup — run this in your project and the wizard installs the SDK and wires up AI Observability for you.
+
+`npx @posthog/wizard ai-observability`
+
+[Learn more](/wizard.md)
+
+![PostHog Wizard hedgehog](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)Let AI instrument your LLM calls for you
+
 1.  1
 
     ## Install dependencies
 
     Required
 
-    Install the PostHog AI package, the Vercel AI SDK, and the OpenTelemetry SDK.
+    Install the PostHog AI package, the Vercel AI SDK, the OpenTelemetry SDK, and Zod for defining tool schemas.
 
     ```bash
-    npm install @posthog/ai @ai-sdk/openai ai @opentelemetry/sdk-node @opentelemetry/resources
+    npm install @posthog/ai @ai-sdk/openai ai @opentelemetry/sdk-node @opentelemetry/resources zod
     ```
 
 2.  2
@@ -44,20 +64,30 @@
 
     Required
 
-    Pass `experimental_telemetry` to your Vercel AI SDK calls. The `posthog_distinct_id` metadata field links events to a specific user in PostHog.
+    Pass `experimental_telemetry` to your Vercel AI SDK calls. The `posthog_distinct_id` metadata field links events to a specific user in PostHog. Define `tools` the same way you always would, with an `execute` function, as `get_weather` does below.
 
     ```typescript
-    import { generateText } from 'ai'
+    import { generateText, tool, stepCountIs } from 'ai'
     import { openai } from '@ai-sdk/openai'
+    import { z } from 'zod'
     const result = await generateText({
       model: openai('gpt-5-mini'),
-      prompt: 'Tell me a fun fact about hedgehogs.',
+      prompt: "What's the weather in Paris?",
+      tools: {
+        get_weather: tool({
+          description: 'Get the weather for a city',
+          inputSchema: z.object({ city: z.string() }),
+          execute: async ({ city }) => `It's always sunny in ${city}!`,
+        }),
+      },
+      stopWhen: stepCountIs(5), // let the model see the tool result and respond
       experimental_telemetry: {
         isEnabled: true,
         functionId: 'my-ai-function',
         metadata: {
           posthog_distinct_id: 'user_123', // optional
           posthog_environment: 'production', // custom property: sets "environment" on the event
+          $ai_session_id: 'conversation-abc', // optional: groups calls into one session
         },
       },
     })
@@ -66,7 +96,7 @@
 
     > **Note:** If you want to capture LLM events anonymously, omit the `posthog_distinct_id` metadata field. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
-    > **Custom properties:** Prefix any telemetry metadata field with `posthog_` to attach it to the `$ai_generation` event as a custom property. The prefix is stripped, so `posthog_environment` becomes an `environment` property you can filter and break down by. Other metadata fields aren't captured.
+    > **Custom properties:** Prefix any telemetry metadata field with `posthog_` to attach it to the `$ai_generation` event as a custom property. PostHog strips the prefix, so `posthog_environment` becomes an `environment` property you can filter and break down by. PostHog does not capture other metadata fields.
 
     You can expect captured `$ai_generation` events to have the following properties:
 

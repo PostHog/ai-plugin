@@ -1,5 +1,9 @@
 # Ruby Feature Flags installation - Docs
 
+Copy page
+
+# Ruby Feature Flags installation - Docs
+
 1.  1
 
     ## Install the gem

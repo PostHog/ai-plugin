@@ -1,5 +1,9 @@
 # Node.js error tracking installation - Docs
 
+Copy page
+
+# Node.js error tracking installation - Docs
+
 1.  1
 
     ## Install the package

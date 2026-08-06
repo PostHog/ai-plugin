@@ -1,5 +1,9 @@
 # Elixir Feature Flags installation - Docs
 
+Copy page
+
+# Elixir Feature Flags installation - Docs
+
 > This library was built by the community but it's being maintained by the PostHog core team since v1.0.0. Thank you to [Nick Kezhaya](https://github.com/nkezhaya) for building it originally. Thank you to [Alex Martsinovich](https://github.com/martosaur) for contributing v2.0.0.
 
 The package can be installed by adding `posthog` to your list of dependencies in `mix.exs`:

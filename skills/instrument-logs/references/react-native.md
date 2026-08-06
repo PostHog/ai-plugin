@@ -1,5 +1,9 @@
 # React Native logs installation - Docs
 
+Copy page
+
+# React Native logs installation - Docs
+
 PostHog's React Native SDK has built-in support for capturing structured logs. Unlike other languages where you wire OpenTelemetry directly, the SDK handles the OTLP encoding, batching, persistence, and lifecycle for you. You just call `posthog.captureLog(...)` or `posthog.logger.{trace,debug,info,warn,error,fatal}(...)`.
 
 > **JavaScript layer only.** Logs are captured from the JavaScript side of your app. Native logs from your iOS or Android code (e.g. `os_log`, `Log.d`) are not collected.

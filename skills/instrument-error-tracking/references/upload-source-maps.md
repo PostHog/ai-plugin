@@ -1,5 +1,9 @@
 # Upload source maps - Docs
 
+Copy page
+
+# Upload source maps - Docs
+
 If you serve compiled or minified code, PostHog requires source maps to generate accurate stack traces.
 
 If your source maps are not publicly hosted, you will need to upload them during your build process to see unminified code in your stack traces.

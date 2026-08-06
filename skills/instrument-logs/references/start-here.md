@@ -1,5 +1,9 @@
 # Getting started with Logs - Docs
 
+Copy page
+
+# Getting started with Logs - Docs
+
 ## Use your logging client
 
 PostHog Logs works with any OpenTelemetry client. No PostHog-specific packages required. Use the OTel SDKs you already have, point them at PostHog's HTTP endpoint, and drop in your project token.

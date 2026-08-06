@@ -1,5 +1,9 @@
 # Ruby on Rails - Docs
 
+Copy page
+
+# Ruby on Rails - Docs
+
 PostHog makes it easy to get data about traffic and usage of your Ruby on Rails app. Integrating PostHog enables analytics, custom event capture, feature flags, and automatic exception tracking.
 
 This guide walks you through integrating PostHog into your Rails app using the [posthog-rails gem](https://github.com/PostHog/posthog-ruby/tree/main/posthog-rails).
