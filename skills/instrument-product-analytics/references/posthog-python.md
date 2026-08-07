@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.35.4
+**SDK Version:** 7.38.0
 
 Integrate PostHog into any python application.
 
@@ -100,8 +100,8 @@ Create an alias between two distinct IDs.
 
 ### Parameters
 
-- **`previous_id?`** (`str`) - The previous distinct ID.
-- **`distinct_id?`** (`str`) - The new distinct ID to alias to.
+- **`previous_id?`** (`Number`) - The previous distinct ID. Required - the call is dropped         with a warning if it is missing or empty.
+- **`distinct_id?`** (`str`) - The new distinct ID to alias to. Falls back to the         context distinct ID; the call is dropped with a warning if         neither is available.
 - **`timestamp`** (`datetime`) - The timestamp of the event.
 - **`uuid?`** (`str`) - A unique identifier for the event. If provided, it must be a         valid UUID string or uuid.UUID instance; invalid values are         ignored and replaced with a newly generated UUID.
 - **`disable_geoip?`** (`bool`) - Whether to disable GeoIP for this event.
@@ -869,7 +869,7 @@ To marry up whatever a user does before they sign up or log in with what they do
 
 ### Parameters
 
-- **`previous_id?`** (`str`) - The unique ID of the user before
+- **`previous_id?`** (`Number`) - The unique ID of the user before
 - **`distinct_id?`** (`str`) - The current unique id
 - **`timestamp?`** (`datetime`) - Optional timestamp for the event
 - **`uuid?`** (`str`) - Optional UUID for the event

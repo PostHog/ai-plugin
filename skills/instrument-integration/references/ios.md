@@ -1,5 +1,9 @@
 # iOS - Docs
 
+Copy page
+
+# iOS - Docs
+
 The PostHog iOS SDK is a library that you can use to track events, identify users, record session replays, evaluate feature flags, run experiments, build surveys, and more.
 
 This page shows you how to install the SDK and get started with it. If you've already installed the SDK, you can skip ahead to learn about [using the features](/docs/libraries/ios/usage.md) and [configuring the SDK](/docs/libraries/ios/configuration.md).

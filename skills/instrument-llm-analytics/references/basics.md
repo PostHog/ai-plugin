@@ -1,5 +1,9 @@
 # AI Observability basics - Docs
 
+Copy page
+
+# AI Observability basics - Docs
+
 This page covers how your LLM calls become analytics in PostHog and defines key concepts for AI Observability.
 
 ## How LLM calls become events

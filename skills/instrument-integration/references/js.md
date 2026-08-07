@@ -1,5 +1,9 @@
 # JavaScript web - Docs
 
+Copy page
+
+# JavaScript web - Docs
+
 > **Note:** This doc refers to our [posthog-js](https://github.com/PostHog/posthog-js) library for use on the browser. For server-side JavaScript, see our [Node SDK](/docs/libraries/node.md).
 
 ## Installation

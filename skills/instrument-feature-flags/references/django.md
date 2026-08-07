@@ -1,5 +1,9 @@
 # Django - Docs
 
+Copy page
+
+# Django - Docs
+
 PostHog makes it easy to get data about traffic and usage of your Django app. Integrating PostHog enables analytics, custom events capture, feature flags, error tracking, and more.
 
 This guide walks you through integrating PostHog into your Django app using the [Python SDK](/docs/libraries/python.md).

@@ -1,5 +1,9 @@
 # Nuxt Error Tracking installation (v3.7 and above) - Docs
 
+Copy page
+
+# Nuxt Error Tracking installation (v3.7 and above) - Docs
+
 1.  1
 
     ## Install the PostHog Nuxt module

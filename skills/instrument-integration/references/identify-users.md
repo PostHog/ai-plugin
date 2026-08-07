@@ -1,5 +1,9 @@
 # Identify users - Docs
 
+Copy page
+
+# Identify users - Docs
+
 Linking events to specific users enables you to build a full picture of how they're using your product across different sessions, devices, and platforms.
 
 This is straightforward to do when [capturing backend events](/docs/product-analytics/capture-events?tab=Node.js.md), as you associate events to a specific user using a `distinct_id`, which is a required argument.

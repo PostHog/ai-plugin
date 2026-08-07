@@ -1,5 +1,9 @@
 # Nuxt.js - Docs
 
+Copy page
+
+# Nuxt.js - Docs
+
 PostHog makes it easy to get data about usage of your [Nuxt.js](https://nuxt.com/) app. Integrating PostHog into your app enables analytics about user behavior, custom events capture, session replays, feature flags, and more.
 
 This guide covers Nuxt v4.x and v3.7+. For these versions, we recommend using `@posthog/nuxt` module for client-side capture.

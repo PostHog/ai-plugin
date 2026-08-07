@@ -1,5 +1,9 @@
 # Android Feature Flags installation - Docs
 
+Copy page
+
+# Android Feature Flags installation - Docs
+
 1.  1
 
     ## Install the dependency

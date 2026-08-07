@@ -1,5 +1,9 @@
 # Logging best practices - Docs
 
+Copy page
+
+# Logging best practices - Docs
+
 Most logging is bad. Not because people don't log enough. They log too much of the wrong things and too little of the right things. The result is millions of lines that are expensive to store and useless to query.
 
 This guide covers what actually makes logs useful in production systems. PostHog ingests logs via [OpenTelemetry (OTLP)](/docs/logs/installation.md), so the patterns here are built around OTel's structured logging model: resource attributes, log attributes, and trace context.
