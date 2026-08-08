@@ -1,5 +1,25 @@
 # Anthropic AI Observability installation - Docs
 
+Copy page
+
+# Anthropic AI Observability installation - Docs
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
+
+Let AI instrument your LLM calls for you
+
+Skip the manual setup — run this in your project and the wizard installs the SDK and wires up AI Observability for you.
+
+`npx @posthog/wizard ai-observability`
+
+[Learn more](/wizard.md)
+
+![PostHog Wizard hedgehog](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)Let AI instrument your LLM calls for you
+
 1.  1
 
     ## Install dependencies
@@ -8,80 +28,57 @@
 
     **Full working examples**
 
-    See the complete [Node.js](https://github.com/PostHog/posthog-js/tree/main/examples/example-ai-anthropic) and [Python](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-anthropic) examples on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Node.js wrapper](https://github.com/PostHog/posthog-js/tree/e08ff1be/examples/example-ai-anthropic) and [Python wrapper](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-anthropic) examples.
+    See the complete [Node.js](https://github.com/PostHog/posthog-js/tree/main/examples/example-ai-anthropic) and [Python](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-anthropic) examples on GitHub.
 
-    Install the OpenTelemetry SDK, the Anthropic instrumentation, and the Anthropic SDK.
+    Install the PostHog SDK and the Anthropic SDK.
 
     PostHog AI
 
     ### Python
 
     ```bash
-    pip install anthropic opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-anthropic
+    pip install posthog anthropic
     ```
 
     ### Node
 
     ```bash
-    npm install @anthropic-ai/sdk @posthog/ai @opentelemetry/sdk-node @opentelemetry/resources @traceloop/instrumentation-anthropic
+    npm install @posthog/ai posthog-node @anthropic-ai/sdk
     ```
 
 2.  2
 
-    ## Set up OpenTelemetry tracing
+    ## Configure PostHog
 
     Required
 
-    Configure OpenTelemetry to auto-instrument Anthropic SDK calls and export traces to PostHog. PostHog converts `gen_ai.*` spans into `$ai_generation` events automatically.
+    Create a PostHog client, then swap in PostHog's Anthropic wrapper.
 
     PostHog AI
 
     ### Python
 
     ```python
-    from opentelemetry import trace
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.resources import Resource, SERVICE_NAME
-    from posthog.ai.otel import PostHogSpanProcessor
-    from opentelemetry.instrumentation.anthropic import AnthropicInstrumentor
-    resource = Resource(attributes={
-        SERVICE_NAME: "my-app",
-        "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
-        "foo": "bar", # custom properties are passed through
-    })
-    provider = TracerProvider(resource=resource)
-    provider.add_span_processor(
-        PostHogSpanProcessor(
-            api_key="<ph_project_token>",
-            host="https://us.i.posthog.com",
-        )
+    from posthog import Posthog
+    from posthog.ai.anthropic import Anthropic
+    import time, uuid
+    posthog = Posthog("<ph_project_token>", host="https://us.i.posthog.com")
+    client = Anthropic(
+        api_key="sk-ant-api...",
+        posthog_client=posthog,
     )
-    trace.set_tracer_provider(provider)
-    AnthropicInstrumentor().instrument()
     ```
 
     ### Node
 
     ```typescript
-    import { NodeSDK } from '@opentelemetry/sdk-node'
-    import { resourceFromAttributes } from '@opentelemetry/resources'
-    import { PostHogSpanProcessor } from '@posthog/ai/otel'
-    import { AnthropicInstrumentation } from '@traceloop/instrumentation-anthropic'
-    const sdk = new NodeSDK({
-      resource: resourceFromAttributes({
-        'service.name': 'my-app',
-        'posthog.distinct_id': 'user_123', // optional: identifies the user in PostHog
-        foo: 'bar', // custom properties are passed through
-      }),
-      spanProcessors: [
-        new PostHogSpanProcessor({
-          apiKey: '<ph_project_token>',
-          host: 'https://us.i.posthog.com',
-        }),
-      ],
-      instrumentations: [new AnthropicInstrumentation()],
+    import { Anthropic } from '@posthog/ai/anthropic'
+    import { PostHog } from 'posthog-node'
+    const posthog = new PostHog('<ph_project_token>', { host: 'https://us.i.posthog.com' })
+    const client = new Anthropic({
+      apiKey: 'sk-ant-api...',
+      posthog,
     })
-    sdk.start()
     ```
 
 3.  3
@@ -90,41 +87,45 @@
 
     Required
 
-    Now, when you use the Anthropic SDK to call LLMs, PostHog automatically captures `$ai_generation` events via the OpenTelemetry instrumentation.
+    When you use the wrapped client to call Anthropic, PostHog automatically captures an `$ai_generation` event.
 
     PostHog AI
 
     ### Python
 
     ```python
-    import anthropic
-    client = anthropic.Anthropic(api_key="sk-ant-api...")
+    trace_id = str(uuid.uuid4())
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-5",
         max_tokens=1024,
-        messages=[
-            {"role": "user", "content": "Tell me a fun fact about hedgehogs"}
-        ],
+        messages=[{"role": "user", "content": "What's the weather in Paris?"}],
+        tools=tools,
+        posthog_distinct_id="user_123",
+        posthog_trace_id=trace_id,
+        posthog_properties={
+            "$ai_session_id": "conversation-abc",
+        },
     )
-    print(response.content[0].text)
     ```
 
     ### Node
 
     ```typescript
-    import Anthropic from '@anthropic-ai/sdk'
-    const client = new Anthropic({ apiKey: 'sk-ant-api...' })
+    const traceId = crypto.randomUUID()
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 1024,
-      messages: [{ role: 'user', content: 'Tell me a fun fact about hedgehogs' }],
+      messages: [{ role: 'user', content: "What's the weather in Paris?" }],
+      tools,
+      posthogDistinctId: 'user_123',
+      posthogTraceId: traceId,
+      posthogProperties: {
+        $ai_session_id: 'conversation-abc',
+      },
     })
-    console.log(response.content[0].text)
     ```
 
-    > **Note:** This also works with the `AsyncAnthropic` client as well as `AnthropicBedrock`, `AnthropicVertex`, and the async versions of those.
-
-    > **Note:** If you want to capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
+    > **Note:** If you want to capture LLM events anonymously, omit `posthog_distinct_id` from the call. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
@@ -141,7 +142,65 @@
     | $ai_total_cost_usd | The total cost in USD (input + output) |
     | [[...]](/docs/ai-observability/generations.md#event-properties) | See [full list](/docs/ai-observability/generations.md#event-properties) of properties |
 
-4.  ## Verify traces and generations
+4.  4
+
+    ## Capture tool calls as spans
+
+    Optional
+
+    For standard responses, the posthog client captures it as a generation. For all tool calls, you must manually capture them as `$ai_span` events.
+
+    PostHog AI
+
+    ### Python
+
+    ```python
+    for block in response.content:
+        if block.type != "tool_use":
+            continue
+        start = time.time()
+        result = run_tool(block.name, block.input)
+        posthog.capture(
+            distinct_id="user_123",
+            event="$ai_span",
+            properties={
+                "$ai_trace_id": trace_id,
+                "$ai_session_id": "conversation-abc",
+                "$ai_span_id": str(uuid.uuid4()),
+                "$ai_span_name": block.name,
+                "$ai_input_state": block.input,
+                "$ai_output_state": result,
+                "$ai_latency": time.time() - start,
+            },
+        )
+    ```
+
+    ### Node
+
+    ```typescript
+    for (const block of response.content) {
+      if (block.type !== 'tool_use') continue
+      const start = Date.now()
+      const result = await runTool(block.name, block.input)
+      posthog.capture({
+        distinctId: 'user_123',
+        event: '$ai_span',
+        properties: {
+          $ai_trace_id: traceId,
+          $ai_session_id: 'conversation-abc',
+          $ai_span_id: crypto.randomUUID(),
+          $ai_span_name: block.name,
+          $ai_input_state: block.input,
+          $ai_output_state: result,
+          $ai_latency: (Date.now() - start) / 1000,
+        },
+      })
+    }
+    ```
+
+    See [spans](/docs/ai-observability/spans.md) for the full list of span properties.
+
+5.  ## Verify traces and generations
 
     Recommended
 
@@ -153,7 +212,7 @@
 
     [Check for LLM events in PostHog](https://app.posthog.com/ai-observability/generations)
 
-5.  4
+6.  5
 
     ## Next steps
 

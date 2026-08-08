@@ -1,5 +1,9 @@
 # Go Feature Flags installation - Docs
 
+Copy page
+
+# Go Feature Flags installation - Docs
+
 1.  1
 
     ## Install the package

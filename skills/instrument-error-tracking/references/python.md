@@ -1,5 +1,9 @@
 # Python error tracking installation - Docs
 
+Copy page
+
+# Python error tracking installation - Docs
+
 1.  1
 
     ## Install the package

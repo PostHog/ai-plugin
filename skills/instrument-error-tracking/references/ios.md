@@ -1,5 +1,9 @@
 # iOS error tracking installation - Docs
 
+Copy page
+
+# iOS error tracking installation - Docs
+
 1.  1
 
     ## Install dependency

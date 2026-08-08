@@ -1,5 +1,25 @@
 # OpenAI Agents SDK observability installation - Docs
 
+Copy page
+
+# OpenAI Agents SDK observability installation - Docs
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
+
+Let AI instrument your LLM calls for you
+
+Skip the manual setup — run this in your project and the wizard installs the SDK and wires up AI Observability for you.
+
+`npx @posthog/wizard ai-observability`
+
+[Learn more](/wizard.md)
+
+![PostHog Wizard hedgehog](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)Let AI instrument your LLM calls for you
+
 1.  1
 
     ## Install the PostHog SDK
@@ -34,7 +54,7 @@
 
     Required
 
-    Initialize PostHog with your project token and host from [your project settings](https://app.posthog.com/settings/project), then call `instrument()` to register PostHog tracing with the OpenAI Agents SDK. This automatically captures all agent traces, spans, and LLM generations.
+    Initialize PostHog with your project token and host from [your project settings](https://app.posthog.com/settings/project). Then call `instrument()` to register PostHog tracing with the OpenAI Agents SDK. This automatically captures all agent traces, spans, and LLM generations.
 
     ```python
     from posthog import Posthog
@@ -45,14 +65,13 @@
     )
     instrument(
         client=posthog,
-        distinct_id="user_123", # optional
+        distinct_id=lambda trace: (trace.metadata or {}).get("posthog_distinct_id"),
         privacy_mode=False, # optional
         groups={"company": "company_id_in_your_db"}, # optional
-        properties={"conversation_id": "abc123"}, # optional
     )
     ```
 
-    > **Note:** If you want to capture LLM events anonymously, **don't** pass a distinct ID to `instrument()`. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
+    > **Note:** If you want to capture LLM events anonymously, **do not** pass a distinct ID — here or per run. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
 4.  4
 
@@ -60,15 +79,32 @@
 
     Required
 
-    Run your OpenAI agents as normal. PostHog automatically captures `$ai_generation` events for LLM calls and `$ai_span` events for agent execution, tool calls, and handoffs.
+    Run your OpenAI agents as normal. PostHog automatically captures `$ai_generation` events for LLM calls and `$ai_span` events for agent execution, tool calls, and handoffs. Pass the user and conversation on the run's `RunConfig`:
+
+    -   `group_id` groups the run's traces into a conversation — it becomes `$ai_session_id`.
+    -   `trace_metadata["posthog_distinct_id"]` attributes the run's events to a user — the `distinct_id` lambda from the previous step reads it off each trace. Any other `trace_metadata` keys land on the trace as `$ai_trace_metadata`.
+
+    The example below defines a tool and lets the agent call it.
 
     ```python
-    from agents import Agent, Runner
+    from agents import Agent, Runner, RunConfig, function_tool
+    @function_tool
+    def get_weather(city: str) -> str:
+        """Get the weather for a city."""
+        return f"The weather in {city} is sunny, 72F"
     agent = Agent(
         name="Assistant",
         instructions="You are a helpful assistant.",
+        tools=[get_weather],
     )
-    result = Runner.run_sync(agent, "Tell me a fun fact about hedgehogs")
+    result = Runner.run_sync(
+        agent,
+        "What's the weather in Paris?",
+        run_config=RunConfig(
+            group_id="conversation_abc",
+            trace_metadata={"posthog_distinct_id": "user_123"},
+        ),
+    )
     print(result.final_output)
     ```
 
@@ -93,7 +129,7 @@
 
     Optional
 
-    PostHog captures the full trace hierarchy for complex agent workflows including handoffs and tool calls.
+    PostHog captures the full trace hierarchy for complex agent workflows, including handoffs between multiple agents.
 
     ```python
     from agents import Agent, Runner, function_tool
@@ -120,6 +156,8 @@
     -   Handoff spans showing the routing between agents
     -   Tool spans for `get_weather` function calls
     -   Generation spans for all LLM calls
+
+    As with the single-agent example above, PostHog captures every span in that list automatically. You write no extra code for the handoff itself.
 
 6.  ## Verify traces and generations
 

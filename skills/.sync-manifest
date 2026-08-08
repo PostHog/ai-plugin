@@ -78,6 +78,12 @@ managing-path-cleaning-rules
 managing-reminders
 managing-streamlit-apps
 managing-subscriptions
+modeling-activation-metrics
+modeling-conversion-metrics
+modeling-dimension-tables
+modeling-product-usage-metrics
+modeling-revenue-metrics
+modeling-warehouse-foundations
 planning-voice-agent-user-interviews
 querying-posthog-data
 resolving-ingestion-warnings

@@ -1,5 +1,9 @@
 # Traces - Docs
 
+Copy page
+
+# Traces - Docs
+
 Traces are a collection of [generations](/docs/ai-observability/generations.md) and [spans](/docs/ai-observability/spans.md) that capture a full interaction between a user and an LLM. The [traces tab](https://app.posthog.com/ai-observability/traces) lists them along with the properties autocaptured by PostHog like the person, total cost, total latency, and more.
 
 ## Sessions vs Traces

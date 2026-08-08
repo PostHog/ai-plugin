@@ -1,5 +1,9 @@
 # iOS SDK configuration - Docs
 
+Copy page
+
+# iOS SDK configuration - Docs
+
 ## Autocapture configuration
 
 You can enable or disable autocapture through the `PostHogConfig` object.

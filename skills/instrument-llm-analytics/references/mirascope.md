@@ -1,5 +1,25 @@
 # Mirascope AI Observability installation - Docs
 
+Copy page
+
+# Mirascope AI Observability installation - Docs
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
+
+Let AI instrument your LLM calls for you
+
+Skip the manual setup — run this in your project and the wizard installs the SDK and wires up AI Observability for you.
+
+`npx @posthog/wizard ai-observability`
+
+[Learn more](/wizard.md)
+
+![PostHog Wizard hedgehog](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)Let AI instrument your LLM calls for you
+
 1.  1
 
     ## Install dependencies
@@ -8,7 +28,7 @@
 
     **Full working examples**
 
-    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-mirascope) on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-mirascope).
+    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-mirascope) on GitHub. If you use the PostHog SDK wrapper instead of OpenTelemetry, see the [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-mirascope).
 
     Install the OpenTelemetry SDK, the OpenAI instrumentation, and Mirascope.
 
@@ -55,13 +75,20 @@
     Use Mirascope as normal. PostHog automatically captures an `$ai_generation` event for each LLM call made through the OpenAI SDK that Mirascope uses internally.
 
     ```python
-    from mirascope.core import openai, prompt_template
-    @openai.call("gpt-4o-mini")
-    @prompt_template("Tell me a fun fact about {topic}")
-    def fun_fact(topic: str): ...
+    from mirascope import llm
+    # Route OpenAI calls through chat.completions. Mirascope defaults to the
+    # Responses API, which the OpenTelemetry instrumentation does not cover.
+    llm.register_provider("openai:completions")
+    @llm.call("openai/gpt-4o-mini")
+    def fun_fact(topic: str) -> str:
+        return f"Tell me a fun fact about {topic}"
     response = fun_fact("hedgehogs")
-    print(response.content)
+    print(response.text())
     ```
+
+    **Use the completions provider**
+
+    `opentelemetry-instrumentation-openai-v2` instruments `chat.completions` and `embeddings` only. Mirascope v2 uses the OpenAI Responses API by default, which produces no spans. `llm.register_provider("openai:completions")` switches it to `chat.completions`, so the instrumentation captures the calls. This page targets Mirascope 2.x. The `mirascope.core` API was v1 and no longer exists.
 
     > **Note:** If you want to capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 

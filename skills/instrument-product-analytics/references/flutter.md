@@ -1,5 +1,9 @@
 # Flutter - Docs
 
+Copy page
+
+# Flutter - Docs
+
 This is an optional library you can install if you're working with Flutter. It uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your mobile app.
 
 PostHog supports the iOS, macOS, Android, and Web platforms.

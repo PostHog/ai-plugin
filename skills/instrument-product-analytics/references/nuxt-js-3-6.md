@@ -1,5 +1,9 @@
 # Nuxt.js (v3.0 to v3.6) - Docs
 
+Copy page
+
+# Nuxt.js (v3.0 to v3.6) - Docs
+
 PostHog makes it easy to get data about usage of your [Nuxt.js](https://nuxt.com/) app. Integrating PostHog into your app enables analytics about user behavior, custom events capture, session replays, feature flags, and more.
 
 These docs are for Nuxt v3.0 to v3.6. You can see a working example of the Nuxt v3.0 integration in our [Nuxt.js demo app](https://github.com/PostHog/posthog-js/tree/master/playground/nuxtjs)
