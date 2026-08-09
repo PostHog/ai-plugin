@@ -1,5 +1,9 @@
 # React Native error tracking installation - Docs
 
+Copy page
+
+# React Native error tracking installation - Docs
+
 1.  1
 
     ## Install the package

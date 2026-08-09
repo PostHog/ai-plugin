@@ -1,5 +1,9 @@
 # Svelte - Docs
 
+Copy page
+
+# Svelte - Docs
+
 PostHog makes it easy to get data about traffic and usage of your [Svelte](https://svelte.dev/) app. Integrating PostHog into your site enables analytics about user behavior, custom events capture, session recordings, feature flags, and more.
 
 This guide walks you through integrating PostHog into your SvelteKit app using the [JavaScript Web](/docs/libraries/js.md) and [Node.js](/docs/libraries/node.md) SDKs.

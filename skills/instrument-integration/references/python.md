@@ -1,5 +1,9 @@
 # Python - Docs
 
+Copy page
+
+# Python - Docs
+
 The Python SDK makes it easy to capture events, evaluate feature flags, track errors, and more in your Python apps.
 
 > These docs cover version `7.x` of the Python SDK, which requires Python 3.10 or higher. On Python 3.9? See [supported versions](#supported-versions).

@@ -1,5 +1,9 @@
 # Other languages logs installation - Docs
 
+Copy page
+
+# Other languages logs installation - Docs
+
 PostHog Logs works with any OpenTelemetry-compatible client. Check the [OpenTelemetry documentation](https://opentelemetry.io/docs/) for your specific language or framework.
 
 1.  1

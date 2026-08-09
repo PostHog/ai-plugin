@@ -1,5 +1,9 @@
 # Search logs - Docs
 
+Copy page
+
+# Search logs - Docs
+
 There are two ways to filter logs on the [logs page](https://app.posthog.com/logs): the **facet rail** on the left sidebar and the **filter bar** at the top.
 
 ## Facet rail

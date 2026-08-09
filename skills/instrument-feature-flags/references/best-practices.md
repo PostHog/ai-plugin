@@ -1,5 +1,9 @@
 # Best practices for production-ready flags - Docs
 
+Copy page
+
+# Best practices for production-ready flags - Docs
+
 ## Checklist
 
 -    [Call `identify()` before evaluating flags](#resolve-identity-before-evaluating-flags) – the hash uses the wrong ID otherwise. This is the most common input problem.

@@ -1,5 +1,25 @@
 # Portkey AI Observability installation - Docs
 
+Copy page
+
+# Portkey AI Observability installation - Docs
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
+
+Let AI instrument your LLM calls for you
+
+Skip the manual setup — run this in your project and the wizard installs the SDK and wires up AI Observability for you.
+
+`npx @posthog/wizard ai-observability`
+
+[Learn more](/wizard.md)
+
+![PostHog Wizard hedgehog](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)Let AI instrument your LLM calls for you
+
 1.  1
 
     ## Install dependencies
@@ -8,84 +28,61 @@
 
     **Full working examples**
 
-    See the complete [Node.js](https://github.com/PostHog/posthog-js/tree/main/examples/example-ai-portkey) and [Python](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-portkey) examples on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Node.js wrapper](https://github.com/PostHog/posthog-js/tree/e08ff1be/examples/example-ai-portkey) and [Python wrapper](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-portkey) examples.
+    See the complete [Node.js](https://github.com/PostHog/posthog-js/tree/e08ff1be/examples/example-ai-portkey) and [Python](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-portkey) examples on GitHub.
 
-    **About Portkey**
-
-    Portkey acts as an AI gateway that routes requests to 250+ LLM providers. The model string format (`@integration-slug/model`) determines which provider to use, where the slug is the name you chose when setting up the integration in Portkey.
-
-    Install the OpenTelemetry SDK, the OpenAI instrumentation, and the OpenAI SDK.
+    Install the PostHog SDK, the OpenAI SDK, and the Portkey SDK.
 
     PostHog AI
 
     ### Python
 
     ```bash
-    pip install openai portkey-ai opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-openai-v2
+    pip install posthog openai portkey-ai
     ```
 
     ### Node
 
     ```bash
-    npm install openai portkey-ai @posthog/ai @opentelemetry/sdk-node @opentelemetry/resources @opentelemetry/instrumentation-openai
+    npm install @posthog/ai posthog-node openai portkey-ai
     ```
 
 2.  2
 
-    ## Set up OpenTelemetry tracing
+    ## Configure PostHog
 
     Required
 
-    Configure OpenTelemetry to auto-instrument OpenAI SDK calls and export traces to PostHog. PostHog converts `gen_ai.*` spans into `$ai_generation` events automatically.
+    Create a PostHog client, then swap in PostHog's OpenAI wrapper, pointed at Portkey's gateway URL.
 
     PostHog AI
 
     ### Python
 
     ```python
-    from opentelemetry import trace
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.resources import Resource, SERVICE_NAME
-    from posthog.ai.otel import PostHogSpanProcessor
-    from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
-    resource = Resource(attributes={
-        SERVICE_NAME: "my-app",
-        "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
-        "foo": "bar", # custom properties are passed through
-    })
-    provider = TracerProvider(resource=resource)
-    provider.add_span_processor(
-        PostHogSpanProcessor(
-            api_key="<ph_project_token>",
-            host="https://us.i.posthog.com",
-        )
+    from posthog import Posthog
+    from posthog.ai.openai import OpenAI
+    from portkey_ai import PORTKEY_GATEWAY_URL
+    import time, uuid, json
+    posthog = Posthog("<ph_project_token>", host="https://us.i.posthog.com")
+    client = OpenAI(
+        base_url=PORTKEY_GATEWAY_URL,
+        api_key="<portkey_api_key>",
+        posthog_client=posthog,
     )
-    trace.set_tracer_provider(provider)
-    OpenAIInstrumentor().instrument()
     ```
 
     ### Node
 
     ```typescript
-    import { NodeSDK } from '@opentelemetry/sdk-node'
-    import { resourceFromAttributes } from '@opentelemetry/resources'
-    import { PostHogSpanProcessor } from '@posthog/ai/otel'
-    import { OpenAIInstrumentation } from '@opentelemetry/instrumentation-openai'
-    const sdk = new NodeSDK({
-      resource: resourceFromAttributes({
-        'service.name': 'my-app',
-        'posthog.distinct_id': 'user_123', // optional: identifies the user in PostHog
-        foo: 'bar', // custom properties are passed through
-      }),
-      spanProcessors: [
-        new PostHogSpanProcessor({
-          apiKey: '<ph_project_token>',
-          host: 'https://us.i.posthog.com',
-        }),
-      ],
-      instrumentations: [new OpenAIInstrumentation()],
+    import { OpenAI } from '@posthog/ai/openai'
+    import { PostHog } from 'posthog-node'
+    import { PORTKEY_GATEWAY_URL } from 'portkey-ai'
+    const posthog = new PostHog('<ph_project_token>', { host: 'https://us.i.posthog.com' })
+    const client = new OpenAI({
+      baseURL: PORTKEY_GATEWAY_URL,
+      apiKey: '<portkey_api_key>',
+      posthog,
     })
-    sdk.start()
     ```
 
 3.  3
@@ -94,45 +91,45 @@
 
     Required
 
-    Now, when you call Portkey with the OpenAI SDK, PostHog automatically captures `$ai_generation` events via the OpenTelemetry instrumentation.
+    When you use the wrapped client to call Portkey, PostHog automatically captures an `$ai_generation` event.
 
     PostHog AI
 
     ### Python
 
     ```python
-    import openai
-    from portkey_ai import PORTKEY_GATEWAY_URL
-    client = openai.OpenAI(
-        base_url=PORTKEY_GATEWAY_URL,
-        api_key="<portkey_api_key>",
-    )
+    trace_id = str(uuid.uuid4())
     response = client.chat.completions.create(
         model="@<integration-slug>/gpt-5-mini",
-        messages=[
-            {"role": "user", "content": "Tell me a fun fact about hedgehogs"}
-        ],
+        messages=[{"role": "user", "content": "What's the weather in Paris?"}],
+        tools=tools,
+        posthog_distinct_id="user_123",
+        posthog_trace_id=trace_id,
+        posthog_properties={
+            "$ai_session_id": "conversation-abc",
+            "$ai_provider": "portkey",
+        },
     )
-    print(response.choices[0].message.content)
     ```
 
     ### Node
 
     ```typescript
-    import OpenAI from 'openai'
-    import { PORTKEY_GATEWAY_URL } from 'portkey-ai'
-    const client = new OpenAI({
-      baseURL: PORTKEY_GATEWAY_URL,
-      apiKey: '<portkey_api_key>',
-    })
+    const traceId = crypto.randomUUID()
     const response = await client.chat.completions.create({
       model: '@<integration-slug>/gpt-5-mini',
-      messages: [{ role: 'user', content: 'Tell me a fun fact about hedgehogs' }],
+      messages: [{ role: 'user', content: "What's the weather in Paris?" }],
+      tools,
+      posthogDistinctId: 'user_123',
+      posthogTraceId: traceId,
+      posthogProperties: {
+        $ai_session_id: 'conversation-abc',
+        $ai_provider: 'portkey',
+      },
     })
-    console.log(response.choices[0].message.content)
     ```
 
-    > **Note:** If you want to capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
+    > **Note:** If you want to capture LLM events anonymously, omit `posthog_distinct_id` from the call. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
@@ -149,7 +146,62 @@
     | $ai_total_cost_usd | The total cost in USD (input + output) |
     | [[...]](/docs/ai-observability/generations.md#event-properties) | See [full list](/docs/ai-observability/generations.md#event-properties) of properties |
 
-4.  ## Verify traces and generations
+4.  4
+
+    ## Capture tool calls as spans
+
+    Optional
+
+    For standard responses, the posthog client captures it as a generation. For all tool calls, you must manually capture them as `$ai_span` events.
+
+    PostHog AI
+
+    ### Python
+
+    ```python
+    for call in response.choices[0].message.tool_calls or []:
+        start = time.time()
+        result = run_tool(call.function.name, json.loads(call.function.arguments))
+        posthog.capture(
+            distinct_id="user_123",
+            event="$ai_span",
+            properties={
+                "$ai_trace_id": trace_id,
+                "$ai_session_id": "conversation-abc",
+                "$ai_span_id": str(uuid.uuid4()),
+                "$ai_span_name": call.function.name,
+                "$ai_input_state": call.function.arguments,
+                "$ai_output_state": result,
+                "$ai_latency": time.time() - start,
+            },
+        )
+    ```
+
+    ### Node
+
+    ```typescript
+    for (const call of response.choices[0].message.tool_calls ?? []) {
+      const start = Date.now()
+      const result = await runTool(call.function.name, JSON.parse(call.function.arguments))
+      posthog.capture({
+        distinctId: 'user_123',
+        event: '$ai_span',
+        properties: {
+          $ai_trace_id: traceId,
+          $ai_session_id: 'conversation-abc',
+          $ai_span_id: crypto.randomUUID(),
+          $ai_span_name: call.function.name,
+          $ai_input_state: call.function.arguments,
+          $ai_output_state: result,
+          $ai_latency: (Date.now() - start) / 1000,
+        },
+      })
+    }
+    ```
+
+    See [spans](/docs/ai-observability/spans.md) for the full list of span properties.
+
+5.  ## Verify traces and generations
 
     Recommended
 
@@ -161,7 +213,7 @@
 
     [Check for LLM events in PostHog](https://app.posthog.com/ai-observability/generations)
 
-5.  4
+6.  5
 
     ## Next steps
 

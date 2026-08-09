@@ -1,8 +1,17 @@
 # Use Logs over PostHog MCP - Docs
 
+Copy page
+
+# Use Logs over PostHog MCP - Docs
+
 The [PostHog MCP server](/docs/model-context-protocol.md) gives coding agents direct access to your logs. Ask your agent to search, filter, and analyze log data without leaving your editor, then fix the bug in the same session.
 
 This works in any MCP client – Cursor, Codex, Claude Code, Windsurf, VS Code, and others.
+
+## Before you start
+
+1.  **Set up Logs** – [send them to PostHog with an OpenTelemetry client](/docs/logs/installation.md) so there's something to read.
+2.  **Connect the MCP server** – [install it in your AI tool](#set-up) and give it access to your project.
 
 ## What you can do here
 

@@ -622,6 +622,7 @@ posthog.onSessionId(function(sessionId, windowId) { // do something })
 Resets all user data and starts a fresh session.
 ⚠️ **Warning**: Only call this when a user logs out. Calling at the wrong time can cause split sessions.
 This clears: - Session ID and super properties - User identification (sets new random distinct_id) - Cached data and consent settings
+⚠️ **Warning**: because consent is cleared, `reset()` returns the instance to the default consent state. With `opt_out_capturing_by_default` that default is opted out, so calling `reset()` *after* `opt_in_capturing()` silently stops capturing. Always `reset()` first, then opt in.
 
 ### Parameters
 
@@ -648,6 +649,14 @@ function logout() {
 ```ts
 // reset and generate new device ID
 posthog.reset(true)  // also resets device_id
+```
+
+#### with opt_out_capturing_by_default, reset() before opting in, never after
+
+```ts
+// with opt_out_capturing_by_default, reset() before opting in, never after
+posthog.reset()
+posthog.opt_in_capturing()
 ```
 
 ---

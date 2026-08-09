@@ -1,5 +1,9 @@
 # React Router V6 - Docs
 
+Copy page
+
+# React Router V6 - Docs
+
 This guide walks you through setting up PostHog for React Router V6. If you're using React Router v7, find the guide for that mode in the [React Router page](/docs/libraries/react-router.md). If you're using React with another framework, go to the [React integration guide](/docs/libraries/react.md).
 
 1.  1

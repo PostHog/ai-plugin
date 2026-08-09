@@ -1,5 +1,9 @@
 # Flask - Docs
 
+Copy page
+
+# Flask - Docs
+
 PostHog makes it easy to get data about traffic and usage of your Flask app. Integrating PostHog enables analytics, custom events capture, feature flags, error tracking, and more.
 
 This guide walks you through integrating PostHog into your Flask app using the [Python SDK](/docs/libraries/python.md).

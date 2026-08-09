@@ -1,5 +1,9 @@
 # Go - Docs
 
+Copy page
+
+# Go - Docs
+
 This library uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server-side application that needs performance.
 
 ## Installation
