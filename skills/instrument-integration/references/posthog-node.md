@@ -1126,8 +1126,8 @@ Get the value of a feature flag for a specific user.
 - **`distinctId`** (`string`) - The user's distinct ID
 - **`options?`** (`{
         groups?: Record<string, string>;
-        personProperties?: Record<string, string>;
-        groupProperties?: Record<string, Record<string, string>>;
+        personProperties?: Properties;
+        groupProperties?: Record<string, Properties>;
         onlyEvaluateLocally?: boolean;
         sendFeatureFlagEvents?: boolean;
         disableGeoip?: boolean;
@@ -1190,8 +1190,8 @@ Get the payload for a feature flag.
 - **`matchValue?`** (`FeatureFlagValue`) - Optional match value to get payload for
 - **`options?`** (`{
         groups?: Record<string, string>;
-        personProperties?: Record<string, string>;
-        groupProperties?: Record<string, Record<string, string>>;
+        personProperties?: Properties;
+        groupProperties?: Record<string, Properties>;
         onlyEvaluateLocally?: boolean;
         sendFeatureFlagEvents?: boolean;
         disableGeoip?: boolean;
@@ -1317,8 +1317,8 @@ Check if a feature flag is enabled for a specific user.
 - **`distinctId`** (`string`) - The user's distinct ID
 - **`options?`** (`{
         groups?: Record<string, string>;
-        personProperties?: Record<string, string>;
-        groupProperties?: Record<string, Record<string, string>>;
+        personProperties?: Properties;
+        groupProperties?: Record<string, Properties>;
         onlyEvaluateLocally?: boolean;
         sendFeatureFlagEvents?: boolean;
         disableGeoip?: boolean;

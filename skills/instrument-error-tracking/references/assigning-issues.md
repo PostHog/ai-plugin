@@ -1,5 +1,9 @@
 # Assign issues to teammates - Docs
 
+Copy page
+
+# Assign issues to teammates - Docs
+
 Error tracking enables you to assign issues to specific PostHog [roles](https://app.posthog.com/settings/organization-roles) or teammates. This helps your team find relevant issues through **filtering**. You can also set up team-specific **alerting** to notify them when assigned issues are created or reopened.
 
 ## Assign issues

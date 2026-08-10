@@ -1,5 +1,9 @@
 # Nuxt error tracking installation (v3.6 and below) - Docs
 
+Copy page
+
+# Nuxt error tracking installation (v3.6 and below) - Docs
+
 1.  1
 
     ## Install the package

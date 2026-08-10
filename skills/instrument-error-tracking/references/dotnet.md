@@ -1,5 +1,9 @@
 # .NET - Docs
 
+Copy page
+
+# .NET - Docs
+
 This is an optional library you can install if you're working with .NET Core. It uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server side application that needs performance.
 
 ## Installation
@@ -365,6 +369,10 @@ posthog.CaptureException(
 For the full setup guide, see the [.NET error tracking installation docs](/docs/error-tracking/installation/dotnet.md).
 
 Automatic exception capture is not available in the .NET SDK yet.
+
+## Logs
+
+[PostHog Logs](/docs/logs.md) doesn't use this SDK. Logs are ingested over OpenTelemetry, so you attach an OTLP exporter to the standard `ILogger` pipeline instead — see the [.NET logs installation guide](/docs/logs/installation/dotnet.md).
 
 ## Person profiles and properties
 

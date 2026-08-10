@@ -1,5 +1,9 @@
 # Node.js - Docs
 
+Copy page
+
+# Node.js - Docs
+
 If you're working with Node.js (versions 20+), the official `posthog-node` library is the simplest way to integrate your software with PostHog. This library uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server-side application that needs performance. And in addition to event capture, [feature flags](/docs/feature-flags.md) are supported as well.
 
 ## Installation

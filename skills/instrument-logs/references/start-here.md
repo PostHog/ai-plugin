@@ -1,5 +1,9 @@
 # Getting started with Logs - Docs
 
+Copy page
+
+# Getting started with Logs - Docs
+
 ## Use your logging client
 
 PostHog Logs works with any OpenTelemetry client. No PostHog-specific packages required. Use the OTel SDKs you already have, point them at PostHog's HTTP endpoint, and drop in your project token.
@@ -15,6 +19,8 @@ Follow the guides below to set up your logging client:
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/go.svg)Go](/docs/logs/installation/go.md)
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/java.svg)Java](/docs/logs/installation/java.md)
+
+-   [![](https://res.cloudinary.com/dmukukwp6/image/upload/dotnet_logo_7e446176f2.svg).NET](/docs/logs/installation/dotnet.md)
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/rust.svg)Rust](/docs/logs/installation/rust.md)
 

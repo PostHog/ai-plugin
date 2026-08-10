@@ -1,5 +1,9 @@
 # Datadog logs installation - Docs
 
+Copy page
+
+# Datadog logs installation - Docs
+
 If you're already using Datadog to collect logs, you can forward them to PostHog by configuring your existing Datadog log exporters (like the Datadog Agent) to send logs to PostHog's Datadog-compatible endpoint.
 
 1.  1

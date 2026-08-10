@@ -1,6 +1,6 @@
 # PostHog Python SDK
 
-**SDK Version:** 7.35.4
+**SDK Version:** 7.38.2
 
 Integrate PostHog into any python application.
 
@@ -34,7 +34,7 @@ Initialize a new PostHog client instance.
 - **`debug`** (`bool`) - Enable verbose SDK logging and re-raise errors from public         API methods.
 - **`max_queue_size`** (`int`) - Maximum number of events buffered before upload.
 - **`send`** (`bool`) - If False, queueing succeeds but events are not sent.
-- **`on_error`** (`any`) - Optional callback invoked by background consumers when an         upload fails.
+- **`on_error`** (`any`) - Optional callback invoked by background consumers when an         upload fails. Keep it short and non-blocking. Calling lifecycle         methods directly is safe and deferred, but do not start another         thread or task that calls ``flush()``, ``join()``, or         ``shutdown()`` and then wait for it from the callback.
 - **`flush_at`** (`int`) - Number of queued events that triggers a batch upload.
 - **`flush_interval`** (`float`) - Maximum seconds a background consumer waits before         flushing a partial batch.
 - **`gzip`** (`bool`) - Whether to gzip event upload payloads.
@@ -100,8 +100,8 @@ Create an alias between two distinct IDs.
 
 ### Parameters
 
-- **`previous_id?`** (`str`) - The previous distinct ID.
-- **`distinct_id?`** (`str`) - The new distinct ID to alias to.
+- **`previous_id?`** (`Number`) - The previous distinct ID. Required - the call is dropped         with a warning if it is missing or empty.
+- **`distinct_id?`** (`str`) - The new distinct ID to alias to. Falls back to the         context distinct ID; the call is dropped with a warning if         neither is available.
 - **`timestamp`** (`datetime`) - The timestamp of the event.
 - **`uuid?`** (`str`) - A unique identifier for the event. If provided, it must be a         valid UUID string or uuid.UUID instance; invalid values are         ignored and replaced with a newly generated UUID.
 - **`disable_geoip?`** (`bool`) - Whether to disable GeoIP for this event.
@@ -126,8 +126,8 @@ Identify a group and set its properties.
 
 ### Parameters
 
-- **`group_type?`** (`str`) - The type of group (e.g., 'company', 'team').
-- **`group_key?`** (`str`) - The unique identifier for the group.
+- **`group_type?`** (`str`) - The type of group (e.g., 'company', 'team'). Required -         the call is dropped with a warning if it is missing or empty.
+- **`group_key?`** (`str`) - The unique identifier for the group. Required - the call         is dropped with a warning if it is missing or empty.
 - **`properties?`** (`dict[str, Any]`) - A dictionary of properties to set on the group.
 - **`timestamp`** (`datetime`) - The timestamp of the event.
 - **`uuid`** (`str`) - A unique identifier for the event. If provided, it must be a         valid UUID string or uuid.UUID instance; invalid values are         ignored and replaced with a newly generated UUID.
@@ -698,7 +698,7 @@ if flag_result and flag_result.get_value() == 'variant-key':
 
 **Release Tag:** public
 
-End the consumer thread once the queue is empty. Do not use directly, call `shutdown()` instead.
+Attempt to process queued events and end the consumer threads. Do not use directly, call `shutdown()` instead.  Failed or undrainable events may be dropped and reported through logging or ``on_error``; returning does not guarantee server receipt. Lifecycle cleanup is attempted once, and cleanup failures are logged without retry.
 
 ### Returns
 
@@ -716,7 +716,7 @@ posthog.join()
 
 **Release Tag:** public
 
-Flush all messages and cleanly shutdown the client. Call this before the process ends in serverless environments to avoid data loss.
+Flush all messages and cleanly shutdown the client. Call this before the process ends in serverless environments to avoid data loss.  Normally this method blocks until queued events have been attempted and cleanup finishes. Failed or undrainable events may be dropped and reported through logging or ``on_error``; returning does not guarantee server receipt. Lifecycle cleanup is attempted once, and cleanup failures are logged without retry. When called directly from an SDK callback such as ``on_error``, shutdown is deferred to avoid blocking the worker that invoked the callback. If the callback must coordinate a blocking shutdown, have it signal an application-owned thread and return before that thread calls shutdown. Do not wait inside the callback for another thread or task that calls a lifecycle method.
 
 ### Returns
 
@@ -869,7 +869,7 @@ To marry up whatever a user does before they sign up or log in with what they do
 
 ### Parameters
 
-- **`previous_id?`** (`str`) - The unique ID of the user before
+- **`previous_id?`** (`Number`) - The unique ID of the user before
 - **`distinct_id?`** (`str`) - The current unique id
 - **`timestamp?`** (`datetime`) - Optional timestamp for the event
 - **`uuid?`** (`str`) - Optional UUID for the event
@@ -897,8 +897,8 @@ Set properties on a group.
 
 ### Parameters
 
-- **`group_type?`** (`str`) - Type of your group
-- **`group_key?`** (`str`) - Unique identifier of the group
+- **`group_type?`** (`str`) - Type of your group. Required - the call is dropped with a         warning if it is missing or empty.
+- **`group_key?`** (`str`) - Unique identifier of the group. Required - the call is         dropped with a warning if it is missing or empty.
 - **`properties?`** (`dict[str, Any]`) - Properties to set on the group
 - **`timestamp?`** (`datetime`) - Optional timestamp for the event
 - **`uuid?`** (`str`) - Optional UUID for the event
@@ -1368,7 +1368,7 @@ flush()
 
 **Release Tag:** public
 
-Block program until the client clears the queue. Used during program shutdown. You should use `shutdown()` directly in most cases.
+Attempt to process queued events and stop the client's background workers. Use `shutdown()` directly in most cases.  Failed or undrainable events may be dropped and reported through logging or ``on_error``; returning does not guarantee server receipt. Lifecycle cleanup is attempted once, and cleanup failures are logged without retry.
 
 ### Returns
 
@@ -1387,7 +1387,7 @@ join()
 
 **Release Tag:** public
 
-Flush all messages and cleanly shutdown the client.
+Flush all messages and cleanly shutdown the client.  This normally blocks until queued events have been attempted and cleanup finishes. Failed or undrainable events may be dropped and reported through logging or ``on_error``; returning does not guarantee server receipt. Lifecycle cleanup is attempted once, and cleanup failures are logged without retry. Calls made directly from SDK callbacks such as ``on_error`` are deferred to avoid deadlocking the worker. If blocking completion is required, signal an application-owned thread, return from the callback, and call ``shutdown()`` from that thread. Do not wait inside a callback for another thread or task calling a lifecycle method.
 
 ### Returns
 

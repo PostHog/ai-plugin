@@ -1,5 +1,9 @@
 # PHP Error Tracking installation - Docs
 
+Copy page
+
+# PHP Error Tracking installation - Docs
+
 1.  1
 
     ## Install the PHP SDK

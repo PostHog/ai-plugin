@@ -1,5 +1,9 @@
 # Angular error tracking installation - Docs
 
+Copy page
+
+# Angular error tracking installation - Docs
+
 1.  1
 
     ## Install the package

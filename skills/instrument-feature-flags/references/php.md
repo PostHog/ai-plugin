@@ -1,5 +1,9 @@
 # PHP Feature Flags installation - Docs
 
+Copy page
+
+# PHP Feature Flags installation - Docs
+
 1.  1
 
     ## Install the package
