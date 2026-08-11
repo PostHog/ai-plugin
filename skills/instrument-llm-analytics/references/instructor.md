@@ -1,5 +1,25 @@
 # Instructor AI Observability installation - Docs
 
+Copy page
+
+# Instructor AI Observability installation - Docs
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
+
+Let AI instrument your LLM calls for you
+
+Skip the manual setup — run this in your project and the wizard installs the SDK and wires up AI Observability for you.
+
+`npx @posthog/wizard ai-observability`
+
+[Learn more](/wizard.md)
+
+![PostHog Wizard hedgehog](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)Let AI instrument your LLM calls for you
+
 1.  1
 
     ## Install dependencies
@@ -8,7 +28,7 @@
 
     **Full working examples**
 
-    See the complete [Node.js](https://github.com/PostHog/posthog-js/tree/main/examples/example-ai-instructor) and [Python](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-instructor) examples on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Node.js wrapper](https://github.com/PostHog/posthog-js/tree/e08ff1be/examples/example-ai-instructor) and [Python wrapper](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-instructor) examples.
+    See the complete [Node.js](https://github.com/PostHog/posthog-js/tree/main/examples/example-ai-instructor) and [Python](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-instructor) examples on GitHub. If you use the PostHog SDK wrapper instead of OpenTelemetry: see the [Node.js wrapper](https://github.com/PostHog/posthog-js/tree/e08ff1be/examples/example-ai-instructor) and [Python wrapper](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-instructor) examples instead.
 
     Install the OpenTelemetry SDK, the OpenAI instrumentation, and Instructor.
 

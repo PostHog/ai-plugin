@@ -1,5 +1,9 @@
 # Ruby - Docs
 
+Copy page
+
+# Ruby - Docs
+
 The `posthog-ruby` library provides tracking functionality on the server-side for applications built in Ruby.
 
 It uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server-side application that needs performance.

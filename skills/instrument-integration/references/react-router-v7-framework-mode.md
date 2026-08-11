@@ -1,5 +1,9 @@
 # React Router V7 framework mode (Remix V3) - Docs
 
+Copy page
+
+# React Router V7 framework mode (Remix V3) - Docs
+
 This guide walks you through setting up PostHog for React Router V7 in framework mode. If you're using React Router in another mode, find the guide for that mode in the [React Router page](/docs/libraries/react-router.md). If you're using React with another framework, go to the [React integration guide](/docs/libraries/react.md).
 
 1.  1

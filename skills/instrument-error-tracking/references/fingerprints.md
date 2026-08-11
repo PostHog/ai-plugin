@@ -1,5 +1,9 @@
 # Fingerprints - Docs
 
+Copy page
+
+# Fingerprints - Docs
+
 Every captured exception is assigned a fingerprint. This fingerprint is used to group similar exceptions into issues. This page covers how fingerprints are generated, how they're used, and how you can override them when capturing exceptions.
 
 ## Fingerprint and issue grouping

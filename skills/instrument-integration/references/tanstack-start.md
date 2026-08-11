@@ -1,5 +1,9 @@
 # TanStack Start - Docs
 
+Copy page
+
+# TanStack Start - Docs
+
 This tutorial shows how to integrate PostHog with a [TanStack Start](https://tanstack.com/start) app for both client-side and server-side analytics.
 
 ## Installation

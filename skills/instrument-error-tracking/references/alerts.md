@@ -1,5 +1,9 @@
 # Send error tracking alerts - Docs
 
+Copy page
+
+# Send error tracking alerts - Docs
+
 To stay on top of issues, you can set up alerts. These enable you to post to Slack, Discord, Teams, or an HTTP Webhook when an issue is created or reopened.
 
 ## Issue created or reopened

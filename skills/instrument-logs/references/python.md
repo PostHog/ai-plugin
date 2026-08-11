@@ -1,5 +1,9 @@
 # Python logs installation - Docs
 
+Copy page
+
+# Python logs installation - Docs
+
 1.  1
 
     ## Install OpenTelemetry packages
