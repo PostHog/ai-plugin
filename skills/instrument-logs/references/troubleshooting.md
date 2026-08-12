@@ -1,5 +1,9 @@
 # Logs troubleshooting - Docs
 
+Copy page
+
+# Logs troubleshooting - Docs
+
 This page covers troubleshooting for Logs. For setup, see the [installation guide](/docs/logs/installation.md).
 
 ## Have a question? Ask PostHog AI

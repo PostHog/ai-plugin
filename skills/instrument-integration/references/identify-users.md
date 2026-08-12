@@ -1,5 +1,9 @@
 # Identify users - Docs
 
+Copy page
+
+# Identify users - Docs
+
 Linking events to specific users enables you to build a full picture of how they're using your product across different sessions, devices, and platforms.
 
 This is straightforward to do when [capturing backend events](/docs/product-analytics/capture-events?tab=Node.js.md), as you associate events to a specific user using a `distinct_id`, which is a required argument.
@@ -189,6 +193,10 @@ This enables you to set [person properties](/docs/product-analytics/person-prope
 Whenever possible, we recommend passing in all person properties you have available each time you call identify, as this ensures their person profile on PostHog is up to date.
 
 Person properties can also be set being adding a `$set` property to a event `capture` call.
+
+**\`$set\` and \`$set\_once\` aren't stored on events**
+
+These properties only tell PostHog how to update person data during ingestion — they aren't kept on the stored event, so you can't filter, break down, or query events by them. To query the values you set, use [person properties](/docs/product-analytics/person-properties.md) instead.
 
 See our [person properties docs](/docs/product-analytics/person-properties.md) for more details on how to work with them and best practices.
 

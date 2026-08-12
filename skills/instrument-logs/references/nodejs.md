@@ -1,5 +1,9 @@
 # Node.js logs installation - Docs
 
+Copy page
+
+# Node.js logs installation - Docs
+
 1.  1
 
     ## Install OpenTelemetry packages

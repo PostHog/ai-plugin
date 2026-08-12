@@ -1,5 +1,25 @@
 # AutoGen AI Observability installation - Docs
 
+Copy page
+
+# AutoGen AI Observability installation - Docs
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
+
+Let AI instrument your LLM calls for you
+
+Skip the manual setup — run this in your project and the wizard installs the SDK and wires up AI Observability for you.
+
+`npx @posthog/wizard ai-observability`
+
+[Learn more](/wizard.md)
+
+![PostHog Wizard hedgehog](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)Let AI instrument your LLM calls for you
+
 1.  1
 
     ## Install dependencies
@@ -8,7 +28,7 @@
 
     **Full working examples**
 
-    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-autogen) on GitHub. If you're using the PostHog SDK wrapper instead of OpenTelemetry, see the [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-autogen).
+    See the complete [Python example](https://github.com/PostHog/posthog-python/tree/master/examples/example-ai-autogen) on GitHub. If you use the PostHog SDK wrapper instead of OpenTelemetry, see this example instead: [Python wrapper example](https://github.com/PostHog/posthog-python/tree/7223c52/examples/example-ai-autogen).
 
     Install the OpenTelemetry SDK, the OpenAI instrumentation, and AutoGen.
 

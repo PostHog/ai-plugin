@@ -1,5 +1,9 @@
 # Elixir Error Tracking installation - Docs
 
+Copy page
+
+# Elixir Error Tracking installation - Docs
+
 1.  1
 
     ## Install the Elixir SDK

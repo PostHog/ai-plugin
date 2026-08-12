@@ -1,5 +1,9 @@
 # API Feature Flags installation - Docs
 
+Copy page
+
+# API Feature Flags installation - Docs
+
 1.  1
 
     ## Evaluate the feature flag value using flags

@@ -1,5 +1,9 @@
 # Flutter Logs installation - Docs
 
+Copy page
+
+# Flutter Logs installation - Docs
+
 The PostHog Flutter SDK has built-in support for capturing structured Logs from your Flutter app across mobile and web. The SDK handles the OTLP encoding, batching, and flushing — and on mobile, on-disk persistence across app restarts and app-lifecycle integration (web buffers in memory via `posthog-js`). You just call `Posthog().captureLog(...)` or `Posthog().logger.{trace,debug,info,warn,error,fatal}(...)`.
 
 > **Manual capture only.** Logs are emitted by your code. The SDK does not autocapture system log streams (`print`, `debugPrint`, or `dart:developer`'s `log`).

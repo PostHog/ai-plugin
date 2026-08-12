@@ -1,5 +1,9 @@
 # Android Logs installation - Docs
 
+Copy page
+
+# Android Logs installation - Docs
+
 The PostHog Android SDK has built-in support for capturing structured Logs from Android apps. The SDK handles the OTLP encoding, batching, on-disk persistence across app restarts, and lifecycle integration. You just call `PostHog.logger.{trace,debug,info,warn,error,fatal}(...)`.
 
 > **Manual capture only.** Logs are emitted by your code. The SDK does not autocapture system log streams (`Log.d`, `Logcat`, `Timber`).

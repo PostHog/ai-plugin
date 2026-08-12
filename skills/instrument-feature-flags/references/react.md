@@ -1,5 +1,9 @@
 # React Feature Flags installation - Docs
 
+Copy page
+
+# React Feature Flags installation - Docs
+
 1.  1
 
     ## Install the package

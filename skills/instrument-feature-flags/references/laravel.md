@@ -1,5 +1,9 @@
 # Laravel - Docs
 
+Copy page
+
+# Laravel - Docs
+
 PostHog integrates with Laravel through the [PostHog PHP SDK](/docs/libraries/php.md). This page covers Laravel-specific setup. For SDK features such as event capture, identifying users, feature flags, group analytics, and configuration options, see the [PHP SDK docs](/docs/libraries/php.md).
 
 ## Installation

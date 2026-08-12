@@ -1,10 +1,30 @@
 # Manual capture AI Observability installation - Docs
 
+Copy page
+
+# Manual capture AI Observability installation - Docs
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
+
+Let AI instrument your LLM calls for you
+
+Skip the manual setup — run this in your project and the wizard installs the SDK and wires up AI Observability for you.
+
+`npx @posthog/wizard ai-observability`
+
+[Learn more](/wizard.md)
+
+![PostHog Wizard hedgehog](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)
+
+![](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)Let AI instrument your LLM calls for you
+
 1.  1
 
     ## Capture LLM events manually
 
-    If you're using a different server-side SDK or prefer to use the API, you can manually capture the data by calling the `capture` method or using the [capture API](/docs/api/capture.md).
+    If you use a different server-side SDK, or prefer to use the API, capture the data manually. Call the `capture` method, or use the [capture API](/docs/api/capture.md).
 
     ## API
 
