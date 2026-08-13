@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # AI Observability basics - Docs
 
 Copy page
@@ -62,10 +64,6 @@ Here's a breakdown of this hierarchy:
 In AI Observability, a session (`$ai_session_id`) typically represents a single **conversation** – one thread of back-and-forth turns with your assistant. This is different from a standard PostHog [session](/docs/data/sessions.md) (`$session_id`), like the ones you see in [Session replay](/docs/session-replay.md), which represents one continuous visit to your app.
 
 A single PostHog session can contain multiple AI Observability sessions: a user might start several separate conversations during one visit. See [sessions](/docs/ai-observability/sessions.md#note-on-posthog-session-ids) for more on the distinction.
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

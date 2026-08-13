@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Node.js - Docs
 
 Copy page
@@ -885,10 +887,6 @@ With the release of V2, the API was kept mostly the same but with some small cha
 2.  The `callback` parameter passed as an optional last argument to most of the methods is no longer supported
 3.  The method signature for `isFeatureEnabled` and `getFeatureFlag` is slightly modified. See the above documentation for each method for more details.
 4.  For specific changes, [see the CHANGELOG](https://github.com/PostHog/posthog-js/blob/main/packages/node/CHANGELOG.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

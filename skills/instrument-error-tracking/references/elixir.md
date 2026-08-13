@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Elixir Error Tracking installation - Docs
 
 Copy page
@@ -304,10 +306,6 @@ Copy page
       raise "Test exception from Phoenix"
     end
     ```
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

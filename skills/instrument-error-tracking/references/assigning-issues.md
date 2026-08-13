@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Assign issues to teammates - Docs
 
 Copy page
@@ -91,10 +93,6 @@ You can also create external references programmatically using the [PostHog API]
 AI agents using the [PostHog MCP server](/docs/model-context-protocol.md) can create external references with the `error-tracking-external-references-create` tool. See the [MCP debugging guide](/docs/error-tracking/surfaces/mcp.md) for more.
 
 > If you use another issue tracking system and would like to request it, [let us know in-app](https://app.posthog.com#panel=support%3Afeedback%3Aerror_tracking%3Alow%3Atrue).
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

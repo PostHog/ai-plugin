@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Upload source maps - Docs
 
 Copy page
@@ -53,10 +55,6 @@ Otherwise, choose your platform below for manual instructions.
 -   [CLI](/docs/error-tracking/upload-source-maps/cli.md)
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/github_mark_903e35d471.svg)GitHub Action](/docs/error-tracking/upload-source-maps/github-actions.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

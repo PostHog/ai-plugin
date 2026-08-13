@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # JavaScript web - Docs
 
 Copy page
@@ -254,7 +256,7 @@ The `defaults` is a date, such as `2026-05-30`, for a configuration snapshot use
 
 If your app already knows the signed-in user when PostHog initializes, you can [call `identify` from the `loaded` callback](/docs/getting-started/identify-users.md#identify-users-when-the-web-sdk-loads) to identify them as soon as the web SDK loads.
 
-Once you've installed PostHog, see our [features doc](/docs/libraries/js/features.md) for more information about what you can do with it. You can also install the [PostHog VS Code extension](/docs/vscode-extension.md) to see live analytics, flag status, and session replay links inline in your code.
+Once you've installed PostHog, see our [usage doc](/docs/libraries/js/usage.md) for more information about what you can do with it. You can also install the [PostHog VS Code extension](/docs/vscode-extension.md) to see live analytics, flag status, and session replay links inline in your code.
 
 ### Track across marketing website & app
 
@@ -337,10 +339,6 @@ posthog.project2.capture('other_event')
 ## Development
 
 For instructions on how to run `posthog-js` locally and setup your development environment, please checkout the README on the [posthog-js](https://github.com/PostHog/posthog-js#README) repository.
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

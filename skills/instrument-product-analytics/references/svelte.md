@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Svelte - Docs
 
 Copy page
@@ -233,7 +235,7 @@ export async function load() {
 }
 ```
 
-See our [JavaScript Web](/docs/libraries/js/features.md#feature-flags) and [Node](/docs/libraries/node.md#feature-flags) docs for more details.
+See our [JavaScript Web](/docs/libraries/js/usage.md#feature-flags) and [Node](/docs/libraries/node.md#feature-flags) docs for more details.
 
 ## Configuring session replay for server-side rendered apps
 
@@ -255,17 +257,13 @@ kit: {
 
 ## Next steps
 
-For any technical questions for how to integrate specific PostHog features into Svelte (such as analytics, feature flags, A/B testing, surveys, etc.), have a look at our [JavaScript Web](/docs/libraries/js/features.md) and [Node](/docs/libraries/node.md) SDK docs.
+For any technical questions for how to integrate specific PostHog features into Svelte (such as analytics, feature flags, A/B testing, surveys, etc.), have a look at our [JavaScript Web](/docs/libraries/js/usage.md) and [Node](/docs/libraries/node.md) SDK docs.
 
 Alternatively, the following tutorials can help you get started:
 
 -   [How to set up Svelte analytics, feature flags, and more](/tutorials/svelte-analytics.md)
 -   [How to set up A/B tests in Svelte](/tutorials/svelte-ab-tests.md)
 -   [How to set up surveys in Svelte](/tutorials/svelte-surveys.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 
