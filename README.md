@@ -8,8 +8,11 @@ Official PostHog plugin for AI clients. Access PostHog products directly from yo
 
 1. Install the plugin:
     ```bash
-    claude plugin install posthog
+    claude plugin marketplace add PostHog/ai-plugin
+    claude plugin install posthog@posthog
     ```
+
+    To get plugin updates automatically, enable auto-update for the marketplace: run `/plugin` within Claude, open the **Marketplaces** tab, select `posthog`, and choose **Enable auto-update**. Or update manually with `/plugin marketplace update posthog`.
 
 2. Authenticate via OAuth:
     ```bash

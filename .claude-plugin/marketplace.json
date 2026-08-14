@@ -1,0 +1,37 @@
+{
+  "name": "posthog",
+  "owner": {
+    "name": "PostHog",
+    "email": "hey@posthog.com",
+    "url": "https://posthog.com"
+  },
+  "description": "Official PostHog plugin for AI clients. Access PostHog products directly from your AI coding tool.",
+  "plugins": [
+    {
+      "name": "posthog",
+      "displayName": "PostHog",
+      "source": "./",
+      "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from your AI coding tool. Optionally capture Claude Code sessions to PostHog LLM Analytics.",
+      "version": "1.1.57",
+      "author": {
+        "name": "PostHog",
+        "email": "hey@posthog.com",
+        "url": "https://posthog.com"
+      },
+      "homepage": "https://posthog.com/docs/model-context-protocol",
+      "repository": "https://github.com/PostHog/ai-plugin",
+      "license": "MIT",
+      "category": "productivity",
+      "keywords": [
+        "analytics",
+        "feature-flags",
+        "experiments",
+        "error-tracking",
+        "a/b-testing",
+        "surveys",
+        "dashboards",
+        "llm-analytics"
+      ]
+    }
+  ]
+}
