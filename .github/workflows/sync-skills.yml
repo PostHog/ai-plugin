@@ -106,6 +106,13 @@ jobs:
             fi
           done
 
+          # Keep marketplace.json in sync with plugin.json
+          m=.claude-plugin/marketplace.json
+          if [ -f "$m" ]; then
+            jq --arg v "$(jq -r .version .claude-plugin/plugin.json)" \
+              '.plugins[0].version = $v' "$m" > "$m.tmp" && mv "$m.tmp" "$m"
+          fi
+
           # Regenerate Gemini TOML command files from MD sources
           if [ -x scripts/generate-gemini-commands.sh ]; then
             bash scripts/generate-gemini-commands.sh
