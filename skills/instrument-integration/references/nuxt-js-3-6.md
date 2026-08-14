@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Nuxt.js (v3.0 to v3.6) - Docs
 
 Copy page
@@ -129,10 +131,10 @@ PostHog AI
 </script>
 ```
 
-See the [JavaScript SDK docs](/docs/libraries/js/features.md) for all usable functions, such as:
+See the [JavaScript SDK docs](/docs/libraries/js/usage.md) for all usable functions, such as:
 
--   [Capture custom event capture, identify users, and more.](/docs/libraries/js/features.md#capturing-events)
--   [Feature flags including variants and payloads.](/docs/libraries/js/features.md#feature-flags)
+-   [Capture custom event capture, identify users, and more.](/docs/libraries/js/usage.md#capturing-events)
+-   [Feature flags including variants and payloads.](/docs/libraries/js/usage.md#feature-flags)
 
 If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
 
@@ -268,10 +270,6 @@ Alternatively, the following tutorials can help you get started:
 -   [How to set up feature flags in Nuxt](/tutorials/nuxt-feature-flags.md)
 -   [How to set up A/B tests in Nuxt](/tutorials/nuxtjs-ab-tests.md)
 -   [How to set up surveys in Nuxt](/tutorials/nuxt-surveys.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

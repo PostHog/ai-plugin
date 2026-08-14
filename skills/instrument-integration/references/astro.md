@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Astro - Docs
 
 Copy page
@@ -186,17 +188,13 @@ These are public, stable IPs used by PostHog services (e.g., Celery tasks for sn
 
 ## Next steps
 
-For any technical questions for how to integrate specific PostHog features into Astro (such as analytics, feature flags, A/B testing, surveys, etc.), have a look at our [JavaScript Web SDK docs](/docs/libraries/js/features.md).
+For any technical questions for how to integrate specific PostHog features into Astro (such as analytics, feature flags, A/B testing, surveys, etc.), have a look at our [JavaScript Web SDK docs](/docs/libraries/js/usage.md).
 
 Alternatively, the following tutorials can help you get started:
 
 -   [How to set up Astro analytics, feature flags, and more](/tutorials/astro-analytics.md)
 -   [How to set up A/B tests in Astro](/tutorials/astro-ab-tests.md)
 -   [How to set up surveys in Astro](/tutorials/astro-surveys.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

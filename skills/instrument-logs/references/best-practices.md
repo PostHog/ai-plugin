@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Logging best practices - Docs
 
 Copy page
@@ -425,10 +427,6 @@ Use this to audit your existing logging or as a starting point for a new service
 -   Field names and value types are treated as a stable schema (changes are communicated)
 -   Consider enabling [automatic PII scrubbing](#automatic-pii-scrubbing) as a safety net for accidental leaks
 -   [Link logs to Session Replays](/docs/logs/link-session-replay.md) for full user context
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

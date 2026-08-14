@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Next.js - Docs
 
 Copy page
@@ -225,7 +227,7 @@ See the [React SDK docs](/docs/libraries/react.md) for examples of how to use:
 -   [`posthog-js` functions like custom event capture, user identification, and more.](/docs/libraries/react.md#using-posthog-js-functions)
 -   [Feature flags including variants and payloads.](/docs/libraries/react.md#feature-flags)
 
-You can also read [the full `posthog-js` documentation](/docs/libraries/js/features.md) for all the usable functions.
+You can also read [the full `posthog-js` documentation](/docs/libraries/js/usage.md) for all the usable functions.
 
 ## Server-side analytics
 
@@ -441,10 +443,6 @@ To improve the reliability of client-side tracking and make requests less likely
 -   [How to set up Next.js analytics, feature flags, and more](/tutorials/nextjs-analytics.md)
 -   [How to set up Next.js pages router analytics, feature flags, and more](/tutorials/nextjs-pages-analytics.md)
 -   [How to set up Next.js A/B tests](/tutorials/nextjs-ab-tests.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

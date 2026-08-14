@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Traces - Docs
 
 Copy page
@@ -107,10 +109,6 @@ This means you can either:
 
 1.  Send explicit `$ai_trace` events to control the trace metadata
 2.  Let PostHog automatically create pseudo-traces from your generation/span events
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

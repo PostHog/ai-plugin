@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Elixir Feature Flags installation - Docs
 
 Copy page
@@ -41,10 +43,6 @@ Optionally, you might want to enable the [Plug integration](https://hexdocs.pm/p
 #### Development/Test mode
 
 For a test environment, you can pass in `test_mode: true` value to the config. This causes events to be dropped instead of sent to PostHog.
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

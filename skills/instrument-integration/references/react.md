@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # React - Docs
 
 Copy page
@@ -606,10 +608,6 @@ function App() {
 ```
 
 It's also possible to [run experiments without using feature flags](/docs/experiments/running-experiments-without-feature-flags.md).
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

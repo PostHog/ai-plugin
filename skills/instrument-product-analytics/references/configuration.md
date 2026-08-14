@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # iOS SDK configuration - Docs
 
 Copy page
@@ -294,10 +296,6 @@ The [`PostHogConfig` object](https://github.com/PostHog/posthog-ios/blob/main/Po
 | surveysType: BooleanDefault: true | Enable Surveys. |
 | setBeforeSendType: FunctionDefault: undefined | Hook that allows for amending, sampling, or dropping events before they are sent to PostHog. |
 | bootstrapType: PostHogBootstrapConfigDefault: nil | Seeds identity (distinctId, isIdentifiedId) and feature-flag state (featureFlags, featureFlagPayloads) before the first /flags response. Bootstrapped identity applies to the first session; only enabled flags are served, until the first /flags response replaces them. See [SDK bootstrapping](/docs/libraries/bootstrapping.md#behavior-on-mobile-sdks). |
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

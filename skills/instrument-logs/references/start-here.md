@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Getting started with Logs - Docs
 
 Copy page
@@ -169,10 +171,6 @@ That's it! You're ready to start integrating.
 **Use your logging client**
 
 ***Required***
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 
