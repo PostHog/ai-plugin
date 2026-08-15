@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Ruby on Rails - Docs
 
 Copy page
@@ -598,10 +600,6 @@ Ensure you've set `personal_api_key` in your configuration.
 ## Next steps
 
 For any technical questions for how to integrate specific PostHog features into Rails (such as analytics, feature flags, A/B testing, etc.), have a look at our [Ruby SDK docs](/docs/libraries/ruby.md).
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

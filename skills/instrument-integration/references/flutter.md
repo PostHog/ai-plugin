@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Flutter - Docs
 
 Copy page
@@ -696,6 +698,10 @@ On Flutter Web, masking (`maskAllTexts`, `maskAllImages`, `PostHogMaskWidget`) a
 
 [Surveys](/docs/surveys.md) launched with [popover presentation](/docs/surveys/creating-surveys.md#presentation) are automatically shown to users matching the [display conditions](/docs/surveys/creating-surveys.md#display-conditions) you set up.
 
+## Push notifications
+
+The Flutter SDK can register a device for [Workflows](/docs/workflows.md) push notifications and capture when a user opens one. For setup, including automatic and manual registration, capturing opens, opting out, and identity verification, see [Push notifications](/docs/workflows/push-notifications.md).
+
 ## Flush
 
 You can configure how many events queue before flushing with `flushAt`. Setting this to `1` will send events immediately and will use more battery. The default is `20`.
@@ -878,10 +884,6 @@ PostHog AI
 await Posthog().debug(true);
 await Posthog().debug(false);
 ```
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

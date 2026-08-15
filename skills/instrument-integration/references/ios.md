@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # iOS - Docs
 
 Copy page
@@ -146,16 +148,16 @@ Method swizzling is particularly important for accurate session metrics tracking
 
 You can learn more about configuring method swizzling in the [configuration page](/docs/libraries/ios/configuration.md#method-swizzling).
 
+## Push notifications
+
+The iOS SDK can register a device for [Workflows](/docs/workflows.md) push notifications and capture when a user opens one. For setup, including automatic and manual registration, capturing opens, and identity verification, see [Push notifications](/docs/workflows/push-notifications.md).
+
 ## Next steps
 
 Now that you've installed the SDK, explore the configuration and usage options:
 
 -   [Learn about using all of the features of PostHog with iOS SDK](/docs/libraries/ios/usage.md)
 -   [Learn about configuration options for the iOS SDK](/docs/libraries/ios/configuration.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Link session replay - Docs
 
 Copy page
@@ -151,10 +153,6 @@ If no session ID is found in the log entry, the tab displays a message prompting
 -   [Logs installation](/docs/logs/installation.md)
 -   [Search logs](/docs/logs/search.md)
 -   [Error Tracking](/docs/error-tracking.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

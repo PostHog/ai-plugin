@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Send error tracking alerts - Docs
 
 Copy page
@@ -57,10 +59,6 @@ This sends an email notification to the user you choose. Check out our [alerts d
 **Can't find your alert?**
 
 If you'd like a destination to be added that we don't yet support, [let us know in-app](https://app.posthog.com/#panel=support%3Afeedback%3Aerror_tracking%3A%3Afalse).
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

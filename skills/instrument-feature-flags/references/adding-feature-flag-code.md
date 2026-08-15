@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Adding feature flag code - Docs
 
 Copy page
@@ -3572,10 +3574,6 @@ The list of properties that this overrides:
 5.  `$geoip_continent_code`
 6.  `$geoip_postal_code`
 7.  `$geoip_time_zone`
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

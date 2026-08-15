@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Next.js logs installation - Docs
 
 Copy page
@@ -189,10 +191,6 @@ Copy page
     | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

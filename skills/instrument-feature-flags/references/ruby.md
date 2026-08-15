@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Ruby Feature Flags installation - Docs
 
 Copy page
@@ -194,10 +196,6 @@ Copy page
     | [Framework-specific guides](/docs/feature-flags/tutorials.md#framework-guides) | Setup guides for React Native, Next.js, Flutter, and other frameworks |
     | [How to do a phased rollout](/tutorials/phased-rollout.md) | Gradually roll out features to minimize risk |
     | [More tutorials](/docs/feature-flags/tutorials.md) | Other real-world examples and use cases |
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

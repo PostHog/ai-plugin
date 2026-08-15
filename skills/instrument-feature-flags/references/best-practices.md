@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Best practices for production-ready flags - Docs
 
 Copy page
@@ -225,10 +227,6 @@ Stale flags are the most common source of unnecessary cost. Beyond cleaning up f
 -   [Keeping flag evaluations stable](/docs/feature-flags/stable-identity-for-flags.md) – preventing the hash input from changing across auth transitions
 -   [Local evaluation](/docs/feature-flags/local-evaluation.md) – server-side evaluation for explicit input control
 -   [Bootstrapping](/docs/feature-flags/bootstrapping.md) – having flag values before the page renders
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

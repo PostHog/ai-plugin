@@ -1,6 +1,8 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # PostHog Python SDK
 
-**SDK Version:** 7.38.2
+**SDK Version:** 7.38.4
 
 Integrate PostHog into any python application.
 

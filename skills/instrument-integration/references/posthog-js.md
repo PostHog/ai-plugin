@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # PostHog JavaScript Web SDK
 
 **SDK Version:** <version>
@@ -626,7 +628,7 @@ This clears: - Session ID and super properties - User identification (sets new r
 
 ### Parameters
 
-- **`reset_device_id?`** (`boolean`) - Whether to generate a new device ID as well as a new distinct ID.
+- **`options?`** (`boolean | ResetOptions`) - Boolean to reset the device ID (legacy), or reset options including bootstrap values.
 
 ### Returns
 
@@ -649,6 +651,19 @@ function logout() {
 ```ts
 // reset and generate new device ID
 posthog.reset(true)  // also resets device_id
+```
+
+#### reset with a custom anonymous ID and bootstrapped feature flags
+
+```ts
+// reset with a custom anonymous ID and bootstrapped feature flags
+posthog.reset({
+    bootstrap: {
+        distinctID: myAnonymousID,
+        isIdentifiedID: false,
+        featureFlags: { 'my-flag': true },
+    }
+})
 ```
 
 #### with opt_out_capturing_by_default, reset() before opting in, never after

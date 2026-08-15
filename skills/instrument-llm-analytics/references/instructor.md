@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Instructor AI Observability installation - Docs
 
 Copy page
@@ -95,7 +97,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
       }),
       spanProcessors: [
         new PostHogSpanProcessor({
-          apiKey: '<ph_project_token>',
+          projectToken: '<ph_project_token>',
           host: 'https://us.i.posthog.com',
         }),
       ],
@@ -196,10 +198,6 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | [Traces](/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
     | [Spans](/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
     | [Anaylze LLM performance](/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 
