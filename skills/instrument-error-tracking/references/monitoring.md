@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Monitor and search issues - Docs
 
 Copy page
@@ -134,10 +136,6 @@ If you find your queries timing out or taking more than 30 seconds, please [let 
 ## Suppressing issues
 
 If you find issues that are not useful to you, you can suppress them by changing the status to **Suppressed**. We recommend that you also implement [client-side suppression](/docs/error-tracking/capture.md#suppressing-exceptions) to not capture these exceptions in the first place, for cost and performance reasons.
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

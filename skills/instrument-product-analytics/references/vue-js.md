@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Vue.js - Docs
 
 Copy page
@@ -181,7 +183,7 @@ Tracing headers help you attribute events across front and backend consistently.
 
 ## Capturing custom events, using feature flags, and more
 
-Once you have PostHog initialized, there is a lot more you can do with it beyond autocapture, pageviews, and pageleaves. You can find the full details in our [JavaScript SDK docs](/docs/libraries/js/features.md), but we'll cover a few examples here.
+Once you have PostHog initialized, there is a lot more you can do with it beyond autocapture, pageviews, and pageleaves. You can find the full details in our [JavaScript SDK docs](/docs/libraries/js/usage.md), but we'll cover a few examples here.
 
 ## Vue 3: Composition API
 
@@ -326,7 +328,7 @@ These are public, stable IPs used by PostHog services (e.g., Celery tasks for sn
 
 ## Next steps
 
-For any technical questions for how to integrate specific PostHog features into Vue (such as analytics, feature flags, A/B testing, or surveys), have a look at our [JavaScript Web](/docs/libraries/js/features.md) SDK docs.
+For any technical questions for how to integrate specific PostHog features into Vue (such as analytics, feature flags, A/B testing, or surveys), have a look at our [JavaScript Web](/docs/libraries/js/usage.md) SDK docs.
 
 Alternatively, the following tutorials can help you get started:
 
@@ -334,10 +336,6 @@ Alternatively, the following tutorials can help you get started:
 -   [How to set up feature flags in Vue](/tutorials/vue-feature-flags.md)
 -   [How to set up A/B tests in Vue](/tutorials/vue-ab-tests.md)
 -   [How to set up surveys in Vue](/tutorials/vue-surveys.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

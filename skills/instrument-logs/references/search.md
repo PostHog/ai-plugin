@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Search logs - Docs
 
 Copy page
@@ -119,10 +121,6 @@ When the pattern's sample is unambiguous (a single service or severity), the piv
 -   **Start with contains, then tighten.** Contains is case-insensitive and forgiving. Switch to equals only when you need an exact match, or regex when you want OR-style matching in a single filter.
 -   **Use regex for alternatives.** Instead of adding three contains filters, use one regex like `(timeout|refused|reset)`.
 -   **Structured logs make filtering more powerful.** Key-value context like `user_id`, `endpoint`, and `status_code` becomes an attribute you can filter on directly. See our [logging best practices](/docs/logs/best-practices.md) for patterns that make logs easier to query.
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

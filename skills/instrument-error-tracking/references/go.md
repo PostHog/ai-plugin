@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Go error tracking installation - Docs
 
 Copy page
@@ -190,10 +192,6 @@ Copy page
     // Flush the queue before exiting
     client.Close()
     ```
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

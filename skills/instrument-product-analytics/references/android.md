@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Android - Docs
 
 Copy page
@@ -832,6 +834,10 @@ config.addBeforeSend { event ->
 }
 ```
 
+## Push notifications
+
+The Android SDK can register a device for [Workflows](/docs/workflows.md) push notifications and capture when a user opens one. For setup, including automatic and manual registration, capturing opens, opting out, and identity verification, see [Push notifications](/docs/workflows/push-notifications.md).
+
 ## FAQ
 
 ## What Android API level is required?
@@ -841,10 +847,6 @@ The Android SDK supports Android API 23 and newer.
 ## Do I need to declare permissions in the AndroidManifest.xml?
 
 Usually, no. The SDK declares `android.permission.INTERNET` and `android.permission.ACCESS_NETWORK_STATE`, and Android's manifest merger adds them to your app. The SDK does not declare or require an Android `Service`.
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Use Logs over PostHog MCP - Docs
 
 Copy page
@@ -54,10 +56,6 @@ To browse logs visually, mine patterns interactively, or watch the session repla
 -   Script the same operations with the [Logs API](/docs/logs/surfaces/api.md).
 -   Learn what your agent is creating in [Set up log alerts](/docs/logs/alerts.md).
 -   See how templates are built in [Log patterns](/docs/logs/patterns.md).
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 
