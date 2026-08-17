@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # OpenAI observability installation - Docs
 
 Copy page
@@ -315,10 +317,6 @@ using (PostHogAIContext.BeginScope(
 ```
 
 The integration captures `$ai_generation` and `$ai_embedding` events with model, latency, token, error, trace, session, and span properties. For more .NET SDK details, see the [.NET library docs](/docs/libraries/dotnet.md#ai-observability).
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # React Native - Docs
 
 Copy page
@@ -181,6 +183,9 @@ You can further customize how PostHog works through its configuration on initial
 | evaluationContextsType: Array of StringsDefault: undefined | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. This helps reduce unnecessary flag evaluations and improves performance. See [evaluation contexts documentation](/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 4.21.0+. The legacy parameter evaluationEnvironments (version 4.10.0+) is also supported for backward compatibility. |
 | addTracingHeadersType: Array of StringsDefault: undefined | Hostnames for which PostHog should add tracing headers to outgoing fetch requests. Matching requests include X-POSTHOG-DISTINCT-ID and X-POSTHOG-SESSION-ID, which lets backend events, errors, and LLM traces link back to frontend sessions and replays. Use hostnames only, without the protocol or path. |
 | before_sendType: FunctionDefault: undefined | A callback function that is called before each event is sent to PostHog. You can use it to modify, filter, or suppress events. Return null to drop the event, or return the modified event to send it. See [customizing exception capture](#customizing-exception-capture-with-before_send) for details. |
+| capturePushNotificationSubscriptionsType: BooleanDefault: true | Whether to automatically register this device's push token so [Workflows](/docs/workflows.md) can target it. Requires @posthog/react-native-plugin. See [push notifications](#push-notifications). Available in version 4.62.0+. |
+| capturePushNotificationOpenedType: BooleanDefault: true | Whether to automatically capture $push_notification_opened when the user taps a push notification. Requires @posthog/react-native-plugin. See [push notifications](#push-notifications). Available in version 4.62.0+. |
+| pushIdentityProviderType: FunctionDefault: undefined | Supplies a signed identity-verification token for push subscription requests. Only needed when your push channel requires identity verification. See [identity verification](#identity-verification). Available in version 4.62.0+. |
 
 ### Tracing headers
 
@@ -1237,6 +1242,10 @@ To set up surveys, follow the [additional installation instructions for React Na
 
 > Note: URL and CSS selector targeting are not supported in React Native. Surveys that rely on these conditions will not appear.
 
+## Push notifications
+
+The React Native SDK can register a device for [Workflows](/docs/workflows.md) push notifications and capture when a user opens one. For setup, including automatic and manual registration, capturing opens, opting out, and identity verification, see [Push notifications](/docs/workflows/push-notifications.md).
+
 ## Debug mode
 
 If you're not seeing the expected events being captured, the feature flags being evaluated, or the surveys being shown, you can enable debug mode to see what's happening.
@@ -1357,10 +1366,6 @@ const posthog = new PostHog('<ph_project_token>', {
 posthog.setPersonPropertiesForFlags(...) // instead of `personProperties`
 posthog.setGroupPropertiesForFlags(...) // instead of `groupProperties`
 ```
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

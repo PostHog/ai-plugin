@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # iOS SDK usage - Docs
 
 Copy page
@@ -629,10 +631,6 @@ PostHogSDK.shared.debug(true)
 // Disable debug mode
 PostHogSDK.shared.debug(false)
 ```
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

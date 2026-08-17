@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # .NET - Docs
 
 Copy page
@@ -761,10 +763,6 @@ The `posthog-dotnet` library disregards the server IP, does not add the GeoIP pr
 By default, the library buffers events before sending them to the `/batch` endpoint for better performance. This can lead to lost events in serverless environments if the .NET process is terminated by the platform before the buffer is fully flushed.
 
 To avoid this, call `await posthog.FlushAsync()` after processing every request by adding it as a middleware to your server. This allows `posthog.Capture()` to remain asynchronous for better performance.
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 
