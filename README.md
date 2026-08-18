@@ -41,6 +41,10 @@ Official PostHog plugin for AI clients. Access PostHog products directly from yo
 
     Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Sessions are sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content. Add custom properties to all events with `POSTHOG_LLMA_CUSTOM_PROPERTIES` (JSON string, e.g. `'{"ai_product": "my-app"}'`). Set `POSTHOG_AI_PURPOSE` to declare what the session is doing relative to the repo — documented values are `authoring` and `review`, emitted as `$ai_purpose`. Useful when a harness wraps an agent it can't modify (e.g. a CI job running Claude Code as a reviewer); left unset the property is omitted.
 
+### Claude Cowork
+
+There is no install command — plugins are installed through the UI, separately from Claude Code. Click the **+** button next to the prompt box, select **Plugins** > **Add plugin**, and install **PostHog** from the plugin browser. On first use of a PostHog tool, follow the browser prompts to log into PostHog.
+
 ### Cursor
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add manually in Cursor Settings > Plugins.
