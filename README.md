@@ -41,14 +41,6 @@ Official PostHog plugin for AI clients. Access PostHog products directly from yo
 
     Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Sessions are sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content. Add custom properties to all events with `POSTHOG_LLMA_CUSTOM_PROPERTIES` (JSON string, e.g. `'{"ai_product": "my-app"}'`). Set `POSTHOG_AI_PURPOSE` to declare what the session is doing relative to the repo — documented values are `authoring` and `review`, emitted as `$ai_purpose`. Useful when a harness wraps an agent it can't modify (e.g. a CI job running Claude Code as a reviewer); left unset the property is omitted.
 
-### Claude Cowork
-
-1. Add the marketplace: open **Settings** > **Plugins**, click **Add** > **Add marketplace**, enter `PostHog/ai-plugin`, and click **Sync**.
-
-2. Install the plugin: click **Browse**, select **PostHog**, and install. The plugin stays in sync with this repo automatically.
-
-3. Authenticate via OAuth: on first use of a PostHog tool, follow the browser prompts to log into PostHog.
-
 ### Cursor
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add manually in Cursor Settings > Plugins.
@@ -83,6 +75,14 @@ gemini extensions install https://github.com/PostHog/ai-plugin
 2. Authenticate via OAuth:
 
     On first use of a PostHog tool, Grok prompts you to authorize in your browser. Log into PostHog to connect.
+
+### Claude Cowork
+
+1. Add the marketplace: open **Settings** > **Plugins**, click **Add** > **Add marketplace**, enter `PostHog/ai-plugin`, and click **Sync**.
+
+2. Install the plugin: click **Browse**, select **PostHog**, and install. The plugin stays in sync with this repo automatically.
+
+3. Authenticate via OAuth: on first use of a PostHog tool, follow the browser prompts to log into PostHog.
 
 ## How to develop
 
