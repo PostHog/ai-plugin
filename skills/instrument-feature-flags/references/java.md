@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Java Feature Flags installation - Docs
 
 Copy page
@@ -88,10 +90,6 @@ PostHogConfig config = PostHogConfig
           .debug(true)
           .build();
 ```
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

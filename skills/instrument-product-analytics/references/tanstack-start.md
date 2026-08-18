@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # TanStack Start - Docs
 
 Copy page
@@ -209,10 +211,6 @@ The server-side `capture` call requires a `distinctId` (the user identifier), an
 ## Next steps
 
 Installing the JS Web SDK and Node SDK means all of their functionality is available in your TanStack Start project. To learn more about this, have a look at our [JS Web SDK docs](/docs/libraries/js/usage.md) and [Node SDK docs](/docs/libraries/node.md).
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

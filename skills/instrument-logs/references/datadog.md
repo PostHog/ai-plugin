@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Datadog logs installation - Docs
 
 Copy page
@@ -100,10 +102,6 @@ If you're already using Datadog to collect logs, you can forward them to PostHog
     | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 

@@ -1,3 +1,5 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
 # Identify users - Docs
 
 Copy page
@@ -8,7 +10,7 @@ Linking events to specific users enables you to build a full picture of how they
 
 This is straightforward to do when [capturing backend events](/docs/product-analytics/capture-events?tab=Node.js.md), as you associate events to a specific user using a `distinct_id`, which is a required argument.
 
-However, in the frontend of a [web](/docs/libraries/js/features.md#capturing-events) or [mobile app](/docs/libraries/ios.md#capturing-events), a `distinct_id` is not a required argument — PostHog's SDKs will generate an anonymous `distinct_id` for you automatically and you can capture events anonymously, provided you use the appropriate [configuration](/docs/libraries/js/features.md#capturing-anonymous-events).
+However, in the frontend of a [web](/docs/libraries/js/usage.md#capturing-events) or [mobile app](/docs/libraries/ios.md#capturing-events), a `distinct_id` is not a required argument — PostHog's SDKs will generate an anonymous `distinct_id` for you automatically and you can capture events anonymously, provided you use the appropriate [configuration](/docs/libraries/js/usage.md#capturing-anonymous-events).
 
 To link events to specific users, call `identify`:
 
@@ -216,8 +218,8 @@ In these cases, you can use a [deep link](https://developer.android.com/training
 2.  Add the distinct ID to the deep link as query parameters, along with other properties like UTM parameters.
 3.  When the user is redirected to the app, parse the deep link and handle the following cases:
 
--   The mobile app is already authenticated. In this case, call [`posthog.alias()`](/docs/libraries/js/features.md#alias) with the distinct ID from the web. This associates the two distinct IDs as a single person.
--   The mobile app is unauthenticated. In this case, call [`posthog.identify()`](/docs/libraries/js/features.md#identifying-users) with the distinct ID from the web so pre-login mobile events stay connected to the web session. When the user later logs in on mobile, call `identify()` again with your canonical user ID.
+-   The mobile app is already authenticated. In this case, call [`posthog.alias()`](/docs/libraries/js/usage.md#alias) with the distinct ID from the web. This associates the two distinct IDs as a single person.
+-   The mobile app is unauthenticated. In this case, call [`posthog.identify()`](/docs/libraries/js/usage.md#identifying-users) with the distinct ID from the web so pre-login mobile events stay connected to the web session. When the user later logs in on mobile, call `identify()` again with your canonical user ID.
 
 As long as you associate the distinct IDs with `posthog.identify()` or `posthog.alias()`, you can track events generated across platforms.
 
@@ -295,10 +297,6 @@ object DeepLinkIdentityManager {
 -   [Identifying users docs](/docs/product-analytics/identify.md)
 -   [How person processing works](/docs/how-posthog-works/ingestion-pipeline.md#2-person-processing)
 -   [An introductory guide to identifying users in PostHog](/tutorials/identifying-users-guide.md)
-
-### Community questions
-
-Ask a question
 
 ### Was this page useful?
 
