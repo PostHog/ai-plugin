@@ -11,6 +11,12 @@ Official PostHog plugin for AI clients. Access PostHog products directly from yo
     claude plugin install posthog
     ```
 
+    Or install from this repo as a marketplace:
+    ```bash
+    claude plugin marketplace add PostHog/ai-plugin
+    claude plugin install posthog@posthog
+    ```
+
 2. Authenticate via OAuth:
     ```bash
     # Just enter Claude Code anywhere
@@ -69,6 +75,14 @@ gemini extensions install https://github.com/PostHog/ai-plugin
 2. Authenticate via OAuth:
 
     On first use of a PostHog tool, Grok prompts you to authorize in your browser. Log into PostHog to connect.
+
+### Claude Cowork
+
+1. Add the marketplace: open **Settings** > **Plugins**, click **Add** > **Add marketplace**, enter `PostHog/ai-plugin`, and click **Sync**.
+
+2. Install the plugin: click **Browse**, select **PostHog**, and install. The plugin stays in sync with this repo automatically.
+
+3. Authenticate via OAuth: on first use of a PostHog tool, follow the browser prompts to log into PostHog.
 
 ## How to develop
 
