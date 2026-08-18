@@ -43,7 +43,11 @@ Official PostHog plugin for AI clients. Access PostHog products directly from yo
 
 ### Claude Cowork
 
-There is no install command — plugins are installed through the UI, separately from Claude Code. Click the **+** button next to the prompt box, select **Plugins** > **Add plugin**, and install **PostHog** from the plugin browser. On first use of a PostHog tool, follow the browser prompts to log into PostHog.
+1. Add the marketplace: open **Settings** > **Plugins**, click **Add** > **Add marketplace**, enter `PostHog/ai-plugin`, and click **Sync**.
+
+2. Install the plugin: click **Browse**, select **PostHog**, and install. The plugin stays in sync with this repo automatically.
+
+3. Authenticate via OAuth: on first use of a PostHog tool, follow the browser prompts to log into PostHog.
 
 ### Cursor
 
