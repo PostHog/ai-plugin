@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Other languages logs installation - Docs
+# Other languages Logs installation - Docs
 
 Copy page
 
-# Other languages logs installation - Docs
+# Other languages Logs installation - Docs
 
 PostHog Logs works with any OpenTelemetry-compatible client. Check the [OpenTelemetry documentation](https://opentelemetry.io/docs/) for your specific language or framework.
 

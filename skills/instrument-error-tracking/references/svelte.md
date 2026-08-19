@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# SvelteKit error tracking installation - Docs
+# SvelteKit Error Tracking installation - Docs
 
 Copy page
 
-# SvelteKit error tracking installation - Docs
+# SvelteKit Error Tracking installation - Docs
 
 1.  1
 

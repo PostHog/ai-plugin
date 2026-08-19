@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Java logs installation - Docs
+# Java Logs installation - Docs
 
 Copy page
 
-# Java logs installation - Docs
+# Java Logs installation - Docs
 
 1.  1
 

@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Ruby error tracking installation - Docs
+# Ruby Error Tracking installation - Docs
 
 Copy page
 
-# Ruby error tracking installation - Docs
+# Ruby Error Tracking installation - Docs
 
 1.  1
 

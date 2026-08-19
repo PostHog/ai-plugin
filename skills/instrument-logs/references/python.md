@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Python logs installation - Docs
+# Python Logs installation - Docs
 
 Copy page
 
-# Python logs installation - Docs
+# Python Logs installation - Docs
 
 1.  1
 

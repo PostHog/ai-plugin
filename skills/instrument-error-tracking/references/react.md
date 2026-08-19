@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# React error tracking installation - Docs
+# React Error Tracking installation - Docs
 
 Copy page
 
-# React error tracking installation - Docs
+# React Error Tracking installation - Docs
 
 1.  1
 

@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Web error tracking installation - Docs
+# Web Error Tracking installation - Docs
 
 Copy page
 
-# Web error tracking installation - Docs
+# Web Error Tracking installation - Docs
 
 1.  1
 

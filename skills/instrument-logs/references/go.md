@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Go logs installation - Docs
+# Go Logs installation - Docs
 
 Copy page
 
-# Go logs installation - Docs
+# Go Logs installation - Docs
 
 1.  1
 

@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Python error tracking installation - Docs
+# Python Error Tracking installation - Docs
 
 Copy page
 
-# Python error tracking installation - Docs
+# Python Error Tracking installation - Docs
 
 1.  1
 

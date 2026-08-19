@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Angular error tracking installation - Docs
+# Angular Error Tracking installation - Docs
 
 Copy page
 
-# Angular error tracking installation - Docs
+# Angular Error Tracking installation - Docs
 
 1.  1
 

@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Node.js error tracking installation - Docs
+# Node.js Error Tracking installation - Docs
 
 Copy page
 
-# Node.js error tracking installation - Docs
+# Node.js Error Tracking installation - Docs
 
 1.  1
 
