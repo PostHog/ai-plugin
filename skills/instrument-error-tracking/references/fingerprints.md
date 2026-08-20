@@ -54,6 +54,10 @@ Fingerprints can be manually set during exception capture. This is a very useful
 
 You can also learn more about grouping issues using rules in the [grouping issues](/docs/error-tracking/grouping-issues.md) guide.
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

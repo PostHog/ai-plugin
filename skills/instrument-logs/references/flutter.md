@@ -454,6 +454,10 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

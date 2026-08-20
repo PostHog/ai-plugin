@@ -178,6 +178,10 @@ Copy page
 
     [Upload source maps](/docs/error-tracking/upload-source-maps/nuxt.md)
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

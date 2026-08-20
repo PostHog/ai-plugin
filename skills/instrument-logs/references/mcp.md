@@ -57,6 +57,10 @@ To browse logs visually, mine patterns interactively, or watch the session repla
 -   Learn what your agent is creating in [Set up log alerts](/docs/logs/alerts.md).
 -   See how templates are built in [Log patterns](/docs/logs/patterns.md).
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

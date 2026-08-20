@@ -848,6 +848,10 @@ The Android SDK supports Android API 23 and newer.
 
 Usually, no. The SDK declares `android.permission.INTERNET` and `android.permission.ACCESS_NETWORK_STATE`, and Android's manifest merger adds them to your app. The SDK does not declare or require an Android `Service`.
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

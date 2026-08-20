@@ -3575,6 +3575,10 @@ The list of properties that this overrides:
 6.  `$geoip_postal_code`
 7.  `$geoip_time_zone`
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

@@ -8,10 +8,6 @@ Copy page
 
 This page covers troubleshooting for Logs. For setup, see the [installation guide](/docs/logs/installation.md).
 
-## Have a question? Ask PostHog AI
-
-Ask PostHog AI
-
 ## Authentication errors
 
 **Problem**: Getting 401 Unauthorized errors when sending logs.
@@ -110,6 +106,10 @@ If you're still experiencing problems:
 2.  Test with a simple log message first before sending complex logs
 3.  Check the network requests to see the actual HTTP status codes and error messages
 4.  Contact PostHog support with your specific error messages and configuration details
+
+### Still have questions?
+
+Ask PostHog AI
 
 ### Was this page useful?
 

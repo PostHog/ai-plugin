@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# React Native logs installation - Docs
+# React Native Logs installation - Docs
 
 Copy page
 
-# React Native logs installation - Docs
+# React Native Logs installation - Docs
 
 PostHog's React Native SDK has built-in support for capturing structured logs. Unlike other languages where you wire OpenTelemetry directly, the SDK handles the OTLP encoding, batching, persistence, and lifecycle for you. You just call `posthog.captureLog(...)` or `posthog.logger.{trace,debug,info,warn,error,fatal}(...)`.
 
@@ -307,6 +307,10 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
     | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
+
+### Still have questions?
+
+Ask PostHog AI
 
 ### Was this page useful?
 

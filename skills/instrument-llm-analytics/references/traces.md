@@ -110,6 +110,10 @@ This means you can either:
 1.  Send explicit `$ai_trace` events to control the trace metadata
 2.  Let PostHog automatically create pseudo-traces from your generation/span events
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

@@ -154,6 +154,10 @@ If no session ID is found in the log entry, the tab displays a message prompting
 -   [Search logs](/docs/logs/search.md)
 -   [Error Tracking](/docs/error-tracking.md)
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

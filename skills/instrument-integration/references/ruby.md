@@ -756,6 +756,10 @@ posthog.clear
 
 This library is largely based on the `analytics-ruby` package.
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

@@ -167,6 +167,10 @@ PostHog::init(
 
 See the [PHP SDK docs](/docs/libraries/php.md) for usage examples and the full API reference.
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

@@ -315,6 +315,10 @@ using (PostHogAIContext.BeginScope(
 
 The integration captures `$ai_generation` and `$ai_embedding` events with model, latency, token, error, trace, session, and span properties. For more .NET SDK details, see the [.NET library docs](/docs/libraries/dotnet.md#ai-observability).
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

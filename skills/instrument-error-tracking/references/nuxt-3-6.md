@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Nuxt error tracking installation (v3.6 and below) - Docs
+# Nuxt Error Tracking installation (v3.6 and below) - Docs
 
 Copy page
 
-# Nuxt error tracking installation (v3.6 and below) - Docs
+# Nuxt Error Tracking installation (v3.6 and below) - Docs
 
 1.  1
 
@@ -247,6 +247,10 @@ Copy page
     Let's continue to the next section.
 
     [Upload source maps](/docs/error-tracking/upload-source-maps/nuxt.md)
+
+### Still have questions?
+
+Ask PostHog AI
 
 ### Was this page useful?
 

@@ -2,7 +2,7 @@
 
 # PostHog Python SDK
 
-**SDK Version:** 7.38.4
+**SDK Version:** 7.39.1
 
 Integrate PostHog into any python application.
 
@@ -75,6 +75,7 @@ Initialize a new PostHog client instance.
 - **`capture_compression`** (`CaptureCompression`) - Request-body compression for capture-v1 uploads         (ignored in V0, which uses ``gzip``). ``CaptureCompression.GZIP``         or ``DEFLATE`` (or the strings ``"gzip"``/``"deflate"``). When         omitted, the ``POSTHOG_CAPTURE_COMPRESSION`` env var is consulted,         then the legacy ``gzip`` flag, then no compression.
 - **`secret_key`** (`any`) - A Personal API Key or Project Secret API Key, used to         authenticate local feature flag evaluation, remote config         payloads, and decrypted flag payloads. Example::              posthog.Client(project_api_key, secret_key="phx_...")
 - **`metrics?`** (`dict`)
+- **`enable_full_ai_capture`** (`bool`) - Route PostHog AI wrapper events through         the dedicated AI capture endpoint and capture full AI content:         skips string truncation and passes media (base64/data URIs)         through unredacted. ``privacy_mode`` always wins. Defaults to         False.
 - **`_use_ai_lane`** (`bool`)
 - **`_enable_multimodal_capture`** (`bool`)
 
@@ -104,7 +105,7 @@ Create an alias between two distinct IDs.
 
 - **`previous_id?`** (`Number`) - The previous distinct ID. Required - the call is dropped         with a warning if it is missing or empty.
 - **`distinct_id?`** (`str`) - The new distinct ID to alias to. Falls back to the         context distinct ID; the call is dropped with a warning if         neither is available.
-- **`timestamp`** (`datetime`) - The timestamp of the event.
+- **`timestamp`** (`datetime`) - The timestamp of the event. UTC is preferred; non-UTC         datetimes and parseable ISO timestamp strings are converted to UTC.
 - **`uuid?`** (`str`) - A unique identifier for the event. If provided, it must be a         valid UUID string or uuid.UUID instance; invalid values are         ignored and replaced with a newly generated UUID.
 - **`disable_geoip?`** (`bool`) - Whether to disable GeoIP for this event.
 
@@ -131,7 +132,7 @@ Identify a group and set its properties.
 - **`group_type?`** (`str`) - The type of group (e.g., 'company', 'team'). Required -         the call is dropped with a warning if it is missing or empty.
 - **`group_key?`** (`str`) - The unique identifier for the group. Required - the call         is dropped with a warning if it is missing or empty.
 - **`properties?`** (`dict[str, Any]`) - A dictionary of properties to set on the group.
-- **`timestamp`** (`datetime`) - The timestamp of the event.
+- **`timestamp`** (`datetime`) - The timestamp of the event. UTC is preferred; non-UTC         datetimes and parseable ISO timestamp strings are converted to UTC.
 - **`uuid`** (`str`) - A unique identifier for the event. If provided, it must be a         valid UUID string or uuid.UUID instance; invalid values are         ignored and replaced with a newly generated UUID.
 - **`disable_geoip?`** (`bool`) - Whether to disable GeoIP for this event.
 - **`distinct_id`** (`Number`) - The distinct ID of the user performing the action.
@@ -254,6 +255,23 @@ posthog.capture(
 # Page view event
 posthog.capture('$pageview', distinct_id="distinct_id_of_the_user", properties={'$current_url': 'https://example.com'})
 ```
+
+---
+
+#### capture_ai()
+
+**Release Tag:** public
+
+Capture an AI event on the dedicated AI capture endpoint.  Beta: the signature is stable; operational limits (per-event size cap, batching, endpoint) may change without notice.  Takes the same arguments and returns the same value as `capture()`: the event UUID, or None when the event was not admitted (disabled client, or dropped by `before_send`). The event is queued on an isolated AI lane with its own consumer pool and a higher per-event size cap, posting to the dedicated AI ingestion endpoint. The payload is sent as given — no redaction or truncation is applied here.
+
+### Parameters
+
+- **`event?`** (`str`)
+- **`kwargs?`** (`Unpack[OptionalCaptureArgs]`)
+
+### Returns
+
+- `Optional[str]`
 
 ---
 
@@ -873,7 +891,7 @@ To marry up whatever a user does before they sign up or log in with what they do
 
 - **`previous_id?`** (`Number`) - The unique ID of the user before
 - **`distinct_id?`** (`str`) - The current unique id
-- **`timestamp?`** (`datetime`) - Optional timestamp for the event
+- **`timestamp`** (`datetime`) - Optional timestamp for the event. UTC is preferred; non-UTC         datetimes and parseable ISO timestamp strings are converted to UTC.
 - **`uuid?`** (`str`) - Optional UUID for the event
 - **`disable_geoip?`** (`bool`) - Whether to disable GeoIP lookup
 
@@ -902,7 +920,7 @@ Set properties on a group.
 - **`group_type?`** (`str`) - Type of your group. Required - the call is dropped with a         warning if it is missing or empty.
 - **`group_key?`** (`str`) - Unique identifier of the group. Required - the call is         dropped with a warning if it is missing or empty.
 - **`properties?`** (`dict[str, Any]`) - Properties to set on the group
-- **`timestamp?`** (`datetime`) - Optional timestamp for the event
+- **`timestamp`** (`datetime`) - Optional timestamp for the event. UTC is preferred; non-UTC         datetimes and parseable ISO timestamp strings are converted to UTC.
 - **`uuid?`** (`str`) - Optional UUID for the event
 - **`disable_geoip?`** (`bool`) - Whether to disable GeoIP lookup
 - **`distinct_id`** (`Number`) - Optional distinct ID of the user performing the action
@@ -1068,6 +1086,35 @@ capture(
         "login_type": "email",
         "is_free_trial": "true"
     }
+)
+```
+
+---
+
+#### capture_ai()
+
+**Release Tag:** public
+
+Capture an AI event on the dedicated AI capture endpoint.  Beta: the signature is stable; operational limits (per-event size cap, batching, endpoint) may change without notice.  Takes the same arguments and returns the same value as `capture()`: the event UUID, or None when the event was not admitted (disabled client, or dropped by `before_send`). The event is delivered on an isolated queue with its own consumer pool and a higher per-event size cap, posting to the dedicated AI ingestion endpoint. The payload is sent as given — no redaction or truncation is applied here.
+
+### Parameters
+
+- **`event?`** (`str`) - The event name, normally one of the `$ai_*` event names.     **kwargs: Same optional arguments as `capture()`.
+- **`kwargs?`** (`Unpack[OptionalCaptureArgs]`)
+
+### Returns
+
+- `Optional[str]`
+
+### Examples
+
+```python
+from posthog import capture_ai
+
+uuid = capture_ai(
+    "$ai_generation",
+    distinct_id="user_123",
+    properties={"$ai_model": "gpt-5"},
 )
 ```
 

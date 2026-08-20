@@ -265,6 +265,10 @@ Alternatively, the following tutorials can help you get started:
 -   [How to set up A/B tests in Svelte](/tutorials/svelte-ab-tests.md)
 -   [How to set up surveys in Svelte](/tutorials/svelte-surveys.md)
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

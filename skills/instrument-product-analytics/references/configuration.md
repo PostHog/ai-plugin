@@ -297,6 +297,10 @@ The [`PostHogConfig` object](https://github.com/PostHog/posthog-ios/blob/main/Po
 | setBeforeSendType: FunctionDefault: undefined | Hook that allows for amending, sampling, or dropping events before they are sent to PostHog. |
 | bootstrapType: PostHogBootstrapConfigDefault: nil | Seeds identity (distinctId, isIdentifiedId) and feature-flag state (featureFlags, featureFlagPayloads) before the first /flags response. Bootstrapped identity applies to the first session; only enabled flags are served, until the first /flags response replaces them. See [SDK bootstrapping](/docs/libraries/bootstrapping.md#behavior-on-mobile-sdks). |
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

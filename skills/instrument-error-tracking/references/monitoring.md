@@ -137,6 +137,10 @@ If you find your queries timing out or taking more than 30 seconds, please [let 
 
 If you find issues that are not useful to you, you can suppress them by changing the status to **Suppressed**. We recommend that you also implement [client-side suppression](/docs/error-tracking/capture.md#suppressing-exceptions) to not capture these exceptions in the first place, for cost and performance reasons.
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better
