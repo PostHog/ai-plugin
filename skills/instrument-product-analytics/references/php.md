@@ -643,6 +643,10 @@ PostHog::init(
 
 This library is largely based on the `analytics-php` package.
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

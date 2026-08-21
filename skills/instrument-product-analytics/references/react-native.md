@@ -1367,6 +1367,10 @@ posthog.setPersonPropertiesForFlags(...) // instead of `personProperties`
 posthog.setGroupPropertiesForFlags(...) // instead of `groupProperties`
 ```
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

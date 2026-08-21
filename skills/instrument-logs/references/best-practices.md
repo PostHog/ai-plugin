@@ -428,6 +428,10 @@ Use this to audit your existing logging or as a starting point for a new service
 -   Consider enabling [automatic PII scrubbing](#automatic-pii-scrubbing) as a safety net for accidental leaks
 -   [Link logs to Session Replays](/docs/logs/link-session-replay.md) for full user context
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

@@ -757,6 +757,57 @@ client.capture({
 
 ---
 
+#### captureAi()
+
+**Release Tag:** public
+
+Capture an AI event on the dedicated AI capture endpoint.
+Beta: the signature is stable; operational limits (per-event size cap, batching, endpoint) may change without notice. Delivery is async, and no redaction or truncation is applied to the payload.
+
+### Parameters
+
+- **`props`** (`EventMessage`) - The event properties
+
+### Returns
+
+**Union of:**
+- `string`
+- `undefined`
+
+### Examples
+
+```node
+// Generated example for captureAi
+posthog.captureAi();
+```
+
+---
+
+#### captureAiImmediate()
+
+**Release Tag:** public
+
+Capture an AI event on the dedicated AI capture endpoint, resolving after the send completes. Use in short-lived processes (serverless) where the runtime may freeze before a background flush runs.
+
+### Parameters
+
+- **`props`** (`EventMessage`) - The event properties
+
+### Returns
+
+**Union of:**
+- `Promise<string`
+- `undefined>`
+
+### Examples
+
+```node
+// Generated example for captureAiImmediate
+posthog.captureAiImmediate();
+```
+
+---
+
 #### captureImmediate()
 
 **Release Tag:** public

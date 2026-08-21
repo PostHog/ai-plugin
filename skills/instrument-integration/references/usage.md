@@ -632,6 +632,10 @@ PostHogSDK.shared.debug(true)
 PostHogSDK.shared.debug(false)
 ```
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

@@ -601,6 +601,10 @@ Ensure you've set `personal_api_key` in your configuration.
 
 For any technical questions for how to integrate specific PostHog features into Rails (such as analytics, feature flags, A/B testing, etc.), have a look at our [Ruby SDK docs](/docs/libraries/ruby.md).
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

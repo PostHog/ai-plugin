@@ -44,6 +44,10 @@ Optionally, you might want to enable the [Plug integration](https://hexdocs.pm/p
 
 For a test environment, you can pass in `test_mode: true` value to the config. This causes events to be dropped instead of sent to PostHog.
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

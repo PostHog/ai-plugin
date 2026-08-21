@@ -219,6 +219,10 @@ Copy page
     }
     ```
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

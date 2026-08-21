@@ -271,6 +271,10 @@ Alternatively, the following tutorials can help you get started:
 -   [How to set up A/B tests in Nuxt](/tutorials/nuxtjs-ab-tests.md)
 -   [How to set up surveys in Nuxt](/tutorials/nuxt-surveys.md)
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

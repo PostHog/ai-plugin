@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Flutter error tracking installation - Docs
+# Flutter Error Tracking installation - Docs
 
 Copy page
 
-# Flutter error tracking installation - Docs
+# Flutter Error Tracking installation - Docs
 
 1.  1
 
@@ -285,6 +285,10 @@ Copy page
     Let's continue to the next section.
 
     [Upload source maps](/docs/error-tracking/upload-source-maps/flutter.md)
+
+### Still have questions?
+
+Ask PostHog AI
 
 ### Was this page useful?
 

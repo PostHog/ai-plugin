@@ -212,6 +212,10 @@ The server-side `capture` call requires a `distinctId` (the user identifier), an
 
 Installing the JS Web SDK and Node SDK means all of their functionality is available in your TanStack Start project. To learn more about this, have a look at our [JS Web SDK docs](/docs/libraries/js/usage.md) and [Node SDK docs](/docs/libraries/node.md).
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

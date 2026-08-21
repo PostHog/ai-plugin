@@ -888,6 +888,10 @@ With the release of V2, the API was kept mostly the same but with some small cha
 3.  The method signature for `isFeatureEnabled` and `getFeatureFlag` is slightly modified. See the above documentation for each method for more details.
 4.  For specific changes, [see the CHANGELOG](https://github.com/PostHog/posthog-js/blob/main/packages/node/CHANGELOG.md)
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

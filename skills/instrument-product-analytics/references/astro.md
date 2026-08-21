@@ -196,6 +196,10 @@ Alternatively, the following tutorials can help you get started:
 -   [How to set up A/B tests in Astro](/tutorials/astro-ab-tests.md)
 -   [How to set up surveys in Astro](/tutorials/astro-surveys.md)
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

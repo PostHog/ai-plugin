@@ -337,6 +337,10 @@ Alternatively, the following tutorials can help you get started:
 -   [How to set up A/B tests in Vue](/tutorials/vue-ab-tests.md)
 -   [How to set up surveys in Vue](/tutorials/vue-surveys.md)
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

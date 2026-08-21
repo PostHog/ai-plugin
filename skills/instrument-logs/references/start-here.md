@@ -172,6 +172,10 @@ That's it! You're ready to start integrating.
 
 ***Required***
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

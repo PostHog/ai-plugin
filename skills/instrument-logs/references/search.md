@@ -122,6 +122,10 @@ When the pattern's sample is unambiguous (a single service or severity), the piv
 -   **Use regex for alternatives.** Instead of adding three contains filters, use one regex like `(timeout|refused|reset)`.
 -   **Structured logs make filtering more powerful.** Key-value context like `user_id`, `endpoint`, and `status_code` becomes an attribute you can filter on directly. See our [logging best practices](/docs/logs/best-practices.md) for patterns that make logs easier to query.
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

@@ -444,6 +444,10 @@ To improve the reliability of client-side tracking and make requests less likely
 -   [How to set up Next.js pages router analytics, feature flags, and more](/tutorials/nextjs-pages-analytics.md)
 -   [How to set up Next.js A/B tests](/tutorials/nextjs-ab-tests.md)
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

@@ -1,10 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# iOS error tracking installation - Docs
+# iOS Error Tracking installation - Docs
 
 Copy page
 
-# iOS error tracking installation - Docs
+# iOS Error Tracking installation - Docs
 
 1.  1
 
@@ -254,6 +254,10 @@ Copy page
 
 -   System symbols and frames are not symbolicated (UIKit, Foundation, etc.) ([issue](https://github.com/PostHog/posthog/issues/50614)).
 -   Swift crashes appear as `SIGTRAP` without the actual error message ([issue](https://github.com/PostHog/posthog-ios/issues/522)).
+
+### Still have questions?
+
+Ask PostHog AI
 
 ### Was this page useful?
 

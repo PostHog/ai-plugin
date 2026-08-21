@@ -298,6 +298,10 @@ object DeepLinkIdentityManager {
 -   [How person processing works](/docs/how-posthog-works/ingestion-pipeline.md#2-person-processing)
 -   [An introductory guide to identifying users in PostHog](/tutorials/identifying-users-guide.md)
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

@@ -65,6 +65,14 @@ In AI Observability, a session (`$ai_session_id`) typically represents a single 
 
 A single PostHog session can contain multiple AI Observability sessions: a user might start several separate conversations during one visit. See [sessions](/docs/ai-observability/sessions.md#note-on-posthog-session-ids) for more on the distinction.
 
+## See it in action
+
+Want to see these concepts applied in real projects? Check out our [demos and example projects](/docs/ai-observability/demos.md) or [browse AI Observability side projects](/side-projects?tag=ai-observability.md) built by the PostHog team.
+
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

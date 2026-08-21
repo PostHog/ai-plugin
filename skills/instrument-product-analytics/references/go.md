@@ -564,6 +564,10 @@ The `name` is a special property which is used in the PostHog UI for the name of
 
 This library is largely based on the `analytics-go` package.
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

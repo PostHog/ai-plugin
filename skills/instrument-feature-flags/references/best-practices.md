@@ -228,6 +228,10 @@ Stale flags are the most common source of unnecessary cost. Beyond cleaning up f
 -   [Local evaluation](/docs/feature-flags/local-evaluation.md) – server-side evaluation for explicit input control
 -   [Bootstrapping](/docs/feature-flags/bootstrapping.md) – having flag values before the page renders
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better

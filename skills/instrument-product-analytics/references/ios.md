@@ -159,6 +159,10 @@ Now that you've installed the SDK, explore the configuration and usage options:
 -   [Learn about using all of the features of PostHog with iOS SDK](/docs/libraries/ios/usage.md)
 -   [Learn about configuration options for the iOS SDK](/docs/libraries/ios/configuration.md)
 
+### Still have questions?
+
+Ask PostHog AI
+
 ### Was this page useful?
 
 HelpfulCould be better
