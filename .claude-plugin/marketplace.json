@@ -12,7 +12,7 @@
       "displayName": "PostHog",
       "source": "./",
       "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from your AI coding tool. Optionally capture Claude Code sessions to PostHog LLM Analytics.",
-      "version": "1.1.59",
+      "version": "1.1.60",
       "author": {
         "name": "PostHog",
         "email": "hey@posthog.com",
