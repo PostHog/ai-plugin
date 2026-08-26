@@ -165,6 +165,15 @@ jobs:
             --base "$BASE_REF" \
             --head "$HEAD_REF" \
             --title "$COMMIT_MESSAGE" \
-            --body "Automated skill sync from PostHog release and context-mill." \
-            --reviewer "PostHog/team-posthog-ai")
+            --body "Automated skill sync from PostHog release and context-mill.")
+
+          # Request review separately and non-fatally. A reviewer that no
+          # longer resolves must NOT take down the auto-merge: that is exactly
+          # how the PostHog/skills sync silently broke from 2026-06-03 to
+          # 2026-08-26 (team 'team-posthog-ai' was renamed, `gh pr create
+          # --reviewer` hard-failed after creating the PR, and ~70 sync PRs
+          # piled up unmerged).
+          gh pr edit "$PR_URL" --add-reviewer "PostHog/team-posthog-desktop" \
+            || echo "::warning::Could not request review from PostHog/team-posthog-desktop; continuing to auto-merge"
+
           gh pr merge "$PR_URL" --auto --squash
