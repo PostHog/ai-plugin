@@ -167,8 +167,6 @@ jobs:
             --title "$COMMIT_MESSAGE" \
             --body "Automated skill sync from PostHog release and context-mill.")
 
-          # The review request is deliberately non-fatal: a renamed team must
-          # never block auto-merge again. See PR description for the incident.
           gh pr edit "$PR_URL" --add-reviewer "PostHog/team-posthog-desktop" \
             || echo "::warning::Could not request review from PostHog/team-posthog-desktop; continuing to auto-merge"
 
