@@ -184,7 +184,9 @@ Future<void> main() async {
 
 #### Web setup
 
-For Web, add your `Web snippet` (which you can find in [your project settings](https://us.posthog.com/settings/project#snippet)) in the `<header>` of your `web/index.html` file:
+If your project has a `web/` directory, this step is required. `Posthog().setup()` is a no-op on web, so a web build without the snippet below captures nothing.
+
+Add your `Web snippet` (which you can find in [your project settings](https://us.posthog.com/settings/project#snippet)) in the `<header>` of your `web/index.html` file. Write your project token into the snippet as a literal string. It's public, the same token ships to every visitor, and it needs no build-time or deploy-time injection:
 
 web/index.html
 
@@ -292,12 +294,16 @@ PostHog autocapture automatically tracks the following events for you:
 -   **Application Backgrounded** - when the app is sent to the background by the user
 -   **Application Installed** - when the app is installed.
 -   **Application Updated** - when the app is updated.
--   **$screen** - when the user navigates (if using [navigatorObservers](https://docs.flutter.dev/ui/navigation) or [go\_router](https://pub.dev/packages/go_router). You'd need to set up the `PosthogObserver` manually.)
+-   **$screen** - when the user navigates, once you add the `PosthogObserver`
 -   **$exception** - when the app throws exceptions.
 
 ### Capturing screen views
 
-> Note: Your routes should be named. Otherwise, they won't be recorded.
+Screen views aren't captured automatically. Add the `PosthogObserver` to your app yourself. Without it, your app sends no `$screen` events at all.
+
+This works with any routing package, not just the plain `Navigator` API. Add the observer wherever your router takes navigator observers, as shown below for `MaterialApp` and `go_router`.
+
+> Note: Screen names come from each route's `RouteSettings.name`. Most routing packages set this for you. If yours doesn't, name your routes so `$screen` events are readable.
 
 #### Using `navigatorObservers`
 
