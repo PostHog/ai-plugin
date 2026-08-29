@@ -444,6 +444,10 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | [Spans](/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
     | [Anaylze LLM performance](/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
 
+## Large events
+
+For large events, use the dedicated AI ingestion path – see [capturing large AI events](/docs/ai-observability/large-events.md).
+
 ### Still have questions?
 
 Ask PostHog AI
