@@ -2,7 +2,7 @@
 
 # PostHog Python SDK
 
-**SDK Version:** 7.39.2
+**SDK Version:** 7.44.1
 
 Integrate PostHog into any python application.
 
@@ -76,6 +76,7 @@ Initialize a new PostHog client instance.
 - **`secret_key`** (`any`) - A Personal API Key or Project Secret API Key, used to         authenticate local feature flag evaluation, remote config         payloads, and decrypted flag payloads. Example::              posthog.Client(project_api_key, secret_key="phx_...")
 - **`metrics?`** (`dict`)
 - **`enable_full_ai_capture`** (`bool`) - Route PostHog AI wrapper events through         the dedicated AI capture endpoint and capture full AI content:         skips string truncation and passes media (base64/data URIs)         through unredacted. ``privacy_mode`` always wins. Defaults to         False.
+- **`capture_trace_context`** (`bool`) - When OpenTelemetry is installed and a valid span is         active at capture time, add its trace and span IDs as ``$trace_id`` and         ``$span_id`` properties to events captured with ``capture()`` and         ``capture_ai()``, so they can be correlated with backend traces. Explicit         ``$trace_id``/``$span_id`` values passed in ``properties`` win. Exception         events (``capture_exception``) always attach these IDs regardless of this         setting. Defaults to False.
 - **`_use_ai_lane`** (`bool`)
 - **`_enable_multimodal_capture`** (`bool`)
 
@@ -320,7 +321,7 @@ Evaluate all feature flags for a user in a single call and return a :class:`Feat
 - **`group_properties?`** (`dict[str, dict[str, Any]]`) - Group properties keyed by group type.
 - **`only_evaluate_locally`** (`bool`) - If True, never fall back to remote evaluation —         flags that can't be evaluated locally are simply omitted from the snapshot.
 - **`disable_geoip?`** (`bool`) - Whether to disable GeoIP lookup.
-- **`flag_keys?`** (`list[str]`) - Optional list of flag keys to scope the underlying ``/flags``         request to a subset.
+- **`flag_keys?`** (`list[str]`) - Optional list that scopes local evaluation, the underlying         ``/flags`` request, and the returned snapshot. When omitted or ``None``, all         flags are evaluated. An empty list returns an empty snapshot without evaluating         flags. A requested key absent from loaded local definitions is included in one         remote fallback per ``evaluate_flags`` call unless ``only_evaluate_locally`` is         True. If the server also does not know the key, it is omitted from the snapshot.
 - **`device_id?`** (`str`) - Optional device ID override. If not provided, falls back to the         context device_id (which may be set via tracing headers). Used by         experience-continuity flags to match users across distinct_id changes.
 
 ### Returns
@@ -1166,9 +1167,9 @@ Evaluate all feature flags for a user in a single call and return a :class:`Feat
 - **`groups?`** (`Mapping[str, Union[str, int]]`) - Mapping of group type to group key.
 - **`person_properties?`** (`dict[str, Any]`) - Person properties to use for evaluation.
 - **`group_properties?`** (`dict[str, dict[str, Any]]`) - Group properties keyed by group type.
-- **`only_evaluate_locally`** (`bool`) - If ``True``, never fall back to remote evaluation.
+- **`only_evaluate_locally`** (`bool`) - If ``True``, never fall back to remote evaluation and         omit flags that cannot be evaluated locally.
 - **`disable_geoip?`** (`bool`) - Whether to disable GeoIP lookup.
-- **`flag_keys?`** (`list[str]`) - Optional list of flag keys. When provided, only these flags are         evaluated — the underlying ``/flags`` request asks the server for just         this subset, which makes the response smaller and the request cheaper.         Use this when you only need a handful of flags out of many.
+- **`flag_keys?`** (`list[str]`) - Optional list that scopes local evaluation, the underlying ``/flags``         request, and the returned snapshot. When omitted or ``None``, all flags are evaluated.         An empty list returns an empty snapshot without evaluating flags. A requested key         absent from loaded local definitions is included in one remote fallback per         ``evaluate_flags`` call unless ``only_evaluate_locally`` is ``True``. If the server         also does not know the key, it is omitted from the snapshot.
 - **`device_id?`** (`str`) - Optional device ID override. If not provided, falls back to the         context device_id (which may be set via tracing headers). Used by         experience-continuity flags to match users across distinct_id changes.
 
 ### Returns
