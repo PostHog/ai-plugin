@@ -7,21 +7,22 @@ Alerts monitor insight values and notify subscribed users when thresholds are br
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`team_id` | integer | NOT NULL | Team this alert belongs to
-`name` | varchar(255) | NOT NULL | Human-readable alert name (can be blank)
-`insight_id` | integer | NOT NULL | FK to the insight being monitored
-`enabled` | boolean | NOT NULL | Whether the alert is actively evaluated
-`state` | varchar(10) | NOT NULL | `Firing`, `Not firing`, `Errored`, or `Snoozed`
-`calculation_interval` | varchar(10) | NULL | Check frequency: `hourly`, `daily`, `weekly`, or `monthly`
-`condition` | jsonb | NOT NULL | Alert condition: `{"type": "absolute_value" | "relative_increase" | "relative_decrease"}`
-`config` | jsonb | NULL | Trends config: `{"type": "TrendsAlertConfig", "series_index": int, "check_ongoing_interval": bool}`
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`last_notified_at` | timestamp with tz | NULL | When subscribers were last notified
-`last_checked_at` | timestamp with tz | NULL | When the alert was last evaluated
-`next_check_at` | timestamp with tz | NULL | When the next evaluation is scheduled
-`snoozed_until` | timestamp with tz | NULL | Snooze expiry (UTC)
-`skip_weekend` | boolean | NULL | Whether to skip evaluation on Saturday and Sunday
+`id` | String | NOT NULL | Alert UUID.
+`team_id` | Integer | NOT NULL |
+`name` | String | NOT NULL | User-given name of the alert.
+`insight_id` | Integer | NOT NULL | Insight the alert watches; joins to insights.id.
+`enabled` | Boolean | NOT NULL | Whether the alert is active.
+`state` | String | NOT NULL | Current alert state: 'Firing', 'Not firing', 'Errored', or 'Snoozed'.
+`calculation_interval` | String | NOT NULL | How often the alert is evaluated, e.g. 'daily'.
+`condition` | JSON | NOT NULL | JSON definition of the threshold/condition to check.
+`config` | JSON | NOT NULL | JSON alert configuration (series, comparison settings, etc.).
+`created_at` | DateTime | NOT NULL | When the alert was created.
+`last_notified_at` | DateTime | NOT NULL | When a notification was last sent.
+`last_checked_at` | DateTime | NOT NULL | When the alert was last evaluated.
+`next_check_at` | DateTime | NOT NULL | When the alert is next scheduled to be evaluated.
+`snoozed_until` | DateTime | NOT NULL | Alert is snoozed (no notifications) until this time.
+`skip_weekend` | Boolean | NOT NULL | Whether evaluation is skipped on weekends.
+`schedule_restriction` | JSON | NOT NULL | JSON restricting which days/hours the alert may fire.
 
 ### Key Relationships
 
@@ -36,4 +37,7 @@ Column | Type | Nullable | Description
   - `relative_increase` — fires when the value increases beyond the threshold
   - `relative_decrease` — fires when the value decreases beyond the threshold
 - The `config.series_index` selects which series in a multi-series insight to monitor
+- `real_time` requires a Scale or Enterprise plan
+- `every_15_minutes` requires a Boost, Scale, or Enterprise add-on
+- Creating or updating alerts through MCP requires the `alert:write` scope. Reconnect the MCP connection if these tools are unavailable
 - Alerts have a per-team limit (2 on the free tier, higher on paid plans)

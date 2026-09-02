@@ -34,6 +34,12 @@ Copy page
     pnpm add posthog-js @posthog/react
     ```
 
+    ### bun
+
+    ```bash
+    bun add posthog-js @posthog/react
+    ```
+
 2.  2
 
     ## Add environment variables

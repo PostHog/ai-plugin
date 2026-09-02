@@ -30,9 +30,9 @@ FROM
     GROUP BY
         aggregation_target) AS data
     RIGHT OUTER JOIN (SELECT
-        plus(toStartOfDay(assumeNotNull(toDateTime(('2025-12-03 00:00:00')))), toIntervalDay(number)) AS entrance_period_start
+        plus(toStartOfDay(assumeNotNull(toDateTime('2025-12-03 00:00:00'))), toIntervalDay(number)) AS entrance_period_start
     FROM
-        numbers(plus(dateDiff('day', toStartOfDay(assumeNotNull(toDateTime(('2025-12-03 00:00:00')))), toStartOfDay(assumeNotNull(toDateTime(('2025-12-10 23:59:59'))))), 1)) AS period_offsets) AS fill ON equals(data.entrance_period_start, fill.entrance_period_start)
+        numbers(plus(dateDiff('day', toStartOfDay(assumeNotNull(toDateTime('2025-12-03 00:00:00'))), toStartOfDay(assumeNotNull(toDateTime('2025-12-10 23:59:59')))), 1)) AS period_offsets) AS fill ON equals(data.entrance_period_start, fill.entrance_period_start)
 GROUP BY
     entrance_period_start,
     data.breakdown

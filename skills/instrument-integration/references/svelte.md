@@ -134,7 +134,11 @@ For certain features like [heatmaps](/docs/toolbar/heatmaps.md), your Web Applic
 
 **US**: `44.205.89.55`, `52.4.194.122`, `44.208.188.173`
 
-These are public, stable IPs used by PostHog services (e.g., Celery tasks for snapshots).
+These are public, stable IPs used by PostHog services.
+
+PostHog captures heatmap screenshots using [Browserless](https://www.browserless.io), which has its own IP addresses. Browserless [publishes the current list here](https://docs.browserless.io/baas/troubleshooting/whitelisting-ips).
+
+An allowlist does not help when your app has a private address. For apps on an internal network, see [internal and intranet applications](/docs/session-replay/troubleshooting.md#internal-and-intranet-applications).
 
 ## Server-side setup
 

@@ -7,12 +7,13 @@ Error tracking issues represent grouped exceptions captured by PostHog SDKs. Eac
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key (UUID)
-`team_id` | integer | NOT NULL | FK to `system.teams.id`
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`status` | varchar | NOT NULL | Issue status (see Status Values below)
-`name` | text | NULL | Issue name (typically the exception type/message)
-`description` | text | NULL | User-provided description
+`id` | String | NOT NULL | Issue UUID.
+`team_id` | Integer | NOT NULL |
+`created_at` | DateTime | NOT NULL | When the issue was first created.
+`status` | String | NOT NULL | Issue status, e.g. 'active', 'resolved', 'suppressed'.
+`severity` | String | NULL | Assigned issue severity, or null when unassigned.
+`name` | String | NOT NULL | Issue title (usually the exception type/message).
+`description` | String | NOT NULL | Issue description.
 
 ### Status Values
 
@@ -34,6 +35,9 @@ Status | Description
 - Issues group exception events by fingerprint (a hash of exception characteristics)
 - The `name` field is typically auto-populated from the first exception's type/message
 - Use the `events` table with `event = '$exception'` and `issue_id` to query actual exception occurrences
+- Use `system.error_tracking_issues` for all-time issue counts by status or severity
+- Access to `system.error_tracking_issues` follows the connected user's Error tracking permissions and only returns rows from the current project
+- Use `posthog:query-error-tracking-issues-list` for issues observed during a date range or for impact counts
 - Issues can be merged (combining fingerprints) or split (separating fingerprints into new issues)
 
 ---
@@ -46,13 +50,13 @@ Rows can also track missing symbol sets so future uploads know which stack frame
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key (UUID)
-`team_id` | integer | NOT NULL | FK to `system.teams.id`
-`ref` | text | NOT NULL | Symbol set reference matched from stack frames
-`release_id` | uuid | NULL | Associated error tracking release ID
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`last_used` | timestamp with tz | NULL | Last time this symbol set was used for frame resolution
-`failure_reason` | text | NULL | Reason lookup failed when the source map is missing or invalid
+`id` | String | NOT NULL | Symbol set UUID.
+`team_id` | Integer | NOT NULL |
+`ref` | String | NOT NULL | Reference identifying the symbol set, e.g. a chunk/file id.
+`release_id` | String | NULL | Release this symbol set belongs to; joins to error_tracking_releases.id.
+`created_at` | DateTime | NOT NULL | When the symbol set was uploaded.
+`last_used` | DateTime | NULL | When the symbol set was last used to symbolicate.
+`failure_reason` | String | NULL | Why symbolication with this set failed, if applicable.
 
 ### Important Notes
 
@@ -108,6 +112,16 @@ WHERE name ILIKE '%timeout%'
 SELECT status, count() AS count
 FROM system.error_tracking_issues
 GROUP BY status
+ORDER BY count DESC
+```
+
+**Count issues by severity:**
+
+```sql
+SELECT severity, count() AS count
+FROM system.error_tracking_issues
+WHERE severity IS NOT NULL
+GROUP BY severity
 ORDER BY count DESC
 ```
 

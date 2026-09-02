@@ -34,6 +34,12 @@ Copy page
     pnpm add posthog-js
     ```
 
+    ### bun
+
+    ```bash
+    bun add posthog-js
+    ```
+
 2.  2
 
     ## Initialize PostHog
@@ -96,7 +102,7 @@ Copy page
     pnpm add posthog-node
     ```
 
-    ### Bun
+    ### bun
 
     ```bash
     bun add posthog-node

@@ -34,6 +34,12 @@ Copy page
     pnpm add posthog-node
     ```
 
+    ### bun
+
+    ```bash
+    bun add posthog-node
+    ```
+
 2.  2
 
     ## Initialize PostHog

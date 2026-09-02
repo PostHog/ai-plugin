@@ -20,7 +20,7 @@ This will then send alerts to your chosen destination when an issue is created o
 
 ## Issue properties and assignments
 
-You can filter an alert based on the properties of an issue. This is useful for notifying a specific team when they have been auto assigned an issue using [auto assignment rules](/docs/error-tracking/managing-issues.md#auto-assignment-rules).
+You can filter an alert based on the properties of an issue. This is useful for notifying a specific team when they have been automatically assigned an issue using [assignment rules](/docs/error-tracking/assigning-issues.md#automatic-issue-assignment).
 
 ![Error tracking alert assignee filtering](https://res.cloudinary.com/dmukukwp6/image/upload/assignee_filter_light_e575af6512.png)![Error tracking alert assignee filtering](https://res.cloudinary.com/dmukukwp6/image/upload/assignee_filter_dark_9a8907af03.png)
 

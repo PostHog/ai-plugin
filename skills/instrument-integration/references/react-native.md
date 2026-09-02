@@ -126,6 +126,88 @@ export function MyApp() {
 }
 ```
 
+### Choose an iOS dependency path for the native plugin
+
+The optional `@posthog/react-native-plugin` package adds native features such as session replay and native crash capture. Install it as described in the guide for the feature that you use. Then choose one iOS dependency path:
+
+| Path | Requirements | What it resolves |
+| --- | --- | --- |
+| CocoaPods | A React Native project that uses CocoaPods | CocoaPods resolves the plugin and posthog-ios. This remains the default path. |
+| CocoaPods with posthog-ios through Swift Package Manager | React Native 0.75 or later and a CocoaPods project with dynamic frameworks | CocoaPods resolves the plugin. Swift Package Manager resolves posthog-ios. |
+| Full Swift Package Manager | Verified with an iOS-only React Native 0.87.1 app and React Native Community CLI 20.2.0.Requires @posthog/react-native-plugin 2.4.0 or later, Xcode 16 or later, and an iOS 15.1 or later app deployment target. | React Native's experimental Swift Package Manager integration resolves the plugin and posthog-ios. This path does not use CocoaPods. |
+
+This verification does not cover Expo or other React Native versions. Use CocoaPods or the hybrid path unless you validate the full Swift Package Manager path for your configuration.
+
+#### CocoaPods
+
+Use the standard React Native CocoaPods flow:
+
+Terminal
+
+PostHog AI
+
+```bash
+cd ios
+pod install
+```
+
+The plugin podspec adds `posthog-ios` as a CocoaPods dependency. You do not need to add `posthog-ios` separately.
+
+#### CocoaPods with `posthog-ios` through Swift Package Manager
+
+Add the following property to `ios/Podfile.properties.json`:
+
+JSON
+
+PostHog AI
+
+```json
+{
+  "posthog.useSpm": "true"
+}
+```
+
+Add dynamic frameworks to your `ios/Podfile`:
+
+Ruby
+
+PostHog AI
+
+```ruby
+use_frameworks! :linkage => :dynamic
+```
+
+Then install the pods:
+
+Terminal
+
+PostHog AI
+
+```bash
+cd ios
+pod install
+```
+
+This setting changes only how the plugin resolves `posthog-ios`. The plugin and other React Native dependencies still use CocoaPods.
+
+#### Full Swift Package Manager
+
+This path uses React Native's experimental CocoaPods-free iOS integration. Every native dependency in your app must support React Native's full Swift Package Manager integration. Use CocoaPods or the hybrid path if a dependency does not support it.
+
+Install your JavaScript dependencies first. Make a clean commit or a backup of your iOS project before the conversion. Then run this command from the `ios` directory:
+
+Terminal
+
+PostHog AI
+
+```bash
+npx react-native spm add --deintegrate --yes
+```
+
+The `--deintegrate` option removes the complete CocoaPods integration from the iOS project. React Native then finds the plugin's `ios/Package.swift` manifest. Swift Package Manager resolves the plugin and `posthog-ios`. Do not run `pod install` for this path.
+
+PostHog CI verifies this path with the configuration in the requirements table. The verified app sets its deployment target to iOS 15.1. The plugin package manifest has a separate iOS 15 minimum. The CocoaPods and hybrid paths keep the plugin podspec's iOS 13 minimum.
+
 Set up a reverse proxy (recommended)
 
 We recommend [setting up a reverse proxy](/docs/advanced/proxy.md), so that events are less likely to be intercepted by tracking blockers.
@@ -148,7 +230,11 @@ For certain features like [heatmaps](/docs/toolbar/heatmaps.md), your Web Applic
 
 **US**: `44.205.89.55`, `52.4.194.122`, `44.208.188.173`
 
-These are public, stable IPs used by PostHog services (e.g., Celery tasks for snapshots).
+These are public, stable IPs used by PostHog services.
+
+PostHog captures heatmap screenshots using [Browserless](https://www.browserless.io), which has its own IP addresses. Browserless [publishes the current list here](https://docs.browserless.io/baas/troubleshooting/whitelisting-ips).
+
+An allowlist does not help when your app has a private address. For apps on an internal network, see [internal and intranet applications](/docs/session-replay/troubleshooting.md#internal-and-intranet-applications).
 
 ### Configuration options
 
@@ -636,7 +722,7 @@ PostHog AI
 posthog.alias('distinct_id')
 ```
 
-We strongly recommend reading our docs on [alias](/docs/data/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
+We strongly recommend reading our docs on [alias](/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
 
 ## Setting person properties
 

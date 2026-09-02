@@ -7,18 +7,18 @@ Annotations are timestamped notes used to mark product changes, incidents, or re
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | integer | NOT NULL | Primary key (auto-generated)
-`team_id` | integer | NOT NULL | Project/team ID for isolation
-`content` | varchar(8192) | NULL | Annotation text content
-`scope` | varchar(24) | NOT NULL | Annotation scope: `project`, `organization`, `dashboard`, `dashboard_item`, `recording`
-`creation_type` | varchar(3) | NOT NULL | Creation source: `USR` (user) or `GIT` (GitHub/bot)
-`date_marker` | timestamp with tz | NULL | Timestamp shown on charts
-`deleted` | boolean | NOT NULL | Soft delete flag
-`dashboard_item_id` | integer | NULL | Linked insight ID (if scoped to insight)
-`dashboard_id` | integer | NULL | Linked dashboard ID (if scoped to dashboard)
-`created_by_id` | integer | NULL | Creator user ID
-`created_at` | timestamp with tz | NULL | Creation timestamp
-`updated_at` | timestamp with tz | NOT NULL | Last update timestamp
+`id` | Integer | NOT NULL | Annotation id.
+`team_id` | Integer | NOT NULL |
+`content` | String | NULL | Annotation text.
+`scope` | String | NOT NULL | Where the annotation applies: 'project', 'organization', 'dashboard', 'dashboard_item' (insight), or 'recording'.
+`creation_type` | String | NOT NULL | How the annotation was created, e.g. user-created vs GitHub.
+`date_marker` | DateTime | NULL | The point in time the annotation marks on a chart.
+`deleted` | Integer | NOT NULL | 1 if the annotation has been deleted, 0 otherwise.
+`dashboard_item_id` | Integer | NULL | Insight this annotation is scoped to; joins to insights.id.
+`dashboard_id` | Integer | NULL | Dashboard this annotation is scoped to; joins to dashboards.id.
+`created_by_id` | Integer | NULL | User who created the annotation.
+`created_at` | DateTime | NULL | When the annotation was created.
+`updated_at` | DateTime | NOT NULL | When the annotation was last updated.
 
 ### Key Relationships
 

@@ -2,7 +2,7 @@
 
 # PostHog Python SDK
 
-**SDK Version:** 7.44.1
+**SDK Version:** 7.45.3
 
 Integrate PostHog into any python application.
 
@@ -41,7 +41,7 @@ Initialize a new PostHog client instance.
 - **`flush_interval`** (`float`) - Maximum seconds a background consumer waits before         flushing a partial batch.
 - **`gzip`** (`bool`) - Whether to gzip event upload payloads.
 - **`max_retries`** (`int`) - Number of upload retries. Values below 0 are treated as 0.
-- **`sync_mode`** (`bool`) - If True, send each event synchronously instead of using         background worker threads.
+- **`sync_mode`** (`bool`) - If True, send each event synchronously instead of using         background worker threads. This blocks the calling thread; in         asyncio applications such as FastAPI, use ``AsyncPosthog``         instead.
 - **`timeout`** (`int`) - HTTP request timeout in seconds for event uploads.
 - **`thread`** (`int`) - Number of background consumer threads.
 - **`poll_interval`** (`int`) - Seconds between local feature flag definition refreshes.

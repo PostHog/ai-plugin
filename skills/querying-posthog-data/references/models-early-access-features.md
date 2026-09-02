@@ -7,14 +7,15 @@ Early access features let teams manage staged feature rollouts where users can o
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`team_id` | integer | NOT NULL | Project/team ID for isolation
-`feature_flag_id` | integer | NULL | Linked feature flag ID
-`name` | varchar(200) | NOT NULL | Feature name
-`description` | text | NOT NULL | Longer description shown in the opt-in UI (may be empty string)
-`stage` | varchar(40) | NOT NULL | Lifecycle stage (see values below)
-`documentation_url` | varchar(800) | NOT NULL | URL to external docs (may be empty string)
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
+`id` | String | NOT NULL | Early access feature UUID.
+`team_id` | Integer | NOT NULL |
+`feature_flag_id` | Integer | NOT NULL | Feature flag gating the feature; joins to feature_flags.id.
+`name` | String | NOT NULL | Feature name shown to users.
+`description` | String | NOT NULL | Feature description shown to users.
+`stage` | String | NOT NULL | Lifecycle stage, e.g. 'concept', 'beta', 'general-availability'.
+`documentation_url` | String | NOT NULL | Link to the feature's documentation.
+`created_by_id` | Integer | NULL | User who created the feature.
+`created_at` | DateTime | NOT NULL | When the feature was created.
 
 ### Stage Values
 
