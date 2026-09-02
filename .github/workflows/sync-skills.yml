@@ -167,7 +167,7 @@ jobs:
             --title "$COMMIT_MESSAGE" \
             --body "Automated skill sync from PostHog release and context-mill.")
 
-          gh pr edit "$PR_URL" --add-reviewer "PostHog/team-posthog-desktop" \
-            || echo "::warning::Could not request review from PostHog/team-posthog-desktop; continuing to auto-merge"
+          gh pr edit "$PR_URL" --add-reviewer "PostHog/team-self-driving" \
+            || echo "::warning::Could not request review from PostHog/team-self-driving; continuing to auto-merge"
 
           gh pr merge "$PR_URL" --auto --squash
