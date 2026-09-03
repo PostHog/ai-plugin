@@ -107,7 +107,7 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     There are 2 ways of initializing the SDK, automatically and manually.
 
-    You'll need to have [Cocoapods](https://guides.cocoapods.org/using/getting-started.html) installed.
+    The SDK supports both [CocoaPods](https://guides.cocoapods.org/using/getting-started.html) and [Swift Package Manager (SPM)](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-app-developers). Flutter 3.44 and later enable SPM by default. On earlier versions, or if you disabled SPM, enable it with `flutter config --enable-swift-package-manager`.
 
     Automatically:
 
@@ -154,7 +154,9 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
     </plist>
     ```
 
-    In both cases, you'll need to set the minimum platform version to iOS 13.0 in your Podfile:
+    In both cases, you'll need to set the minimum platform version to iOS 13.0.
+
+    For CocoaPods projects, set it in your `Podfile`:
 
     ios/Podfile
 
@@ -163,6 +165,16 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
     ```yaml
     platform :ios, '13.0'
     # rest of your config
+    ```
+
+    For Swift Package Manager projects without a `Podfile`, set the **Minimum Deployments** version to iOS 13.0 for the `Runner` target in Xcode (**Runner > General > Minimum Deployments**). After you change **Minimum Deployments**, regenerate the iOS project's configuration files:
+
+    Terminal
+
+    PostHog AI
+
+    ```bash
+    flutter build ios --config-only
     ```
 
     #### Dart setup (For manual step only)

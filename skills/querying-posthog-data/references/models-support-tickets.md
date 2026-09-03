@@ -7,33 +7,37 @@ Support tickets from the conversations product, created via widget, email, or Sl
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`team_id` | integer | NOT NULL | Team this ticket belongs to
-`ticket_number` | integer | NOT NULL | Auto-incrementing number, unique per team
-`channel_source` | varchar(20) | NOT NULL | Origin channel: `widget`, `email`, or `slack`
-`channel_detail` | varchar(30) | NULL | Sub-type: `slack_channel_message`, `slack_bot_mention`, `slack_emoji_reaction`, `widget_embedded`, `widget_api`
-`distinct_id` | varchar(400) | NOT NULL | PostHog distinct_id linking the ticket to a person
-`status` | varchar(20) | NOT NULL | `new`, `open`, `pending`, `on_hold`, or `resolved`
-`priority` | varchar(20) | NULL | `low`, `medium`, or `high`
-`anonymous_traits` | jsonb | NOT NULL | Customer-provided traits (name, email, etc.)
-`message_count` | integer | NOT NULL | Total number of messages in the ticket
-`unread_customer_count` | integer | NOT NULL | Messages the customer hasn't seen (from team/AI)
-`unread_team_count` | integer | NOT NULL | Messages the team hasn't seen (from customer)
-`last_message_at` | timestamp with tz | NULL | When the most recent message was sent
-`last_message_text` | varchar(500) | NULL | Truncated preview of the most recent message
-`email_subject` | varchar(500) | NULL | Email subject line (email-originated tickets only)
-`email_from` | varchar(254) | NULL | Sender email address (email-originated tickets only)
-`session_id` | varchar(64) | NULL | PostHog session ID captured at ticket creation
-`session_context` | jsonb | NOT NULL | Session context data (replay URL, current URL, etc.)
-`sla_due_at` | timestamp with tz | NULL | SLA deadline set via workflows, null means no SLA
-`created_at` | timestamp with tz | NOT NULL | When the ticket was created
-`updated_at` | timestamp with tz | NOT NULL | When the ticket was last updated
+`id` | String | NOT NULL | Ticket UUID.
+`team_id` | Integer | NOT NULL |
+`ticket_number` | Integer | NOT NULL | Human-friendly sequential ticket number.
+`organization_id` | String | NULL | Customer organization key. This matches a customer analytics account's external_id.
+`channel_source` | String | NOT NULL | Channel the ticket came in on, e.g. 'email', 'widget'.
+`channel_detail` | String | NULL | Additional channel detail, e.g. inbox or address.
+`distinct_id` | String | NOT NULL | Distinct id of the person who opened the ticket.
+`status` | String | NOT NULL | Ticket status: 'new', 'open', 'pending', 'on_hold', or 'resolved'.
+`priority` | String | NULL | Ticket priority, e.g. 'low', 'high'.
+`anonymous_traits` | JSON | NOT NULL | JSON traits captured for an anonymous requester.
+`ai_resolved` | Integer | NOT NULL | 1 if the ticket was resolved by AI without human escalation, 0 otherwise.
+`escalation_reason` | String | NULL | Why the ticket was escalated to a human, if it was.
+`message_count` | Integer | NOT NULL | Total number of messages in the ticket.
+`unread_customer_count` | Integer | NOT NULL | Messages unread by the customer.
+`unread_team_count` | Integer | NOT NULL | Messages unread by the support team.
+`last_message_at` | DateTime | NULL | When the most recent message was sent.
+`last_message_text` | String | NULL | Text of the most recent message.
+`email_subject` | String | NULL | Subject line for email-channel tickets.
+`email_from` | String | NULL | Sender address for email-channel tickets.
+`session_id` | String | NULL | Session recording id associated with the ticket, if any.
+`session_context` | JSON | NOT NULL | JSON context captured from the user's session.
+`sla_due_at` | DateTime | NULL | When the ticket's SLA response is due.
+`created_at` | DateTime | NOT NULL | When the ticket was opened.
+`updated_at` | DateTime | NOT NULL | When the ticket was last updated.
 
 ### Key Relationships
 
 - Tickets belong to a **Team** (`team_id`)
+- Tickets can link to a customer analytics account through `organization_id = system.accounts.external_id`
 - Tickets are linked to a **Person** via `distinct_id`
-- Ticket assignments are managed via `TicketAssignment` (not exposed as a system table)
+- Ticket assignments are managed via `TicketAssignment` and queryable through `system.support_tickets.assignee`
 
 ### Important Notes
 

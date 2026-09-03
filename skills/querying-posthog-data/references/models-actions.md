@@ -7,22 +7,15 @@ Actions are named combinations of events and conditions used for filtering and a
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | integer | NOT NULL | Primary key (auto-generated)
-`name` | varchar(400) | NULL | Action name
-`description` | text | NOT NULL | Action description
-`deleted` | boolean | NOT NULL | Soft delete flag
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NOT NULL | Last update timestamp
-`steps_json` | jsonb | NULL | Action step definitions
-`post_to_slack` | boolean | NOT NULL | Whether to post matches to Slack
-`slack_message_format` | varchar(1200) | NOT NULL | Slack message template
-`is_calculating` | boolean | NOT NULL | Whether calculation is in progress
-`last_calculated_at` | timestamp with tz | NOT NULL | Last calculation timestamp
-`bytecode` | jsonb | NULL | Compiled action bytecode
-`bytecode_error` | text | NULL | Compilation error message
-`pinned_at` | timestamp with tz | NULL | When action was pinned
-`summary` | text | NULL | AI-generated summary
-`created_by_id` | integer | NULL | Creator user ID
+`id` | Integer | NOT NULL | Action id.
+`team_id` | Integer | NOT NULL |
+`name` | String | NOT NULL | Action name.
+`description` | String | NOT NULL | Action description.
+`deleted` | Integer | NOT NULL | 1 if the action has been deleted, 0 otherwise.
+`created_by_id` | Integer | NULL | User who created the action.
+`created_at` | DateTime | NOT NULL | When the action was created.
+`updated_at` | DateTime | NOT NULL | When the action was last updated.
+`steps_json` | JSON | NOT NULL | JSON array of match steps (event/selector/url conditions).
 
 ### Steps JSON Structure
 
@@ -64,7 +57,6 @@ Field | Description
 
 - Actions can combine multiple event conditions (steps)
 - Steps are OR'd together - matching any step triggers the action
-- `bytecode` is compiled from steps for efficient evaluation
 - Actions can be used in insights, cohorts, and feature flag targeting
 
 ---

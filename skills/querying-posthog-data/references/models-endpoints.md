@@ -7,14 +7,17 @@ API endpoints that expose saved HogQL or insight queries as callable API routes.
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`name` | varchar(128) | NOT NULL | URL-safe endpoint name (unique per team)
-`is_active` | integer | NOT NULL | Whether endpoint is available via the API (0/1)
-`current_version` | integer | NOT NULL | Latest version number
-`derived_from_insight` | varchar(12) | NULL | Short ID of the source insight
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NOT NULL | Last update timestamp
-`last_executed_at` | timestamp with tz | NULL | When endpoint was last executed
+`id` | String | NOT NULL | Endpoint UUID.
+`team_id` | Integer | NOT NULL |
+`name` | String | NOT NULL | Endpoint name, used to call it.
+`is_active` | Integer | NOT NULL | 1 if the endpoint is active and callable, 0 otherwise.
+`current_version` | Integer | NOT NULL | Version number currently served; joins to data_modeling_endpoint_versions.version.
+`derived_from_insight` | String | NOT NULL | Short id of the insight this endpoint was created from, if any.
+`created_by_id` | Integer | NULL | User who created the endpoint.
+`created_at` | DateTime | NOT NULL | When the endpoint was created.
+`updated_at` | DateTime | NOT NULL | When the endpoint was last updated.
+`last_executed_at` | DateTime | NOT NULL | When the endpoint was last called/executed.
+`deleted` | Integer | NOT NULL |
 
 ### Example Queries
 
@@ -50,15 +53,16 @@ A new version is created each time an endpoint's query changes.
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`endpoint_id` | uuid | NOT NULL | FK to endpoints.id
-`version` | integer | NOT NULL | Version number (1-based, ascending)
-`description` | text | NOT NULL | Version description
-`query` | jsonb | NOT NULL | Immutable query snapshot
-`data_freshness_seconds` | integer | NOT NULL | How fresh the data should be, in seconds (one of: 900, 1800, 3600, 21600, 43200, 86400, 604800)
-`is_active` | integer | NOT NULL | Whether this version can be executed (0/1)
-`columns` | jsonb | NULL | Column names and types
-`created_at` | timestamp with tz | NOT NULL | When this version was created
+`id` | String | NOT NULL | Endpoint version UUID.
+`team_id` | Integer | NOT NULL |
+`endpoint_id` | String | NOT NULL | Parent endpoint; joins to data_modeling_endpoints.id.
+`version` | Integer | NOT NULL | Version number within the endpoint.
+`description` | String | NOT NULL | Description of this endpoint version.
+`query` | JSON | NOT NULL | JSON HogQL query executed by this version.
+`data_freshness_seconds` | Integer | NOT NULL | Max age, in seconds, of cached results before re-running.
+`created_at` | DateTime | NOT NULL | When this version was created.
+`is_active` | Integer | NOT NULL | 1 if this version can be executed, 0 if inactive; independent of the endpoint's current_version.
+`columns` | JSON | NOT NULL | JSON schema of the version's output columns.
 
 ### Example Queries
 

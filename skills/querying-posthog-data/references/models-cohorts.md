@@ -7,23 +7,19 @@ Cohorts are groups of persons used for segmentation and targeting.
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | integer | NOT NULL | Primary key (auto-generated)
-`name` | varchar(400) | NULL | Cohort display name
-`description` | varchar(1000) | NOT NULL | Cohort description
-`deleted` | boolean | NOT NULL | Soft delete flag
-`filters` | jsonb | NULL | Modern filter structure for cohort criteria
-`query` | jsonb | NULL | HogQL query for analytical cohorts
-`version` | integer | NULL | Current calculation version
-`pending_version` | integer | NULL | Version being calculated
-`count` | integer | NULL | Cached person count
-`created_at` | timestamp with tz | NULL | Creation timestamp
-`is_calculating` | boolean | NOT NULL | Whether calculation is in progress
-`last_calculation` | timestamp with tz | NULL | Timestamp of last successful calculation
-`errors_calculating` | integer | NOT NULL | Consecutive error count
-`last_error_at` | timestamp with tz | NULL | Timestamp of last calculation error
-`is_static` | boolean | NOT NULL | Static (manually uploaded) vs dynamic cohort
-`cohort_type` | varchar(50) | NULL | One of: `static`, `person_property`, `behavioral`, `realtime`, `analytical`
-`created_by_id` | integer | NULL | Creator user ID
+`id` | Integer | NOT NULL | Cohort id.
+`team_id` | Integer | NOT NULL |
+`name` | String | NOT NULL | Cohort name.
+`description` | String | NOT NULL | Cohort description.
+`deleted` | Integer | NOT NULL | 1 if the cohort has been deleted, 0 otherwise.
+`filters` | JSON | NOT NULL | JSON definition of the cohort's membership filters.
+`groups` | JSON | NOT NULL | Legacy JSON cohort group definitions (superseded by filters).
+`query` | JSON | NOT NULL | JSON HogQL query backing the cohort, if defined as a query.
+`created_at` | DateTime | NOT NULL | When the cohort was created.
+`last_calculation` | DateTime | NOT NULL | When cohort membership was last recalculated.
+`version` | Integer | NOT NULL | Monotonic version bumped on each recalculation.
+`count` | Integer | NOT NULL | Number of people currently in the cohort.
+`is_static` | Integer | NOT NULL | 1 if the cohort is a fixed static list, 0 if dynamically calculated from filters.
 
 ### Cohort Types
 
@@ -115,15 +111,13 @@ Audit trail for cohort calculation jobs.
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`filters` | jsonb | NOT NULL | Cohort filters at calculation time
-`count` | integer | NULL | Number of persons in cohort (>= 0)
-`started_at` | timestamp with tz | NOT NULL | Calculation start time
-`finished_at` | timestamp with tz | NULL | Calculation end time (NULL = in progress)
-`queries` | jsonb | NULL | Array of query statistics
-`error` | text | NULL | Full error message if failed
-`error_code` | varchar(64) | NULL | Categorized error code
-`cohort_id` | integer | NOT NULL | FK to `system.cohorts.id`
+`id` | String | NOT NULL | Calculation run UUID.
+`team_id` | Integer | NOT NULL |
+`cohort_id` | Integer | NOT NULL | Cohort that was recalculated; joins to cohorts.id.
+`count` | Integer | NOT NULL | Number of people in the cohort after this calculation.
+`started_at` | DateTime | NOT NULL | When the calculation started.
+`finished_at` | DateTime | NOT NULL | When the calculation finished.
+`error_code` | String | NOT NULL | Error code if the calculation failed; empty on success.
 
 ### Error Codes
 
@@ -168,7 +162,7 @@ system.cohorts (main cohort definition)
 **Find cohorts by name:**
 
 ```sql
-SELECT id, name, count, cohort_type, is_static
+SELECT id, name, count, is_static
 FROM system.cohorts
 WHERE name ILIKE '%paying%' AND NOT deleted
 ```

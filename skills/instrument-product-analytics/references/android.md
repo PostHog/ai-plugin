@@ -228,7 +228,7 @@ PostHog AI
 PostHog.alias("distinct_id")
 ```
 
-We strongly recommend reading our docs on [alias](/docs/data/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
+We strongly recommend reading our docs on [alias](/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
 
 ## Anonymous and identified events
 
@@ -293,7 +293,7 @@ Alternatively, you can set `personProfiles` to `ALWAYS` to capture identified ev
 
 ## Setting person properties
 
-To set [properties](/docs/data/user-properties.md) on your users via an event, you can leverage the event properties `userProperties` and `userPropertiesSetOnce`.
+To set [properties](/docs/product-analytics/person-properties.md) on your users via an event, you can leverage the event properties `userProperties` and `userPropertiesSetOnce`.
 
 When capturing an event, you can pass a property called `userProperties` as an event property, and specify its value to be an object with properties to be set on the user that will be associated with the user who triggered the event.
 

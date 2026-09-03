@@ -9,14 +9,15 @@ Feature flags control rollouts of new features and are used for A/B testing.
 These are the only columns exposed via HogQL — the full flag model (e.g. `active`, `ensure_experience_continuity`, `last_called_at`, rollback settings) is not queryable here; fetch the flag via the feature flag API tools instead.
 
 Column | Type | Nullable | Description
-`id` | integer | NOT NULL | Primary key (auto-generated)
-`team_id` | integer | NOT NULL | Project scope
-`key` | varchar(400) | NOT NULL | Unique flag key per team
-`name` | text | NOT NULL | Flag description (not the display name)
-`filters` | jsonb | NOT NULL | Targeting conditions and variants
-`rollout_percentage` | integer | NULL | Overall rollout percentage
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`deleted` | integer (0/1) | NOT NULL | Soft delete flag
+`id` | Integer | NOT NULL | Flag id.
+`team_id` | Integer | NOT NULL |
+`key` | String | NOT NULL | Flag key used by SDKs to evaluate the flag.
+`name` | String | NOT NULL | Human-readable flag name/description.
+`filters` | JSON | NOT NULL | JSON targeting rules, variants, and release conditions.
+`rollout_percentage` | Integer | NOT NULL | Top-level rollout percentage (0-100); detailed rules live in filters.
+`created_by_id` | Integer | NULL | User who created the flag.
+`created_at` | DateTime | NOT NULL | When the flag was created.
+`deleted` | Integer | NOT NULL | 1 if the flag has been deleted, 0 otherwise.
 
 ### Filters Structure
 
@@ -65,18 +66,19 @@ Experiments are A/B tests that compare variants against a control group.
 These are the only columns exposed via HogQL — the full experiment model (e.g. `deleted`, `conclusion`, `metrics`, `metrics_secondary`, `stats_config`, `exposure_criteria`, `holdout_id`, `type`) is not queryable here; fetch the experiment via the experiment API tools instead.
 
 Column | Type | Nullable | Description
-`id` | integer | NOT NULL | Primary key (auto-generated)
-`team_id` | integer | NOT NULL | Project scope
-`name` | varchar(400) | NOT NULL | Experiment name
-`description` | varchar(400) | NULL | Experiment description
-`filters` | jsonb | NOT NULL | Legacy target metric definition
-`parameters` | jsonb | NULL | Experiment configuration (variants, MDE, sample size)
-`start_date` | timestamp with tz | NULL | When experiment started (NULL = draft)
-`end_date` | timestamp with tz | NULL | When experiment ended
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NOT NULL | Last update timestamp
-`archived` | integer (0/1) | NOT NULL | Whether experiment is archived
-`feature_flag_id` | integer | NOT NULL | FK to `system.feature_flags.id`
+`id` | Integer | NOT NULL | Experiment id.
+`team_id` | Integer | NOT NULL |
+`name` | String | NOT NULL | Experiment name.
+`description` | String | NOT NULL | Experiment description/hypothesis.
+`created_by_id` | Integer | NULL | User who created the experiment.
+`created_at` | DateTime | NOT NULL | When the experiment was created.
+`updated_at` | DateTime | NOT NULL | When the experiment was last updated.
+`filters` | JSON | NOT NULL | JSON definition of the experiment's goal metric filters.
+`parameters` | JSON | NOT NULL | JSON experiment parameters (e.g. sample size settings). Flag config such as variants lives on the linked feature flag's filters, not in this column.
+`start_date` | DateTime | NOT NULL | When the experiment was launched; NULL if not started.
+`end_date` | DateTime | NOT NULL | When the experiment was concluded; NULL if still running.
+`archived` | Integer | NOT NULL | 1 if the experiment is archived, 0 otherwise.
+`feature_flag_id` | Integer | NOT NULL | Feature flag controlling variant assignment; joins to feature_flags.id.
 
 ### Parameters Structure
 

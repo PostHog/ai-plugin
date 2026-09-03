@@ -8,16 +8,16 @@ Each active trace can have at most one active review at a time.
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`team_id` | integer | NOT NULL | Owning team
-`trace_id` | varchar(255) | NOT NULL | Reviewed LLM trace ID
-`created_by_id` | integer | NULL | User ID that originally created the review
-`reviewed_by_id` | integer | NULL | User ID that last saved the review
-`comment` | text | NULL | Optional comment attached to the review
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NULL | Last save timestamp
-`deleted` | integer | NULL | Soft-delete flag (`0` = active, `1` = deleted)
-`deleted_at` | timestamp with tz | NULL | When the review was soft-deleted
+`id` | UUID | NOT NULL | Review UUID.
+`team_id` | Integer | NOT NULL |
+`trace_id` | String | NOT NULL | LLM trace that was reviewed.
+`created_by_id` | Integer | NULL | User who created the review record.
+`reviewed_by_id` | Integer | NULL | User who performed the review.
+`comment` | String | NULL | Reviewer's free-text comment.
+`created_at` | DateTime | NOT NULL | When the review was created.
+`updated_at` | DateTime | NULL | When the review was last updated.
+`deleted` | Integer | NOT NULL | 1 if the review has been deleted, 0 otherwise.
+`deleted_at` | DateTime | NULL | When the review was deleted; NULL if not deleted.
 
 ### Key relationships
 
@@ -34,19 +34,19 @@ Each row captures one scorer definition and exactly one value type.
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`team_id` | integer | NOT NULL | Owning team
-`review_id` | uuid | NOT NULL | FK to `system.trace_reviews.id`
-`definition_id` | uuid | NOT NULL | Stable scorer definition ID
-`definition_version` | uuid | NOT NULL | Immutable scorer version ID used when saving the score
-`definition_version_number` | integer | NOT NULL | Immutable scorer version number used when saving the score
-`definition_config` | jsonb | NOT NULL | Snapshot of the scorer configuration used for validation
-`categorical_values` | array(varchar) | NULL | Selected categorical option keys
-`numeric_value` | decimal(12,6) | NULL | Saved numeric score
-`boolean_value` | boolean | NULL | Saved boolean score
-`created_by_id` | integer | NULL | User ID that created the score row
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NULL | Last update timestamp
+`id` | UUID | NOT NULL | Score UUID.
+`team_id` | Integer | NOT NULL |
+`review_id` | UUID | NOT NULL | Review this score belongs to; joins to trace_reviews.id.
+`definition_id` | UUID | NOT NULL | Score definition scored against; joins to score_definitions.id.
+`definition_version` | UUID | NOT NULL | Specific version of the score definition used.
+`definition_version_number` | Integer | NOT NULL | Numeric version of the score definition used.
+`definition_config` | JSON | NOT NULL | JSON snapshot of the definition config at scoring time.
+`categorical_values` | Array | NULL | Selected category values, for categorical score kinds.
+`numeric_value` | Decimal | NULL | Recorded value, for numeric score kinds.
+`boolean_value` | Boolean | NULL | Recorded value, for boolean score kinds.
+`created_by_id` | Integer | NULL | User who recorded the score.
+`created_at` | DateTime | NOT NULL | When the score was recorded.
+`updated_at` | DateTime | NULL | When the score was last updated.
 
 ### Important notes
 
@@ -62,14 +62,14 @@ Review queues are named buckets used to route traces that still need review.
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`team_id` | integer | NOT NULL | Owning team
-`name` | varchar(255) | NOT NULL | Display name for the queue
-`created_by_id` | integer | NULL | User ID that created the queue
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NULL | Last update timestamp
-`deleted` | integer | NULL | Soft-delete flag (`0` = active, `1` = deleted)
-`deleted_at` | timestamp with tz | NULL | When the queue was soft-deleted
+`id` | UUID | NOT NULL | Queue UUID.
+`team_id` | Integer | NOT NULL |
+`name` | String | NOT NULL | Queue name.
+`created_by_id` | Integer | NULL | User who created the queue.
+`created_at` | DateTime | NOT NULL | When the queue was created.
+`updated_at` | DateTime | NULL | When the queue was last updated.
+`deleted` | Integer | NOT NULL | 1 if the queue has been deleted, 0 otherwise.
+`deleted_at` | DateTime | NULL | When the queue was deleted; NULL if not deleted.
 
 ### Key relationships
 
@@ -85,15 +85,15 @@ An active trace can only be pending in one queue at a time.
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`team_id` | integer | NOT NULL | Owning team
-`queue_id` | uuid | NOT NULL | FK to `system.review_queues.id`
-`trace_id` | varchar(255) | NOT NULL | Pending LLM trace ID
-`created_by_id` | integer | NULL | User ID that queued the trace
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NULL | Last update timestamp
-`deleted` | integer | NULL | Soft-delete flag (`0` = active, `1` = deleted)
-`deleted_at` | timestamp with tz | NULL | When the queue item was soft-deleted
+`id` | UUID | NOT NULL | Queue item UUID.
+`team_id` | Integer | NOT NULL |
+`queue_id` | UUID | NOT NULL | Queue this item belongs to; joins to review_queues.id.
+`trace_id` | String | NOT NULL | LLM trace queued for review.
+`created_by_id` | Integer | NULL | User who added the item to the queue.
+`created_at` | DateTime | NOT NULL | When the item was queued.
+`updated_at` | DateTime | NULL | When the item was last updated.
+`deleted` | Integer | NOT NULL | 1 if the item has been deleted, 0 otherwise.
+`deleted_at` | DateTime | NULL | When the item was deleted; NULL if not deleted.
 
 ### Important notes
 
@@ -110,16 +110,16 @@ Each scorer has a stable identity but config is versioned and immutable — bump
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Stable scorer ID
-`team_id` | integer | NOT NULL | Owning team
-`name` | varchar(255) | NOT NULL | Display name
-`description` | text | NOT NULL | Optional description (defaults to empty string)
-`kind` | varchar(32) | NOT NULL | One of `categorical`, `numeric`, `boolean`. Immutable after creation
-`archived` | boolean | NOT NULL | Whether the scorer is archived (hidden from default lists)
-`current_version_id` | uuid | NULL | FK to the latest `score_definition_versions` row (config + version number)
-`created_by_id` | integer | NULL | User ID that created the scorer
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NULL | Last metadata update timestamp
+`id` | UUID | NOT NULL | Score definition UUID.
+`team_id` | Integer | NOT NULL |
+`name` | String | NOT NULL | Score definition name.
+`description` | String | NOT NULL | What the score measures.
+`kind` | String | NOT NULL | Score value type, e.g. 'categorical', 'numeric', 'boolean'.
+`archived` | Boolean | NOT NULL | Whether the definition is archived.
+`current_version_id` | UUID | NULL | Currently active version of this definition.
+`created_by_id` | Integer | NULL | User who created the definition.
+`created_at` | DateTime | NOT NULL | When the definition was created.
+`updated_at` | DateTime | NULL | When the definition was last updated.
 
 ### Key relationships
 

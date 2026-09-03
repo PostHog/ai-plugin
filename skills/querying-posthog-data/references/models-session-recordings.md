@@ -7,26 +7,26 @@ Metadata for session recordings captured by the PostHog SDK. The actual replay d
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Internal UUID primary key
-`session_id` | varchar(200) | NOT NULL | SDK-generated session ID (unique)
-`team_id` | integer | NOT NULL | Team this recording belongs to
-`distinct_id` | varchar(400) | NULL | The distinct ID of the person in this recording
-`duration` | integer | NULL | Total recording duration in seconds
-`active_seconds` | integer | NULL | Seconds with user activity (clicks, keystrokes, scrolling)
-`inactive_seconds` | integer | NULL | Seconds without user activity
-`start_time` | timestamp with tz | NULL | When the recording started
-`end_time` | timestamp with tz | NULL | When the recording ended
-`click_count` | integer | NULL | Number of click events
-`keypress_count` | integer | NULL | Number of keypress events
-`mouse_activity_count` | integer | NULL | Number of mouse activity events
-`console_log_count` | integer | NULL | Number of console.log entries
-`console_warn_count` | integer | NULL | Number of console.warn entries
-`console_error_count` | integer | NULL | Number of console.error entries
-`start_url` | varchar(512) | NULL | URL when the recording started
-`deleted` | boolean | NULL | Whether the recording has been deleted
-`created_at` | timestamp with tz | NULL | When this metadata record was created
-`retention_period_days` | integer | NULL | How long the recording is retained
-`storage_version` | varchar(20) | NULL | Storage format version
+`id` | String | NOT NULL | Recording row UUID.
+`session_id` | String | NOT NULL | Session identifier; matches events.$session_id.
+`team_id` | Integer | NOT NULL |
+`distinct_id` | String | NOT NULL | Distinct id of the user/device recorded.
+`duration` | Integer | NOT NULL | Total recording length in seconds (active + inactive).
+`active_seconds` | Integer | NOT NULL | Seconds of active user engagement.
+`inactive_seconds` | Integer | NOT NULL | Seconds with no user activity.
+`start_time` | DateTime | NOT NULL | When the recording started.
+`end_time` | DateTime | NOT NULL | When the recording ended.
+`click_count` | Integer | NOT NULL | Number of clicks captured.
+`keypress_count` | Integer | NOT NULL | Number of keypresses captured.
+`mouse_activity_count` | Integer | NOT NULL | Number of mouse-activity events captured.
+`console_log_count` | Integer | NOT NULL | Number of console.log messages captured.
+`console_warn_count` | Integer | NOT NULL | Number of console.warn messages captured.
+`console_error_count` | Integer | NOT NULL | Number of console.error messages captured.
+`start_url` | String | NOT NULL | URL where the recording started.
+`deleted` | Integer | NOT NULL | 1 if the recording has been deleted, 0 otherwise.
+`created_at` | DateTime | NOT NULL | When the recording metadata row was created.
+`retention_period_days` | Integer | NOT NULL | How long the recording is retained, in days.
+`storage_version` | String | NOT NULL | Storage format version of the recording payload.
 
 ### Key Relationships
 
@@ -39,4 +39,4 @@ Column | Type | Nullable | Description
 - Recordings are created by the SDK, not via the API
 - The `session_id` field is the user-facing ID (used in URLs and API calls), not the internal `id`
 - Activity data (click_count, duration, etc.) is populated from ClickHouse and may be NULL for older recordings
-- Use `deleted IS NOT TRUE` to filter out soft-deleted recordings
+- Filter out soft-deleted recordings with `ifNull(deleted, 0) = 0` — `deleted` is an integer 0/1, NULL for older rows

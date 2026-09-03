@@ -241,6 +241,12 @@ Copy page
 
     [Upload source maps & native symbols](/docs/error-tracking/upload-source-maps/react-native.md)
 
+## iOS dependency resolution for native crash capture
+
+The `@posthog/react-native-plugin` package supports CocoaPods, the hybrid CocoaPods and Swift Package Manager path, and React Native's full Swift Package Manager integration. PostHog verifies the full path with an iOS-only React Native 0.87.1 app and React Native Community CLI 20.2.0. This path requires `@posthog/react-native-plugin` 2.4.0 or later, Xcode 16 or later, and an iOS 15.1 or later app deployment target.
+
+See [iOS dependency paths for the React Native native plugin](/docs/libraries/react-native.md#choose-an-ios-dependency-path-for-the-native-plugin) for the requirements and setup steps. This verification does not cover Expo or other React Native versions. Use CocoaPods or the hybrid path unless you validate full Swift Package Manager for your configuration.
+
 ### Still have questions?
 
 Ask PostHog AI

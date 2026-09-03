@@ -90,7 +90,7 @@ A trace is a group that contains multiple spans, generations, and embeddings. Tr
 | Property | Description |
 | --- | --- |
 | $ai_trace_id | The trace ID (a UUID to group related AI events together)Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
-| $ai_session_id | (Optional) Groups related traces together. Use this to organize traces by whatever grouping makes sense for your application (user sessions, workflows, conversations, or other logical boundaries).Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: session-abc-123, conv-user-456 |
+| $ai_session_id | (Optional) Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: session-abc-123, conv-user-456 |
 | $ai_latency | (Optional) The latency of the trace in seconds |
 | $ai_span_name | (Optional) The name of the traceExample: chat_completion, rag_pipeline |
 | $ai_is_error | (Optional) Boolean to indicate if the trace encountered an error |

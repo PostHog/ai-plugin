@@ -7,18 +7,19 @@ Hog flows are automated user journeys — multi-step workflows that trigger acti
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | string (UUID) | NOT NULL | Primary key
-`team_id` | integer | NOT NULL | Owning team
-`name` | varchar(400) | NULL | Display name
-`description` | text | NOT NULL | Description of the flow
-`status` | varchar(20) | NOT NULL | `draft`, `active`, or `archived`
-`version` | integer | NOT NULL | Version number (incremented on each publish)
-`exit_condition` | varchar(100) | NOT NULL | When a user exits the flow (see values below)
-`trigger` | jsonb | NOT NULL | Entry trigger configuration
-`edges` | jsonb | NOT NULL | Graph edges connecting flow steps
-`actions` | jsonb | NOT NULL | Action definitions for each step
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NOT NULL | Last update timestamp
+`id` | String | NOT NULL | Flow UUID.
+`team_id` | Integer | NOT NULL |
+`name` | String | NOT NULL | Flow name.
+`description` | String | NOT NULL | Flow description.
+`status` | String | NOT NULL | Flow status, e.g. 'active', 'draft', 'archived'.
+`version` | Integer | NOT NULL | Flow version number.
+`exit_condition` | String | NOT NULL | Condition that causes a person to exit the flow.
+`trigger` | JSON | NOT NULL | JSON definition of what enrolls people into the flow.
+`edges` | JSON | NOT NULL | JSON edges connecting actions in the flow graph.
+`actions` | JSON | NOT NULL | JSON nodes/actions that make up the flow.
+`created_by_id` | Integer | NULL | User who created the flow.
+`created_at` | DateTime | NOT NULL | When the flow was created.
+`updated_at` | DateTime | NOT NULL | When the flow was last updated.
 
 ### Status Values
 

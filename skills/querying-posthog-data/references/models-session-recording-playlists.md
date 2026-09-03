@@ -7,20 +7,20 @@ Saved views for organizing session recordings. There are two types: collections 
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | integer | NOT NULL | Primary key
-`short_id` | varchar(12) | NOT NULL | Human-friendly short identifier (used in URLs and API lookups)
-`name` | varchar(400) | NULL | Human-readable playlist name
-`derived_name` | varchar(400) | NULL | Auto-generated name based on filter criteria
-`description` | text | NOT NULL | Playlist description (can be blank)
-`team_id` | integer | NOT NULL | Team this playlist belongs to
-`pinned` | boolean | NOT NULL | Whether the playlist is pinned to the top
-`deleted` | boolean | NOT NULL | Whether the playlist is soft-deleted
-`filters` | jsonb | NOT NULL | JSON filter criteria for dynamic matching (only used when type is 'filters')
-`type` | varchar(50) | NULL | Playlist type: 'collection' or 'filters'
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`created_by_id` | integer | NULL | FK to the user who created this playlist
-`last_modified_at` | timestamp with tz | NOT NULL | When the playlist was last updated
-`last_modified_by_id` | integer | NULL | FK to the user who last modified this playlist
+`id` | Integer | NOT NULL | Playlist id.
+`short_id` | String | NOT NULL | Short URL-safe id used in playlist links.
+`name` | String | NOT NULL | User-given playlist name.
+`derived_name` | String | NOT NULL | Auto-generated name used when no name is set.
+`description` | String | NOT NULL | Playlist description.
+`team_id` | Integer | NOT NULL |
+`pinned` | Integer | NOT NULL | 1 if the playlist is pinned, 0 otherwise.
+`deleted` | Integer | NOT NULL | 1 if the playlist has been deleted, 0 otherwise.
+`filters` | JSON | NOT NULL | JSON filters defining which recordings are in the playlist.
+`type` | String | NOT NULL | Playlist type, e.g. filter-based or a collection of pinned recordings.
+`created_at` | DateTime | NOT NULL | When the playlist was created.
+`created_by_id` | Integer | NOT NULL | User who created the playlist.
+`last_modified_at` | DateTime | NOT NULL | When the playlist was last modified.
+`last_modified_by_id` | Integer | NOT NULL | User who last modified the playlist.
 
 ### Key Relationships
 
@@ -34,5 +34,5 @@ Column | Type | Nullable | Description
   - `collection` — manually curated list of recordings
   - `filters` — saved filter criteria that dynamically match recordings
 - Use `short_id` for lookups (this is the API lookup field)
-- Use `deleted = false` to filter out soft-deleted playlists
+- Use `deleted = 0` to filter out soft-deleted playlists — `deleted` is an integer 0/1
 - The `filters` field is only meaningful when `type = 'filters'`

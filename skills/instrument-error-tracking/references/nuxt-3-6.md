@@ -34,6 +34,12 @@ Copy page
     pnpm add posthog-js
     ```
 
+    ### bun
+
+    ```bash
+    bun add posthog-js
+    ```
+
     **Nuxt version**
 
     This guide is for Nuxt v3.0 and above. For Nuxt v2.16 and below, see our [Nuxt docs](/docs/libraries/nuxt-js.md#nuxt-v216-and-below).
@@ -120,6 +126,12 @@ Copy page
 
     ```bash
     pnpm add posthog-node
+    ```
+
+    ### bun
+
+    ```bash
+    bun add posthog-node
     ```
 
     server/api/example.js

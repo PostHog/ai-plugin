@@ -8,18 +8,18 @@ This is a first-class HogQL table (no `system.` prefix). Coordinates are stored 
 ### Columns
 
 Column | Type | Nullable | Description
-`session_id` | varchar | NOT NULL | Session the interaction belongs to (join to `session_recordings.session_id`)
-`team_id` | integer | NOT NULL | Team this interaction belongs to
-`distinct_id` | varchar | NOT NULL | Person who interacted
-`timestamp` | DateTime64 | NOT NULL | When the interaction happened
-`x` | integer | NOT NULL | Horizontal position, stored scaled down by `scale_factor` (multiply to get CSS px)
-`y` | integer | NOT NULL | Vertical position, stored scaled down by `scale_factor` (multiply to get CSS px)
-`scale_factor` | integer | NOT NULL | Factor the coordinates were divided by at ingestion (always 16); multiply stored values by it to recover CSS pixels
-`viewport_width` | integer | NOT NULL | Viewport width, stored scaled down by `scale_factor` (multiply to get CSS px)
-`viewport_height` | integer | NOT NULL | Viewport height, stored scaled down by `scale_factor` (multiply to get CSS px)
-`pointer_target_fixed` | boolean | NOT NULL | Whether the clicked element is fixed-position
-`current_url` | varchar | NOT NULL | Full URL of the page the interaction happened on
-`type` | varchar | NOT NULL | `click`, `rageclick`, `mousemove`, or `scrolldepth`
+`session_id` | String | NOT NULL | Recording session the interaction belongs to; matches `session_replay_events.session_id`.
+`team_id` | Integer | NOT NULL |
+`distinct_id` | String | NOT NULL | Identifier of the user/device that interacted.
+`x` | Integer | NOT NULL | X coordinate snapped to an NxN grid; multiply by `scale_factor` for the original pixel value.
+`y` | Integer | NOT NULL | Y coordinate snapped to an NxN grid; multiply by `scale_factor` for the original pixel value.
+`scale_factor` | Integer | NOT NULL | Grid resolution applied to `x`/`y` coordinates.
+`viewport_width` | Integer | NOT NULL | Viewport width at capture time, stored scaled down like `x`; multiply by `scale_factor` for CSS pixels.
+`viewport_height` | Integer | NOT NULL | Viewport height at capture time, stored scaled down like `y`; multiply by `scale_factor` for CSS pixels.
+`pointer_target_fixed` | Boolean | NOT NULL | Whether the clicked element stays fixed when the page scrolls.
+`current_url` | String | NOT NULL | URL of the page where the interaction occurred.
+`timestamp` | DateTime | NOT NULL | When the interaction occurred (in UTC).
+`type` | String | NOT NULL | Interaction type, e.g. 'click', 'rageclick', 'mousemove', 'scrolldepth'.
 
 ### Example: top click hotspots on a page (last 7 days)
 

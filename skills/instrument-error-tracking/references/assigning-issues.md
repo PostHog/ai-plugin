@@ -26,15 +26,15 @@ Want to assign issues to a **team** rather than an individual teammate? You can 
 
 ## Automatic issue assignment
 
-You can set up automatic issue assignment through a set of rules. This can be configured in the [error tracking settings](https://app.posthog.com/error_tracking/configuration#selectedSetting=error-tracking-auto-assignment) using **auto assignment rules**. You can also create assignment rules programmatically using the [PostHog MCP server](/docs/error-tracking/surfaces/mcp.md).
+You can set up automatic issue assignment through a set of rules. Configure this in the [error tracking settings](https://app.posthog.com/error_tracking/configuration#selectedSetting=error-tracking-auto-assignment) using **Assignment rules**. You can also create assignment rules programmatically using the [PostHog MCP server](/docs/error-tracking/surfaces/mcp.md).
 
 The settings show a list of your existing assignment rules:
 
-![List of auto assignment rules](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_57_06_125_Z_a7f920a3dc.png)![List of auto assignment rules](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_56_47_967_Z_3ddddd1841.png)
+![List of assignment rules](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_57_06_125_Z_a7f920a3dc.png)![List of assignment rules](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_56_47_967_Z_3ddddd1841.png)
 
 When adding or editing a rule, you can test it before saving. Click **Test** to see how many exceptions matched the rule's conditions over the last 7 days, so you can confirm it behaves as expected.
 
-![Adding an auto assignment rule](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_30_30_887_Z_7a01202bc4.png)![Adding an auto assignment rule](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_30_54_381_Z_d468514190.png)
+![Adding an assignment rule](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_30_30_887_Z_7a01202bc4.png)![Adding an assignment rule](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_30_54_381_Z_d468514190.png)
 
 Assignment conditions are evaluated against the properties of the exception event that created the issue. Because assignment rules are evaluated during ingestion, the stack trace (if present) will be unminified, which enables filtering on exception properties such as function name and source file.
 

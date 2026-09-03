@@ -310,6 +310,36 @@ Capturing `$feature_flag_called` events enables PostHog to know when a flag was 
 
 `PostHog.FeatureFlags.Evaluations.get_flag_payload/2` doesn't send `$feature_flag_called` events.
 
+### Local feature flag evaluation
+
+Local evaluation is available in version 2.15.0 and later. Follow the [server-side local evaluation guide](/docs/feature-flags/local-evaluation.md) to find your secure key and see how to pass the person properties, groups, and group properties that your flag conditions require.
+
+Store the secure key in a server-side environment variable. Don't expose it to client-side applications:
+
+config/runtime.exs
+
+PostHog AI
+
+```elixir
+config :posthog,
+  api_host: "https://us.i.posthog.com",
+  api_key: "<ph_project_token>",
+  secret_key: System.fetch_env!("POSTHOG_FEATURE_FLAGS_SECURE_API_KEY")
+```
+
+When `secret_key` is set, the SDK fetches definitions when it starts and polls for updates every 30 seconds. `PostHog.FeatureFlags.evaluate_flags/1` evaluates each flag locally first. If a flag can't be evaluated locally, the SDK makes one `/flags` request to resolve the remaining flags. Set `only_evaluate_locally: true` in the evaluation map to prevent this remote fallback. The SDK then omits unresolved flags from the snapshot.
+
+Use these configuration options to control local evaluation:
+
+| Option | Default | Purpose |
+| --- | --- | --- |
+| enable_local_evaluation | true | Starts local evaluation when secret_key is set. |
+| feature_flags_poll_interval_ms | 30_000 | Sets the interval between definition refreshes. |
+| flag_definition_request_timeout_ms | 10_000 | Sets the timeout for each definition request. |
+| flag_definition_cache_provider_timeout_ms | 5_000 | Sets the timeout for each shared cache provider callback. |
+
+For multiple server instances, you can implement `PostHog.FeatureFlags.FlagDefinitionCacheProvider` and set `flag_definition_cache_provider: {module, state}`. This optional provider shares definitions and coordinates which instance polls PostHog. See [local evaluation in distributed environments](/docs/feature-flags/local-evaluation/distributed-environments?tab=Elixir.md) for the callback contract and configuration.
+
 ## Error tracking
 
 Error tracking is enabled by default. It will automatically captures exceptions thrown by the application.
