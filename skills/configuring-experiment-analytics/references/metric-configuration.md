@@ -185,6 +185,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/BehavioralPropertyFilter"
                   }
                 ]
               },
@@ -223,14 +226,13 @@ The schema is authoritative; the prose and examples below are guidance.
               "$ref": "#/$defs/CountPerActorMathType"
             },
             {
+              "$ref": "#/$defs/GroupMathType"
+            },
+            {
               "$ref": "#/$defs/ExperimentMetricMathType"
             },
             {
               "$ref": "#/$defs/CalendarHeatmapMathType"
-            },
-            {
-              "const": "unique_group",
-              "type": "string"
             },
             {
               "const": "hogql",
@@ -410,6 +412,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/BehavioralPropertyFilter"
                   }
                 ]
               },
@@ -468,6 +473,175 @@ The schema is authoritative; the prose and examples below are guidance.
       ],
       "title": "BaseMathType",
       "type": "string"
+    },
+    "BehavioralEventSource": {
+      "enum": [
+        "events",
+        "actions"
+      ],
+      "title": "BehavioralEventSource",
+      "type": "string"
+    },
+    "BehavioralPropertyFilter": {
+      "additionalProperties": false,
+      "properties": {
+        "event_filters": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/EventPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/PersonPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/ElementPropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/FeaturePropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/HogQLPropertyFilter"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Extra property filters the matching events must satisfy. Deliberately excludes nested behavioral/cohort filters and groups",
+          "title": "Event Filters"
+        },
+        "event_type": {
+          "$ref": "#/$defs/BehavioralEventSource"
+        },
+        "explicit_datetime": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Absolute or relative (e.g. -30d) lower date bound \u2014 alternative to time_value/time_interval",
+          "title": "Explicit Datetime"
+        },
+        "explicit_datetime_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Explicit Datetime To"
+        },
+        "key": {
+          "description": "Event name, or action id when event_type is 'actions'",
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "negation": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Match persons who did NOT satisfy the criterion. Not the same as a low count \u2014 zero-occurrence persons never match count operators",
+          "title": "Negation"
+        },
+        "operator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PropertyOperator"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Count comparison for performed_event_multiple, defaults to exact"
+        },
+        "operator_value": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Count threshold for performed_event_multiple",
+          "title": "Operator Value"
+        },
+        "time_interval": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnitType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "time_value": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Relative time window size, paired with time_interval",
+          "title": "Time Value"
+        },
+        "type": {
+          "const": "behavioral",
+          "default": "behavioral",
+          "description": "Person performed (or didn't perform) an event in a time window. ClickHouse-only \u2014 not evaluable by flags or CDP",
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/InlineBehavioralType"
+        }
+      },
+      "required": [
+        "event_type",
+        "key",
+        "value"
+      ],
+      "title": "BehavioralPropertyFilter",
+      "type": "object"
     },
     "Breakdown": {
       "additionalProperties": false,
@@ -536,6 +710,16 @@ The schema is authoritative; the prose and examples below are guidance.
       ],
       "title": "Breakdown",
       "type": "object"
+    },
+    "BreakdownAttributionType": {
+      "enum": [
+        "first_touch",
+        "last_touch",
+        "all_events",
+        "step"
+      ],
+      "title": "BreakdownAttributionType",
+      "type": "string"
     },
     "BreakdownFilter": {
       "additionalProperties": false,
@@ -1478,6 +1662,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/BehavioralPropertyFilter"
                   }
                 ]
               },
@@ -1524,14 +1711,13 @@ The schema is authoritative; the prose and examples below are guidance.
               "$ref": "#/$defs/CountPerActorMathType"
             },
             {
+              "$ref": "#/$defs/GroupMathType"
+            },
+            {
               "$ref": "#/$defs/ExperimentMetricMathType"
             },
             {
               "$ref": "#/$defs/CalendarHeatmapMathType"
-            },
-            {
-              "const": "unique_group",
-              "type": "string"
             },
             {
               "const": "hogql",
@@ -1727,6 +1913,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/BehavioralPropertyFilter"
                   }
                 ]
               },
@@ -1866,6 +2055,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/BehavioralPropertyFilter"
                   }
                 ]
               },
@@ -1900,14 +2092,13 @@ The schema is authoritative; the prose and examples below are guidance.
               "$ref": "#/$defs/CountPerActorMathType"
             },
             {
+              "$ref": "#/$defs/GroupMathType"
+            },
+            {
               "$ref": "#/$defs/ExperimentMetricMathType"
             },
             {
               "$ref": "#/$defs/CalendarHeatmapMathType"
-            },
-            {
-              "const": "unique_group",
-              "type": "string"
             },
             {
               "const": "hogql",
@@ -2087,6 +2278,9 @@ The schema is authoritative; the prose and examples below are guidance.
                   },
                   {
                     "$ref": "#/$defs/WorkflowVariablePropertyFilter"
+                  },
+                  {
+                    "$ref": "#/$defs/BehavioralPropertyFilter"
                   }
                 ]
               },
@@ -2147,6 +2341,31 @@ The schema is authoritative; the prose and examples below are guidance.
     "ExperimentFunnelMetric": {
       "additionalProperties": false,
       "properties": {
+        "breakdownAttributionType": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BreakdownAttributionType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "first_touch",
+          "description": "How to attribute the breakdown value across funnel steps."
+        },
+        "breakdownAttributionValue": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "When breakdownAttributionType is `step`, the 0-indexed step to attribute from.",
+          "title": "Breakdownattributionvalue"
+        },
         "breakdownFilter": {
           "anyOf": [
             {
@@ -3217,6 +3436,15 @@ The schema is authoritative; the prose and examples below are guidance.
       "title": "FunnelMathType",
       "type": "string"
     },
+    "GroupMathType": {
+      "enum": [
+        "unique_group",
+        "first_time_for_group",
+        "first_matching_event_for_group"
+      ],
+      "title": "GroupMathType",
+      "type": "string"
+    },
     "GroupPropertyFilter": {
       "additionalProperties": false,
       "properties": {
@@ -3379,6 +3607,14 @@ The schema is authoritative; the prose and examples below are guidance.
       ],
       "title": "HogQLPropertyFilter",
       "type": "object"
+    },
+    "InlineBehavioralType": {
+      "enum": [
+        "performed_event",
+        "performed_event_multiple"
+      ],
+      "title": "InlineBehavioralType",
+      "type": "string"
     },
     "Key10": {
       "enum": [
@@ -4174,6 +4410,16 @@ The schema is authoritative; the prose and examples below are guidance.
         "ordered"
       ],
       "title": "StepOrderValue",
+      "type": "string"
+    },
+    "TimeUnitType": {
+      "enum": [
+        "day",
+        "week",
+        "month",
+        "year"
+      ],
+      "title": "TimeUnitType",
       "type": "string"
     },
     "WorkflowVariablePropertyFilter": {

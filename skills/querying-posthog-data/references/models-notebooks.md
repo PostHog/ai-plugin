@@ -7,23 +7,19 @@ Notebooks are collaborative documents combining text, insights, and code.
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key (UUID)
-`short_id` | varchar(12) | NOT NULL | Unique short identifier for URLs
-`title` | varchar(256) | NULL | Notebook title
-`content` | jsonb | NULL | Notebook content blocks
-`markdown` | text | NULL | Markdown source when the notebook is stored as a markdown notebook; NULL for legacy rich-text notebooks
-`text_content` | text | NULL | Plain text extraction for search
-`deleted` | boolean | NOT NULL | Soft delete flag
-`visibility` | varchar(20) | NOT NULL | `private`, `shared`, or `public`
-`version` | integer | NOT NULL | Content version number
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`last_modified_at` | timestamp with tz | NOT NULL | Last modification timestamp
-`created_by_id` | integer | NULL | Creator user ID
-`last_modified_by_id` | integer | NULL | Last modifier user ID
-`team_id` | integer | NOT NULL | FK to `system.teams.id`
-`kernel_cpu_cores` | double precision | NULL | Jupyter kernel CPU allocation
-`kernel_memory_gb` | double precision | NULL | Jupyter kernel memory allocation
-`kernel_idle_timeout_seconds` | integer | NULL | Kernel idle timeout
+`id` | String | NOT NULL | Notebook UUID.
+`short_id` | String | NOT NULL | Short URL-safe id used in notebook links.
+`team_id` | Integer | NOT NULL |
+`title` | String | NOT NULL | Notebook title.
+`content` | JSON | NOT NULL | JSON rich-text document (ProseMirror) content.
+`markdown` | String | NULL | Markdown source for markdown notebooks; NULL for legacy rich-text notebooks.
+`text_content` | String | NOT NULL | Plain-text rendering of the notebook, for search.
+`deleted` | Integer | NOT NULL | 1 if the notebook has been deleted, 0 otherwise.
+`visibility` | String | NOT NULL | Visibility: 'default' (normal notebook) or 'internal' (system-generated, hidden from the main list).
+`version` | Integer | NOT NULL | Notebook version number.
+`created_by_id` | Integer | NULL | User who created the notebook.
+`created_at` | DateTime | NOT NULL | When the notebook was created.
+`last_modified_at` | DateTime | NOT NULL | When the notebook was last modified.
 
 ### Content Structure
 

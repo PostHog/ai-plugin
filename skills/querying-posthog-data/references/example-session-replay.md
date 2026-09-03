@@ -13,24 +13,24 @@ SELECT
     sum(s.keypress_count) AS keypress_count,
     sum(s.mouse_activity_count) AS mouse_activity_count,
     divide(sum(s.active_milliseconds), 1000) AS active_seconds,
-    minus(duration, active_seconds) AS inactive_seconds,
+    greatest(minus(duration, active_seconds), 0) AS inactive_seconds,
     sum(s.console_log_count) AS console_log_count,
     sum(s.console_warn_count) AS console_warn_count,
     sum(s.console_error_count) AS console_error_count,
     max(s.retention_period_days) AS retention_period_days,
     plus(dateTrunc('DAY', start_time), toIntervalDay(coalesce(retention_period_days, 30))) AS expiry_time,
-    date_diff('DAY', toDateTime('2026-08-03 16:02:18.939402'), expiry_time) AS recording_ttl,
-    greaterOrEquals(max(s._timestamp), toDateTime('2026-08-03 15:57:18.938829')) AS ongoing,
-    round(multiply(divide(plus(plus(plus(divide(sum(s.active_milliseconds), 1000), sum(s.click_count)), sum(s.keypress_count)), sum(s.console_error_count)), plus(plus(plus(plus(sum(s.mouse_activity_count), dateDiff('SECOND', start_time, end_time)), sum(s.console_error_count)), sum(s.console_log_count)), sum(s.console_warn_count))), 100), 2) AS activity_score,
+    date_diff('DAY', toDateTime('2026-09-03 11:46:01.975713'), expiry_time) AS recording_ttl,
+    greaterOrEquals(max(s._timestamp), toDateTime('2026-09-03 11:41:01.975313')) AS ongoing,
+    round(least(greatest(multiply(divide(plus(plus(plus(divide(sum(s.active_milliseconds), 1000), sum(s.click_count)), sum(s.keypress_count)), sum(s.console_error_count)), plus(plus(plus(plus(sum(s.mouse_activity_count), dateDiff('SECOND', start_time, end_time)), sum(s.console_error_count)), sum(s.console_log_count)), sum(s.console_warn_count))), 100), 0), 100), 2) AS activity_score,
     coalesce(max(s.surfacing_score), 0.36) AS surfacing_score
 FROM
     raw_session_replay_events AS s
 WHERE
-    and(greaterOrEquals(s.min_first_timestamp, toDateTime('2026-07-31 00:00:00.000000')), lessOrEquals(s.min_first_timestamp, toDateTime('2026-08-03 16:02:18.938962')))
+    and(greaterOrEquals(s.min_first_timestamp, toDateTime('2026-08-31 00:00:00.000000')), lessOrEquals(s.min_first_timestamp, toDateTime('2026-09-03 11:46:01.975461')))
 GROUP BY
     session_id
 HAVING
-    and(greaterOrEquals(expiry_time, toDateTime('2026-08-03 16:02:18.939313')), equals(max(s.is_deleted), 0), greater(active_seconds, 5.0))
+    and(greaterOrEquals(expiry_time, toDateTime('2026-09-03 11:46:01.975601')), equals(max(s.is_deleted), 0), greater(active_seconds, 5.0))
 ORDER BY
     start_time DESC,
     session_id DESC

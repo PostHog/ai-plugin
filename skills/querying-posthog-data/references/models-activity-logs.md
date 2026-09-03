@@ -9,13 +9,13 @@ Activity logs track user and system actions across PostHog entities, providing a
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key (auto-generated UUID)
-`team_id` | integer | NULL | Team the activity belongs to
-`activity` | varchar(79) | NOT NULL | Action performed (e.g., `created`, `updated`, `deleted`)
-`item_id` | varchar(72) | NULL | ID of the entity being logged (may be numeric ID, short ID, or UUID)
-`scope` | varchar(79) | NOT NULL | Entity type being logged (e.g., `FeatureFlag`, `Insight`)
-`detail` | jsonb | NULL | Structured details about the change
-`created_at` | timestamp with tz | NOT NULL | When the activity occurred
+`id` | String | NOT NULL | Activity log entry UUID.
+`team_id` | Integer | NOT NULL |
+`activity` | String | NOT NULL | Action performed, e.g. 'created', 'updated', 'deleted'.
+`item_id` | String | NOT NULL | Id of the object the activity is about.
+`scope` | String | NOT NULL | Type of object affected, e.g. 'Insight', 'FeatureFlag', 'Dashboard'.
+`detail` | JSON | NOT NULL | JSON detail of what changed (field-level diffs, context).
+`created_at` | DateTime | NOT NULL | When the activity occurred.
 
 ### Detail JSON Structure
 

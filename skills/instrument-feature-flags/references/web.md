@@ -56,6 +56,12 @@ Copy page
     pnpm add posthog-js
     ```
 
+    ### bun
+
+    ```bash
+    bun add posthog-js
+    ```
+
     JavaScript
 
     PostHog AI

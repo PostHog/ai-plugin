@@ -9,16 +9,16 @@ Usage metrics are team-defined numeric measures that render on Customer Analytic
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`team_id` | integer | NOT NULL | Team this metric belongs to
-`group_type_index` | integer | NOT NULL | **Legacy / effectively unused.** Retained for backward compatibility but the query runner ignores it — every team-owned metric is evaluated against the current entity regardless of this value. Safe to omit from `SELECT` and do not filter on it
-`name` | varchar(255) | NOT NULL | Human-readable metric name
-`format` | varchar(64) | NOT NULL | `numeric` or `currency` — controls UI formatting
-`interval` | integer | NOT NULL | Rolling time window in days used when computing the metric (default 7)
-`display` | varchar(64) | NOT NULL | `number` or `sparkline` — controls UI visualization
-`filters` | jsonb | NOT NULL | HogQL filter definition: `{"events": [...], "properties": [...]}`. Same shape as HogFunction filters
-`math` | varchar(16) | NOT NULL | Aggregation: `count` (count matching events) or `sum` (sum `math_property`)
-`math_property` | varchar(255) | NULL | Event property to sum. Required when `math='sum'`, must be null when `math='count'`
+`id` | String | NOT NULL | Usage metric UUID.
+`team_id` | Integer | NOT NULL |
+`group_type_index` | Integer | NOT NULL | Legacy; the query runner ignores it and evaluates every metric regardless. Don't filter on it.
+`name` | String | NOT NULL | Metric name.
+`format` | String | NOT NULL | Display format: 'numeric' or 'currency'.
+`interval` | Integer | NOT NULL | Rolling window length, in days, the metric is computed over.
+`display` | String | NOT NULL | How the metric is visualized, e.g. 'number' or 'sparkline'.
+`filters` | JSON | NOT NULL | JSON event/action filters ({"events": [...], "actions": [...], "properties": [...]}) or data warehouse filters ({"source": "data_warehouse", "table_name": "...", "timestamp_field": "...", "key_field": "..."}).
+`math` | String | NOT NULL | Aggregation: 'count' or 'sum'; 'sum' aggregates math_property.
+`math_property` | String | NULL | Property aggregated when math is property-based, e.g. sum.
 
 ### Key relationships
 

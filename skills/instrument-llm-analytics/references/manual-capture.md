@@ -28,6 +28,8 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     If you use a different server-side SDK, or prefer to use the API, capture the data manually. Call the `capture` method, or use the [capture API](/docs/api/capture.md).
 
+    `$ai_trace_id` groups the events of one LLM interaction into a trace. `$ai_session_id` is optional and groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. Workloads that finish in a single trace, like batch jobs or one-shot generation, do not need it. Send it as `null` on those to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.
+
     ## API
 
     ### Capture via API
@@ -41,6 +43,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
                 "properties": {
                     "distinct_id": "user_123",
                     "$ai_trace_id": "trace_id_here",
+                    "$ai_session_id": "conversation-abc",
                     "$ai_model": "gpt-5-mini",
                     "$ai_provider": "openai",
                     "$ai_input": [{"role": "user", "content": "Tell me a fun fact about hedgehogs"}],
@@ -80,6 +83,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
         event: '$ai_generation',
         properties: {
             $ai_trace_id: 'trace_id_here',
+            $ai_session_id: 'conversation-abc', // optional: groups traces into one session
             $ai_model: 'gpt-5-mini',
             $ai_provider: 'openai',
             $ai_input: [{ role: 'user', content: 'Tell me a fun fact about hedgehogs' }],
@@ -119,6 +123,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
         event='$ai_generation',
         properties={
             '$ai_trace_id': 'trace_id_here',
+            '$ai_session_id': 'conversation-abc',  # optional: groups traces into one session
             '$ai_model': 'gpt-5-mini',
             '$ai_provider': 'openai',
             '$ai_input': [{'role': 'user', 'content': 'Tell me a fun fact about hedgehogs'}],
@@ -160,6 +165,8 @@ Skip the manual setup — run this in your project and the wizard installs the S
         Event:      "$ai_generation",
         Properties: map[string]interface{}{
             "$ai_trace_id":        "trace_id_here",
+            // $ai_session_id is optional: it groups traces into one session
+            "$ai_session_id":      "conversation-abc",
             "$ai_model":           "gpt-5-mini",
             "$ai_provider":        "openai",
             "$ai_input_tokens":    10,
@@ -199,6 +206,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
         event: '$ai_generation',
         properties: {
         '$ai_trace_id' => 'trace_id_here',
+        '$ai_session_id' => 'conversation-abc', # optional: groups traces into one session
         '$ai_model' => 'gpt-5-mini',
         '$ai_provider' => 'openai',
         '$ai_input_tokens' => 10,
@@ -239,6 +247,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
         'event' => '$ai_generation',
         'properties' => [
             '$ai_trace_id' => 'trace_id_here',
+            '$ai_session_id' => 'conversation-abc', // optional: groups traces into one session
             '$ai_model' => 'gpt-5-mini',
             '$ai_provider' => 'openai',
             '$ai_input_tokens' => 10,
@@ -268,7 +277,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | Property | Description |
     | --- | --- |
     | $ai_trace_id | The trace ID (a UUID to group AI events) like conversation_idMust contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
-    | $ai_session_id | (Optional) Groups related traces together. Use this to organize traces by whatever grouping makes sense for your application (user sessions, workflows, conversations, or other logical boundaries).Example: session-abc-123, conv-user-456 |
+    | $ai_session_id | (Optional) Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.Example: session-abc-123, conv-user-456 |
     | $ai_span_id | (Optional) Unique identifier for this generation |
     | $ai_span_name | (Optional) Name given to this generationExample: summarize_text |
     | $ai_parent_id | (Optional) Parent span ID for tree view grouping |
@@ -298,6 +307,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | $ai_request_cost_usd | (Optional) The cost in USD for the requests |
     | $ai_web_search_cost_usd | (Optional) The cost in USD for the web searches |
     | $ai_total_cost_usd | (Optional) The total cost in USD (sum of all cost components) |
+    | $ai_cost_passthrough | (Optional) Set this when your provider reports the real cost, such as an LLM gateway. We keep your $ai_total_cost_usd and leave the input and output costs unset. |
 
     #### Custom pricing
 
@@ -342,7 +352,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | Property | Description |
     | --- | --- |
     | $ai_trace_id | The trace ID (a UUID to group related AI events together)Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
-    | $ai_session_id | (Optional) Groups related traces together. Use this to organize traces by whatever grouping makes sense for your application (user sessions, workflows, conversations, or other logical boundaries).Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: session-abc-123, conv-user-456 |
+    | $ai_session_id | (Optional) Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: session-abc-123, conv-user-456 |
     | $ai_latency | (Optional) The latency of the trace in seconds |
     | $ai_span_name | (Optional) The name of the traceExample: chat_completion, rag_pipeline |
     | $ai_is_error | (Optional) Boolean to indicate if the trace encountered an error |
@@ -373,7 +383,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | Property | Description |
     | --- | --- |
     | $ai_trace_id | The trace ID (a UUID to group related AI events together)Must contain only letters, numbers, and the following characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
-    | $ai_session_id | (Optional) Groups related traces together. Use this to organize traces by whatever grouping makes sense for your application (user sessions, workflows, conversations, or other logical boundaries).Example: session-abc-123, conv-user-456 |
+    | $ai_session_id | (Optional) Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.Example: session-abc-123, conv-user-456 |
     | $ai_span_id | (Optional) Unique identifier for this spanExample: bdf42359-9364-4db7-8958-c001f28c9255 |
     | $ai_span_name | (Optional) The name of the spanExample: vector_search, data_retrieval, tool_call |
     | $ai_parent_id | (Optional) Parent ID for tree view grouping (trace_id or another span_id)Example: 537b7988-0186-494f-a313-77a5a8f7db26 |
@@ -391,7 +401,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | Property | Description |
     | --- | --- |
     | $ai_trace_id | The trace ID (a UUID to group related AI events together). Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
-    | $ai_session_id | (Optional) Groups related traces together. Use this to organize traces by whatever grouping makes sense for your application (user sessions, workflows, conversations, or other logical boundaries).Example: session-abc-123, conv-user-456 |
+    | $ai_session_id | (Optional) Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.Example: session-abc-123, conv-user-456 |
     | $ai_span_id | (Optional) Unique identifier for this embedding operation |
     | $ai_span_name | (Optional) Name given to this embedding operationExample: embed_user_query, index_document |
     | $ai_parent_id | (Optional) Parent span ID for tree-view grouping |

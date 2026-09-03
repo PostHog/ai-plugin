@@ -7,19 +7,20 @@ External data sources represent connections to third-party data providers (Strip
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`source_id` | varchar(400) | NOT NULL | External identifier for the source
-`connection_id` | varchar(400) | NOT NULL | Connection identifier
-`destination_id` | varchar(400) | NULL | Destination identifier
-`source_type` | varchar(128) | NOT NULL | Type of source (Stripe, Hubspot, Postgres, etc.)
-`status` | varchar(400) | NOT NULL | Current sync status
-`prefix` | varchar(100) | NULL | Prefix applied to synced table names
-`description` | varchar(400) | NULL | User-defined description
-`are_tables_created` | boolean | NOT NULL | Whether tables have been created
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NOT NULL | Last update timestamp
-`deleted` | boolean | NOT NULL | Soft delete flag
-`deleted_at` | timestamp with tz | NULL | Deletion timestamp
+`id` | String | NOT NULL | Source UUID. Pass it as a query's connection id to live-query a direct connection.
+`team_id` | Integer | NOT NULL |
+`source_type` | String | NOT NULL | Source connector type, e.g. 'Stripe', 'Postgres', 'Hubspot'.
+`status` | String | NOT NULL | Legacy source-level status, deprecated in favour of per-schema status in source_schemas.status; may be stale.
+`access_method` | String | NOT NULL | 'direct' for a live-query connection (nothing is synced; its tables exist only when queried through the connection), or 'warehouse' for a source synced into PostHog.
+`direct_query_enabled` | Integer | NOT NULL | 1 if this synced source may also be live-queried through a direct connection, 0 otherwise. Meaningless for sources that are already access_method='direct'.
+`is_live_queryable` | Integer | NOT NULL | 1 if this source can be live-queried by passing its id as a query's connection id, 0 otherwise. Use `WHERE is_live_queryable = 1` to list every connection available for live queries.
+`api_version` | String | NOT NULL | Vendor API version this source is pinned to (opaque vendor label); NULL resolves to the source type's default version at sync time.
+`prefix` | String | NOT NULL | Table-name prefix applied to all tables synced from this source.
+`created_by_id` | Integer | NULL | User who created the source.
+`created_at` | DateTime | NOT NULL | When the source was connected.
+`updated_at` | DateTime | NOT NULL | When the source config was last updated.
+`deleted` | Integer | NOT NULL | 1 if the source has been deleted, 0 otherwise.
+`deleted_at` | DateTime | NOT NULL | When the source was deleted; NULL if not deleted.
 
 ### Source Types
 
@@ -48,15 +49,16 @@ Individual tables synced from external sources or manually uploaded. Each table 
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`name` | varchar(128) | NOT NULL | Table name (may include prefix)
-`columns` | jsonb | NULL | Column definitions with types
-`row_count` | integer | NULL | Number of rows synced
-`external_data_source_id` | uuid | NULL | FK to source
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NOT NULL | Last update timestamp
-`deleted` | boolean | NOT NULL | Soft delete flag
-`deleted_at` | timestamp with tz | NULL | Deletion timestamp
+`id` | String | NOT NULL | Warehouse table UUID.
+`team_id` | Integer | NOT NULL |
+`name` | String | NOT NULL | Warehouse table name (includes the source prefix).
+`columns` | JSON | NOT NULL | JSON schema of the table's columns.
+`row_count` | Integer | NOT NULL | Approximate number of rows in the table.
+`external_data_source_id` | String | NOT NULL | Source that produced this table; joins to data_warehouse_sources.id.
+`created_at` | DateTime | NOT NULL | When the table was first synced.
+`updated_at` | DateTime | NOT NULL | When the table metadata was last updated.
+`deleted` | Integer | NOT NULL | 1 if the table has been deleted, 0 otherwise.
+`deleted_at` | DateTime | NOT NULL | When the table was deleted; NULL if not deleted.
 
 ### Columns JSON Structure
 
@@ -104,19 +106,20 @@ Each schema represents one table or entity being synced from an external source.
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`name` | varchar(400) | NOT NULL | Schema/table name (e.g., `customers`, `invoices`)
-`source_id` | uuid | NOT NULL | FK to `system.data_warehouse_sources.id`
-`table_id` | uuid | NULL | FK to `system.data_warehouse_tables.id`
-`should_sync` | boolean | NOT NULL | Whether this schema is enabled for syncing
-`status` | varchar(400) | NULL | Current sync status
-`sync_type` | varchar(128) | NULL | Sync strategy
-`last_synced_at` | timestamp with tz | NULL | Last successful sync timestamp
-`latest_error` | text | NULL | Most recent error message
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NOT NULL | Last update timestamp
-`deleted` | boolean | NOT NULL | Soft delete flag
-`deleted_at` | timestamp with tz | NULL | Deletion timestamp
+`id` | String | NOT NULL | Schema UUID.
+`team_id` | Integer | NOT NULL |
+`name` | String | NOT NULL | Name of the table/endpoint in the external source.
+`source_id` | String | NOT NULL | Parent source; joins to data_warehouse_sources.id.
+`table_id` | String | NOT NULL | Resulting warehouse table; joins to data_warehouse_tables.id.
+`should_sync` | Boolean | NOT NULL | Whether this table is enabled for syncing.
+`status` | String | NOT NULL | Latest sync status for this table, e.g. Running, Completed, Error.
+`sync_type` | String | NOT NULL | Sync strategy, e.g. 'full_refresh' or 'incremental'.
+`last_synced_at` | DateTime | NOT NULL | When this table last finished syncing.
+`latest_error` | String | NOT NULL | Most recent sync error message, if any.
+`created_at` | DateTime | NOT NULL | When the schema config was created.
+`updated_at` | DateTime | NOT NULL | When the schema config was last updated.
+`deleted` | Integer | NOT NULL | 1 if the schema config has been deleted, 0 otherwise.
+`deleted_at` | DateTime | NOT NULL | When it was deleted; NULL if not deleted.
 
 ### Status Values
 
@@ -148,16 +151,17 @@ Each job tracks the status, row count, and timing of a single sync operation.
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | uuid | NOT NULL | Primary key
-`pipeline_id` | uuid | NOT NULL | FK to `system.data_warehouse_sources.id`
-`schema_id` | uuid | NULL | FK to schema being synced
-`status` | varchar | NOT NULL | Job status
-`rows_synced` | bigint | NULL | Number of rows synced
-`billable` | boolean | NULL | Whether this sync job is billable (non-billable syncs don't appear in the syncs UI)
-`latest_error` | text | NULL | Error message if failed
-`created_at` | timestamp with tz | NOT NULL | Job start timestamp
-`finished_at` | timestamp with tz | NULL | Job completion timestamp
-`updated_at` | timestamp with tz | NOT NULL | Last update timestamp
+`id` | String | NOT NULL | Sync job UUID.
+`team_id` | Integer | NOT NULL |
+`pipeline_id` | String | NOT NULL | Source whose pipeline ran; joins to data_warehouse_sources.id.
+`schema_id` | String | NOT NULL | Source schema being synced; joins to source_schemas.id.
+`status` | String | NOT NULL | Job status, e.g. Running, Completed, Failed.
+`rows_synced` | Integer | NOT NULL | Number of rows synced by this job.
+`billable` | Boolean | NOT NULL | Whether the rows synced count toward billing.
+`latest_error` | String | NOT NULL | Error message if the job failed.
+`created_at` | DateTime | NOT NULL | When the job started.
+`finished_at` | DateTime | NOT NULL | When the job finished; NULL while running.
+`updated_at` | DateTime | NOT NULL | When the job row was last updated.
 
 ### Status Values
 

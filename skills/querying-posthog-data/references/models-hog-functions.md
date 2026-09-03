@@ -17,20 +17,20 @@ Hog functions are programmable event handlers in PostHog's CDP (Customer Data Pl
 ### Columns
 
 Column | Type | Nullable | Description
-`id` | string (UUID) | NOT NULL | Primary key
-`team_id` | integer | NOT NULL | Owning team
-`name` | varchar(400) | NULL | Display name
-`description` | text | NOT NULL | What the function does
-`type` | varchar(24) | NULL | Function type (see values above)
-`enabled` | boolean | NOT NULL | Whether the function is active (1 = yes, 0 = no)
-`deleted` | boolean | NOT NULL | Soft-delete flag (1 = deleted, 0 = active)
-`icon_url` | text | NULL | URL for the function's icon
-`template_id` | varchar(400) | NULL | ID of the template this function was created from
-`execution_order` | integer | NULL | Execution priority for transformations (lower runs first)
-`inputs_schema` | jsonb | NULL | Schema defining configurable input parameters
-`filters` | jsonb | NULL | Event filters controlling which events trigger the function
-`created_at` | timestamp with tz | NOT NULL | Creation timestamp
-`updated_at` | timestamp with tz | NOT NULL | Last update timestamp
+`id` | String | NOT NULL | Function UUID.
+`team_id` | Integer | NOT NULL |
+`name` | String | NOT NULL | Function name.
+`description` | String | NOT NULL | Function description.
+`type` | String | NOT NULL | Function type, e.g. 'destination', 'transformation', 'site_app'.
+`enabled` | Integer | NOT NULL | 1 if the function is enabled, 0 otherwise.
+`deleted` | Integer | NOT NULL | 1 if the function has been deleted, 0 otherwise.
+`icon_url` | String | NOT NULL | URL of the function's icon.
+`template_id` | String | NOT NULL | Id of the template this function was created from.
+`execution_order` | Integer | NOT NULL | Order in which the function runs relative to others of its type.
+`inputs_schema` | JSON | NOT NULL | JSON schema describing the function's configurable inputs.
+`filters` | JSON | NOT NULL | JSON filters deciding which events the function runs on.
+`created_at` | DateTime | NOT NULL | When the function was created.
+`updated_at` | DateTime | NOT NULL | When the function was last updated.
 
 ### Query Examples
 

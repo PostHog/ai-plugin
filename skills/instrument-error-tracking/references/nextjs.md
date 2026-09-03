@@ -34,6 +34,12 @@ Copy page
     pnpm add posthog-js
     ```
 
+    ### bun
+
+    ```bash
+    bun add posthog-js
+    ```
+
 2.  2
 
     ## Add environment variables

@@ -136,7 +136,7 @@ client.capture({
 
 ## Person profiles and properties
 
-The Node SDK captures identified events by default. These create [person profiles](/docs/data/persons.md). To set [person properties](/docs/data/user-properties.md) in these profiles, include them when capturing an event using `$set` and `$set_once`:
+The Node SDK captures identified events by default. These create [person profiles](/docs/data/persons.md). To set [person properties](/docs/product-analytics/person-properties.md) in these profiles, include them when capturing an event using `$set` and `$set_once`:
 
 Node.js
 
@@ -153,7 +153,7 @@ client.capture({
 })
 ```
 
-For more details on the difference between `$set` and `$set_once`, see our [person properties docs](/docs/data/user-properties.md#what-is-the-difference-between-set-and-set_once).
+For more details on the difference between `$set` and `$set_once`, see our [person properties docs](/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once).
 
 You can also use helper methods to set or remove person properties without hand-building `$set`, `$set_once`, or `$unset` payloads. See [person properties](/docs/product-analytics/person-properties.md) for examples.
 
@@ -190,7 +190,7 @@ client.alias({
 })
 ```
 
-We strongly recommend reading our docs on [alias](/docs/data/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
+We strongly recommend reading our docs on [alias](/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
 
 ## Super properties
 
