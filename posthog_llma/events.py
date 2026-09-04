@@ -69,8 +69,8 @@ def build_ai_generation(
         "$ai_framework": "claude-code",
         "$ai_project_name": project_name,
         "$ai_agent_name": agent_name,
-        "cache_read_input_tokens": cache_read_tokens,
-        "cache_creation_input_tokens": cache_creation_tokens,
+        "$ai_cache_read_input_tokens": cache_read_tokens,
+        "$ai_cache_creation_input_tokens": cache_creation_tokens,
     }
 
     if user_prompt and not privacy_mode:

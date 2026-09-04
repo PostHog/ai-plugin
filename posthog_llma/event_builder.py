@@ -167,7 +167,13 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
         if not privacy_mode:
             max_attr = config.get("max_attribute_length", 12000)
             content_blocks = []
-            if gen["output_text"]:
+            # Prefer the structured blocks so extended-thinking content stays
+            # typed as "thinking" rather than being flattened into assistant
+            # text. Older parsed payloads have no output_blocks, so fall back
+            # to the flattened output_text.
+            if gen.get("output_blocks"):
+                content_blocks.extend(gen["output_blocks"])
+            elif gen["output_text"]:
                 content_blocks.append({"type": "text", "text": gen["output_text"]})
             content_blocks.extend(_truncate_tool_blocks(gen.get("tool_use_blocks", []), max_attr))
             if content_blocks:

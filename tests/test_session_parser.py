@@ -314,12 +314,14 @@ class TestParseSession:
             assert len(parsed["tool_uses"]) == 1
             assert parsed["tool_uses"][0]["name"] == "Bash"
 
-            # Downstream events include thinking in output_choices
+            # Downstream events include thinking in output_choices, typed as a
+            # thinking block rather than flattened into assistant text.
             events = build_events(parsed, DEFAULT_CONFIG)
             gen_ev = next(e for e in events if e["event"] == "$ai_generation")
             content_blocks = gen_ev["properties"]["$ai_output_choices"][0]["content"]
-            text_blocks = [b for b in content_blocks if b.get("type") == "text"]
-            assert text_blocks and "deep thoughts" in text_blocks[0]["text"]
+            thinking_blocks = [b for b in content_blocks if b.get("type") == "thinking"]
+            assert thinking_blocks and thinking_blocks[0]["thinking"] == "deep thoughts"
+            assert not [b for b in content_blocks if b.get("type") == "text"]
         finally:
             os.unlink(path)
 
@@ -514,6 +516,65 @@ class TestParseSession:
             # Text came first in the source, so output_text must lead
             # with "preface" rather than reshuffling thinking ahead of it.
             assert parsed["generations"][0]["output_text"] == "preface\nafterthought"
+            # The same order is preserved in the structured blocks, with each
+            # block keeping its own type rather than collapsing into text.
+            blocks = parsed["generations"][0]["output_blocks"]
+            assert blocks == [
+                {"type": "text", "text": "preface"},
+                {"type": "thinking", "thinking": "afterthought"},
+            ]
+        finally:
+            os.unlink(path)
+
+    def test_thinking_and_text_stay_separate_blocks(self):
+        """Extended thinking must not be ingested as assistant text.
+
+        _finalize_generation joins thinking and text into a single output_text
+        for backward compatibility, but $ai_output_choices needs them typed
+        separately or thinking content renders as ordinary assistant output and
+        cannot be filtered on.
+        """
+        entries = [
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "go"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
+                    "usage": {"input_tokens": 5, "output_tokens": 10},
+                    "content": [
+                        {"type": "thinking", "thinking": "weighing the options"},
+                        {"type": "text", "text": "Here is the answer."},
+                    ],
+                },
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            gen = parsed["generations"][0]
+            # Flattened form is unchanged.
+            assert gen["output_text"] == "weighing the options\nHere is the answer."
+
+            events = build_events(parsed, DEFAULT_CONFIG)
+            gen_ev = next(e for e in events if e["event"] == "$ai_generation")
+            content = gen_ev["properties"]["$ai_output_choices"][0]["content"]
+
+            thinking = [b for b in content if b.get("type") == "thinking"]
+            text = [b for b in content if b.get("type") == "text"]
+            assert len(thinking) == 1 and thinking[0]["thinking"] == "weighing the options"
+            assert len(text) == 1 and text[0]["text"] == "Here is the answer."
+            # And the reasoning must not leak into the visible answer text.
+            assert "weighing the options" not in text[0]["text"]
         finally:
             os.unlink(path)
 
