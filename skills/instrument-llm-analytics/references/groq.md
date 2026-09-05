@@ -48,6 +48,12 @@ Skip the manual setup — run this in your project and the wizard installs the S
     npm install @posthog/ai posthog-node openai
     ```
 
+    ### Go
+
+    ```prose
+    PostHog doesn't have a Go wrapper for this SDK yet. Use the [OpenTelemetry integration](https://posthog.com/docs/ai-observability/installation/opentelemetry) instead.
+    ```
+
 2.  2
 
     ## Configure PostHog
