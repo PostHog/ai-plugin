@@ -871,6 +871,7 @@ tuplePlus
 tupleToNameValuePairs
 unhex
 uniq
+uniqCombined
 uniqExact
 uniqExactMerge
 uniqExactState

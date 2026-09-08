@@ -7,6 +7,7 @@ Messaging preferences per recipient, one row per recipient. The `preferences` ma
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Preference row UUID.
 `team_id` | Integer | NOT NULL |
 `identifier` | String | NOT NULL | Recipient identifier, usually an email address.
@@ -22,6 +23,7 @@ Message categories recipients can opt out of, one row per category. Category IDs
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Category UUID, used as the key in recipient preferences.
 `team_id` | Integer | NOT NULL |
 `key` | String | NOT NULL | Stable category key used in the API, e.g. 'newsletter'.

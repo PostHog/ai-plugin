@@ -8,6 +8,7 @@ Each active trace can have at most one active review at a time.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Review UUID.
 `team_id` | Integer | NOT NULL |
 `trace_id` | String | NOT NULL | LLM trace that was reviewed.
@@ -34,6 +35,7 @@ Each row captures one scorer definition and exactly one value type.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Score UUID.
 `team_id` | Integer | NOT NULL |
 `review_id` | UUID | NOT NULL | Review this score belongs to; joins to trace_reviews.id.
@@ -62,6 +64,7 @@ Review queues are named buckets used to route traces that still need review.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Queue UUID.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Queue name.
@@ -85,6 +88,7 @@ An active trace can only be pending in one queue at a time.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Queue item UUID.
 `team_id` | Integer | NOT NULL |
 `queue_id` | UUID | NOT NULL | Queue this item belongs to; joins to review_queues.id.
@@ -110,6 +114,7 @@ Each scorer has a stable identity but config is versioned and immutable — bump
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Score definition UUID.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Score definition name.

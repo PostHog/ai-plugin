@@ -171,7 +171,7 @@ Set HMAC-based identity verification.
 
 **Notes:**
 
-When set, products like conversations use server-verified identity (distinct_id + HMAC hash) instead of anonymous session identifiers. The hash should be computed server-side as HMAC-SHA256 of the distinct_id using the project's API secret.
+When set, products like conversations use server-verified identity (distinct_id + HMAC hash) instead of anonymous session identifiers. The hash should be computed server-side as HMAC-SHA256 of the distinct_id using the project's API secret. Any additional signed identity claims are cleared because they are bound to the previously configured distinct_id.
 
 ### Parameters
 
@@ -553,7 +553,7 @@ By default, PostHog assigns each user a randomly generated `distinct_id`. Use th
 
 ### Parameters
 
-- **`new_distinct_id?`** (`string`) - A string that uniquely identifies a user. If not provided, the distinct_id currently in the persistent store (cookie or localStorage) will be used.
+- **`new_distinct_id`** (`string`) - A non-empty string that uniquely identifies a user.
 - **`userPropertiesToSet?`** (`Properties`) - Optional: An associative array of properties to store about the user. Note: For feature flag evaluations, if the same key is present in the userPropertiesToSetOnce, it will be overwritten by the value in userPropertiesToSet.
 - **`userPropertiesToSetOnce?`** (`Properties`) - Optional: An associative array of properties to store about the user. If property is previously set, this does not override that value.
 

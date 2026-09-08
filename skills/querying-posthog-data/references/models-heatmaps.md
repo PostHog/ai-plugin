@@ -8,6 +8,7 @@ This is a first-class HogQL table (no `system.` prefix). Coordinates are stored 
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `session_id` | String | NOT NULL | Recording session the interaction belongs to; matches `session_replay_events.session_id`.
 `team_id` | Integer | NOT NULL |
 `distinct_id` | String | NOT NULL | Identifier of the user/device that interacted.
