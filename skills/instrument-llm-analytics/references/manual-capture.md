@@ -328,7 +328,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | Property | Description |
     | --- | --- |
     | $ai_cache_read_input_tokens | (Optional) Number of tokens read from cache |
-    | $ai_cache_creation_input_tokens | (Optional) Number of tokens written to cache (Anthropic-specific)When both TTL-specific counts are present, PostHog uses them instead of this aggregate. The aggregate should equal their sum; if either count is missing, PostHog uses the aggregate. |
+    | $ai_cache_creation_input_tokens | (Optional) Number of tokens written to cacheFor Anthropic events, PostHog uses the TTL-specific counts instead of this aggregate when both are present. The aggregate should equal their sum. If either count is missing, PostHog uses the aggregate.Built-in Gemini pricing uses normal input rates for cache writes and does not estimate cache storage fees. Custom pricing can override these rates. |
     | $ai_cache_creation_5m_input_tokens | (Optional) Number of tokens written to Anthropic's 5-minute cache |
     | $ai_cache_creation_1h_input_tokens | (Optional) Number of tokens written to Anthropic's 1-hour cache |
     | $ai_cache_reporting_exclusive | (Optional) Whether cache tokens are excluded from $ai_input_tokens. When true, cache tokens are separate from input tokens. When false, input tokens already include cache tokens. Defaults to true for Anthropic provider or Claude models, false otherwise. |

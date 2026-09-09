@@ -7,6 +7,7 @@ Dashboards are collections of insights that provide a unified view of analytics 
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | Integer | NOT NULL | Dashboard id.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Dashboard name.
@@ -31,6 +32,7 @@ Insights are saved analytics queries that visualize data.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | Integer | NOT NULL | Insight id.
 `short_id` | String | NOT NULL | Short URL-safe id used in insight links.
 `team_id` | Integer | NOT NULL |

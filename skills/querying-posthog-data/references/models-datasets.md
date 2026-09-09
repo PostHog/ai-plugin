@@ -7,6 +7,7 @@ Every item mutation creates a dataset revision, which makes prior dataset conten
 ## Dataset (`system.datasets`)
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Dataset UUID.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Dataset name.
@@ -21,6 +22,7 @@ Column | Type | Nullable | Description
 ## Dataset revision (`system.dataset_revisions`)
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Dataset revision UUID.
 `team_id` | Integer | NOT NULL |
 `dataset_id` | UUID | NOT NULL | Parent dataset; joins to datasets.id.
@@ -34,6 +36,7 @@ Editing dataset name, description, or metadata does not create a revision.
 ## Dataset item (`system.dataset_items`)
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Stable dataset item UUID.
 `team_id` | Integer | NOT NULL |
 `dataset_id` | UUID | NOT NULL | Parent dataset; joins to datasets.id.
@@ -49,6 +52,7 @@ Join `current_version_id` to `system.dataset_item_versions.id` for the current v
 ## Dataset item version (`system.dataset_item_versions`)
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Dataset item version UUID.
 `team_id` | Integer | NOT NULL |
 `dataset_id` | UUID | NOT NULL | Parent dataset; joins to datasets.id.

@@ -7,6 +7,7 @@ Support tickets from the conversations product, created via widget, email, or Sl
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Ticket UUID.
 `team_id` | Integer | NOT NULL |
 `ticket_number` | Integer | NOT NULL | Human-friendly sequential ticket number.

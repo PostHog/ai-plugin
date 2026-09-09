@@ -13,6 +13,7 @@ One row per account.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Account UUID.
 `team_id` | Integer | NOT NULL |
 `external_id` | String | NULL | Identifier of the account in the source system.
@@ -51,6 +52,7 @@ A **relationship definition** is a team-defined relationship type between a Post
 ### `system.account_relationship_definitions` columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Relationship definition UUID.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Human-readable name of the relationship; unique within the team.
@@ -63,6 +65,7 @@ Column | Type | Nullable | Description
 ### `system.account_relationships` columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Relationship assignment UUID.
 `team_id` | Integer | NOT NULL |
 `definition_id` | UUID | NOT NULL | Relationship definition this assignment is for; join to `system.account_relationship_definitions.id`.
@@ -88,6 +91,7 @@ The tables apply account access rules. `system.feature_requests` includes a requ
 ### `system.feature_requests` columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Feature request UUID.
 `team_id` | Integer | NOT NULL |
 `title` | String | NOT NULL | Customer-facing request title.
@@ -107,6 +111,7 @@ Column | Type | Nullable | Description
 One row per active request and account pair visible to the caller.
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Feature request account link UUID.
 `team_id` | Integer | NOT NULL |
 `feature_request_id` | UUID | NOT NULL | Feature request this link belongs to. Join to `system.feature_requests.id`.
@@ -117,6 +122,7 @@ Column | Type | Nullable | Description
 ### `system.feature_request_evidence` columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Evidence UUID.
 `team_id` | Integer | NOT NULL |
 `account_link_id` | UUID | NOT NULL | Request and account pair this evidence supports. Join to `system.feature_request_account_links.id`.
@@ -138,6 +144,7 @@ Column | Type | Nullable | Description
 #### `system.feature_request_product_areas` columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Product area UUID.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Team-maintained product area name.
@@ -151,6 +158,7 @@ Column | Type | Nullable | Description
 #### `system.feature_request_product_area_links` columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Feature request product area link UUID.
 `team_id` | Integer | NOT NULL |
 `feature_request_id` | UUID | NOT NULL | Feature request. Join to `system.feature_requests.id`.
@@ -160,6 +168,7 @@ Column | Type | Nullable | Description
 ### `system.feature_request_history` columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Feature request history entry UUID.
 `team_id` | Integer | NOT NULL |
 `feature_request_id` | UUID | NOT NULL | Feature request that changed. Join to `system.feature_requests.id`.
@@ -212,6 +221,7 @@ Custom properties let a team attach typed attributes to accounts. A **definition
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Custom property definition UUID.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Human-readable name of the custom property; unique within the team.

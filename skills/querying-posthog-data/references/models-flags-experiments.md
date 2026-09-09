@@ -9,6 +9,7 @@ Feature flags control rollouts of new features and are used for A/B testing.
 These are the only columns exposed via HogQL — the full flag model (e.g. `active`, `ensure_experience_continuity`, `last_called_at`, rollback settings) is not queryable here; fetch the flag via the feature flag API tools instead.
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | Integer | NOT NULL | Flag id.
 `team_id` | Integer | NOT NULL |
 `key` | String | NOT NULL | Flag key used by SDKs to evaluate the flag.
@@ -66,6 +67,7 @@ Experiments are A/B tests that compare variants against a control group.
 These are the only columns exposed via HogQL — the full experiment model (e.g. `deleted`, `conclusion`, `metrics`, `metrics_secondary`, `stats_config`, `exposure_criteria`, `holdout_id`, `type`) is not queryable here; fetch the experiment via the experiment API tools instead.
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | Integer | NOT NULL | Experiment id.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Experiment name.

@@ -7,6 +7,7 @@ API endpoints that expose saved HogQL or insight queries as callable API routes.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Endpoint UUID.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Endpoint name, used to call it.
@@ -53,6 +54,7 @@ A new version is created each time an endpoint's query changes.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Endpoint version UUID.
 `team_id` | Integer | NOT NULL |
 `endpoint_id` | String | NOT NULL | Parent endpoint; joins to data_modeling_endpoints.id.

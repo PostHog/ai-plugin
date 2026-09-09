@@ -7,6 +7,7 @@ Saved views for organizing session recordings. There are two types: collections 
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | Integer | NOT NULL | Playlist id.
 `short_id` | String | NOT NULL | Short URL-safe id used in playlist links.
 `name` | String | NOT NULL | User-given playlist name.
