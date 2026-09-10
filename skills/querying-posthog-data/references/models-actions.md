@@ -7,6 +7,7 @@ Actions are named combinations of events and conditions used for filtering and a
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | Integer | NOT NULL | Action id.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Action name.

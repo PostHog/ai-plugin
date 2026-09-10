@@ -7,6 +7,7 @@ Surveys collect feedback from users through questions and forms.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Survey id (UUID).
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Survey name.
@@ -64,6 +65,7 @@ Survey responses are stored as events, so archiving one is recorded in Postgres 
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | UUID | NOT NULL | Archive record UUID.
 `team_id` | Integer | NOT NULL |
 `survey_id` | UUID | NOT NULL | Survey the archived response belongs to; joins to surveys.id.

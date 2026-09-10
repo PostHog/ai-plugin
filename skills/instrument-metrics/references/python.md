@@ -6,7 +6,7 @@ Copy page
 
 # Python metrics installation - Docs
 
-> **Note:** Metrics is in alpha. Setup details may change before general availability.
+> **Note:** Metrics is in private alpha and the viewer is only turned on for selected teams, so you may not be able to view metrics you send yet. Setup details may change before general availability.
 
 The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metrics` API, so you can record metrics with the same client you use for events and feature flags.
 

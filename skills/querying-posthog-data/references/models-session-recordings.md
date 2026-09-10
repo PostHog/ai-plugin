@@ -7,6 +7,7 @@ Metadata for session recordings captured by the PostHog SDK. The actual replay d
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Recording row UUID.
 `session_id` | String | NOT NULL | Session identifier; matches events.$session_id.
 `team_id` | Integer | NOT NULL |

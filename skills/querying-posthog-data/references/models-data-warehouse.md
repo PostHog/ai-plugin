@@ -7,6 +7,7 @@ External data sources represent connections to third-party data providers (Strip
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Source UUID. Pass it as a query's connection id to live-query a direct connection.
 `team_id` | Integer | NOT NULL |
 `source_type` | String | NOT NULL | Source connector type, e.g. 'Stripe', 'Postgres', 'Hubspot'.
@@ -49,6 +50,7 @@ Individual tables synced from external sources or manually uploaded. Each table 
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Warehouse table UUID.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Warehouse table name (includes the source prefix).
@@ -106,6 +108,7 @@ Each schema represents one table or entity being synced from an external source.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Schema UUID.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Name of the table/endpoint in the external source.
@@ -151,6 +154,7 @@ Each job tracks the status, row count, and timing of a single sync operation.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Sync job UUID.
 `team_id` | Integer | NOT NULL |
 `pipeline_id` | String | NOT NULL | Source whose pipeline ran; joins to data_warehouse_sources.id.

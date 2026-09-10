@@ -1011,7 +1011,7 @@ await client.enable()
 
 Evaluate all feature flags for a user in a single call and return a  snapshot. Branch on `.isEnabled()` / `.getFlag()`, then pass the same snapshot to `capture()` via the `flags` option so the captured event carries the exact flag values the code branched on.
 Prefer this over repeated `isFeatureEnabled()` / `getFeatureFlag()` calls and over `capture({ sendFeatureFlags: true })` — it consolidates flag evaluation into a single `/flags` request per incoming request.
-**Local evaluation is transparent.** When the poller can resolve a flag from cached definitions, no network call is made and the snapshot's `$feature_flag_called` events are tagged `locally_evaluated: true`. A requested key missing from local definitions is included in a `/flags` fallback unless `onlyEvaluateLocally` is true. Locally resolved values remain authoritative when remote results are merged.
+**Local evaluation is transparent.** When the poller can resolve a flag from cached definitions, no network call is made and the snapshot's `$feature_flag_called` events are tagged `locally_evaluated: true`. A requested key missing from local definitions is included in a `/flags` fallback unless `onlyEvaluateLocally` is true. Locally resolved values remain authoritative when remote results are merged. In particular, a cached inactive definition is a conclusive `false` result locally, while remote evaluation omits globally inactive flags and therefore leaves those keys absent.
 **Trim the request.** Pass `flagKeys` to scope local evaluation, the underlying `/flags` request, and the returned snapshot to a subset of flags. Remote evaluation responses are not cached, so a key missing both locally and remotely costs one `/flags` request per `evaluateFlags()` call.
 **Trim the event payload.** Use `flags.only([...])` or `flags.onlyAccessed()` to filter which flags get attached to a captured event without re-fetching.
 
@@ -1170,6 +1170,7 @@ const result = await client.getAllFlagsAndPayloads('user_123', {
 **Release Tag:** deprecated
 
 Get the value of a feature flag for a specific user.
+A boolean `false` is a conclusive off evaluation. `undefined` means no result is available, for example because the key was not returned or local-only evaluation was inconclusive. Local evaluation resolves cached inactive definitions to `false`; remote evaluation omits globally inactive flags, so the result depends on which evaluation path is available.
 
 ### Parameters
 
@@ -1202,7 +1203,7 @@ if (flagValue === 'variant-a') {
 } else if (flagValue === 'variant-b') {
   // Show variant B
 } else {
-  // Flag is disabled or not found
+  // Flag evaluated off, or no value was returned
 }
 ```
 
@@ -1289,7 +1290,7 @@ const payload = await client.getFeatureFlagPayload('org-flag', 'user_123', undef
 
 **Release Tag:** public
 
-Get the result of evaluating a feature flag, including its value and payload. This is more efficient than calling getFeatureFlag and getFeatureFlagPayload separately when you need both.
+Get the result of evaluating a feature flag, including its value and payload. This is more efficient than calling getFeatureFlag and getFeatureFlagPayload separately when you need both. A result with `enabled: false` is a conclusive off evaluation; `undefined` means no evaluation is available. Local evaluation resolves cached inactive definitions to `enabled: false`, while remote evaluation omits globally inactive flags.
 
 ### Parameters
 
@@ -1392,7 +1393,7 @@ if (isEnabled) {
   // Feature is enabled
   console.log('New feature is active')
 } else {
-  // Feature is disabled
+  // Flag evaluated off, or no value was returned
   console.log('New feature is not active')
 }
 ```

@@ -7,6 +7,7 @@ Error tracking issues represent grouped exceptions captured by PostHog SDKs. Eac
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Issue UUID.
 `team_id` | Integer | NOT NULL |
 `created_at` | DateTime | NOT NULL | When the issue was first created.
@@ -50,6 +51,7 @@ Rows can also track missing symbol sets so future uploads know which stack frame
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Symbol set UUID.
 `team_id` | Integer | NOT NULL |
 `ref` | String | NOT NULL | Reference identifying the symbol set, e.g. a chunk/file id.

@@ -7,6 +7,7 @@ Notebooks are collaborative documents combining text, insights, and code.
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | String | NOT NULL | Notebook UUID.
 `short_id` | String | NOT NULL | Short URL-safe id used in notebook links.
 `team_id` | Integer | NOT NULL |

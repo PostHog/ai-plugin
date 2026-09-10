@@ -7,6 +7,7 @@ Annotations are timestamped notes used to mark product changes, incidents, or re
 ### Columns
 
 Column | Type | Nullable | Description
+--- | --- | --- | ---
 `id` | Integer | NOT NULL | Annotation id.
 `team_id` | Integer | NOT NULL |
 `content` | String | NULL | Annotation text.

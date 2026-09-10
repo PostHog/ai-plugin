@@ -6,7 +6,7 @@ Copy page
 
 # JavaScript (web) metrics installation - Docs
 
-> **Note:** Metrics is in alpha. Setup details may change before general availability.
+> **Note:** Metrics is in private alpha and the viewer is only turned on for selected teams, so you may not be able to view metrics you send yet. Setup details may change before general availability.
 
 If [posthog-js](/docs/libraries/js.md) is already running on your site, you can record metrics directly with the `posthog.metrics` API. No new packages, no extra authentication.
 
