@@ -17,6 +17,7 @@ building-html-canvases
 building-react-quill-canvases
 building-workflows
 checking-deploy-timing
+checking-member-access
 choosing-trend-or-slope-view
 cleaning-up-stale-feature-flags
 composing-grid-canvases
@@ -34,6 +35,7 @@ creating-box-plot-insights
 creating-experiments
 creating-online-evaluations
 creating-replay-vision-scanners
+creating-surveys
 debugging-experiments
 debugging-local-replay
 debugging-mcp-analytics
