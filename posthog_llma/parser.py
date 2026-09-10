@@ -332,6 +332,10 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
     type_order = state.get("type_order") or ["thinking", "text", "tool_use"]
 
     text_parts = []
+    # Structured counterpart to text_parts: keeps thinking and text distinct so
+    # downstream consumers can render/filter them separately. `output_text`
+    # remains the flattened join for backward compatibility.
+    output_blocks = []
     entry_tool_uses = []
     for block_type in type_order:
         if block_type == "thinking":
@@ -339,11 +343,13 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
                 t = item.get("thinking", "")
                 if t:
                     text_parts.append(t)
+                    output_blocks.append({"type": "thinking", "thinking": t})
         elif block_type == "text":
             for item in blocks.get("text", []):
                 t = item.get("text", "")
                 if t:
                     text_parts.append(t)
+                    output_blocks.append({"type": "text", "text": t})
         elif block_type == "tool_use":
             for item in blocks.get("tool_use", []):
                 entry_tool_uses.append({
@@ -374,6 +380,7 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
         "span_id": span_id,
         "msg_id": state.get("msg_id", ""),
         "output_text": output_text,
+        "output_blocks": output_blocks,
         "tool_use_blocks": tool_use_blocks,
         "is_error": stop_reason == "error",
         "error_message": state.get("error_message"),
