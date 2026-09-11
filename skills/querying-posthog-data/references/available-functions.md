@@ -516,6 +516,7 @@ maxOrNull
 maxState
 maxStateOrDefault
 maxStateOrNull
+MD5
 md5
 median
 medianArgMax
