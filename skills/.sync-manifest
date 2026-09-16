@@ -14,9 +14,11 @@ authoring-scouts
 building-a-dashboard
 building-canvases
 building-html-canvases
+building-loops
 building-react-quill-canvases
 building-workflows
 checking-deploy-timing
+checking-member-access
 choosing-trend-or-slope-view
 cleaning-up-stale-feature-flags
 composing-grid-canvases
@@ -34,10 +36,8 @@ creating-box-plot-insights
 creating-experiments
 creating-online-evaluations
 creating-replay-vision-scanners
+creating-surveys
 debugging-experiments
-debugging-local-replay
-debugging-mcp-analytics
-debugging-signals-pipeline
 debugging-surveys
 designing-email-templates
 diagnosing-ci-and-merge-bottlenecks
@@ -72,7 +72,6 @@ finding-replay-for-issue
 finding-sessions-to-watch
 formatting-insight-axes
 grouping-noisy-errors
-improving-mcp-tools
 inbox-exploration
 instrument-error-tracking
 instrument-feature-flags
@@ -99,7 +98,6 @@ modeling-dimension-tables
 modeling-product-usage-metrics
 modeling-revenue-metrics
 modeling-warehouse-foundations
-organizing-conversations-code
 planning-voice-agent-user-interviews
 querying-canvas-data
 querying-posthog-data
@@ -115,7 +113,6 @@ scanning-experiments-with-replay-vision
 setting-up-a-custom-rest-source
 setting-up-a-data-warehouse-source
 setting-up-data-catalog
-setting-up-support-slack-locally
 setting-up-warehouse-properties
 signals
 signals-scout-ai-observability
@@ -150,7 +147,6 @@ skills-store
 suggesting-data-imports
 suggesting-path-cleaning-rules
 suppressing-noisy-errors
-testing-mcp-tools-locally
 triaging-error-issues
 triaging-visual-review-runs
 tuning-incremental-sync-config
