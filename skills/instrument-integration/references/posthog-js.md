@@ -171,12 +171,12 @@ Set HMAC-based identity verification.
 
 **Notes:**
 
-When set, products like conversations use server-verified identity (distinct_id + HMAC hash) instead of anonymous session identifiers. The hash should be computed server-side as HMAC-SHA256 of the distinct_id using the project's API secret. Any additional signed identity claims are cleared because they are bound to the previously configured distinct_id.
+When set, products like conversations use server-verified identity (distinct_id + HMAC hash) instead of anonymous session identifiers. The hash should be computed server-side as HMAC-SHA256 of the distinct_id, signed with the Secret API key from Support settings. Project secret API keys (project settings) and personal API keys are rejected. Any additional signed identity claims are cleared because they are bound to the previously configured distinct_id.
 
 ### Parameters
 
 - **`distinctId`** (`string`) - The verified user distinct_id
-- **`hash`** (`string`) - HMAC-SHA256 of distinctId using the project API secret
+- **`hash`** (`string`) - HMAC-SHA256 of distinctId, signed with the Secret API key from Support settings
 
 ### Returns
 
@@ -767,6 +767,7 @@ Removes properties from the person profile associated with the current `distinct
 **Notes:**
 
 Deletes the given person properties from the person profile in PostHog. This is the counterpart to  — instead of hand-passing `$unset` inside a `capture()` call, you can remove properties with a dedicated method. If `person_profiles` is set to `never`, this call is ignored.
+`$fbc` and `$fbp` read by the SDK are unset for this call only. `save_campaign_params: false` stops the reads.
 
 ### Parameters
 
