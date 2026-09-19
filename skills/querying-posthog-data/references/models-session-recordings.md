@@ -27,7 +27,6 @@ Column | Type | Nullable | Description
 `deleted` | Integer | NOT NULL | 1 if the recording has been deleted, 0 otherwise.
 `created_at` | DateTime | NOT NULL | When the recording metadata row was created.
 `retention_period_days` | Integer | NOT NULL | How long the recording is retained, in days.
-`storage_version` | String | NOT NULL | Storage format version of the recording payload.
 
 ### Key Relationships
 
