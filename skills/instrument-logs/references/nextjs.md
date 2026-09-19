@@ -77,15 +77,15 @@ Copy page
     export const loggerProvider = new LoggerProvider({
       resource: resourceFromAttributes({ 'service.name': 'my-nextjs-app' }),
       processors: [
-        new BatchLogRecordProcessor(
-          new OTLPLogExporter({
+        new BatchLogRecordProcessor({
+          exporter: new OTLPLogExporter({
             url: 'https://us.i.posthog.com/i/v1/logs',
             headers: {
               Authorization: 'Bearer <ph_project_token>',
               'Content-Type': 'application/json',
             },
-          })
-        ),
+          }),
+        }),
       ],
     })
     export function register() {

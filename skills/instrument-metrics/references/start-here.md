@@ -6,9 +6,9 @@ Copy page
 
 # Getting started with metrics - Docs
 
-**Metrics is in private alpha**
+**Metrics is in open alpha**
 
-The metrics viewer is only turned on for selected teams. You can send metrics now and they are stored against your project, but you won't be able to view them in PostHog until your team is added. Setup details, including the ingestion endpoint, may change before general availability.
+Any team can turn on metrics: open [Metrics](https://app.posthog.com/metrics) in PostHog and select **Enable metrics** in the onboarding view. See [turn on metrics](/docs/metrics.md#turn-on-metrics) for the full flow. Setup details, including the ingestion endpoint, may change before general availability.
 
 ## Send your first metrics
 

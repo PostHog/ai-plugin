@@ -2338,6 +2338,45 @@ The schema is authoritative; the prose and examples below are guidance.
       "title": "ExperimentDataWarehouseNode",
       "type": "object"
     },
+    "ExperimentExposureNode": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "ExperimentExposureNode",
+          "default": "ExperimentExposureNode",
+          "title": "Kind",
+          "type": "string"
+        },
+        "response": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Response"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "version of the node, used for schema migrations",
+          "title": "Version"
+        }
+      },
+      "title": "ExperimentExposureNode",
+      "type": "object"
+    },
     "ExperimentFunnelMetric": {
       "additionalProperties": false,
       "properties": {
@@ -3233,7 +3272,8 @@ The schema is authoritative; the prose and examples below are guidance.
             "mapping": {
               "ActionsNode": "#/$defs/ActionsNode",
               "EventsNode": "#/$defs/EventsNode",
-              "ExperimentDataWarehouseNode": "#/$defs/ExperimentDataWarehouseNode"
+              "ExperimentDataWarehouseNode": "#/$defs/ExperimentDataWarehouseNode",
+              "ExperimentExposureNode": "#/$defs/ExperimentExposureNode"
             },
             "propertyName": "kind"
           },
@@ -3246,6 +3286,9 @@ The schema is authoritative; the prose and examples below are guidance.
             },
             {
               "$ref": "#/$defs/ExperimentDataWarehouseNode"
+            },
+            {
+              "$ref": "#/$defs/ExperimentExposureNode"
             }
           ],
           "title": "Start Event"
