@@ -53,14 +53,16 @@ Copy page
       resource: resourceFromAttributes({
         'service.name': 'my-node-service',
       }),
-      logRecordProcessor: new BatchLogRecordProcessor(
-        new OTLPLogExporter({
-          url: 'https://us.i.posthog.com/i/v1/logs',
-          headers: {
-            'Authorization': 'Bearer <ph_project_token>'
-          }
+      logRecordProcessors: [
+        new BatchLogRecordProcessor({
+          exporter: new OTLPLogExporter({
+            url: 'https://us.i.posthog.com/i/v1/logs',
+            headers: {
+              'Authorization': 'Bearer <ph_project_token>'
+            }
+          })
         })
-      )
+      ]
     });
     sdk.start();
     ```
@@ -73,11 +75,13 @@ Copy page
 
     ```javascript
     const sdk = new NodeSDK({
-      logRecordProcessor: new BatchLogRecordProcessor(
-        new OTLPLogExporter({
-          url: 'https://us.i.posthog.com/i/v1/logs?token=<ph_project_token>'
+      logRecordProcessors: [
+        new BatchLogRecordProcessor({
+          exporter: new OTLPLogExporter({
+            url: 'https://us.i.posthog.com/i/v1/logs?token=<ph_project_token>'
+          })
         })
-      )
+      ]
     });
     ```
 

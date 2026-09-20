@@ -89,13 +89,12 @@ Column | Type | Nullable | Description
   "minimum_detectable_effect": 5,
   "recommended_running_time": 14,
   "recommended_sample_size": 1000,
-  "feature_flag_variants": [
-    {"key": "control", "name": "Control", "rollout_percentage": 50},
-    {"key": "test", "name": "Test", "rollout_percentage": 50}
-  ],
   "custom_exposure_filter": {...}
 }
 ```
+
+Variant keys and rollout percentages live on the linked flag. Read them from
+`filters.multivariate.variants` in `system.feature_flags`.
 
 ### Key Relationships
 
