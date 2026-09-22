@@ -188,6 +188,10 @@ run_case "deny with --json flag still extracts tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --json delete-feature-flag {\"id\":1}"}}' \
     prompt delete-feature-flag
 
+run_case "--confirm before the tool name still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm insight-delete {}"}}' \
+    prompt insight-delete
+
 run_case "sensitive write via plugin-prefixed exec name prompts" \
     "$(exec_call delete-feature-flag mcp__posthog_posthog__exec)" \
     prompt delete-feature-flag
