@@ -11,12 +11,10 @@ import os
 import subprocess
 import sys
 
-# Add plugin root to path so we can import the posthog_llma package
-PLUGIN_ROOT = os.environ.get(
-    "CLAUDE_PLUGIN_ROOT",
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-)
-sys.path.insert(0, PLUGIN_ROOT)
+# Resolved from __file__, never from CLAUDE_PLUGIN_ROOT: the package sits
+# beside this hooks/ directory in both plugins, while CLAUDE_PLUGIN_ROOT
+# differs between them.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from posthog_llma import (  # noqa: E402
     load_config,
