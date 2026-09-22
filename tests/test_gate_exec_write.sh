@@ -164,9 +164,9 @@ run_case "disable=0 leaves the gate active" \
 
 # --- POSTHOG_MCP_EXEC_GATE_DENY overrides the default set ---
 
-run_case 'deny="*" restores prompting on every write' \
-    "$(exec_call experiment-update)" \
-    prompt experiment-update \
+run_case 'deny="*" restores prompting on every write (survey-stop has no regex verb)' \
+    "$(exec_call survey-stop)" \
+    prompt survey-stop \
     POSTHOG_MCP_EXEC_GATE_DENY="*"
 
 run_case "deny narrowed to feature flags: experiment-update is silent" \
@@ -249,6 +249,10 @@ run_case "tool with no write verb stays silent (persons-list)" \
 run_case "embedded substring is not a write verb (e.g. updates-feed)" \
     "$(exec_call some-updates-feed)" \
     silent
+
+run_case "write verb regex still applies to a tool absent from write-tools.txt" \
+    "$(exec_call made-up-tool-delete)" \
+    prompt made-up-tool-delete
 
 # --- fail-open contract: the hook must never break a tool call ---
 #
