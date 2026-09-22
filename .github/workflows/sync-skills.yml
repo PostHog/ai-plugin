@@ -100,17 +100,23 @@ jobs:
           echo "has_changes=true" >> "$GITHUB_OUTPUT"
 
           # Bump patch version in plugin manifests
-          for f in .claude-plugin/plugin.json .cursor-plugin/plugin.json .codex-plugin/plugin.json gemini-extension.json; do
+          for f in .claude-plugin/plugin.json .cursor-plugin/plugin.json .codex-plugin/plugin.json gemini-extension.json telemetry/.claude-plugin/plugin.json; do
             if [ -f "$f" ]; then
               jq '.version |= (split(".") | .[2] = (.[2] | tonumber + 1 | tostring) | join("."))' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
             fi
           done
 
-          # Keep marketplace.json in sync with plugin.json
+          # Keep marketplace.json in sync with the plugin manifests. Match each
+          # entry by name: an install pins the version, so an entry that misses
+          # a bump never reaches the people who already installed it.
           m=.claude-plugin/marketplace.json
           if [ -f "$m" ]; then
             jq --arg v "$(jq -r .version .claude-plugin/plugin.json)" \
-              '.plugins[0].version = $v' "$m" > "$m.tmp" && mv "$m.tmp" "$m"
+              '(.plugins[] | select(.name == "posthog") | .version) = $v' "$m" > "$m.tmp" && mv "$m.tmp" "$m"
+            if [ -f telemetry/.claude-plugin/plugin.json ]; then
+              jq --arg v "$(jq -r .version telemetry/.claude-plugin/plugin.json)" \
+                '(.plugins[] | select(.name == "posthog-telemetry") | .version) = $v' "$m" > "$m.tmp" && mv "$m.tmp" "$m"
+            fi
           fi
 
           # Regenerate Gemini TOML command files from MD sources

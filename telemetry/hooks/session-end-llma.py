@@ -11,8 +11,9 @@ import os
 import subprocess
 import sys
 
-# Resolved from __file__, never from CLAUDE_PLUGIN_ROOT: the full posthog
-# plugin's root is the repository root, one level above this package.
+# Resolved from __file__, never from CLAUDE_PLUGIN_ROOT: the package sits
+# beside this hooks/ directory in both plugins, while CLAUDE_PLUGIN_ROOT
+# differs between them.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from posthog_llma import (  # noqa: E402

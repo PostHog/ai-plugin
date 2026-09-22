@@ -52,7 +52,7 @@ claude plugin install posthog-telemetry@posthog
 
 It registers one `SessionEnd` hook and nothing else, so it adds nothing to the context of a session. It needs only the Python standard library, and it reads the same environment variables as step 3 above.
 
-Install it instead of the `posthog` plugin, not alongside it. Both register the same hook, so running both sends every session twice.
+Install it instead of the `posthog` plugin, not alongside it. Both register the same hook, so running both parses and uploads every session twice. PostHog dedupes the events themselves, because their UUIDs are derived from the session, but the two hooks race on the status file.
 
 ### Cursor
 

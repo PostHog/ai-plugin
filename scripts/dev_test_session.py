@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Launch a Claude Code session against the local (or a remote-branch)
-build of this plugin, with the marketplace plugin disabled so SessionEnd
-doesn't double-fire.
+build of this plugin, with every marketplace plugin that ships the same
+SessionEnd hook disabled so it doesn't double-fire.
 
 Examples:
     scripts/dev_test_session.py
@@ -14,7 +14,7 @@ Examples:
         # Run the session in a different working dir (useful for testing
         # path-mangling cases like worktrees, spaces, underscores, dots).
 
-The marketplace plugin (posthog@claude-plugins-official) is disabled at
+Each marketplace plugin in MARKETPLACE_PLUGINS is disabled at
 session start and re-enabled in a finally block, so an interrupted run
 still restores it. Re-running while it's already disabled is harmless.
 """
@@ -25,7 +25,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-MARKETPLACE_PLUGIN = "posthog@claude-plugins-official"
+MARKETPLACE_PLUGINS = (
+    "posthog@claude-plugins-official",
+    "posthog@posthog",
+    "posthog-telemetry@posthog",
+)
 REPO_ROOT = Path(__file__).resolve().parent.parent
 REQUIRED_ENV = ("POSTHOG_LLMA_CC_ENABLED", "POSTHOG_API_KEY")
 
@@ -86,7 +90,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--skip-disable", action="store_true",
-        help="Don't disable the marketplace plugin. Causes duplicate "
+        help="Don't disable the marketplace plugins. Causes duplicate "
              "SessionEnd events; only use if you're isolating something else.",
     )
     parser.add_argument(
@@ -113,17 +117,19 @@ def main() -> int:
     print(f"cwd:           {target_cwd}")
     _warn_missing_env(target_cwd)
 
-    disabled = False
+    disabled = []
     if not args.skip_disable:
-        print(f"disabling {MARKETPLACE_PLUGIN} for this session...")
-        result = subprocess.run(
-            ["claude", "plugin", "disable", MARKETPLACE_PLUGIN],
-            capture_output=True, text=True,
-        )
-        # `disable` returns 0 even if already disabled, so accept that.
-        disabled = result.returncode == 0
-        if not disabled:
-            print(f"warning: disable failed:\n{result.stderr}", file=sys.stderr)
+        for plugin in MARKETPLACE_PLUGINS:
+            print(f"disabling {plugin} for this session...")
+            result = subprocess.run(
+                ["claude", "plugin", "disable", plugin],
+                capture_output=True, text=True,
+            )
+            # `disable` returns 0 even if already disabled, so accept that.
+            if result.returncode == 0:
+                disabled.append(plugin)
+            else:
+                print(f"warning: disable failed:\n{result.stderr}", file=sys.stderr)
 
     # Pass-through extra claude args; REMAINDER includes the leading "--"
     # if the user used one, so strip it.
@@ -136,10 +142,10 @@ def main() -> int:
         print(f"launching:     {' '.join(cmd)}\n")
         rc = subprocess.run(cmd, cwd=str(target_cwd)).returncode
     finally:
-        if disabled:
-            print(f"\nre-enabling {MARKETPLACE_PLUGIN}...")
+        for plugin in disabled:
+            print(f"\nre-enabling {plugin}...")
             subprocess.run(
-                ["claude", "plugin", "enable", MARKETPLACE_PLUGIN],
+                ["claude", "plugin", "enable", plugin],
                 capture_output=True,
             )
 
