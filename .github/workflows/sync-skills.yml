@@ -42,6 +42,11 @@ jobs:
             -o /tmp/context-mill.zip \
             "https://github.com/PostHog/context-mill/releases/latest/download/skills-mcp-resources.zip"
 
+      - name: Regenerate MCP write-tool list
+        run: |
+          bash scripts/generate-write-tools.sh \
+            || echo "::warning::write-tools.txt not regenerated; keeping the committed list"
+
       - name: Sync skills directory
         run: |
           MANIFEST="skills/.sync-manifest"
@@ -91,7 +96,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          git add -A skills/ commands/*.toml gemini-extension.json
+          git add -A skills/ commands/*.toml gemini-extension.json hooks/write-tools.txt
           if git diff --cached --quiet; then
             echo "No changes detected."
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
