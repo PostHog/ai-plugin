@@ -244,6 +244,8 @@ What is the \`defaults\` option?
 
 The `defaults` is a date, such as `2026-05-30`, for a configuration snapshot used as defaults to initialize PostHog. This default is overridden when you explicitly set a value for any of the options.
 
+> **Using Google Tag Manager?** You can install and configure PostHog from Google Tag Manager with our tag template, without a custom HTML tag. See the [Google Tag Manager docs](/docs/libraries/google-tag-manager.md).
+
 ## Identifying users
 
 > **Identifying users is required.** Call `posthog.identify('your-user-id')` after login to link events to a known user. This is what connects frontend event captures, [session replays](/docs/session-replay.md), [LLM traces](/docs/ai-engineering.md), and [error tracking](/docs/error-tracking.md) to the same person — and lets backend events link back too.
