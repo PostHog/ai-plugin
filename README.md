@@ -41,6 +41,19 @@ Official PostHog plugin for AI clients. Access PostHog products directly from yo
 
     Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Sessions are sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content. Add custom properties to all events with `POSTHOG_LLMA_CUSTOM_PROPERTIES` (JSON string, e.g. `'{"ai_product": "my-app"}'`). Set `POSTHOG_AI_PURPOSE` to declare what the session is doing relative to the repo — documented values are `authoring` and `review`, emitted as `$ai_purpose`. Useful when a harness wraps an agent it can't modify (e.g. a CI job running Claude Code as a reviewer); left unset the property is omitted.
 
+#### Session capture without the rest of the plugin
+
+To send Claude Code sessions to PostHog LLM analytics without the skills, the slash commands, or the MCP server, install the capture plugin on its own:
+
+```bash
+claude plugin marketplace add PostHog/ai-plugin
+claude plugin install posthog-telemetry@posthog
+```
+
+It registers one `SessionEnd` hook and nothing else, so it adds nothing to the context of a session. It needs only the Python standard library, and it reads the same environment variables as step 3 above.
+
+Install it instead of the `posthog` plugin, not alongside it. Both register the same hook, so running both sends every session twice.
+
 ### Cursor
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add manually in Cursor Settings > Plugins.

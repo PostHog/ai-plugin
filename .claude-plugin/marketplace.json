@@ -32,6 +32,28 @@
         "dashboards",
         "llm-analytics"
       ]
+    },
+    {
+      "name": "posthog-telemetry",
+      "displayName": "PostHog session capture",
+      "source": "./telemetry",
+      "description": "Send Claude Code sessions to PostHog LLM analytics. Hooks only: no skills, no commands, no MCP server. Install this instead of the PostHog plugin, not alongside it.",
+      "version": "1.0.0",
+      "author": {
+        "name": "PostHog",
+        "email": "hey@posthog.com",
+        "url": "https://posthog.com"
+      },
+      "homepage": "https://posthog.com/docs/ai-observability/installation/claude-code",
+      "repository": "https://github.com/PostHog/ai-plugin",
+      "license": "MIT",
+      "category": "productivity",
+      "keywords": [
+        "llm-analytics",
+        "ai-observability",
+        "claude-code",
+        "telemetry"
+      ]
     }
   ]
 }

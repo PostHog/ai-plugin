@@ -23,11 +23,11 @@ The argument `$ARGUMENTS` can be:
 3. Report the results
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/llma_cc_ingest.py $ARGUMENTS
+python3 ${CLAUDE_PLUGIN_ROOT}/telemetry/scripts/llma_cc_ingest.py $ARGUMENTS
 ```
 
 If no argument is provided, list recent sessions and let the user choose:
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/llma_cc_ingest.py --list
+python3 ${CLAUDE_PLUGIN_ROOT}/telemetry/scripts/llma_cc_ingest.py --list
 ```
