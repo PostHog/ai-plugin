@@ -517,6 +517,7 @@ maxState
 maxStateOrDefault
 maxStateOrNull
 md5
+MD5
 median
 medianArgMax
 medianArgMaxOrDefault
@@ -872,6 +873,7 @@ tupleToNameValuePairs
 unhex
 uniq
 uniqCombined
+uniqCombined64
 uniqExact
 uniqExactMerge
 uniqExactState

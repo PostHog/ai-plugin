@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Flask - Docs
-
-Copy page
-
-# Flask - Docs
+# Flask
 
 PostHog makes it easy to get data about traffic and usage of your Flask app. Integrating PostHog enables analytics, custom events capture, feature flags, error tracking, and more.
 
@@ -20,16 +16,17 @@ Then, initialize PostHog where you'd like to use it. For example, here's how to 
 
 app.py
 
-PostHog AI
-
 ```python
 from flask import Flask
 from posthog import Posthog
+
 app = Flask(__name__)
+
 posthog = Posthog(
     '<ph_project_token>',
     host='https://us.i.posthog.com',
 )
+
 @app.route('/api/dashboard', methods=['POST'])
 def api_dashboard():
     posthog.capture(
@@ -49,10 +46,9 @@ You can find your project token and instance address in [your project settings](
 >
 > Python
 >
-> PostHog AI
->
 > ```python
 > from posthog import new_context, identify_context, capture
+>
 > @app.get("/foo")
 > def foo(current_user: User = Depends(get_current_user)):
 >     with new_context(): # Set context at the top of a route
@@ -73,24 +69,27 @@ Then read the incoming headers in your Flask request handler. Tracing headers ar
 
 Python
 
-PostHog AI
-
 ```python
 from flask import request, session
 from posthog import identify_context, set_context_session, tag
+
 @app.route('/api/dashboard', methods=['POST'])
 def api_dashboard():
     with posthog.new_context(fresh=True):
         distinct_id = session.get('user_id') or request.headers.get('X-POSTHOG-DISTINCT-ID')
         if distinct_id:
             identify_context(str(distinct_id))
+
         session_id = request.headers.get('X-POSTHOG-SESSION-ID')
         if session_id:
             set_context_session(session_id)
+
         tag('$current_url', request.url)
         tag('$request_method', request.method)
         tag('$request_path', request.path)
+
         posthog.capture('dashboard_api_called')
+
     return '', 204
 ```
 
@@ -102,18 +101,19 @@ Flask has built-in error handlers. This means PostHog’s default exception auto
 
 Python
 
-PostHog AI
-
 ```python
 from flask import Flask, jsonify
 from posthog import Posthog
+
 app = Flask(__name__)
 posthog = Posthog('<ph_project_token>', host='https://us.i.posthog.com')
+
 @app.errorhandler(Exception)
 def handle_exception(e):
     # Capture methods, including capture_exception, return the UUID of the captured event,
     # which you can use to find specific errors users encountered
     event_id = posthog.capture_exception(e)
+
     # You can show the event ID to your user, and ask them to include it in bug reports
     response = jsonify({'message': str(e), 'error_id': event_id})
     response.status_code = 500

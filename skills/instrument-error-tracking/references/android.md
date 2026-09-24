@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Android Error Tracking installation - Docs
-
-Copy page
-
-# Android Error Tracking installation - Docs
+# Android Error Tracking installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Add the PostHog Android SDK to your `build.gradle` dependencies:
 
     build.gradle
-
-    PostHog AI
 
     ```kotlin
     dependencies {
@@ -34,21 +28,23 @@ Copy page
 
     SampleApp.kt
 
-    PostHog AI
-
     ```kotlin
     class SampleApp : Application() {
+    
         companion object {
             const val POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
             const val POSTHOG_HOST = "https://us.i.posthog.com"
         }
+    
         override fun onCreate() {
             super.onCreate()
+    
             // Create a PostHog Config with the given project token and host
             val config = PostHogAndroidConfig(
                 apiKey = POSTHOG_PROJECT_TOKEN,
                 host = POSTHOG_HOST
             )
+    
             // Setup PostHog with the given Context and Config
             PostHogAndroid.setup(this, config)
         }
@@ -65,10 +61,9 @@ Copy page
 
     Kotlin
 
-    PostHog AI
-
     ```kotlin
     import com.posthog.PostHog
+    
     PostHog.capture(
         event = "button_clicked",
         properties = mapOf(
@@ -90,8 +85,6 @@ Copy page
     You can autocapture exceptions by setting the `errorTrackingConfig.autoCapture` argument to `true` when initializing the PostHog SDK.
 
     Kotlin
-
-    PostHog AI
 
     ```kotlin
     import com.posthog.android.PostHogAndroidConfig
@@ -123,8 +116,6 @@ Copy page
 
     Kotlin
 
-    PostHog AI
-
     ```kotlin
     PostHog.captureException(
         exception,
@@ -142,7 +133,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

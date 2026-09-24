@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Next.js Logs installation - Docs
-
-Copy page
-
-# Next.js Logs installation - Docs
+# Next.js Logs installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Terminal
-
-    PostHog AI
 
     ```bash
     npm install @opentelemetry/sdk-logs @opentelemetry/exporter-logs-otlp-http @opentelemetry/api-logs @opentelemetry/resources
@@ -44,8 +38,6 @@ Copy page
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     /** @type {import('next').NextConfig} */
     const nextConfig = {
@@ -53,6 +45,7 @@ Copy page
         instrumentationHook: true,
       },
     }
+    
     module.exports = nextConfig
     ```
 
@@ -66,28 +59,28 @@ Copy page
 
     typescript
 
-    PostHog AI
-
     ```typescript
     import { BatchLogRecordProcessor, LoggerProvider } from '@opentelemetry/sdk-logs'
     import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
     import { logs } from '@opentelemetry/api-logs'
     import { resourceFromAttributes } from '@opentelemetry/resources'
+    
     // Create LoggerProvider outside register() so it can be exported and flushed in route handlers
     export const loggerProvider = new LoggerProvider({
       resource: resourceFromAttributes({ 'service.name': 'my-nextjs-app' }),
       processors: [
-        new BatchLogRecordProcessor(
-          new OTLPLogExporter({
+        new BatchLogRecordProcessor({
+          exporter: new OTLPLogExporter({
             url: 'https://us.i.posthog.com/i/v1/logs',
             headers: {
               Authorization: 'Bearer <ph_project_token>',
               'Content-Type': 'application/json',
             },
-          })
-        ),
+          }),
+        }),
       ],
     })
+    
     export function register() {
       if (process.env.NEXT_RUNTIME === 'nodejs') {
         logs.setGlobalLoggerProvider(loggerProvider)
@@ -102,8 +95,6 @@ Copy page
     Alternatively, you can pass the API key as a query parameter:
 
     typescript
-
-    PostHog AI
 
     ```typescript
     new OTLPLogExporter({
@@ -124,13 +115,13 @@ Copy page
 
     typescript
 
-    PostHog AI
-
     ```typescript
     import { SeverityNumber } from '@opentelemetry/api-logs'
     import { after } from 'next/server'
     import { loggerProvider } from '@/instrumentation'
+    
     const logger = loggerProvider.getLogger('my-nextjs-app')
+    
     export async function GET() {
       logger.emit({
         body: 'API request received',
@@ -140,10 +131,12 @@ Copy page
           method: 'GET',
         },
       })
+    
       // Ensure logs are flushed before the serverless function freezes
       after(async () => {
         await loggerProvider.forceFlush()
       })
+    
       return Response.json({ success: true })
     }
     ```
@@ -153,8 +146,6 @@ Copy page
     > **Note:** `after()` is stable in Next.js 15.1+ (available as `unstable_after` in 15.0). On Next.js 14 and earlier, it doesn't exist — flush before returning instead:
     >
     > typescript
-    >
-    > PostHog AI
     >
     > ```typescript
     > await loggerProvider.forceFlush()
@@ -183,12 +174,12 @@ Copy page
 
     | Action | Description |
     | --- | --- |
-    | [Why you need logs](/docs/logs/basics.md) | What logs show you that nothing else does |
-    | [Search logs](/docs/logs/search.md) | Use the search interface to find specific log entries |
-    | Filter by level | Filter by INFO, WARN, ERROR, etc. |
-    | [Link session replay](/docs/logs/link-session-replay.md) | Connect logs to users and session replays by passing posthogDistinctId and sessionId |
-    | [Link logs to a person](/docs/logs/link-person.md) | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
+    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
 

@@ -52,31 +52,31 @@ STEP 6: Set up environment variables.
 
 ## Reference files
 
-- `references/react.md` - React feature flags installation - docs
-- `references/react-native.md` - React native feature flags installation - docs
-- `references/web.md` - Web feature flags installation - docs
-- `references/nodejs.md` - Node.js feature flags installation - docs
-- `references/python.md` - Python feature flags installation - docs
-- `references/django.md` - Django - docs
-- `references/flask.md` - Flask - docs
-- `references/php.md` - Php feature flags installation - docs
-- `references/laravel.md` - Laravel - docs
-- `references/ruby.md` - Ruby feature flags installation - docs
-- `references/ruby-on-rails.md` - Ruby on rails - docs
-- `references/go.md` - Go feature flags installation - docs
-- `references/java.md` - Java feature flags installation - docs
-- `references/rust.md` - Rust feature flags installation - docs
-- `references/dotnet.md` - .net feature flags installation - docs
-- `references/dotnet.md` - .net - docs
-- `references/elixir.md` - Elixir feature flags installation - docs
-- `references/android.md` - Android feature flags installation - docs
-- `references/ios.md` - Ios feature flags installation - docs
-- `references/usage.md` - Ios SDK usage - docs
-- `references/flutter.md` - Flutter feature flags installation - docs
-- `references/api.md` - API feature flags installation - docs
-- `references/next-js.md` - Next.js - docs
-- `references/adding-feature-flag-code.md` - Adding feature flag code - docs
-- `references/best-practices.md` - Best practices for production-ready flags - docs
+- `references/react.md` - React feature flags installation
+- `references/react-native.md` - React native feature flags installation
+- `references/web.md` - Web feature flags installation
+- `references/nodejs.md` - Node.js feature flags installation
+- `references/python.md` - Python feature flags installation
+- `references/django.md` - Django
+- `references/flask.md` - Flask
+- `references/php.md` - Php feature flags installation
+- `references/laravel.md` - Laravel
+- `references/ruby.md` - Ruby feature flags installation
+- `references/ruby-on-rails.md` - Ruby on rails
+- `references/go.md` - Go feature flags installation
+- `references/java.md` - Java feature flags installation
+- `references/rust.md` - Rust feature flags installation
+- `references/dotnet.md` - .net feature flags installation
+- `references/dotnet.md` - .net
+- `references/elixir.md` - Elixir feature flags installation
+- `references/android.md` - Android feature flags installation
+- `references/ios.md` - Ios feature flags installation
+- `references/usage.md` - Ios SDK usage
+- `references/flutter.md` - Flutter feature flags installation
+- `references/api.md` - API feature flags installation
+- `references/next-js.md` - Next.js
+- `references/adding-feature-flag-code.md` - Adding feature flag code
+- `references/best-practices.md` - Best practices for production-ready flags
 - `references/COMMANDMENTS.md` - Framework-specific rules the integration must follow
 
 Each platform reference contains SDK-specific installation, flag evaluation, and code examples. Find the one matching the user's stack. If unlisted, use the API reference as a fallback.

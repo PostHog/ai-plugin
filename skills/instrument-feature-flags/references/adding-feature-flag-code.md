@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Adding feature flag code - Docs
-
-Copy page
-
-# Adding feature flag code - Docs
+# Adding feature flag code
 
 Once you've created your feature flag in PostHog, the next step is to add your code:
 
@@ -14,12 +10,11 @@ Once you've created your feature flag in PostHog, the next step is to add your c
 
 Web
 
-PostHog AI
-
 ```javascript
 const result = posthog.getFeatureFlagResult('flag-key')
 if (result?.enabled) {
     // Do something differently for this user
+
     // Optional: fetch the payload from the same evaluation result
     const matchedFlagPayload = result?.payload
 }
@@ -29,12 +24,11 @@ if (result?.enabled) {
 
 Web
 
-PostHog AI
-
 ```javascript
 const result = posthog.getFeatureFlagResult('flag-key')
 if (result?.variant == 'variant-key') { // replace 'variant-key' with the key of your variant
     // Do something differently for this user
+
     // Optional: fetch the payload from the same evaluation result
     const matchedFlagPayload = result?.payload
 }
@@ -45,8 +39,6 @@ if (result?.variant == 'variant-key') { // replace 'variant-key' with the key of
 You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
 
 Web
-
-PostHog AI
 
 ```javascript
 for (const flag of posthog.getAllFeatureFlags()) {
@@ -63,8 +55,6 @@ This means that for most pages, the feature flags are available immediately â€” 
 To handle this, you can use the `onFeatureFlags` callback to wait for the feature flag request to finish:
 
 Web
-
-PostHog AI
 
 ```javascript
 posthog.onFeatureFlags(function (flags, flagVariants, { errorsLoading }) {
@@ -93,8 +83,6 @@ By default, the JavaScript SDK requests that every eligible feature flag be eval
 
 Web
 
-PostHog AI
-
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
@@ -111,8 +99,6 @@ Feature flag values are cached. If something has changed with your user and you'
 
 Web
 
-PostHog AI
-
 ```javascript
 posthog.reloadFeatureFlags()
 ```
@@ -122,8 +108,6 @@ posthog.reloadFeatureFlags()
 Sometimes, you might want to evaluate feature flags using properties that haven't been ingested yet, or were set incorrectly earlier. You can do so by setting properties the flag depends on with these calls:
 
 Web
-
-PostHog AI
 
 ```javascript
 posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'})
@@ -135,8 +119,6 @@ Whenever you set these properties, we also trigger a reload of feature flags to 
 
 Web
 
-PostHog AI
-
 ```javascript
 posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'}, false)
 ```
@@ -144,8 +126,6 @@ posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'},
 At any point, you can reset these properties by calling `resetPersonPropertiesForFlags`:
 
 Web
-
-PostHog AI
 
 ```javascript
 posthog.resetPersonPropertiesForFlags()
@@ -155,13 +135,13 @@ The same holds for [group](/manual/group-analytics.md) properties:
 
 Web
 
-PostHog AI
-
 ```javascript
 // set properties for a group
 posthog.setGroupPropertiesForFlags({'company': {'property1': 'value', property2: 'value2'}})
+
 // reset properties for a given group:
 posthog.resetGroupPropertiesForFlags('company')
+
 // reset properties for all groups:
 posthog.resetGroupPropertiesForFlags()
 ```
@@ -194,8 +174,6 @@ You can configure the `feature_flag_request_timeout_ms` parameter when initializ
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
@@ -210,8 +188,6 @@ When using the PostHog SDK, it's important to handle potential errors that may o
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 function handleFeatureFlag(client, flagKey, distinctId) {
   try {
@@ -225,6 +201,7 @@ function handleFeatureFlag(client, flagKey, distinctId) {
     throw error;
   }
 }
+
 // Usage example
 try {
   const flagEnabled = handleFeatureFlag(client, 'new-feature', 'user-123');
@@ -253,22 +230,22 @@ PostHog provides several hooks to make it easy to use feature flags in your Reac
 
 | Hook | Description |
 | --- | --- |
-| useFeatureFlagEnabled | Returns whether the feature flag is enabled. This sends a $feature_flag_called event. Without a default value, it returns boolean \\\| undefined while flags are loading or absent. Pass an optional default value to return that value instead and narrow the return type to boolean. |
-| useFeatureFlagVariantKey | Returns the variant key of the feature flag. This sends a $feature_flag_called event. |
-| useActiveFeatureFlags | Returns an array of active feature flags. This does not send a $feature_flag_called event. |
-| useFeatureFlagPayload | Returns the payload of the feature flag. This does not send a $feature_flag_called event. Always use this with useFeatureFlagEnabled or useFeatureFlagVariantKey. |
+| `useFeatureFlagEnabled` | Returns whether the feature flag is enabled. This sends a `$feature_flag_called` event. Without a default value, it returns `boolean \| undefined` while flags are loading or absent. Pass an optional default value to return that value instead and narrow the return type to `boolean`. |
+| `useFeatureFlagVariantKey` | Returns the variant key of the feature flag. This sends a `$feature_flag_called` event. |
+| `useActiveFeatureFlags` | Returns an array of active feature flags. This does *not* send a `$feature_flag_called` event. |
+| `useFeatureFlagPayload` | Returns the payload of the feature flag. This does *not* send a `$feature_flag_called` event. Always use this with `useFeatureFlagEnabled` or `useFeatureFlagVariantKey`. |
 
 #### Example 1: Using a boolean feature flag
 
 React
 
-PostHog AI
-
 ```jsx
 import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
+
 function App() {
   const showWelcomeMessage = useFeatureFlagEnabled('flag-key')
   const payload = useFeatureFlagPayload('flag-key')
+
   return (
     <div className="App">
       {
@@ -287,14 +264,13 @@ function App() {
     </div>
   );
 }
+
 export default App;
 ```
 
 To avoid handling `undefined` while flags are loading, pass a default value as the second argument:
 
 React
-
-PostHog AI
 
 ```jsx
 const showWelcomeMessage = useFeatureFlagEnabled('flag-key', false)
@@ -304,10 +280,9 @@ const showWelcomeMessage = useFeatureFlagEnabled('flag-key', false)
 
 React
 
-PostHog AI
-
 ```jsx
 import { useFeatureFlagVariantKey } from '@posthog/react'
+
 function App() {
   const variantKey = useFeatureFlagVariantKey('show-welcome-message')
   let welcomeMessage = ''
@@ -316,6 +291,7 @@ function App() {
   } else if (variantKey === 'variant-b') {
     welcomeMessage = 'Welcome to the Beta!'
   }
+
   return (
     <div className="App">
       {
@@ -334,6 +310,7 @@ function App() {
     </div>
   );
 }
+
 export default App;
 ```
 
@@ -345,13 +322,13 @@ The `useFeatureFlagPayload` hook does *not* send a [`$feature_flag_called`](http
 
 React
 
-PostHog AI
-
 ```jsx
 import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
+
 function App() {
   const variant = useFeatureFlagEnabled('show-welcome-message')
   const payload = useFeatureFlagPayload('show-welcome-message')
+
     return (
                 <>
                 {
@@ -382,11 +359,11 @@ Here is an example:
 
 React
 
-PostHog AI
-
 ```jsx
 import { PostHogFeature } from '@posthog/react'
+
 function App() {
+
     return (
         <PostHogFeature flag='show-welcome-message' match={true}>
             <div>
@@ -410,11 +387,11 @@ If your flag has a payload, you can pass a function to children whose first argu
 
 React
 
-PostHog AI
-
 ```jsx
 import { PostHogFeature } from '@posthog/react'
+
 function App() {
+
     return (
         <PostHogFeature flag='show-welcome-message' match={true}>
            {(payload) => {
@@ -436,8 +413,6 @@ You can configure the `feature_flag_request_timeout_ms` parameter when initializ
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
@@ -453,8 +428,6 @@ When using the PostHog SDK, it's important to handle potential errors that may o
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 function handleFeatureFlag(client, flagKey, distinctId) {
     try {
@@ -468,6 +441,7 @@ function handleFeatureFlag(client, flagKey, distinctId) {
         throw error;
     }
 }
+
 // Usage example
 try {
     const flagEnabled = handleFeatureFlag(client, 'new-feature', 'user-123');
@@ -495,10 +469,9 @@ Call `client.evaluateFlags()` once for the user, then read values from the retur
 
 Node.js
 
-PostHog AI
-
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user')
+
 if (flags.isEnabled('flag-key')) {
     // Do something differently for this user
     // Optional: fetch the payload
@@ -510,11 +483,10 @@ if (flags.isEnabled('flag-key')) {
 
 Node.js
 
-PostHog AI
-
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user')
 const enabledVariant = flags.getFlag('flag-key')
+
 if (enabledVariant === 'variant-key') { // replace 'variant-key' with the key of your variant
     // Do something differently for this user
     // Optional: fetch the payload
@@ -540,13 +512,13 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 Node.js
 
-PostHog AI
-
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user')
+
 if (flags.isEnabled('flag-key')) {
     // Do something differently for this user
 }
+
 client.capture({
     distinctId: 'distinct_id_of_your_user',
     event: 'event_name',
@@ -560,8 +532,6 @@ To reduce event property bloat, pass a filtered snapshot:
 
 Node.js
 
-PostHog AI
-
 ```javascript
 // Attach only flags accessed with isEnabled() or getFlag() before this call
 client.capture({
@@ -569,6 +539,7 @@ client.capture({
     event: 'event_name',
     flags: flags.onlyAccessed(),
 })
+
 // Attach only specific flags
 client.capture({
     distinctId: 'distinct_id_of_your_user',
@@ -584,8 +555,6 @@ client.capture({
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 Node.js
-
-PostHog AI
 
 ```javascript
 client.capture({
@@ -603,8 +572,6 @@ client.capture({
 By default, `evaluateFlags()` evaluates every flag for the user. If you only need a few flags, pass `flagKeys` to request only those flags:
 
 Node.js
-
-PostHog AI
 
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user', {
@@ -630,8 +597,6 @@ For example:
 
 Node.js
 
-PostHog AI
-
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_the_user', {
     personProperties: {
@@ -650,6 +615,7 @@ const flags = await client.evaluateFlags('distinct_id_of_the_user', {
         },
     },
 })
+
 if (flags.isEnabled('flag-key')) {
     // Do something differently for this user
 }
@@ -688,8 +654,6 @@ You can configure the `featureFlagsRequestTimeoutMs` parameter when initializing
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 const client = new PostHog('<ph_project_token>', {
     host: 'https://us.i.posthog.com',
@@ -709,10 +673,9 @@ Call `posthog.evaluate_flags()` once for the user, then read values from the ret
 
 Python
 
-PostHog AI
-
 ```python
 flags = posthog.evaluate_flags("distinct_id_of_your_user")
+
 if flags.is_enabled("flag-key"):
     # Do something differently for this user
     # Optional: fetch the payload
@@ -723,11 +686,11 @@ if flags.is_enabled("flag-key"):
 
 Python
 
-PostHog AI
-
 ```python
 flags = posthog.evaluate_flags("distinct_id_of_your_user")
+
 enabled_variant = flags.get_flag("flag-key")
+
 if enabled_variant == "variant-key":  # replace "variant-key" with the key of your variant
     # Do something differently for this user
     # Optional: fetch the payload
@@ -752,13 +715,13 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 Python
 
-PostHog AI
-
 ```python
 flags = posthog.evaluate_flags("distinct_id_of_your_user")
+
 if flags.is_enabled("flag-key"):
     # Do something differently for this user
     pass
+
 posthog.capture(
     "event_name",
     distinct_id="distinct_id_of_your_user",
@@ -772,8 +735,6 @@ To reduce event property bloat, pass a filtered snapshot:
 
 Python
 
-PostHog AI
-
 ```python
 # Attach only flags accessed with is_enabled() or get_flag() before this call
 posthog.capture(
@@ -781,6 +742,7 @@ posthog.capture(
     distinct_id="distinct_id_of_your_user",
     flags=flags.only_accessed(),
 )
+
 # Attach only specific flags
 posthog.capture(
     "event_name",
@@ -796,8 +758,6 @@ posthog.capture(
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 Python
-
-PostHog AI
 
 ```python
 posthog.capture(
@@ -815,8 +775,6 @@ posthog.capture(
 By default, `posthog.evaluate_flags()` evaluates every flag for the user. If you only need a few flags, pass `flag_keys` to request only those flags:
 
 Python
-
-PostHog AI
 
 ```python
 flags = posthog.evaluate_flags(
@@ -843,8 +801,6 @@ For example:
 
 Python
 
-PostHog AI
-
 ```python
 flags = posthog.evaluate_flags(
     "distinct_id_of_the_user",
@@ -858,6 +814,7 @@ flags = posthog.evaluate_flags(
         "another_group_type": {"group_property_name": "value"},
     },
 )
+
 if flags.is_enabled("flag-key"):
     # Do something differently for this user
 ```
@@ -895,8 +852,6 @@ You can configure the `feature_flags_request_timeout_seconds` parameter when ini
 
 Python
 
-PostHog AI
-
 ```python
 posthog = Posthog(
     "<ph_project_token>",
@@ -917,10 +872,9 @@ Call `PostHog::evaluateFlags()` once for the user, then read values from the ret
 
 PHP
 
-PostHog AI
-
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
+
 if ($flags->isEnabled('flag-key')) {
     // Do something differently for this user
     // Optional: fetch the payload
@@ -932,11 +886,11 @@ if ($flags->isEnabled('flag-key')) {
 
 PHP
 
-PostHog AI
-
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
+
 $enabledVariant = $flags->getFlag('flag-key');
+
 if ($enabledVariant === 'variant-key') { // replace 'variant-key' with the key of your variant
     // Do something differently for this user
     // Optional: fetch the payload
@@ -964,13 +918,13 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 PHP
 
-PostHog AI
-
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
+
 if ($flags->isEnabled('flag-key')) {
     // Do something differently for this user
 }
+
 PostHog::capture([
     'distinctId' => 'distinct_id_of_your_user',
     'event' => 'event_name',
@@ -984,8 +938,6 @@ To reduce event property bloat, pass a filtered snapshot:
 
 PHP
 
-PostHog AI
-
 ```php
 // Attach only flags accessed with isEnabled() or getFlag() before this call
 PostHog::capture([
@@ -993,6 +945,7 @@ PostHog::capture([
     'event' => 'event_name',
     'flags' => $flags->onlyAccessed(),
 ]);
+
 // Attach only specific flags
 PostHog::capture([
     'distinctId' => 'distinct_id_of_your_user',
@@ -1008,8 +961,6 @@ PostHog::capture([
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog::capture([
@@ -1028,8 +979,6 @@ By default, `evaluateFlags()` evaluates every flag for the user. If you only nee
 
 PHP
 
-PostHog AI
-
 ```php
 $flags = PostHog::evaluateFlags(
     distinctId: 'distinct_id_of_your_user',
@@ -1042,8 +991,6 @@ $flags = PostHog::evaluateFlags(
 `evaluateFlags()` also accepts optional parameters for local evaluation and GeoIP behavior:
 
 PHP
-
-PostHog AI
 
 ```php
 $flags = PostHog::evaluateFlags(
@@ -1075,8 +1022,6 @@ For example:
 
 PHP
 
-PostHog AI
-
 ```php
 $flags = PostHog::evaluateFlags(
     distinctId: 'distinct_id_of_the_user',
@@ -1090,6 +1035,7 @@ $flags = PostHog::evaluateFlags(
         'another_group_type' => ['group_property_name' => 'value'],
     ],
 );
+
 if ($flags->isEnabled('flag-key')) {
     // Do something differently for this user
 }
@@ -1128,8 +1074,6 @@ You can configure the `feature_flag_request_timeout_ms` parameter when initializ
 
 PHP
 
-PostHog AI
-
 ```php
 PostHog::init("<ph_project_token>",
     [
@@ -1151,10 +1095,9 @@ Call `posthog.evaluate_flags()` once for the user, then read values from the ret
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags('distinct_id_of_your_user')
+
 if flags.enabled?('flag-key')
     # Do something differently for this user
     # Optional: fetch the payload
@@ -1166,11 +1109,11 @@ end
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags('distinct_id_of_your_user')
+
 enabled_variant = flags.get_flag('flag-key')
+
 if enabled_variant == 'variant-key' # replace 'variant-key' with the key of your variant
     # Do something differently for this user
     # Optional: fetch the payload
@@ -1196,13 +1139,13 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags('distinct_id_of_your_user')
+
 if flags.enabled?('flag-key')
     # Do something differently for this user
 end
+
 posthog.capture({
     distinct_id: 'distinct_id_of_your_user',
     event: 'event_name',
@@ -1216,8 +1159,6 @@ To reduce event property bloat, pass a filtered snapshot:
 
 Ruby
 
-PostHog AI
-
 ```ruby
 # Attach only flags accessed with enabled?() or get_flag() before this call
 posthog.capture({
@@ -1225,6 +1166,7 @@ posthog.capture({
     event: 'event_name',
     flags: flags.only_accessed,
 })
+
 # Attach only specific flags
 posthog.capture({
     distinct_id: 'distinct_id_of_your_user',
@@ -1240,8 +1182,6 @@ posthog.capture({
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 Ruby
-
-PostHog AI
 
 ```ruby
 posthog.capture({
@@ -1260,8 +1200,6 @@ By default, `evaluate_flags()` evaluates every flag for the user. If you only ne
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags(
     'distinct_id_of_your_user',
@@ -1275,8 +1213,6 @@ If you want to skip the remote `/flags` request and only use locally cached defi
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags(
     'distinct_id_of_your_user',
@@ -1289,8 +1225,6 @@ flags = posthog.evaluate_flags(
 Pass `disable_geoip: true` to disable GeoIP lookup for remote flag evaluation:
 
 Ruby
-
-PostHog AI
 
 ```ruby
 flags = posthog.evaluate_flags(
@@ -1317,8 +1251,6 @@ For example:
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags(
     'distinct_id_of_the_user',
@@ -1338,6 +1270,7 @@ flags = posthog.evaluate_flags(
         },
     },
 )
+
 if flags.enabled?('flag-key')
     # Do something differently for this user
 end
@@ -1376,8 +1309,6 @@ You can configure the `feature_flag_request_timeout_seconds` parameter when init
 
 Ruby
 
-PostHog AI
-
 ```ruby
 posthog = PostHog::Client.new({
     # rest of your configuration...
@@ -1397,8 +1328,6 @@ Call `client.EvaluateFlags()` once for the user, then read values from the retur
 
 Go
 
-PostHog AI
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "distinct_id_of_your_user",
@@ -1406,6 +1335,7 @@ flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
 if err != nil {
     // Handle error (e.g. capture error and fallback to default behavior)
 }
+
 if flags.IsEnabled("flag-key") {
     // Do something differently for this user
     // Optional: fetch the payload
@@ -1417,8 +1347,6 @@ if flags.IsEnabled("flag-key") {
 
 Go
 
-PostHog AI
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "distinct_id_of_your_user",
@@ -1426,7 +1354,9 @@ flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
 if err != nil {
     // Handle error (e.g. capture error and fallback to default behavior)
 }
+
 enabledVariant := flags.GetFlag("flag-key")
+
 if enabledVariant == "variant-key" { // replace "variant-key" with the key of your variant
     // Do something differently for this user
     // Optional: fetch the payload
@@ -1452,8 +1382,6 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 Go
 
-PostHog AI
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "distinct_id_of_your_user",
@@ -1461,9 +1389,11 @@ flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
 if err != nil {
     // Handle error
 }
+
 if flags.IsEnabled("flag-key") {
     // Do something differently for this user
 }
+
 client.Enqueue(posthog.Capture{
     DistinctId: "distinct_id_of_your_user",
     Event:      "event_name",
@@ -1477,8 +1407,6 @@ To reduce event property bloat, pass a filtered snapshot:
 
 Go
 
-PostHog AI
-
 ```go
 // Attach only flags accessed with IsEnabled() or GetFlag() before this call
 client.Enqueue(posthog.Capture{
@@ -1486,6 +1414,7 @@ client.Enqueue(posthog.Capture{
     Event:      "event_name",
     Flags:      flags.OnlyAccessed(),
 })
+
 // Attach only specific flags
 client.Enqueue(posthog.Capture{
     DistinctId: "distinct_id_of_your_user",
@@ -1502,8 +1431,6 @@ In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 Go
 
-PostHog AI
-
 ```go
 client.Enqueue(posthog.Capture{
     DistinctId: "distinct_id_of_your_user",
@@ -1518,8 +1445,6 @@ client.Enqueue(posthog.Capture{
 By default, `EvaluateFlags()` evaluates every flag for the user. If you only need a few flags, pass `FlagKeys` to request only those flags:
 
 Go
-
-PostHog AI
 
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
@@ -1546,8 +1471,6 @@ For example:
 
 Go
 
-PostHog AI
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "distinct_id_of_the_user",
@@ -1566,6 +1489,7 @@ flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
 if err != nil {
     // Handle error
 }
+
 if flags.IsEnabled("flag-key") {
     // Do something differently for this user
 }
@@ -1604,10 +1528,9 @@ You can configure the `FeatureFlagRequestTimeout` parameter when initializing yo
 
 Go
 
-PostHog AI
-
 ```go
 // import "time"
+
 client, _ := posthog.NewWithConfig(
     os.Getenv("<ph_project_token>"),
     posthog.Config{
@@ -1631,17 +1554,19 @@ There are two ways to implement feature flags in React Native:
 
 React Native
 
-PostHog AI
-
 ```jsx
 import { useFeatureFlag } from 'posthog-react-native'
+
 const MyComponent = () => {
     const booleanFlag = useFeatureFlag('key-for-your-boolean-flag')
+
     if (booleanFlag === undefined) {
         // the response is undefined if the flags are being loaded
         return null
     }
+
     // Optional use the 'useFeatureFlagWithPayload' hook for fetching the feature flag payload
+
     return booleanFlag ? <Text>Testing feature ðŸ˜„</Text> : <Text>Not Testing feature ðŸ˜¢</Text>
 }
 ```
@@ -1650,19 +1575,21 @@ const MyComponent = () => {
 
 React Native
 
-PostHog AI
-
 ```jsx
 import { useFeatureFlag } from 'posthog-react-native'
+
 const MyComponent = () => {
     const multiVariantFeature = useFeatureFlag('key-for-your-multivariate-flag')
+
     if (multiVariantFeature === undefined) {
         // the response is undefined if the flags are being loaded
         return null
     } else if (multiVariantFeature === 'variant-name') { // replace 'variant-name' with the name of your variant
       // Do something
     }
+
     // Optional use the 'useFeatureFlagWithPayload' hook for fetching the feature flag payload
+
     return <div/>
 }
 ```
@@ -1671,15 +1598,16 @@ const MyComponent = () => {
 
 React Native
 
-PostHog AI
-
 ```jsx
 // Defaults to undefined if not loaded yet or if there was a problem loading
 posthog.isFeatureEnabled('key-for-your-boolean-flag')
+
 // Defaults to undefined if not loaded yet or if there was a problem loading
 posthog.getFeatureFlag('key-for-your-boolean-flag')
+
 // Multivariant feature flags are returned as a string
 posthog.getFeatureFlag('key-for-your-multivariate-flag')
+
 // Optional: fetch the payload (returns 'JsonType' or undefined if not loaded yet or if there was a problem loading)
 posthog.getFeatureFlagResult('key-for-your-multivariate-flag')?.payload
 ```
@@ -1689,8 +1617,6 @@ posthog.getFeatureFlagResult('key-for-your-multivariate-flag')?.payload
 You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
 
 React Native
-
-PostHog AI
 
 ```jsx
 for (const flag of posthog.getAllFeatureFlags()) {
@@ -1707,8 +1633,6 @@ This means that for most screens, the feature flags are available immediately â€
 To handle this, you can use the `onFeatureFlags` callback to wait for the feature flag request to finish:
 
 React Native
-
-PostHog AI
 
 ```jsx
 posthog.onFeatureFlags((flags) => {
@@ -1727,8 +1651,6 @@ If want to manually trigger a refresh, you can call `reloadFeatureFlagsAsync()`:
 
 React Native
 
-PostHog AI
-
 ```jsx
 posthog.reloadFeatureFlagsAsync().then((refreshedFlags) => console.log(refreshedFlags))
 ```
@@ -1736,8 +1658,6 @@ posthog.reloadFeatureFlagsAsync().then((refreshedFlags) => console.log(refreshed
 Or when you want to trigger the reload, but don't care about the result:
 
 React Native
-
-PostHog AI
 
 ```jsx
 posthog.reloadFeatureFlags()
@@ -1753,8 +1673,6 @@ To ensure fresh flag values:
 
 React Native
 
-PostHog AI
-
 ```jsx
 // Force refresh on app start
 await posthog.reloadFeatureFlagsAsync()
@@ -1763,8 +1681,6 @@ await posthog.reloadFeatureFlagsAsync()
 Or clear cached values for inactive users:
 
 React Native
-
-PostHog AI
 
 ```jsx
 if (lastActiveDate < migrationDate) {
@@ -1777,8 +1693,6 @@ if (lastActiveDate < migrationDate) {
 You can configure the `featureFlagsRequestTimeoutMs` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked in the case when PostHog's servers are too slow to respond. By default, this is set at 10 seconds.
 
 React Native
-
-PostHog AI
 
 ```jsx
 export const posthog = new PostHog('<ph_project_token>', {
@@ -1794,8 +1708,6 @@ When using the PostHog SDK, it's important to handle potential errors that may o
 
 React Native
 
-PostHog AI
-
 ```jsx
 function handleFeatureFlag(client, flagKey, distinctId) {
     try {
@@ -1809,6 +1721,7 @@ function handleFeatureFlag(client, flagKey, distinctId) {
         throw error;
     }
 }
+
 // Usage example
 try {
     const flagEnabled = handleFeatureFlag(client, 'new-feature', 'user-123');
@@ -1830,8 +1743,6 @@ Sometimes, you might want to evaluate feature flags using properties that haven'
 
 React Native
 
-PostHog AI
-
 ```jsx
 posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'})
 ```
@@ -1842,8 +1753,6 @@ Whenever you set these properties, we also trigger a reload of feature flags to 
 
 React Native
 
-PostHog AI
-
 ```jsx
 posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'}, false)
 ```
@@ -1851,8 +1760,6 @@ posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'},
 At any point, you can reset these properties by calling `resetPersonPropertiesForFlags`:
 
 React Native
-
-PostHog AI
 
 ```jsx
 posthog.resetPersonPropertiesForFlags()
@@ -1862,11 +1769,10 @@ The same holds for [group](/docs/product-analytics/group-analytics.md) propertie
 
 React Native
 
-PostHog AI
-
 ```jsx
 // set properties for a group
 posthog.setGroupPropertiesForFlags({'company': {'property1': 'value', property2: 'value2'}})
+
 // reset properties for all groups:
 posthog.resetGroupPropertiesForFlags()
 ```
@@ -1899,13 +1805,13 @@ This enables any geolocation-based flags to work without manually setting these 
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 val result = PostHog.getFeatureFlagResult("flag-key")
 if (result?.enabled == true) {
     // Do something differently for this user
+
     // Optional: fetch the payload from the same evaluation result
     val matchedFlagPayload = result.payload
 }
@@ -1915,13 +1821,13 @@ if (result?.enabled == true) {
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 val result = PostHog.getFeatureFlagResult("flag-key")
 if (result?.variant == "variant-key") { // replace "variant-key" with the key of your variant
     // Do something differently for this user
+
     // Optional: fetch the payload from the same evaluation result
     val matchedFlagPayload = result.payload
 }
@@ -1933,10 +1839,9 @@ You can inspect all currently loaded feature flags with `PostHog.getAllFeatureFl
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.getAllFeatureFlags()?.forEach { flag ->
     println("${flag.key} ${flag.enabled} ${flag.variant} ${flag.payload}")
 }
@@ -1952,12 +1857,11 @@ To handle this, you can use the `onFeatureFlags` callback to wait for the featur
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
 import com.posthog.android.PostHogAndroidConfig
 import com.posthog.PostHogOnFeatureFlags
+
 // During SDK initialization
 val config = PostHogAndroidConfig(apiKey = "<ph_project_token>").apply {
     onFeatureFlags = PostHogOnFeatureFlags {
@@ -1966,6 +1870,7 @@ val config = PostHogAndroidConfig(apiKey = "<ph_project_token>").apply {
         }
     }
 }
+
 // And/or after the SDK is initialized
 PostHog.reloadFeatureFlags {
     if (PostHog.isFeatureEnabled("flag-key")) {
@@ -1980,10 +1885,9 @@ Feature flag values are cached. If something has changed with your user and you'
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.reloadFeatureFlags()
 ```
 
@@ -1993,10 +1897,9 @@ To track when someone sees or interacts with a feature, use `captureFeatureView`
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.captureFeatureView("flag-key", flagVariant = "variant-key")
 PostHog.captureFeatureInteraction("flag-key", flagVariant = "variant-key")
 ```
@@ -2007,11 +1910,10 @@ PostHog.captureFeatureInteraction("flag-key", flagVariant = "variant-key")
 
 Swift
 
-PostHog AI
-
 ```swift
 if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.enabled {
     // Do something differently for this user
+
     // Optional: fetch the payload from the same evaluation result
     let matchedFlagPayload = result.payload
 }
@@ -2021,11 +1923,10 @@ if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.enabl
 
 Swift
 
-PostHog AI
-
 ```swift
 if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.variant == "variant-key" { // replace "variant-key" with the key of your variant
     // Do something differently for this user
+
     // Optional: fetch the payload from the same evaluation result
     let matchedFlagPayload = result.payload
 }
@@ -2037,12 +1938,11 @@ If your payload is a JSON object, you can decode it into a `Decodable` type:
 
 Swift
 
-PostHog AI
-
 ```swift
 struct FlagPayload: Decodable {
     let title: String
 }
+
 if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"),
    let payload = result.payloadAs(FlagPayload.self) {
     // Use payload.title
@@ -2055,8 +1955,6 @@ You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. 
 
 Swift
 
-PostHog AI
-
 ```swift
 for flag in PostHogSDK.shared.getAllFeatureFlags() ?? [] {
     print(flag.key, flag.enabled, flag.variant as Any, flag.payload as Any)
@@ -2068,8 +1966,6 @@ for flag in PostHogSDK.shared.getAllFeatureFlags() ?? [] {
 Feature flag values are cached. If something has changed with your user and you'd like to refetch their flag values, call:
 
 Swift
-
-PostHog AI
 
 ```swift
 PostHogSDK.shared.reloadFeatureFlags()
@@ -2085,8 +1981,6 @@ To handle this, you can use the `didReceiveFeatureFlags` notification to wait fo
 
 Swift
 
-PostHog AI
-
 ```swift
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -2097,13 +1991,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             name: PostHogSDK.didReceiveFeatureFlags,
             object: nil
         )
+
         let POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
         // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
         let POSTHOG_HOST = "https://us.i.posthog.com"
+
         let config = PostHogConfig(projectToken: POSTHOG_PROJECT_TOKEN, host: POSTHOG_HOST)
+
         PostHogSDK.shared.setup(config)
+
         return true
     }
+
     // The "receiveFeatureFlags" method will be called when the SDK receives the feature flags from the server.
     @objc func receiveFeatureFlags() {
         print("receiveFeatureFlags called")
@@ -2114,8 +2013,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 Alternatively, you can use the completion block of the `reloadFeatureFlags(_:)` method. This allows you to execute logic immediately after the flags are reloaded:
 
 Swift
-
-PostHog AI
 
 ```swift
 // Reload feature flags and check if a specific feature is enabled
@@ -2132,8 +2029,6 @@ To track when someone sees or interacts with a feature, use `captureFeatureView`
 
 Swift
 
-PostHog AI
-
 ```swift
 PostHogSDK.shared.captureFeatureView(flag: "flag-key", flagVariant: "variant-key")
 PostHogSDK.shared.captureFeatureInteraction(flag: "flag-key", flagVariant: "variant-key")
@@ -2145,12 +2040,11 @@ PostHogSDK.shared.captureFeatureInteraction(flag: "flag-key", flagVariant: "vari
 
 Dart
 
-PostHog AI
-
 ```dart
 final result = await Posthog().getFeatureFlagResult('flag-key');
 if (result != null && result.enabled) {
   // Do something differently for this user
+
   // Optional: fetch the payload from the same evaluation result
   final matchedFlagPayload = result.payload;
 }
@@ -2160,12 +2054,11 @@ if (result != null && result.enabled) {
 
 Dart
 
-PostHog AI
-
 ```dart
 final result = await Posthog().getFeatureFlagResult('flag-key');
 if (result != null && result.variant == 'variant-key') { // replace 'variant-key' with the key of your variant
   // Do something differently for this user
+
   // Optional: fetch the payload from the same evaluation result
   final matchedFlagPayload = result.payload;
 }
@@ -2182,8 +2075,6 @@ This means that for most screens, the feature flags are available immediately â€
 To handle this, you can use the `onFeatureFlags` callback in your config to be notified when flags are loaded:
 
 Dart
-
-PostHog AI
 
 ```dart
 final config = PostHogConfig('<ph_project_token>');
@@ -2202,8 +2093,6 @@ Feature flag values are cached. If something has changed with your user and you'
 
 Dart
 
-PostHog AI
-
 ```dart
 await Posthog().reloadFeatureFlags();
 ```
@@ -2220,12 +2109,12 @@ Call `posthog.evaluateFlags()` once for the user, then read values from the retu
 
 Java
 
-PostHog AI
-
 ```java
 PostHogFeatureFlagEvaluations flags = posthog.evaluateFlags("distinct_id_of_your_user");
+
 if (flags.isEnabled("flag-key")) {
     // Do something differently for this user
+
     // Optional: fetch the payload
     String matchedFlagPayload = flags.getFlagPayload("flag-key");
 }
@@ -2235,14 +2124,15 @@ if (flags.isEnabled("flag-key")) {
 
 Java
 
-PostHog AI
-
 ```java
 PostHogFeatureFlagEvaluations flags = posthog.evaluateFlags("distinct_id_of_your_user");
+
 Object flagValue = flags.getFlag("flag-key");
 String enabledVariant = flagValue instanceof String ? (String) flagValue : null;
+
 if ("variant-key".equals(enabledVariant)) { // replace "variant-key" with the key of your variant
     // Do something differently for this user
+
     // Optional: fetch the payload
     String matchedFlagPayload = flags.getFlagPayload("flag-key");
 }
@@ -2266,13 +2156,13 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 Java
 
-PostHog AI
-
 ```java
 PostHogFeatureFlagEvaluations flags = posthog.evaluateFlags("distinct_id_of_your_user");
+
 if (flags.isEnabled("flag-key")) {
     // Do something differently for this user
 }
+
 posthog.capture(
     "distinct_id_of_your_user",
     "event_name",
@@ -2288,8 +2178,6 @@ To reduce event property bloat, pass a filtered snapshot:
 
 Java
 
-PostHog AI
-
 ```java
 // Attach only flags accessed with isEnabled() or getFlag() before this call
 posthog.capture(
@@ -2299,6 +2187,7 @@ posthog.capture(
         .flags(flags.onlyAccessed())
         .build()
 );
+
 // Attach only specific flags
 posthog.capture(
     "distinct_id_of_your_user",
@@ -2317,8 +2206,6 @@ In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 Java
 
-PostHog AI
-
 ```java
 posthog.capture(
     "distinct_id_of_your_user",
@@ -2335,10 +2222,9 @@ By default, `evaluateFlags()` evaluates every flag for the user. If you only nee
 
 Java
 
-PostHog AI
-
 ```java
 import java.util.Arrays;
+
 PostHogFeatureFlagEvaluations flags = posthog.evaluateFlags(
     "distinct_id_of_your_user",
     PostHogEvaluateFlagsOptions.builder()
@@ -2365,10 +2251,9 @@ For example:
 
 Java
 
-PostHog AI
-
 ```java
 import com.posthog.server.PostHogEvaluateFlagsOptions;
+
 PostHogFeatureFlagEvaluations flags = posthog.evaluateFlags(
     "distinct_id_of_the_user",
     PostHogEvaluateFlagsOptions.builder()
@@ -2379,6 +2264,7 @@ PostHogFeatureFlagEvaluations flags = posthog.evaluateFlags(
         .personProperty("property_name", "value")
         .build()
 );
+
 if (flags.isEnabled("flag-key")) {
     // Do something differently for this user
 }
@@ -2423,14 +2309,14 @@ Call `client.evaluate_flags()` once for the user, then read values from the retu
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
+
 let flags = client.evaluate_flags(
     "distinct_id_of_your_user",
     EvaluateFlagsOptions::default(),
 ).await.unwrap();
+
 if flags.is_enabled("flag-key") {
     // Do something differently for this user
     // Optional: fetch the payload
@@ -2442,14 +2328,14 @@ if flags.is_enabled("flag-key") {
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::{EvaluateFlagsOptions, FlagValue};
+
 let flags = client.evaluate_flags(
     "distinct_id_of_your_user",
     EvaluateFlagsOptions::default(),
 ).await.unwrap();
+
 match flags.get_flag("flag-key") {
     Some(FlagValue::String(variant)) if variant == "variant-key" => {
         // Do something differently for this user
@@ -2478,17 +2364,18 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::{EvaluateFlagsOptions, Event};
+
 let flags = client.evaluate_flags(
     "distinct_id_of_your_user",
     EvaluateFlagsOptions::default(),
 ).await.unwrap();
+
 if flags.is_enabled("flag-key") {
     // Do something differently for this user
 }
+
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags);
 client.capture(event);
@@ -2500,13 +2387,12 @@ To reduce event property bloat, pass a filtered snapshot:
 
 Rust
 
-PostHog AI
-
 ```rust
 // Attach only flags accessed with is_enabled() or get_flag() before this call
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags.only_accessed());
 client.capture(event);
+
 // Attach only specific flags
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags.only(&["checkout-flow", "new-dashboard"]));
@@ -2521,10 +2407,9 @@ In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::Event;
+
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.insert_prop("$feature/feature-flag-key", "variant-key").unwrap();
 client.capture(event);
@@ -2536,10 +2421,9 @@ By default, `evaluate_flags()` evaluates every flag for the user. If you only ne
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
+
 let flags = client.evaluate_flags(
     "distinct_id_of_your_user",
     EvaluateFlagsOptions {
@@ -2563,14 +2447,14 @@ If you're using the blocking client (with `default-features = false`), the API i
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
+
 let flags = client.evaluate_flags(
     "distinct_id_of_your_user",
     EvaluateFlagsOptions::default(),
 ).unwrap();
+
 if flags.is_enabled("flag-key") {
     // Do something differently for this user
 }
@@ -2588,10 +2472,9 @@ Call `PostHog.FeatureFlags.evaluate_flags/1` once for the user, then read values
 
 Elixir
 
-PostHog AI
-
 ```elixir
 {:ok, snapshot} = PostHog.FeatureFlags.evaluate_flags("distinct_id_of_your_user")
+
 if PostHog.FeatureFlags.Evaluations.enabled?(snapshot, "flag-key") do
   # Do something differently for this user
   # Optional: fetch the payload
@@ -2603,11 +2486,11 @@ end
 
 Elixir
 
-PostHog AI
-
 ```elixir
 {:ok, snapshot} = PostHog.FeatureFlags.evaluate_flags("distinct_id_of_your_user")
+
 enabled_variant = PostHog.FeatureFlags.Evaluations.get_flag(snapshot, "flag-key")
+
 if enabled_variant == "variant-key" do
   # Do something differently for this user
   # Optional: fetch the payload
@@ -2633,13 +2516,13 @@ Put the same `snapshot` object that you used for branching into context. Subsequ
 
 Elixir
 
-PostHog AI
-
 ```elixir
 {:ok, snapshot} = PostHog.FeatureFlags.evaluate_flags("distinct_id_of_your_user")
+
 if PostHog.FeatureFlags.Evaluations.enabled?(snapshot, "flag-key") do
   # Do something differently for this user
 end
+
 PostHog.FeatureFlags.set_in_context(snapshot)
 PostHog.capture("event_name", %{distinct_id: "distinct_id_of_your_user"})
 ```
@@ -2650,15 +2533,15 @@ To reduce event property bloat, put a filtered snapshot in context:
 
 Elixir
 
-PostHog AI
-
 ```elixir
 {:ok, snapshot} = PostHog.FeatureFlags.evaluate_flags("distinct_id_of_your_user")
+
 # Attach only flags accessed with enabled?/2 or get_flag/2 before this call
 PostHog.FeatureFlags.Evaluations.enabled?(snapshot, "flag-key")
 PostHog.FeatureFlags.set_in_context(
   PostHog.FeatureFlags.Evaluations.only_accessed(snapshot)
 )
+
 # Or attach only specific flags
 PostHog.FeatureFlags.set_in_context(
   PostHog.FeatureFlags.Evaluations.only(snapshot, ["checkout-flow", "new-dashboard"])
@@ -2673,8 +2556,6 @@ In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 Elixir
 
-PostHog AI
-
 ```elixir
 PostHog.capture("event_name", %{
   "$feature/feature-flag-key" => "variant-key",
@@ -2687,8 +2568,6 @@ PostHog.capture("event_name", %{
 By default, `evaluate_flags/1` evaluates every flag for the user. If you only need a few flags, pass `flag_keys` to request only those flags:
 
 Elixir
-
-PostHog AI
 
 ```elixir
 {:ok, snapshot} =
@@ -2716,10 +2595,9 @@ Call `EvaluateFlagsAsync()` once for the user, then read values from the returne
 
 C#
 
-PostHog AI
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
+
 if (flags.IsEnabled("flag-key"))
 {
     // Do something differently for this user
@@ -2732,11 +2610,11 @@ if (flags.IsEnabled("flag-key"))
 
 C#
 
-PostHog AI
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
+
 var enabledVariant = flags.GetFlag("flag-key")?.VariantKey;
+
 if (enabledVariant == "variant-key") // replace "variant-key" with the key of your variant
 {
     // Do something differently for this user
@@ -2763,14 +2641,14 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 C#
 
-PostHog AI
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
+
 if (flags.IsEnabled("flag-key"))
 {
     // Do something differently for this user
 }
+
 posthog.Capture(
     "distinct_id_of_your_user",
     "event_name",
@@ -2786,8 +2664,6 @@ To reduce event property bloat, pass a filtered snapshot:
 
 C#
 
-PostHog AI
-
 ```csharp
 // Attach only flags accessed with IsEnabled() or GetFlag() before this call
 posthog.Capture(
@@ -2797,6 +2673,7 @@ posthog.Capture(
     groups: null,
     flags: flags.OnlyAccessed()
 );
+
 // Attach only specific flags
 posthog.Capture(
     "distinct_id_of_your_user",
@@ -2812,8 +2689,6 @@ posthog.Capture(
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 C#
-
-PostHog AI
 
 ```csharp
 posthog.Capture(
@@ -2832,8 +2707,6 @@ posthog.Capture(
 By default, `EvaluateFlagsAsync()` evaluates every flag for the user. If you only need a few flags, pass `FlagKeysToEvaluate` to request only those flags:
 
 C#
-
-PostHog AI
 
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync(
@@ -2863,8 +2736,6 @@ For example:
 
 C#
 
-PostHog AI
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync(
     "distinct_id_of_the_user",
@@ -2887,6 +2758,7 @@ var flags = await posthog.EvaluateFlagsAsync(
         },
     }
 );
+
 if (flags.IsEnabled("flag-key"))
 {
     // Do something differently for this user
@@ -2930,8 +2802,6 @@ There are 3 steps to implement feature flags using the PostHog API:
 
 #### Request
 
-PostHog AI
-
 ### Terminal
 
 ```shell
@@ -2943,6 +2813,7 @@ curl -v -L --header "Content-Type: application/json" -d '  {
         "group_type": "group_id"
     }
 }' "https://us.i.posthog.com/flags?v=2"
+
 # With configuration (flags + PostHog config)
 curl -v -L --header "Content-Type: application/json" -d '  {
     "api_key": "<ph_project_token>",
@@ -2958,6 +2829,7 @@ curl -v -L --header "Content-Type: application/json" -d '  {
 ```python
 import requests
 import json
+
 # Basic request (flags only)
 url = "https://us.i.posthog.com/flags?v=2"
 headers = {
@@ -2972,6 +2844,7 @@ payload = {
 }
 response = requests.post(url, headers=headers, data=json.dumps(payload))
 print(response.json())
+
 # With configuration (flags + PostHog config)
 url_with_config = "https://us.i.posthog.com/flags?v=2&config=true"
 response_with_config = requests.post(url_with_config, headers=headers, data=json.dumps(payload))
@@ -2982,6 +2855,7 @@ print(response_with_config.json())
 
 ```javascript
 import fetch from "node-fetch";
+
 async function sendFlagsRequest() {
     const headers = {
         "Content-Type": "application/json",
@@ -2993,6 +2867,7 @@ async function sendFlagsRequest() {
             group_type: "group_id",
         },
     };
+
     // Basic request (flags only)
     const url = "https://us.i.posthog.com/flags?v=2";
     const response = await fetch(url, {
@@ -3002,6 +2877,7 @@ async function sendFlagsRequest() {
     });
     const data = await response.json();
     console.log(data);
+
     // With configuration (flags + PostHog config)
     const urlWithConfig = "https://us.i.posthog.com/flags?v=2&config=true";
     const responseWithConfig = await fetch(urlWithConfig, {
@@ -3012,6 +2888,7 @@ async function sendFlagsRequest() {
     const dataWithConfig = await responseWithConfig.json();
     console.log(dataWithConfig);
 }
+
 sendFlagsRequest();
 ```
 
@@ -3026,8 +2903,6 @@ When making direct API calls to the `/flags` endpoint, you can control which fla
 To filter flags by evaluation context, include the `evaluation_contexts` field in your request body:
 
 > **Note:** The legacy parameter `evaluation_environments` is also supported for backward compatibility.
-
-PostHog AI
 
 ### Terminal
 
@@ -3044,6 +2919,7 @@ curl -v -L --header "Content-Type: application/json" -d '  {
 ```python
 import requests
 import json
+
 url = "https://us.i.posthog.com/flags?v=2"
 headers = {
     "Content-Type": "application/json"
@@ -3103,8 +2979,6 @@ Evaluation runtime (server vs. client) is automatically detected based on your r
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 // Browser fetch - Detected as CLIENT runtime
 // Will receive: client-only flags + "all" flags
@@ -3124,13 +2998,12 @@ const response = await fetch("https://us.i.posthog.com/flags?v=2", {
 
 Python
 
-PostHog AI
-
 ```python
 # Python requests - Detected as SERVER runtime
 # Will receive: server-only flags + "all" flags
 # Won't receive: client-only flags
 import requests
+
 response = requests.post(
     "https://us.i.posthog.com/flags?v=2",
     json={
@@ -3142,8 +3015,6 @@ response = requests.post(
 ```
 
 Terminal
-
-PostHog AI
 
 ```shell
 # curl - Detected as SERVER runtime
@@ -3157,8 +3028,6 @@ curl -v -L --header "Content-Type: application/json" -d '{
 ```
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 // Node.js with custom User-Agent - Control runtime detection
@@ -3181,8 +3050,6 @@ Both features work together as sequential filters:
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 // Example: Production web client
 const response = await fetch("https://us.i.posthog.com/flags?v=2", {
@@ -3197,6 +3064,7 @@ const response = await fetch("https://us.i.posthog.com/flags?v=2", {
         evaluation_contexts: ["production", "web"]
     })
 });
+
 // This request will only receive flags that:
 // 1. Have runtime set to "client" OR "all" (due to browser headers)
 // AND
@@ -3217,8 +3085,6 @@ Use this endpoint when you only need to evaluate feature flags. It returns a res
 > **Note:** If a feature flag is associated with an experiment that has a [holdout group](/docs/experiments/holdouts.md), users in the holdout receive a variant value in the format `holdout-{holdout_id}` (e.g., `holdout-727`). You can detect holdout users by checking if the variant starts with `holdout-`.
 
 JSON
-
-PostHog AI
 
 ```json
 {
@@ -3275,8 +3141,6 @@ PostHog AI
 Use this endpoint when you need both feature flag evaluation and PostHog configuration information (useful for client-side SDKs that need to initialize PostHog):
 
 JSON
-
-PostHog AI
 
 ```json
 {
@@ -3349,8 +3213,6 @@ For basic response (`/flags?v=2`):
 
 JSON
 
-PostHog AI
-
 ```json
 {
   "flags": {},
@@ -3363,8 +3225,6 @@ PostHog AI
 For full response with configuration (`/flags?v=2&config=true`):
 
 JSON
-
-PostHog AI
 
 ```json
 {
@@ -3398,8 +3258,6 @@ If you want use your feature flag to breakdown or filter events in your [insight
 
 To do this, include the `$feature/feature_flag_name` property in your event:
 
-PostHog AI
-
 ### Terminal
 
 ```shell
@@ -3418,6 +3276,7 @@ curl -v -L --header "Content-Type: application/json" -d '  {
 ```python
 import requests
 import json
+
 url = "https://us.i.posthog.com/i/v0/e/"
 headers = {
     "Content-Type": "application/json"
@@ -3443,8 +3302,6 @@ You need to include two properties with this event:
 1.  `$feature_flag_response`: This is the name of the variant the user has been assigned to e.g., "control" or "test"
 2.  `$feature_flag`: This is the key of the feature flag in your experiment.
 
-PostHog AI
-
 ### Terminal
 
 ```shell
@@ -3464,6 +3321,7 @@ curl -v -L --header "Content-Type: application/json" -d '  {
 ```python
 import requests
 import json
+
 url = "https://us.i.posthog.com/i/v0/e/"
 headers = {
     "Content-Type": "application/json"
@@ -3489,8 +3347,6 @@ You can provide properties to evaluate the flag with by using the `person proper
 
 For example:
 
-PostHog AI
-
 ### Terminal
 
 ```shell
@@ -3510,6 +3366,7 @@ curl -v -L --header "Content-Type: application/json" -d '  {
 ```python
 import requests
 import json
+
 url = "https://us.i.posthog.com/flags?v=2"
 headers = {
     "Content-Type": "application/json"
@@ -3533,8 +3390,6 @@ By default, a user's GeoIP properties are set using the IP address they use to c
 
 To override the GeoIP properties used to evaluate a feature flag, provide an IP address in the `HTTP_X_FORWARDED_FOR` when making your `/flags` request:
 
-PostHog AI
-
 ### Terminal
 
 ```shell
@@ -3552,6 +3407,7 @@ curl -v -L \
 ```python
 import requests
 import json
+
 url = "https://us.i.posthog.com/flags?v=2"
 headers = {
     "Content-Type": "application/json",

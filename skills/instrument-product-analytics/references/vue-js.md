@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Vue.js - Docs
-
-Copy page
-
-# Vue.js - Docs
+# Vue.js
 
 PostHog makes it easy to get data about usage of your [Vue.js](https://vuejs.org/) app. Integrating PostHog into your app enables analytics about user behavior, custom events capture, session replays, feature flags, and more.
 
@@ -22,8 +18,6 @@ To follow this guide along, you need:
 ## Setting up PostHog
 
 Start by installing `posthog-js` using your package manager:
-
-PostHog AI
 
 ### npm
 
@@ -51,8 +45,6 @@ bun add posthog-js
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
 >
-> PostHog AI
->
 > ```
 > script-src 'self' https://*.posthog.com;
 > connect-src 'self' https://*.posthog.com;
@@ -71,25 +63,29 @@ PostHog initializes as a singleton, so you can initialize it in your `main.ts` f
 
 src/main.ts
 
-PostHog AI
-
 ```typescript
 // src/main.ts
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+
 import App from './App.vue'
 import router from './router'
 import posthog from "posthog-js";
+
 const app = createApp(App);
+
 posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN || '<ph_project_token>', {
   api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com',
   defaults: '2026-05-30',
 });
+
 app.use(createPinia())
 app.use(router)
+
 app.config.errorHandler = (err, instance, info) => {
   posthog.captureException(err)
 }
+
 app.mount('#app')
 ```
 
@@ -97,12 +93,11 @@ Then, you can access PostHog throughout your app just by importing it from `post
 
 TypeScript
 
-PostHog AI
-
 ```typescript
 // src/App.vue
 <script setup>
 import posthog from 'posthog-js'
+
 const handleClick = () => {
   posthog.capture('button_clicked')
 }
@@ -117,17 +112,17 @@ Start by creating a `plugins` folder and adding a `posthog.js` file to that fold
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 // src/plugins/posthog.js
 import posthog from 'posthog-js'
+
 export default {
   install(Vue) {
     posthog.init('<ph_project_token>', {
       api_host: 'https://us.i.posthog.com',
       defaults: '2026-05-30'
     })
+
     Vue.prototype.$posthog = posthog
   }
 }
@@ -137,15 +132,15 @@ Next, in `main.js`, import and use the plugin.
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 // src/main.js
 import Vue from 'vue'
 import App from './App.vue'
 import PosthogPlugin from './plugins/posthog'
+
 Vue.config.productionTip = false
 Vue.use(PosthogPlugin)
+
 new Vue({
   render: h => h(App),
 }).$mount('#app')
@@ -166,8 +161,6 @@ This makes PostHog available as `this.$posthog` in any Vue component.
 If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.init('<ph_project_token>', {
@@ -191,22 +184,24 @@ To capture custom events, evaluate feature flags, and use any of the other PostH
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 // src/App.vue
 <script setup>
 import { RouterView } from 'vue-router'
 import { usePostHog } from './composables/usePostHog'
+
 const { posthog } = usePostHog()
+
 const handleClick = () => {
   posthog.capture('button_clicked', { location: 'homepage' })
 }
 </script>
+
 <template>
   <div>
     <button @click="handleClick">Click me!</button>
   </div>
+
   <RouterView />
 </template>
 ```
@@ -217,20 +212,21 @@ When using feature flags on pages that users navigate to directly, the flags may
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 // src/composables/usePostHogFeatureFlag.ts
 import { ref, type Ref } from 'vue'
 import { usePostHog } from './usePostHog'
+
 export function usePostHogFeatureFlag(
   feature: string,
 ): Ref<string | boolean | undefined> {
   const { posthog } = usePostHog()
   const flag = ref(posthog.getFeatureFlag(feature))
+
   posthog.onFeatureFlags(() => {
     flag.value = posthog.getFeatureFlag(feature)
   })
+
   return flag
 }
 ```
@@ -239,25 +235,27 @@ Then use it in your components:
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 // src/App.vue
 <script setup>
 import { RouterView } from 'vue-router'
 import { usePostHog } from './composables/usePostHog'
 import { usePostHogFeatureFlag } from './composables/usePostHogFeatureFlag'
+
 const { posthog } = usePostHog()
 const isFeatureEnabled = usePostHogFeatureFlag('test-flag')
+
 const handleClick = () => {
   posthog.capture('button_clicked', { location: 'homepage' })
 }
 </script>
+
 <template>
   <div>
     <button @click="handleClick">Click me!</button>
     <p>Is feature flag enabled? {{ isFeatureEnabled ? 'Yes' : 'No' }}</p>
   </div>
+
   <RouterView />
 </template>
 ```
@@ -270,8 +268,6 @@ To capture custom events, evaluate feature flags, and use any of the other PostH
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 // src/components/AboutPage.vue
 <template>
@@ -282,6 +278,7 @@ PostHog AI
     <p>Feature enabled? {{ isFeatureEnabled ? 'Yes' : 'No' }}</p>
   </div>
 </template>
+
 <script>
 export default {
   name: 'AboutPage',

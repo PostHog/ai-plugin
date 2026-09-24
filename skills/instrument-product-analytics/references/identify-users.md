@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Identify users - Docs
-
-Copy page
-
-# Identify users - Docs
+# Identify users
 
 Linking events to specific users enables you to build a full picture of how they're using your product across different sessions, devices, and platforms.
 
@@ -13,8 +9,6 @@ This is straightforward to do when [capturing backend events](/docs/product-anal
 However, in the frontend of a [web](/docs/libraries/js/usage.md#capturing-events) or [mobile app](/docs/libraries/ios.md#capturing-events), a `distinct_id` is not a required argument — PostHog's SDKs will generate an anonymous `distinct_id` for you automatically and you can capture events anonymously, provided you use the appropriate [configuration](/docs/libraries/js/usage.md#capturing-anonymous-events).
 
 To link events to specific users, call `identify`:
-
-PostHog AI
 
 ### Web
 
@@ -106,8 +100,6 @@ If your app already knows the signed-in user when you initialize the JavaScript 
 
 Web
 
-PostHog AI
-
 ```javascript
 posthog.init('<ph_project_token>', {
     api_host: 'https://us.i.posthog.com',
@@ -144,8 +136,6 @@ This is important if your users are sharing a computer, as otherwise all of thos
 
 You can do that like so:
 
-PostHog AI
-
 ### Web
 
 ```javascript
@@ -179,8 +169,6 @@ await Posthog().reset();
 If you *also* want to reset the `device_id` so that the device will be considered a new device in future events, you can pass `true` as an argument:
 
 Web
-
-PostHog AI
 
 ```javascript
 posthog.reset(true)
@@ -225,20 +213,22 @@ As long as you associate the distinct IDs with `posthog.identify()` or `posthog.
 
 Here's an example implementation for handling deep links from web to mobile:
 
-PostHog AI
-
 ### iOS
 
 ```swift
 import PostHog
+
 class DeepLinkIdentityManager {
     static let shared = DeepLinkIdentityManager()
+
     // MARK: - Deep Link Received
+
     func handleDeepLink(_ url: URL, isAuthenticatedOnMobile: Bool) {
         guard let webDistinctId = URLComponents(url: url, resolvingAgainstBaseURL: true)?
             .queryItems?.first(where: { $0.name == "ph_distinct_id" })?.value else {
             return
         }
+
         if isAuthenticatedOnMobile {
             // The mobile app already knows the current user.
             // Alias the incoming web distinct ID to that user.
@@ -248,13 +238,16 @@ class DeepLinkIdentityManager {
             PostHogSDK.shared.identify(webDistinctId)
         }
     }
+
     // MARK: - Login/Signup
+
     func handleLogin(canonicalUserId: String) {
         // Switch from the web distinct ID (or a mobile anon ID)
         // to your canonical user ID.
         PostHogSDK.shared.identify(canonicalUserId)
         // Set user properties, track signup event, etc.
     }
+
     func handleLogout() {
         PostHogSDK.shared.reset()
     }
@@ -266,10 +259,14 @@ class DeepLinkIdentityManager {
 ```kotlin
 import android.net.Uri
 import com.posthog.PostHog
+
 object DeepLinkIdentityManager {
+
     // Deep Link Received
+
     fun handleDeepLink(uri: Uri, isAuthenticatedOnMobile: Boolean) {
         val webDistinctId = uri.getQueryParameter("ph_distinct_id") ?: return
+
         if (isAuthenticatedOnMobile) {
             // The mobile app already knows the current user.
             // Alias the incoming web distinct ID to that user.
@@ -279,13 +276,16 @@ object DeepLinkIdentityManager {
             PostHog.identify(webDistinctId)
         }
     }
+
     // Login/Signup
+
     fun handleLogin(canonicalUserId: String) {
         // Switch from the web distinct ID (or a mobile anon ID)
         // to your canonical user ID.
         PostHog.identify(canonicalUserId)
         // Set user properties, track signup event, etc.
     }
+
     fun handleLogout() {
         PostHog.reset()
     }

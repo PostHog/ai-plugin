@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Go - Docs
-
-Copy page
-
-# Go - Docs
+# Go
 
 This library uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server-side application that needs performance.
 
@@ -12,22 +8,20 @@ This library uses an internal queue to make calls fast and non-blocking. It also
 
 Terminal
 
-PostHog AI
-
 ```bash
 go get github.com/posthog/posthog-go
 ```
 
 Go
 
-PostHog AI
-
 ```go
 package main
+
 import (
     "os"
     "github.com/posthog/posthog-go"
 )
+
 func main() {
     client, _ := posthog.NewWithConfig(
         os.Getenv("POSTHOG_API_KEY"),
@@ -53,8 +47,6 @@ You can send custom events using `capture`:
 
 Go
 
-PostHog AI
-
 ```go
 client.Enqueue(posthog.Capture{
   DistinctId: "distinct_id_of_the_user",
@@ -72,8 +64,6 @@ Optionally, you can include additional information with the event by including a
 
 Go
 
-PostHog AI
-
 ```go
 client.Enqueue(posthog.Capture{
     DistinctId: "distinct_id_of_the_user",
@@ -90,8 +80,6 @@ If you're aiming for a backend-only implementation of PostHog and won't be captu
 
 Go
 
-PostHog AI
-
 ```go
 client.Enqueue(posthog.Capture{
   DistinctId: "distinct_id_of_the_user",
@@ -106,8 +94,6 @@ client.Enqueue(posthog.Capture{
 For backward compatibility, the Go SDK captures identified events by default. These create [person profiles](/docs/data/persons.md). To set [person properties](/docs/product-analytics/person-properties.md) in these profiles, include them when capturing an event:
 
 Go
-
-PostHog AI
 
 ```go
 client.Enqueue(posthog.Capture{
@@ -130,8 +116,6 @@ To capture [anonymous events](/docs/data/anonymous-vs-identified-events.md) with
 
 Go
 
-PostHog AI
-
 ```go
 client.Enqueue(posthog.Capture{
     DistinctId: "distinct_id",
@@ -150,8 +134,6 @@ In this case, you can use `alias` to assign another distinct ID to the same user
 
 Go
 
-PostHog AI
-
 ```go
 client.Enqueue(posthog.Alias{
   DistinctId: "distinct_id",
@@ -169,8 +151,6 @@ If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure [
 
 Go
 
-PostHog AI
-
 ```go
 handler := posthog.NewRequestContextMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     flags, err := posthog.EvaluateFlagsWithContext(r.Context(), client, posthog.EvaluateFlagsPayload{})
@@ -178,6 +158,7 @@ handler := posthog.NewRequestContextMiddleware(http.HandlerFunc(func(w http.Resp
         // If neither the request context nor payload has a distinct ID,
         // err is posthog.ErrNoDistinctID.
     }
+
     _ = posthog.EnqueueWithContext(r.Context(), client, posthog.Capture{
         Event: "checkout started",
         Flags: flags,
@@ -193,8 +174,6 @@ Tracing headers are client-controlled analytics context, not authentication or a
 
 Go
 
-PostHog AI
-
 ```go
 ctx := posthog.WithRequestContext(r.Context(), posthog.RequestContext{
     DistinctId: user.ID,
@@ -204,8 +183,6 @@ ctx := posthog.WithRequestContext(r.Context(), posthog.RequestContext{
 To ignore tracing headers while keeping request metadata, disable tracing header capture:
 
 Go
-
-PostHog AI
 
 ```go
 handler := posthog.NewRequestContextMiddleware(
@@ -228,8 +205,6 @@ Call `client.EvaluateFlags()` once for the user, then read values from the retur
 
 Go
 
-PostHog AI
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "distinct_id_of_your_user",
@@ -237,6 +212,7 @@ flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
 if err != nil {
     // Handle error (e.g. capture error and fallback to default behavior)
 }
+
 if flags.IsEnabled("flag-key") {
     // Do something differently for this user
     // Optional: fetch the payload
@@ -248,8 +224,6 @@ if flags.IsEnabled("flag-key") {
 
 Go
 
-PostHog AI
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "distinct_id_of_your_user",
@@ -257,7 +231,9 @@ flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
 if err != nil {
     // Handle error (e.g. capture error and fallback to default behavior)
 }
+
 enabledVariant := flags.GetFlag("flag-key")
+
 if enabledVariant == "variant-key" { // replace "variant-key" with the key of your variant
     // Do something differently for this user
     // Optional: fetch the payload
@@ -283,8 +259,6 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 Go
 
-PostHog AI
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "distinct_id_of_your_user",
@@ -292,9 +266,11 @@ flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
 if err != nil {
     // Handle error
 }
+
 if flags.IsEnabled("flag-key") {
     // Do something differently for this user
 }
+
 client.Enqueue(posthog.Capture{
     DistinctId: "distinct_id_of_your_user",
     Event:      "event_name",
@@ -308,8 +284,6 @@ To reduce event property bloat, pass a filtered snapshot:
 
 Go
 
-PostHog AI
-
 ```go
 // Attach only flags accessed with IsEnabled() or GetFlag() before this call
 client.Enqueue(posthog.Capture{
@@ -317,6 +291,7 @@ client.Enqueue(posthog.Capture{
     Event:      "event_name",
     Flags:      flags.OnlyAccessed(),
 })
+
 // Attach only specific flags
 client.Enqueue(posthog.Capture{
     DistinctId: "distinct_id_of_your_user",
@@ -333,8 +308,6 @@ In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 Go
 
-PostHog AI
-
 ```go
 client.Enqueue(posthog.Capture{
     DistinctId: "distinct_id_of_your_user",
@@ -349,8 +322,6 @@ client.Enqueue(posthog.Capture{
 By default, `EvaluateFlags()` evaluates every flag for the user. If you only need a few flags, pass `FlagKeys` to request only those flags:
 
 Go
-
-PostHog AI
 
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
@@ -377,8 +348,6 @@ For example:
 
 Go
 
-PostHog AI
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "distinct_id_of_the_user",
@@ -397,6 +366,7 @@ flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
 if err != nil {
     // Handle error
 }
+
 if flags.IsEnabled("flag-key") {
     // Do something differently for this user
 }
@@ -435,10 +405,9 @@ You can configure the `FeatureFlagRequestTimeout` parameter when initializing yo
 
 Go
 
-PostHog AI
-
 ```go
 // import "time"
+
 client, _ := posthog.NewWithConfig(
     os.Getenv("<ph_project_token>"),
     posthog.Config{
@@ -463,8 +432,6 @@ Since [experiments](/docs/experiments/start-here.md) use feature flags, the code
 
 Go
 
-PostHog AI
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "user_distinct_id",
@@ -473,6 +440,7 @@ if err != nil {
     // Handle error (e.g. capture error and fallback to default behavior)
 }
 variant := flags.GetFlag("experiment-feature-flag-key")
+
 if variant == "variant-name" {
     // Do something
 }
@@ -488,8 +456,6 @@ You can capture exceptions and errors using the Go SDK. There are two approaches
 
 Go
 
-PostHog AI
-
 ```go
 exception := posthog.NewDefaultException(
     time.Now(),
@@ -504,8 +470,6 @@ client.Enqueue(exception)
 
 Go
 
-PostHog AI
-
 ```go
 baseHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
     Level: slog.LevelInfo,
@@ -515,6 +479,7 @@ logger := slog.New(posthog.NewSlogCaptureHandler(baseHandler, client,
         return "user_distinct_id"
     }),
 ))
+
 // Automatically captured as an exception in PostHog
 logger.Warn("Something broke", "error", fmt.Errorf("connection refused"))
 ```
@@ -531,8 +496,6 @@ Group analytics allows you to associate an event with a group (e.g. teams, organ
 
 Go
 
-PostHog AI
-
 ```go
 client.Enqueue(posthog.Capture{
     DistinctId: "user_distinct_id",
@@ -545,8 +508,6 @@ client.Enqueue(posthog.Capture{
 -   Update properties on a group
 
 Go
-
-PostHog AI
 
 ```go
 client.Enqueue(posthog.GroupIdentify{

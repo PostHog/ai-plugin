@@ -1,16 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Rust Feature Flags installation - Docs
-
-Copy page
-
-# Rust Feature Flags installation - Docs
+# Rust Feature Flags installation
 
 Install the `posthog-rs` crate by adding it to your `Cargo.toml`.
 
 Cargo.toml
-
-PostHog AI
 
 ```toml
 [dependencies]
@@ -20,8 +14,6 @@ posthog-rs = "0.14"
 Next, set up the client with your PostHog project key.
 
 Rust
-
-PostHog AI
 
 ```rust
 let client = posthog_rs::client("<ph_project_token>").await;
@@ -34,8 +26,6 @@ Our Rust SDK supports both blocking and async clients. The async client is the d
 If you need to use a synchronous client instead – like we do in our [CLI](https://github.com/PostHog/posthog/tree/master/cli) –, you can opt into it by disabling the asynchronous feature on your `Cargo.toml` file.
 
 toml
-
-PostHog AI
 
 ```toml
 [dependencies]
@@ -56,14 +46,14 @@ Call `client.evaluate_flags()` once for the user, then read values from the retu
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
+
 let flags = client.evaluate_flags(
     "distinct_id_of_your_user",
     EvaluateFlagsOptions::default(),
 ).await.unwrap();
+
 if flags.is_enabled("flag-key") {
     // Do something differently for this user
     // Optional: fetch the payload
@@ -75,14 +65,14 @@ if flags.is_enabled("flag-key") {
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::{EvaluateFlagsOptions, FlagValue};
+
 let flags = client.evaluate_flags(
     "distinct_id_of_your_user",
     EvaluateFlagsOptions::default(),
 ).await.unwrap();
+
 match flags.get_flag("flag-key") {
     Some(FlagValue::String(variant)) if variant == "variant-key" => {
         // Do something differently for this user
@@ -111,17 +101,18 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::{EvaluateFlagsOptions, Event};
+
 let flags = client.evaluate_flags(
     "distinct_id_of_your_user",
     EvaluateFlagsOptions::default(),
 ).await.unwrap();
+
 if flags.is_enabled("flag-key") {
     // Do something differently for this user
 }
+
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags);
 client.capture(event);
@@ -133,13 +124,12 @@ To reduce event property bloat, pass a filtered snapshot:
 
 Rust
 
-PostHog AI
-
 ```rust
 // Attach only flags accessed with is_enabled() or get_flag() before this call
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags.only_accessed());
 client.capture(event);
+
 // Attach only specific flags
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.with_flags(&flags.only(&["checkout-flow", "new-dashboard"]));
@@ -154,10 +144,9 @@ In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::Event;
+
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
 event.insert_prop("$feature/feature-flag-key", "variant-key").unwrap();
 client.capture(event);
@@ -169,10 +158,9 @@ By default, `evaluate_flags()` evaluates every flag for the user. If you only ne
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
+
 let flags = client.evaluate_flags(
     "distinct_id_of_your_user",
     EvaluateFlagsOptions {
@@ -196,14 +184,14 @@ If you're using the blocking client (with `default-features = false`), the API i
 
 Rust
 
-PostHog AI
-
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
+
 let flags = client.evaluate_flags(
     "distinct_id_of_your_user",
     EvaluateFlagsOptions::default(),
 ).unwrap();
+
 if flags.is_enabled("flag-key") {
     // Do something differently for this user
 }

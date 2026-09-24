@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Why you need metrics - Docs
-
-Copy page
-
-# Why you need metrics - Docs
+# Why you need metrics
 
 Metrics are numbers about your system measured over time: how many requests you served, how long they took, how deep the job queue is, how much memory a process is using. Where [logs](/docs/logs.md) record individual events and [traces](/docs/distributed-tracing.md) follow individual requests, metrics summarize everything. They answer "how is the system doing?" at a glance, cheaply, all the time.
 

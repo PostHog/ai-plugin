@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Elixir Error Tracking installation - Docs
-
-Copy page
-
-# Elixir Error Tracking installation - Docs
+# Elixir Error Tracking installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Add the [PostHog Elixir SDK](/docs/libraries/elixir.md) to your list of dependencies in `mix.exs`:
 
     Elixir
-
-    PostHog AI
 
     ```elixir
     def deps do
@@ -29,8 +23,6 @@ Copy page
     Then run:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     mix deps.get
@@ -50,8 +42,6 @@ Copy page
 
     config/config.exs
 
-    PostHog AI
-
     ```elixir
     config :posthog,
       api_host: "https://us.i.posthog.com",
@@ -61,8 +51,6 @@ Copy page
     To get the most out of Error Tracking, set `in_app_otp_apps` to your application name. This marks stack trace frames from your code as "in-app", making it easier to identify relevant frames in the PostHog UI:
 
     config/config.exs
-
-    PostHog AI
 
     ```elixir
     config :posthog,
@@ -103,8 +91,6 @@ Copy page
 
     lib/my\_app\_web/endpoint.ex
 
-    PostHog AI
-
     ```elixir
     plug PostHog.Integrations.Plug
     plug MyAppWeb.Router
@@ -114,14 +100,14 @@ Copy page
 
     Elixir
 
-    PostHog AI
-
     ```elixir
     defmodule MyRouter do
       use Plug.Router
+    
       plug PostHog.Integrations.Plug
       plug :match
       plug :dispatch
+    
       # ... routes
     end
     ```
@@ -140,8 +126,6 @@ Copy page
 
     Elixir
 
-    PostHog AI
-
     ```elixir
     PostHog.set_context(%{distinct_id: current_user.id})
     ```
@@ -152,16 +136,17 @@ Copy page
 
     lib/my\_app\_web/plugs/set\_posthog\_context.ex
 
-    PostHog AI
-
     ```elixir
     defmodule MyAppWeb.Plugs.SetPostHogContext do
       import Plug.Conn
+    
       def init(opts), do: opts
+    
       def call(conn, _opts) do
         if user = conn.assigns[:current_user] do
           PostHog.set_context(%{distinct_id: user.id})
         end
+    
         conn
       end
     end
@@ -170,8 +155,6 @@ Copy page
     Then add it to your router pipeline:
 
     Elixir
-
-    PostHog AI
 
     ```elixir
     pipeline :browser do
@@ -190,17 +173,18 @@ Copy page
 
     config/config.exs
 
-    PostHog AI
-
     ```elixir
     config :posthog,
       api_host: "https://us.i.posthog.com",
       api_key: "<ph_project_token>",
+    
       # Mark your app's stacktrace frames as "in_app"
       in_app_otp_apps: [:my_app],
+    
       # Minimum log level to capture (default: :error)
       # Set to :warning to also capture warnings, or nil to only capture crashes
       capture_level: :error,
+    
       # Logger metadata keys to include in error events (default: [])
       # Set to :all to include all metadata
       metadata: [:request_id, :user_id]
@@ -208,11 +192,11 @@ Copy page
 
     | Option | Type | Default | Description |
     | --- | --- | --- | --- |
-    | in_app_otp_apps | list of atoms | [] | OTP app names whose stacktrace frames are marked as "in_app" in the UI. |
-    | capture_level | log level or nil | :error | Minimum log level to capture. Crashes with crash_reason are always captured. Set to nil to only capture crashes. |
-    | metadata | list of atoms or :all | [] | Logger metadata keys to include as event properties. |
-    | enable_error_tracking | boolean | true | Set to false to disable automatic Error Tracking entirely. |
-    | global_properties | map | %{} | Properties added to all captured events (not just errors). |
+    | `in_app_otp_apps` | list of atoms | `[]` | OTP app names whose stacktrace frames are marked as "in\_app" in the UI. |
+    | `capture_level` | log level or `nil` | `:error` | Minimum log level to capture. Crashes with `crash_reason` are always captured. Set to `nil` to only capture crashes. |
+    | `metadata` | list of atoms or `:all` | `[]` | Logger metadata keys to include as event properties. |
+    | `enable_error_tracking` | boolean | `true` | Set to `false` to disable automatic Error Tracking entirely. |
+    | `global_properties` | map | `%{}` | Properties added to all captured events (not just errors). |
 
 7.  7
 
@@ -226,8 +210,6 @@ Copy page
 
     config/config.exs
 
-    PostHog AI
-
     ```elixir
     config :posthog,
       api_host: "https://us.i.posthog.com",
@@ -240,8 +222,6 @@ Copy page
     **Step 2:** Package source code before building your release:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     mix posthog.package_source_code
@@ -258,22 +238,21 @@ Copy page
 
     | Option | Type | Default | Description |
     | --- | --- | --- | --- |
-    | enable_source_code_context | boolean | false | Enable source code context in stack frames. |
-    | root_source_code_paths | list of strings | [] | Root paths to scan for source files. |
-    | source_code_path_pattern | string | "**/*.ex" | Glob pattern for files to include. |
-    | source_code_exclude_patterns | list of regexes | [~r"^_build/", ~r"^priv/", ~r"^test/"] | Patterns to exclude. |
-    | context_lines | integer | 5 | Number of lines to include before and after the error line. |
-    | source_code_map_path | string | nil | Custom path to a packaged source map file. |
+    | `enable_source_code_context` | boolean | `false` | Enable source code context in stack frames. |
+    | `root_source_code_paths` | list of strings | `[]` | Root paths to scan for source files. |
+    | `source_code_path_pattern` | string | `"**/*.ex"` | Glob pattern for files to include. |
+    | `source_code_exclude_patterns` | list of regexes | `[~r"^_build/", ~r"^priv/", ~r"^test/"]` | Patterns to exclude. |
+    | `context_lines` | integer | `5` | Number of lines to include before and after the error line. |
+    | `source_code_map_path` | string | `nil` | Custom path to a packaged source map file. |
 
     ### Mix task options
 
     Terminal
 
-    PostHog AI
-
     ```bash
     # Custom output path
     mix posthog.package_source_code --output path/to/output.map
+    
     # Custom root paths (overrides config)
     mix posthog.package_source_code --root-path /app/lib --root-path /app/src
     ```
@@ -286,19 +265,16 @@ Copy page
 
     Elixir
 
-    PostHog AI
-
     ```elixir
     # In an IEx session or a test route
     require Logger
+    
     Logger.error("Test error from Elixir")
     ```
 
     Or raise an exception in a controller or GenServer to test crash capture:
 
     Elixir
-
-    PostHog AI
 
     ```elixir
     # In a Phoenix controller

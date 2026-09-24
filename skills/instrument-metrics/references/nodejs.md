@@ -1,12 +1,8 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Node.js metrics installation - Docs
+# Node.js metrics installation
 
-Copy page
-
-# Node.js metrics installation - Docs
-
-> **Note:** Metrics is in private alpha and the viewer is only turned on for selected teams, so you may not be able to view metrics you send yet. Setup details may change before general availability.
+> **Note:** Metrics is in open alpha. Any team can turn it on — open [Metrics](https://app.posthog.com/metrics) and select **Enable metrics** in the onboarding view. Setup details may change before general availability.
 
 The [posthog-node](/docs/libraries/node.md) SDK includes the `posthog.metrics` API, so you can record metrics with the same client you use for events and feature flags.
 
@@ -17,8 +13,6 @@ The [posthog-node](/docs/libraries/node.md) SDK includes the `posthog.metrics` A
     Required
 
     Terminal
-
-    PostHog AI
 
     ```bash
     npm install posthog-node
@@ -36,10 +30,9 @@ The [posthog-node](/docs/libraries/node.md) SDK includes the `posthog.metrics` A
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     import { PostHog } from 'posthog-node'
+    
     const posthog = new PostHog('<ph_project_token>', {
         host: 'https://us.i.posthog.com',
         metrics: { serviceName: 'billing-worker' },
@@ -58,13 +51,13 @@ The [posthog-node](/docs/libraries/node.md) SDK includes the `posthog.metrics` A
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     // Counters only go up: things you count
     posthog.metrics.count('jobs.processed', 1, { attributes: { queue: 'default' } })
+    
     // Gauges go up and down: current values
     posthog.metrics.gauge('queue.depth', 7)
+    
     // Histograms record distributions: durations, sizes
     posthog.metrics.histogram('job.duration', 42, { unit: 'ms' })
     ```
@@ -90,8 +83,6 @@ The [posthog-node](/docs/libraries/node.md) SDK includes the `posthog.metrics` A
     For short-lived processes (cron jobs, CLIs, serverless functions), flush before exiting so the last aggregation window isn't lost:
 
     JavaScript
-
-    PostHog AI
 
     ```javascript
     await posthog.metrics.flush()
@@ -119,11 +110,11 @@ The [posthog-node](/docs/libraries/node.md) SDK includes the `posthog.metrics` A
 
     | Action | Description |
     | --- | --- |
-    | [Why you need metrics](/docs/metrics/basics.md) | What metrics show you that events and logs don't |
-    | [Getting started guide](/docs/metrics/start-here.md) | Pick the right metric type, add attributes carefully, and chart what matters |
-    | Group and filter | Group by an attribute for one line per value, or filter with key=value chips |
-    | [How metrics works](/docs/metrics/architecture.md) | How metrics are ingested, stored, and queried |
-    | Query with SQL | Every metric lands in the posthog.metrics table, queryable from the SQL tab |
+    | **[Why you need metrics](/docs/metrics/basics.md)** | What metrics show you that events and logs don't |
+    | **[Getting started guide](/docs/metrics/start-here.md)** | Pick the right metric type, add attributes carefully, and chart what matters |
+    | **Group and filter** | Group by an attribute for one line per value, or filter with `key=value` chips |
+    | **[How metrics works](/docs/metrics/architecture.md)** | How metrics are ingested, stored, and queried |
+    | **Query with SQL** | Every metric lands in the `posthog.metrics` table, queryable from the SQL tab |
 
     [Continue with the getting started guide](/docs/metrics/start-here.md)
 

@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Android - Docs
-
-Copy page
-
-# Android - Docs
+# Android
 
 It uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your mobile app.
 
@@ -13,8 +9,6 @@ It uses an internal queue to make calls fast and non-blocking. It also batches r
 The best way to install the PostHog Android library is with a build system like [Gradle](https://gradle.org/). This ensures you can easily upgrade to the latest versions.
 
 All you need to do is add the `posthog-android` module to your App's `build.gradle` or `build.gradle.kts`:
-
-PostHog AI
 
 ### app/build.gradle
 
@@ -38,20 +32,22 @@ The best place to initialize the client is in your `Application` subclass.
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import android.app.Application
 import com.posthog.android.PostHogAndroid
 import com.posthog.android.PostHogAndroidConfig
+
 class SampleApp : Application() {
+
     companion object {
         const val POSTHOG_API_KEY = "<ph_project_token>"
         // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
         const val POSTHOG_HOST = "https://us.i.posthog.com"
     }
+
     override fun onCreate() {
         super.onCreate()
+
         val config = PostHogAndroidConfig(
             apiKey = POSTHOG_API_KEY,
             host = POSTHOG_HOST
@@ -67,10 +63,9 @@ You can send custom events using `capture`:
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.capture(event = "user_signed_up")
 ```
 
@@ -82,10 +77,9 @@ Optionally, you can include additional information with the event by including a
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.capture(
     event = "user_signed_up",
     properties = mapOf(
@@ -115,8 +109,6 @@ The `screenTitle` will be the [`<activity>`](https://developer.android.com/guide
 
 XML
 
-PostHog AI
-
 ```xml
 <activity
     android:name="com.example.app.ChildActivity"
@@ -131,10 +123,9 @@ This function requires a `screenTitle`. You may also pass in an optional `proper
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.screen(
     screenTitle = "Dashboard",
     properties = mapOf(
@@ -158,10 +149,9 @@ An `identify` call has the following arguments:
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.identify(
     distinctId = distinctID,
     userProperties = mapOf(
@@ -190,20 +180,21 @@ Use `tracingHeaders` to connect Android network requests to backend events, erro
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHogOkHttpInterceptor
 import com.posthog.android.PostHogAndroid
 import com.posthog.android.PostHogAndroidConfig
 import okhttp3.OkHttpClient
+
 val config = PostHogAndroidConfig(
     apiKey = POSTHOG_API_KEY,
     host = POSTHOG_HOST,
 ).apply {
     tracingHeaders = listOf("api.example.com")
 }
+
 PostHogAndroid.setup(this, config)
+
 val okHttpClient = OkHttpClient.Builder()
     .addInterceptor(PostHogOkHttpInterceptor())
     .build()
@@ -218,8 +209,6 @@ Sometimes, you want to assign multiple distinct IDs to a single user. This is he
 In this case, you can use `alias` to assign another distinct ID to the same user.
 
 Kotlin
-
-PostHog AI
 
 ```kotlin
 /**
@@ -268,8 +257,6 @@ For example:
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 val config = PostHogAndroidConfig(
    apiKey = POSTHOG_API_KEY,
@@ -299,10 +286,9 @@ When capturing an event, you can pass a property called `userProperties` as an e
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.capture(
     event = "button_b_clicked",
     properties = mapOf("color" to "blue"),
@@ -317,10 +303,9 @@ PostHog.capture(
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.capture(
     event = "button_b_clicked",
     properties = mapOf("color" to "blue"),
@@ -341,10 +326,9 @@ For example, take a look at the following call:
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.register("team_id", 22)
 ```
 
@@ -358,10 +342,9 @@ Super Properties are persisted across sessions so you have to explicitly remove 
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.unregister("team_id")
 ```
 
@@ -377,8 +360,6 @@ You can completely opt-out users from data capture. To do this, there are two op
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 val config = PostHogAndroidConfig(
     apiKey = "<ph_project_token>",
@@ -392,8 +373,6 @@ PostHogAndroid.setup(this, config)
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 PostHog.optOut()
 ```
@@ -402,8 +381,6 @@ Similarly, you can opt users in:
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 PostHog.optIn()
 ```
@@ -411,8 +388,6 @@ PostHog.optIn()
 To check if a user is opted out:
 
 Kotlin
-
-PostHog AI
 
 ```kotlin
 PostHog.isOptOut()
@@ -426,10 +401,9 @@ You can also configure the flush interval with `flushIntervalSeconds` (default `
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.android.PostHogAndroidConfig
+
 val config = PostHogAndroidConfig(apiKey = POSTHOG_API_KEY, host = POSTHOG_HOST).apply {
     flushAt = 20
     flushIntervalSeconds = 30
@@ -440,10 +414,9 @@ You can also manually flush the queue to start sending events immediately instea
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.flush()
 ```
 
@@ -455,10 +428,9 @@ To reset the user's ID and anonymous ID, call `reset`. Usually you would do this
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.reset()
 ```
 
@@ -470,13 +442,13 @@ PostHog's [feature flags](/docs/feature-flags.md) enable you to safely deploy an
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 val result = PostHog.getFeatureFlagResult("flag-key")
 if (result?.enabled == true) {
     // Do something differently for this user
+
     // Optional: fetch the payload from the same evaluation result
     val matchedFlagPayload = result.payload
 }
@@ -486,13 +458,13 @@ if (result?.enabled == true) {
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 val result = PostHog.getFeatureFlagResult("flag-key")
 if (result?.variant == "variant-key") { // replace "variant-key" with the key of your variant
     // Do something differently for this user
+
     // Optional: fetch the payload from the same evaluation result
     val matchedFlagPayload = result.payload
 }
@@ -504,10 +476,9 @@ You can inspect all currently loaded feature flags with `PostHog.getAllFeatureFl
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.getAllFeatureFlags()?.forEach { flag ->
     println("${flag.key} ${flag.enabled} ${flag.variant} ${flag.payload}")
 }
@@ -523,12 +494,11 @@ To handle this, you can use the `onFeatureFlags` callback to wait for the featur
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
 import com.posthog.android.PostHogAndroidConfig
 import com.posthog.PostHogOnFeatureFlags
+
 // During SDK initialization
 val config = PostHogAndroidConfig(apiKey = "<ph_project_token>").apply {
     onFeatureFlags = PostHogOnFeatureFlags {
@@ -537,6 +507,7 @@ val config = PostHogAndroidConfig(apiKey = "<ph_project_token>").apply {
         }
     }
 }
+
 // And/or after the SDK is initialized
 PostHog.reloadFeatureFlags {
     if (PostHog.isFeatureEnabled("flag-key")) {
@@ -551,10 +522,9 @@ Feature flag values are cached. If something has changed with your user and you'
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.reloadFeatureFlags()
 ```
 
@@ -564,10 +534,9 @@ To track when someone sees or interacts with a feature, use `captureFeatureView`
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.captureFeatureView("flag-key", flagVariant = "variant-key")
 PostHog.captureFeatureInteraction("flag-key", flagVariant = "variant-key")
 ```
@@ -582,10 +551,9 @@ Set `config.bootstrap` before calling `setup()` to seed identity and flag values
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHogBootstrapConfig
+
 val config = PostHogAndroidConfig(apiKey = POSTHOG_API_KEY, host = POSTHOG_HOST)
 config.bootstrap = PostHogBootstrapConfig(
     distinctId = "distinct_id_of_your_user",
@@ -613,10 +581,9 @@ Since [experiments](/docs/experiments/start-here.md) use feature flags, the code
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 if (PostHog.getFeatureFlag("experiment-feature-flag-key") == "variant-name") {
     // do something
 }
@@ -634,10 +601,9 @@ Group analytics allows you to associate the events for that person's session wit
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 // organization is the group type, company_id_in_your_db is the group ID
 PostHog.group(
     type = "company",
@@ -649,10 +615,9 @@ PostHog.group(
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PostHog
+
 PostHog.group(
     type = "company",
     key = "company_id_in_your_db",
@@ -697,8 +662,6 @@ You can enable debug mode by setting the `debug` option to `true` in the `PostHo
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 val config = PostHogAndroidConfig(apiKey = POSTHOG_API_KEY, host = POSTHOG_HOST).apply {
     debug = true
@@ -712,11 +675,10 @@ When creating the PostHog client, pass a `PostHogAndroidConfig`. It inherits the
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 import com.posthog.PersonProfiles
 import com.posthog.android.PostHogAndroidConfig
+
 val config = PostHogAndroidConfig(
     apiKey = POSTHOG_API_KEY,
     host = POSTHOG_HOST
@@ -724,20 +686,25 @@ val config = PostHogAndroidConfig(
     captureApplicationLifecycleEvents = true
     captureScreenViews = true
     captureDeepLinks = true
+
     flushAt = 20
     maxQueueSize = 1000
     maxBatchSize = 50
     maxRetries = 3
     flushIntervalSeconds = 30
+
     debug = false
     optOut = false
+
     sendFeatureFlagEvent = true
     featureFlagCalledCacheSize = 1000
     preloadFeatureFlags = true
     evaluationContexts = listOf("production", "android", "mobile")
+
     setDefaultPersonProperties = true
     personProfiles = PersonProfiles.IDENTIFIED_ONLY
     reuseAnonymousId = false
+
     sessionReplay = false
     errorTrackingConfig.autoCapture = false
 }
@@ -747,51 +714,51 @@ val config = PostHogAndroidConfig(
 
 | Option | Default | Description |
 | --- | --- | --- |
-| captureApplicationLifecycleEvents | true | Captures Application Installed, Application Updated, Application Opened, and Application Backgrounded. |
-| captureScreenViews | true | Captures $screen for foreground android.app.Activity screens. |
-| captureDeepLinks | true | Captures Deep Link Opened with URL/query/referrer properties. |
+| `captureApplicationLifecycleEvents` | `true` | Captures `Application Installed`, `Application Updated`, `Application Opened`, and `Application Backgrounded`. |
+| `captureScreenViews` | `true` | Captures `$screen` for foreground `android.app.Activity` screens. |
+| `captureDeepLinks` | `true` | Captures `Deep Link Opened` with URL/query/referrer properties. |
 
 ### Core options
 
 | Option | Default | Description |
 | --- | --- | --- |
-| debug | false | Enables verbose SDK logs in Logcat. You can also call PostHog.debug(true). |
-| optOut | false | Prevents data capture when enabled. You can also call PostHog.optOut() and PostHog.optIn(). |
-| flushAt | 20 | Number of queued events that triggers a flush. |
-| maxQueueSize | 1000 | Maximum number of events kept across memory and disk before FIFO eviction. |
-| maxBatchSize | 50 | Maximum number of events sent in one batch request. |
-| maxRetries | 3 | Maximum retry attempts for failed requests. |
-| flushIntervalSeconds | 30 | Maximum delay before queued data is flushed. |
-| encryption | null | Optional PostHogEncryption implementation for encrypting persisted queued events. |
-| proxy | null | Optional java.net.Proxy for PostHog API requests. |
-| getAnonymousId | generated UUID | Optional hook to customize anonymous ID generation. |
-| reuseAnonymousId | false | Reuses one anonymous ID across user changes on the same device. |
-| personProfiles | PersonProfiles.IDENTIFIED_ONLY | Controls when person profiles are processed: IDENTIFIED_ONLY, ALWAYS, or NEVER. |
-| setDefaultPersonProperties | true | Includes default device and app properties in feature flag evaluation requests. |
-| releaseIdentifier | app/version fallback | Release identifier used by error tracking and uploaded ProGuard/R8 mappings. The Android Gradle plugin can inject this automatically. |
-| tracingHeaders | null | Exact hostnames that should receive PostHog tracing headers when using PostHogOkHttpInterceptor. |
+| `debug` | `false` | Enables verbose SDK logs in Logcat. You can also call `PostHog.debug(true)`. |
+| `optOut` | `false` | Prevents data capture when enabled. You can also call `PostHog.optOut()` and `PostHog.optIn()`. |
+| `flushAt` | `20` | Number of queued events that triggers a flush. |
+| `maxQueueSize` | `1000` | Maximum number of events kept across memory and disk before FIFO eviction. |
+| `maxBatchSize` | `50` | Maximum number of events sent in one batch request. |
+| `maxRetries` | `3` | Maximum retry attempts for failed requests. |
+| `flushIntervalSeconds` | `30` | Maximum delay before queued data is flushed. |
+| `encryption` | `null` | Optional `PostHogEncryption` implementation for encrypting persisted queued events. |
+| `proxy` | `null` | Optional `java.net.Proxy` for PostHog API requests. |
+| `getAnonymousId` | generated UUID | Optional hook to customize anonymous ID generation. |
+| `reuseAnonymousId` | `false` | Reuses one anonymous ID across user changes on the same device. |
+| `personProfiles` | `PersonProfiles.IDENTIFIED_ONLY` | Controls when person profiles are processed: `IDENTIFIED_ONLY`, `ALWAYS`, or `NEVER`. |
+| `setDefaultPersonProperties` | `true` | Includes default device and app properties in feature flag evaluation requests. |
+| `releaseIdentifier` | app/version fallback | Release identifier used by error tracking and uploaded ProGuard/R8 mappings. The Android Gradle plugin can inject this automatically. |
+| `tracingHeaders` | `null` | Exact hostnames that should receive PostHog tracing headers when using `PostHogOkHttpInterceptor`. |
 
 ### Feature flag options
 
 | Option | Default | Description |
 | --- | --- | --- |
-| sendFeatureFlagEvent | true | Sends $feature_flag_called when a feature flag is evaluated. |
-| featureFlagCalledCacheSize | 1000 | Number of feature flag calls cached for deduplicating $feature_flag_called events. |
-| preloadFeatureFlags | true | Fetches feature flags automatically during setup. |
-| evaluationContexts | null | Context tags that constrain which feature flags are evaluated. Available in version 3.29.1+. The legacy evaluationEnvironments option is available in version 3.24.0+. |
-| onFeatureFlags | null | Callback invoked when feature flags are loaded. |
+| `sendFeatureFlagEvent` | `true` | Sends `$feature_flag_called` when a feature flag is evaluated. |
+| `featureFlagCalledCacheSize` | `1000` | Number of feature flag calls cached for deduplicating `$feature_flag_called` events. |
+| `preloadFeatureFlags` | `true` | Fetches feature flags automatically during setup. |
+| `evaluationContexts` | `null` | Context tags that constrain which feature flags are evaluated. Available in version 3.29.1+. The legacy `evaluationEnvironments` option is available in version 3.24.0+. |
+| `onFeatureFlags` | `null` | Callback invoked when feature flags are loaded. |
 
 ### Product configuration objects
 
 | Option | Default | Description |
 | --- | --- | --- |
-| sessionReplay | false | Enables session replay when project settings also allow recording. |
-| sessionReplayConfig | PostHogSessionReplayConfig() | Configures masking, screenshots, Logcat capture, sampling, and custom drawable conversion. |
-| logs | PostHogLogsConfig() | Configures [Android logs](/docs/logs/installation/android.md). |
-| errorTrackingConfig | PostHogErrorTrackingConfig() | Configures error tracking. autoCapture defaults to false; set it to true to autocapture uncaught exceptions when project settings also enable error tracking. |
-| surveys | false | Internal/experimental native Android survey support. Native Android survey UI is not fully supported or documented yet. |
-| surveysConfig | PostHogSurveysConfig() | Internal/experimental survey display delegate configuration, primarily for hybrid SDKs. |
-| bootstrap | null | Seeds identity (distinctId, isIdentifiedId) and feature-flag state (featureFlags, featureFlagPayloads) before the first /flags response. Bootstrapped identity applies to the first session; only enabled flags are served, until the first /flags response replaces them. See [SDK bootstrapping](/docs/libraries/bootstrapping.md#behavior-on-mobile-sdks). |
+| `sessionReplay` | `false` | Enables session replay when project settings also allow recording. |
+| `sessionReplayConfig` | `PostHogSessionReplayConfig()` | Configures masking, screenshots, Logcat capture, sampling, and custom drawable conversion. |
+| `logs` | `PostHogLogsConfig()` | Configures [Android logs](/docs/logs/installation/android.md). |
+| `errorTrackingConfig` | `PostHogErrorTrackingConfig()` | Configures error tracking. `autoCapture` defaults to `false`; set it to `true` to autocapture uncaught exceptions when project settings also enable error tracking. |
+| `surveys` | `false` | Internal/experimental native Android survey support. Native Android survey UI is not fully supported or documented yet. |
+| `surveysConfig` | `PostHogSurveysConfig()` | Internal/experimental survey display delegate configuration, primarily for hybrid SDKs. |
+| `bootstrap` | `null` | Seeds identity (`distinctId`, `isIdentifiedId`) and feature-flag state (`featureFlags`, `featureFlagPayloads`) before the first `/flags` response. Bootstrapped identity applies to the first session; only enabled flags are served, until the first `/flags` response replaces them. See [SDK bootstrapping](/docs/libraries/bootstrapping.md#behavior-on-mobile-sdks). |
 
 ### Event filtering with `beforeSend`
 
@@ -799,11 +766,10 @@ Use `addBeforeSend` to redact, modify, or drop events before they are queued. Re
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 config.addBeforeSend { event ->
     event.properties?.remove("password")
+
     if (event.event == "internal_debug_event") {
         null
     } else {
@@ -820,10 +786,9 @@ Because it's just a function, you can filter however you like – an **ignorelis
 
 Kotlin
 
-PostHog AI
-
 ```kotlin
 val ignoredScreens = setOf("Splash", "Debug")
+
 config.addBeforeSend { event ->
     val screenName = event.properties?.get("$screen_name") as? String
     if (event.event == "$screen" && screenName in ignoredScreens) {

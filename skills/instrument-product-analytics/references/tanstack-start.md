@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# TanStack Start - Docs
-
-Copy page
-
-# TanStack Start - Docs
+# TanStack Start
 
 This tutorial shows how to integrate PostHog with a [TanStack Start](https://tanstack.com/start) app for both client-side and server-side analytics.
 
@@ -13,8 +9,6 @@ This tutorial shows how to integrate PostHog with a [TanStack Start](https://tan
 Install the required packages:
 
 Terminal
-
-PostHog AI
 
 ```bash
 npm install @posthog/react posthog-node
@@ -37,8 +31,6 @@ If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-I
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
@@ -55,14 +47,14 @@ Tracing headers help you attribute events across front and backend consistently.
 
 Wrap your app with `PostHogProvider` in your root route with your project token, host, and other options.
 
-PostHog AI
-
 ```
 import CspAllowancesCallout from "../_snippets/csp-allowances-callout.mdx"
+
 <CspAllowancesCallout />tsx file=src/routes/__root.tsx
 // src/routes/__root.tsx
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { PostHogProvider } from '@posthog/react'
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -72,6 +64,7 @@ export const Route = createRootRoute({
   }),
   shellComponent: RootDocument,
 })
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -104,18 +97,19 @@ Use the `usePostHog` hook from `@posthog/react` in any component to capture cust
 
 src/routes/checkout.tsx
 
-PostHog AI
-
 ```jsx
 import { usePostHog } from '@posthog/react'
+
 function CheckoutButton({ orderId, total }: { orderId: string; total: number }) {
   const posthog = usePostHog()
+
   const handleClick = () => {
     posthog.capture('checkout_started', {
       order_id: orderId,
       total: total,
     })
   }
+
   return <button onClick={handleClick}>Checkout</button>
 }
 ```
@@ -126,17 +120,19 @@ Call `posthog.identify()` when a user logs in to link their events to a user ID:
 
 TSX
 
-PostHog AI
-
 ```jsx
 import { usePostHog } from '@posthog/react'
+
 function LoginForm() {
   const posthog = usePostHog()
+
   const handleLogin = async (userId: string, email: string) => {
     // ... your login logic
+
     posthog.identify(userId, {
       email: email,
     })
+
     posthog.capture('user_logged_in')
   }
 }
@@ -150,12 +146,12 @@ Create a server-side PostHog client using `posthog-node`. Use a singleton patter
 
 src/utils/posthog-server.ts
 
-PostHog AI
-
 ```typescript
 // src/utils/posthog-server.ts
 import { PostHog } from 'posthog-node'
+
 let posthogClient: PostHog | null = null
+
 export function getPostHogClient() {
   if (!posthogClient) {
     posthogClient = new PostHog(
@@ -177,19 +173,20 @@ Use the server client in TanStack Start API routes to capture events server-side
 
 src/routes/api/checkout.ts
 
-PostHog AI
-
 ```typescript
 // src/routes/api/checkout.ts
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { getPostHogClient } from '../../utils/posthog-server'
+
 export const Route = createFileRoute('/api/checkout')({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const body = await request.json()
+
         const posthog = getPostHogClient()
+
         posthog.capture({
           distinctId: body.userId,
           event: 'item_purchased',
@@ -199,6 +196,7 @@ export const Route = createFileRoute('/api/checkout')({
             source: 'api',
           },
         })
+
         return json({ success: true })
       },
     },

@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Other languages Logs installation - Docs
-
-Copy page
-
-# Other languages Logs installation - Docs
+# Other languages Logs installation
 
 PostHog Logs works with any OpenTelemetry-compatible client. Check the [OpenTelemetry documentation](https://opentelemetry.io/docs/) for your specific language or framework.
 
@@ -44,23 +40,17 @@ PostHog Logs works with any OpenTelemetry-compatible client. Check the [OpenTele
 
     **Endpoint:**
 
-    PostHog AI
-
     ```
     https://us.i.posthog.com/i/v1/logs
     ```
 
     **Authentication:** Include your project token either as an `Authorization` header:
 
-    PostHog AI
-
     ```
     Authorization: Bearer <ph_project_token>
     ```
 
     Or as a query parameter on the endpoint:
-
-    PostHog AI
 
     ```
     https://us.i.posthog.com/i/v1/logs?token=<ph_project_token>
@@ -88,12 +78,12 @@ PostHog Logs works with any OpenTelemetry-compatible client. Check the [OpenTele
 
     | Action | Description |
     | --- | --- |
-    | [Why you need logs](/docs/logs/basics.md) | What logs show you that nothing else does |
-    | [Search logs](/docs/logs/search.md) | Use the search interface to find specific log entries |
-    | Filter by level | Filter by INFO, WARN, ERROR, etc. |
-    | [Link session replay](/docs/logs/link-session-replay.md) | Connect logs to users and session replays by passing posthogDistinctId and sessionId |
-    | [Link logs to a person](/docs/logs/link-person.md) | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
+    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
 

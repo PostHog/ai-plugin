@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Ruby - Docs
-
-Copy page
-
-# Ruby - Docs
+# Ruby
 
 The `posthog-ruby` library provides tracking functionality on the server-side for applications built in Ruby.
 
@@ -18,8 +14,6 @@ Add this to your `Gemfile`:
 
 Terminal
 
-PostHog AI
-
 ```bash
 gem "posthog-ruby"
 ```
@@ -28,10 +22,9 @@ In your app, set your API key **before** making any calls. If setting a custom `
 
 Ruby
 
-PostHog AI
-
 ```ruby
 require 'posthog'
+
 posthog = PostHog::Client.new({
   api_key: "<ph_project_token>",
   host: "https://us.i.posthog.com",
@@ -47,10 +40,9 @@ Initialize the client with your project token before making any calls:
 
 Ruby
 
-PostHog AI
-
 ```ruby
 require 'posthog'
+
 posthog = PostHog::Client.new({
   api_key: '<ph_project_token>',
   host: 'https://us.i.posthog.com',
@@ -62,20 +54,20 @@ Available client options:
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| api_key | String | required | Your PostHog project token. |
-| host | String | https://us.i.posthog.com | Fully qualified PostHog API host. Include the protocol, for example https://us.i.posthog.com or https://eu.i.posthog.com. |
-| personal_api_key | String | nil | Personal API key. Required for local feature flag evaluation and remote config payloads. |
-| max_queue_size | Integer | 10000 | Maximum number of events to keep in the async queue before dropping new events. |
-| batch_size | Integer | 100 | Maximum number of events to send in one async batch. |
-| test_mode | Boolean | false | Keep events queued and do not send them. Useful for tests. |
-| sync_mode | Boolean | false | Send events synchronously on the calling thread. Useful in forking environments like Sidekiq and Resque. |
-| on_error | Proc | no-op | Callback called as on_error.call(status, error) for API or serialization errors. |
-| feature_flags_polling_interval | Integer | 30 | Seconds between local feature flag definition polls. |
-| feature_flag_request_timeout_seconds | Integer | 3 | Timeout, in seconds, for feature flag requests. |
-| before_send | Proc | nil | Callback that receives the event hash before it is queued or sent. Return a modified event hash, or nil to drop the event. |
-| disable_singleton_warning | Boolean | false | Suppress warnings about multiple clients with the same API key. Use only when you intentionally need multiple clients. |
-| skip_ssl_verification | Boolean | false | Disable SSL certificate verification. Intended only for local development or custom deployments. |
-| flag_definition_cache_provider | Object | nil | Provider for distributed feature flag definition caching. See [distributed flag definition caching](#distributed-flag-definition-caching). |
+| `api_key` | String | **required** | Your PostHog project token. |
+| `host` | String | `https://us.i.posthog.com` | Fully qualified PostHog API host. Include the protocol, for example `https://us.i.posthog.com` or `https://eu.i.posthog.com`. |
+| `personal_api_key` | String | `nil` | Personal API key. Required for local feature flag evaluation and remote config payloads. |
+| `max_queue_size` | Integer | `10000` | Maximum number of events to keep in the async queue before dropping new events. |
+| `batch_size` | Integer | `100` | Maximum number of events to send in one async batch. |
+| `test_mode` | Boolean | `false` | Keep events queued and do not send them. Useful for tests. |
+| `sync_mode` | Boolean | `false` | Send events synchronously on the calling thread. Useful in forking environments like Sidekiq and Resque. |
+| `on_error` | Proc | no-op | Callback called as `on_error.call(status, error)` for API or serialization errors. |
+| `feature_flags_polling_interval` | Integer | `30` | Seconds between local feature flag definition polls. |
+| `feature_flag_request_timeout_seconds` | Integer | `3` | Timeout, in seconds, for feature flag requests. |
+| `before_send` | Proc | `nil` | Callback that receives the event hash before it is queued or sent. Return a modified event hash, or `nil` to drop the event. |
+| `disable_singleton_warning` | Boolean | `false` | Suppress warnings about multiple clients with the same API key. Use only when you intentionally need multiple clients. |
+| `skip_ssl_verification` | Boolean | `false` | Disable SSL certificate verification. Intended only for local development or custom deployments. |
+| `flag_definition_cache_provider` | Object | `nil` | Provider for distributed feature flag definition caching. See [distributed flag definition caching](#distributed-flag-definition-caching). |
 
 ### Filtering or modifying events before sending
 
@@ -83,14 +75,13 @@ Use `before_send` to add, modify, or drop events immediately before the SDK queu
 
 Ruby
 
-PostHog AI
-
 ```ruby
 posthog = PostHog::Client.new({
   api_key: '<ph_project_token>',
   before_send: Proc.new do |event|
     event[:properties] ||= {}
     event[:properties]['environment'] = ENV['RACK_ENV']
+
     # Return nil to drop the event
     event[:properties]['internal_user'] == true ? nil : event
   end
@@ -102,8 +93,6 @@ posthog = PostHog::Client.new({
 For short-lived scripts, call `flush` before the process exits. Call `shutdown` when your application is stopping to flush pending events and stop background resources.
 
 Ruby
-
-PostHog AI
 
 ```ruby
 posthog.capture({ distinct_id: 'user_123', event: 'script_finished' })
@@ -121,8 +110,6 @@ Identify a user and set their person properties with `identify`:
 
 Ruby
 
-PostHog AI
-
 ```ruby
 posthog.identify({
   distinct_id: 'distinct_id_of_your_user',
@@ -139,8 +126,6 @@ You can send custom events using `capture`:
 
 Ruby
 
-PostHog AI
-
 ```ruby
 posthog.capture({
     distinct_id: 'distinct_id_of_the_user',
@@ -155,8 +140,6 @@ posthog.capture({
 Optionally, you can include additional information with the event by including a [properties](/docs/data/events.md#event-properties) object:
 
 Ruby
-
-PostHog AI
 
 ```ruby
 posthog.capture({
@@ -175,8 +158,6 @@ If you're aiming for a backend-only implementation of PostHog and won't be captu
 
 Ruby
 
-PostHog AI
-
 ```ruby
 posthog.capture({
     distinct_id: 'distinct_id_of_the_user',
@@ -191,23 +172,21 @@ posthog.capture({
 
 | Field | Type | Description |
 | --- | --- | --- |
-| distinct_id | String | The user ID. If omitted, framework integrations can provide request context; otherwise the SDK generates a UUID and marks the event as personless. |
-| event | String | Event name. Required. |
-| properties | Hash | Event properties. |
-| groups | Hash | Group analytics mapping from group type to group key. |
-| timestamp | Time | When the event occurred. Defaults to the current time. |
-| message_id | String | Optional message ID. |
-| uuid | String | Optional event UUID used for deduplication. Must be a valid UUID. |
-| flags | PostHog::FeatureFlagEvaluations | Snapshot returned by evaluate_flags. Adds $feature/<key> and $active_feature_flags properties without another /flags request. |
-| send_feature_flags | Boolean, Hash, or PostHog::SendFeatureFlagsOptions | Deprecated. Prefer passing flags: from evaluate_flags. |
+| `distinct_id` | String | The user ID. If omitted, framework integrations can provide request context; otherwise the SDK generates a UUID and marks the event as personless. |
+| `event` | String | Event name. Required. |
+| `properties` | Hash | Event properties. |
+| `groups` | Hash | Group analytics mapping from group type to group key. |
+| `timestamp` | Time | When the event occurred. Defaults to the current time. |
+| `message_id` | String | Optional message ID. |
+| `uuid` | String | Optional event UUID used for deduplication. Must be a valid UUID. |
+| `flags` | `PostHog::FeatureFlagEvaluations` | Snapshot returned by `evaluate_flags`. Adds `$feature/<key>` and `$active_feature_flags` properties without another `/flags` request. |
+| `send_feature_flags` | Boolean, Hash, or `PostHog::SendFeatureFlagsOptions` | Deprecated. Prefer passing `flags:` from `evaluate_flags`. |
 
 ## Person profiles and properties
 
 The Ruby SDK captures identified events by default. These create [person profiles](/docs/data/persons.md). To set [person properties](/docs/product-analytics/person-properties.md) in these profiles, include them when capturing an event:
 
 Ruby
-
-PostHog AI
 
 ```ruby
 posthog.capture({
@@ -226,8 +205,6 @@ To capture [anonymous events](/docs/data/anonymous-vs-identified-events.md) with
 
 Ruby
 
-PostHog AI
-
 ```ruby
 posthog.capture({
     distinct_id: 'distinct_id',
@@ -245,8 +222,6 @@ Sometimes, you want to assign multiple distinct IDs to a single user. This is he
 In this case, you can use `alias` to assign another distinct ID to the same user.
 
 Ruby
-
-PostHog AI
 
 ```ruby
 posthog.alias({
@@ -271,10 +246,9 @@ Call `posthog.evaluate_flags()` once for the user, then read values from the ret
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags('distinct_id_of_your_user')
+
 if flags.enabled?('flag-key')
     # Do something differently for this user
     # Optional: fetch the payload
@@ -286,11 +260,11 @@ end
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags('distinct_id_of_your_user')
+
 enabled_variant = flags.get_flag('flag-key')
+
 if enabled_variant == 'variant-key' # replace 'variant-key' with the key of your variant
     # Do something differently for this user
     # Optional: fetch the payload
@@ -316,13 +290,13 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags('distinct_id_of_your_user')
+
 if flags.enabled?('flag-key')
     # Do something differently for this user
 end
+
 posthog.capture({
     distinct_id: 'distinct_id_of_your_user',
     event: 'event_name',
@@ -336,8 +310,6 @@ To reduce event property bloat, pass a filtered snapshot:
 
 Ruby
 
-PostHog AI
-
 ```ruby
 # Attach only flags accessed with enabled?() or get_flag() before this call
 posthog.capture({
@@ -345,6 +317,7 @@ posthog.capture({
     event: 'event_name',
     flags: flags.only_accessed,
 })
+
 # Attach only specific flags
 posthog.capture({
     distinct_id: 'distinct_id_of_your_user',
@@ -360,8 +333,6 @@ posthog.capture({
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 Ruby
-
-PostHog AI
 
 ```ruby
 posthog.capture({
@@ -380,8 +351,6 @@ By default, `evaluate_flags()` evaluates every flag for the user. If you only ne
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags(
     'distinct_id_of_your_user',
@@ -395,8 +364,6 @@ If you want to skip the remote `/flags` request and only use locally cached defi
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags(
     'distinct_id_of_your_user',
@@ -409,8 +376,6 @@ flags = posthog.evaluate_flags(
 Pass `disable_geoip: true` to disable GeoIP lookup for remote flag evaluation:
 
 Ruby
-
-PostHog AI
 
 ```ruby
 flags = posthog.evaluate_flags(
@@ -437,8 +402,6 @@ For example:
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags(
     'distinct_id_of_the_user',
@@ -458,6 +421,7 @@ flags = posthog.evaluate_flags(
         },
     },
 )
+
 if flags.enabled?('flag-key')
     # Do something differently for this user
 end
@@ -496,8 +460,6 @@ You can configure the `feature_flag_request_timeout_seconds` parameter when init
 
 Ruby
 
-PostHog AI
-
 ```ruby
 posthog = PostHog::Client.new({
     # rest of your configuration...
@@ -511,11 +473,11 @@ The following methods are still available during the migration period, but are d
 
 | Method | Replacement |
 | --- | --- |
-| posthog.is_feature_enabled(flag_key, distinct_id, ...) | posthog.evaluate_flags(distinct_id, ...).enabled?(flag_key) |
-| posthog.get_feature_flag(flag_key, distinct_id, ...) | posthog.evaluate_flags(distinct_id, ...).get_flag(flag_key) |
-| posthog.get_feature_flag_payload(flag_key, distinct_id, ...) | posthog.evaluate_flags(distinct_id, ...).get_flag_payload(flag_key) |
-| posthog.get_feature_flag_result(flag_key, distinct_id, ...) | posthog.evaluate_flags(distinct_id, ...) and read get_flag / get_flag_payload |
-| posthog.capture({ ..., send_feature_flags: true }) | posthog.capture({ ..., flags: flags }) |
+| `posthog.is_feature_enabled(flag_key, distinct_id, ...)` | `posthog.evaluate_flags(distinct_id, ...).enabled?(flag_key)` |
+| `posthog.get_feature_flag(flag_key, distinct_id, ...)` | `posthog.evaluate_flags(distinct_id, ...).get_flag(flag_key)` |
+| `posthog.get_feature_flag_payload(flag_key, distinct_id, ...)` | `posthog.evaluate_flags(distinct_id, ...).get_flag_payload(flag_key)` |
+| `posthog.get_feature_flag_result(flag_key, distinct_id, ...)` | `posthog.evaluate_flags(distinct_id, ...)` and read `get_flag` / `get_flag_payload` |
+| `posthog.capture({ ..., send_feature_flags: true })` | `posthog.capture({ ..., flags: flags })` |
 
 ### Local Evaluation
 
@@ -530,8 +492,6 @@ For details on how to implement local evaluation, see our [local evaluation guid
 If you have `preload_app true` in your unicorn config, you can use the [`after_fork`](https://www.rubydoc.info/gems/unicorn/Unicorn%2FConfigurator:after_fork) hook (which is part of the unicorn's configuration) to enable the feature flag cache to receive the updates from PostHog.
 
 Ruby
-
-PostHog AI
 
 ```ruby
 after_fork do |_server, _worker|
@@ -549,8 +509,6 @@ end
 If you use Puma with multiple workers, you can use the `on_worker_boot` hook (which is part of Puma's configuration) to enable the feature flag cache to receive updates from PostHog.
 
 Ruby
-
-PostHog AI
 
 ```ruby
 on_worker_boot do
@@ -574,8 +532,6 @@ end
 
 Ruby
 
-PostHog AI
-
 ```ruby
 posthog = PostHog::Client.new({
   api_key: '<ph_project_token>',
@@ -590,8 +546,6 @@ Use `get_remote_config_payload` to fetch the decrypted remote config payload for
 
 Ruby
 
-PostHog AI
-
 ```ruby
 payload = posthog.get_remote_config_payload('flag-key')
 ```
@@ -602,11 +556,10 @@ Since [experiments](/docs/experiments/start-here.md) use feature flags, the code
 
 Ruby
 
-PostHog AI
-
 ```ruby
 flags = posthog.evaluate_flags('user_distinct_id')
 variant = flags.get_flag('experiment-feature-flag-key')
+
 if variant == 'variant-name'
     # Do something
 end
@@ -623,8 +576,6 @@ Group analytics allows you to associate an event with a group (e.g. teams, organ
 Capture an event and associate it with a group:
 
 Ruby
-
-PostHog AI
 
 ```ruby
 posthog.capture({
@@ -643,8 +594,6 @@ posthog.capture({
 Update properties on a group:
 
 Ruby
-
-PostHog AI
 
 ```ruby
 posthog.group_identify({
@@ -672,8 +621,6 @@ For non-Rails Ruby applications, you can manually capture exceptions with `captu
 
 Ruby
 
-PostHog AI
-
 ```ruby
 begin
   # Code that might raise an exception
@@ -693,16 +640,14 @@ The `capture_exception` method accepts the following parameters:
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| exception | Exception, String, or exception-like object | The exception to capture. Required. |
-| distinct_id | String | The distinct ID of the user. Optional; request context can provide a default, otherwise the SDK generates a UUID. |
-| additional_properties | Hash | Additional properties to attach to the exception event. Optional. |
-| flags | PostHog::FeatureFlagEvaluations | Optional keyword argument. Adds the same feature flag properties as capture({ flags: flags }). |
+| `exception` | `Exception`, `String`, or exception-like object | The exception to capture. Required. |
+| `distinct_id` | `String` | The distinct ID of the user. Optional; request context can provide a default, otherwise the SDK generates a UUID. |
+| `additional_properties` | `Hash` | Additional properties to attach to the exception event. Optional. |
+| `flags` | `PostHog::FeatureFlagEvaluations` | Optional keyword argument. Adds the same feature flag properties as `capture({ flags: flags })`. |
 
 You can also override the [fingerprint](/docs/error-tracking/fingerprints.md) to customize how exceptions are grouped into issues:
 
 Ruby
-
-PostHog AI
 
 ```ruby
 posthog.capture_exception(
@@ -720,8 +665,6 @@ The Ruby SDK logs warnings by default. You can change the log level to `DEBUG` t
 
 Ruby
 
-PostHog AI
-
 ```ruby
 posthog.logger.level = Logger::DEBUG
 ```
@@ -729,8 +672,6 @@ posthog.logger.level = Logger::DEBUG
 You can also replace the SDK logger globally:
 
 Ruby
-
-PostHog AI
 
 ```ruby
 PostHog::Logging.logger = Rails.logger
@@ -742,11 +683,10 @@ When `test_mode: true`, events remain queued. You can inspect and clear the queu
 
 Ruby
 
-PostHog AI
-
 ```ruby
 posthog = PostHog::Client.new({ api_key: '<ph_project_token>', test_mode: true })
 posthog.capture({ distinct_id: 'user_123', event: 'test_event' })
+
 posthog.queued_messages
 posthog.dequeue_last_message
 posthog.clear

@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Next.js Error Tracking installation - Docs
-
-Copy page
-
-# Next.js Error Tracking installation - Docs
+# Next.js Error Tracking installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Install the PostHog JavaScript library using your package manager:
-
-    PostHog AI
 
     ### npm
 
@@ -50,8 +44,6 @@ Copy page
 
     .env.local
 
-    PostHog AI
-
     ```bash
     NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=<ph_project_token>
     NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
@@ -71,10 +63,9 @@ Copy page
 
     instrumentation-client.ts
 
-    PostHog AI
-
     ```typescript
     import posthog from 'posthog-js'
+    
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
         api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
         defaults: '2026-05-30'
@@ -87,14 +78,15 @@ Copy page
 
     app/providers.tsx
 
-    PostHog AI
-
     ```typescript
     'use client'
+    
     import { usePathname, useSearchParams } from "next/navigation"
     import { useEffect } from "react"
+    
     import posthog from 'posthog-js'
     import { PostHogProvider as PHProvider } from '@posthog/react'
+    
     export function PostHogProvider({ children }: { children: React.ReactNode }) {
       useEffect(() => {
         posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN as string, {
@@ -102,6 +94,7 @@ Copy page
           defaults: '2026-05-30'
         })
       }, [])
+    
       return (
         <PHProvider client={posthog}>
           {children}
@@ -114,11 +107,10 @@ Copy page
 
     app/layout.tsx
 
-    PostHog AI
-
     ```typescript
     import './globals.css'
     import { PostHogProvider } from './providers'
+    
     export default function RootLayout({ children }: { children: React.ReactNode }) {
       return (
         <html lang="en">
@@ -138,15 +130,15 @@ Copy page
 
     pages/\_app.tsx
 
-    PostHog AI
-
     ```typescript
     import { useEffect } from 'react'
     import { Router } from 'next/router'
     import posthog from 'posthog-js'
     import { PostHogProvider } from '@posthog/react'
     import type { AppProps } from 'next/app'
+    
     export default function App({ Component, pageProps }: AppProps) {
+    
       useEffect(() => {
         posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN as string, {
           api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
@@ -156,6 +148,7 @@ Copy page
           }
         })
       }, [])
+    
       return (
         <PostHogProvider client={posthog}>
           <Component {...pageProps} />
@@ -180,15 +173,16 @@ Copy page
 
     app/checkout/page.tsx
 
-    PostHog AI
-
     ```typescript
     'use client'
+    
     import posthog from 'posthog-js'
+    
     export default function CheckoutPage() {
         function handlePurchase() {
             posthog.capture('purchase_completed', { amount: 99 })
         }
+    
         return <button onClick={handlePurchase}>Complete purchase</button>
     }
     ```
@@ -199,16 +193,18 @@ Copy page
 
     app/checkout/page.tsx
 
-    PostHog AI
-
     ```typescript
     'use client'
+    
     import { usePostHog } from '@posthog/react'
+    
     export default function CheckoutPage() {
         const posthog = usePostHog()
+    
         function handlePurchase() {
             posthog.capture('purchase_completed', { amount: 99 })
         }
+    
         return <button onClick={handlePurchase}>Complete purchase</button>
     }
     ```
@@ -227,8 +223,6 @@ Copy page
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     posthog.captureException(error, additionalProperties)
     ```
@@ -241,12 +235,11 @@ Copy page
 
     error.tsx
 
-    PostHog AI
-
     ```typescript
     "use client"
     import posthog from "posthog-js"
     import { useEffect } from "react"
+    
     export default function Error({
       error,
       reset,
@@ -267,13 +260,12 @@ Copy page
 
     app/global-error.tsx
 
-    PostHog AI
-
     ```typescript
     'use client'
     import posthog from "posthog-js"
     import NextError from "next/error"
     import { useEffect } from "react"
+    
     export default function GlobalError({
       error,
       reset,
@@ -302,8 +294,6 @@ Copy page
 
     components/ErrorBoundary.tsx
 
-    PostHog AI
-
     ```typescript
     componentDidCatch(error, errorInfo) {
       posthog.captureException(error)
@@ -314,11 +304,10 @@ Copy page
 
     pages/\_app.tsx
 
-    PostHog AI
-
     ```typescript
     import type { AppProps } from 'next/app'
     import ErrorBoundary from '../components/ErrorBoundary'
+    
     export default function App({ Component, pageProps }: AppProps) {
       return (
         <ErrorBoundary>
@@ -337,8 +326,6 @@ Copy page
     Next.js enables you to both server-side render pages and add server-side functionality. To integrate PostHog into your Next.js app on the server-side, you can use the [Node SDK](/docs/libraries/node.md).
 
     First, install the `posthog-node` library:
-
-    PostHog AI
 
     ### npm
 
@@ -370,8 +357,6 @@ Copy page
 
     lib/posthog-server.js
 
-    PostHog AI
-
     ```javascript
     import { PostHog } from 'posthog-node'
     let posthogInstance = null
@@ -393,8 +378,6 @@ Copy page
     You can now use the `getPostHogServer` function to capture exceptions in server-side code.
 
     JavaScript
-
-    PostHog AI
 
     ```javascript
     const posthog = getPostHogServer()
@@ -433,8 +416,6 @@ Copy page
     This looks like this:
 
     JavaScript
-
-    PostHog AI
 
     ```javascript
     // instrumentation.js
@@ -477,7 +458,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

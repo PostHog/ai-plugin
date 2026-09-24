@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# iOS - Docs
-
-Copy page
-
-# iOS - Docs
+# iOS
 
 The PostHog iOS SDK is a library that you can use to track events, identify users, record session replays, evaluate feature flags, run experiments, build surveys, and more.
 
@@ -18,8 +14,6 @@ PostHog is available through [CocoaPods](http://cocoapods.org) or you can add it
 
 Podfile
 
-PostHog AI
-
 ```ruby
 pod "PostHog", "~> 3.59.3"
 ```
@@ -32,8 +26,6 @@ For a Swift Package Manager based project, add PostHog as a dependency in your `
 
 Package.swift
 
-PostHog AI
-
 ```swift
 dependencies: [
   .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.59.3")
@@ -43,8 +35,6 @@ dependencies: [
 and then as a dependency for the Package target utilizing PostHog:
 
 Package.swift
-
-PostHog AI
 
 ```swift
 .target(
@@ -62,19 +52,20 @@ You can find more advanced configuration options in the [configuration page](/do
 
 Swift
 
-PostHog AI
-
 ```swift
 import Foundation
 import PostHog
 import UIKit
+
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         let POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
         // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
         let POSTHOG_HOST = "https://us.i.posthog.com"
+
         let config = PostHogConfig(projectToken: POSTHOG_PROJECT_TOKEN, host: POSTHOG_HOST)
         PostHogSDK.shared.setup(config)
+
         return true
     }
 }
@@ -84,22 +75,27 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
 Swift
 
-PostHog AI
-
 ```swift
 import SwiftUI
 import PostHog
+
 @main
 struct YourGreatApp: App {
+
     // Add PostHog to your app's initializer.
     // If using UIApplicationDelegateAdaptor, see the UIKit tab.
+
     init() {
+
         let POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
         // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
         let POSTHOG_HOST = "https://us.i.posthog.com"
+
         let config = PostHogConfig(projectToken: POSTHOG_PROJECT_TOKEN, host: POSTHOG_HOST)
         PostHogSDK.shared.setup(config)
+
     }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

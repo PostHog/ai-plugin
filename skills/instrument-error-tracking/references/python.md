@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Python Error Tracking installation - Docs
-
-Copy page
-
-# Python Error Tracking installation - Docs
+# Python Error Tracking installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Install the PostHog Python library using pip:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     pip install posthog
@@ -32,10 +26,9 @@ Copy page
 
     Python
 
-    PostHog AI
-
     ```python
     from posthog import Posthog
+    
     posthog = Posthog(
         project_api_key='<ph_project_token>',
         host='https://us.i.posthog.com'
@@ -58,8 +51,6 @@ Copy page
 
     Python
 
-    PostHog AI
-
     ```python
     import posthog
     posthog.capture('user_signed_up', distinct_id='user_123', properties={'example_property': 'example_value'})
@@ -81,8 +72,6 @@ Copy page
 
     Python
 
-    PostHog AI
-
     ```python
     from posthog import Posthog
     posthog = Posthog("<ph_project_token>", enable_exception_autocapture=True, ...)
@@ -101,8 +90,6 @@ Copy page
     For exceptions handled by your application that you would still like sent to PostHog, you can manually call the capture method:
 
     Python
-
-    PostHog AI
 
     ```python
     posthog.capture_exception(e, distinct_id="user_distinct_id", properties=additional_properties)
@@ -124,8 +111,6 @@ Copy page
 
     Python
 
-    PostHog AI
-
     ```python
     MIDDLEWARE = [
         # ... other middleware
@@ -139,8 +124,6 @@ Copy page
     ## Flask
 
     Python
-
-    PostHog AI
 
     ```python
     from flask import Flask, jsonify
@@ -157,8 +140,6 @@ Copy page
     ## FastAPI
 
     Python
-
-    PostHog AI
 
     ```python
     from fastapi.responses import JSONResponse
@@ -178,7 +159,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

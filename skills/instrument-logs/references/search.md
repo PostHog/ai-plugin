@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Search logs - Docs
-
-Copy page
-
-# Search logs - Docs
+# Search logs
 
 There are two ways to filter logs on the [logs page](https://app.posthog.com/logs): the **facet rail** on the left sidebar and the **filter bar** at the top.
 
@@ -21,12 +17,12 @@ Additional facets appear automatically when your logs contain common OpenTelemet
 
 | Facet | Resource attribute | Group |
 | --- | --- | --- |
-| Environment | deployment.environment.name | Standard |
-| Namespace | k8s.namespace.name | Kubernetes |
-| Deployment | k8s.deployment.name | Kubernetes |
-| Pod | k8s.pod.name | Kubernetes |
-| Node | k8s.node.name | Kubernetes |
-| Host | host.name | Infrastructure |
+| **Environment** | `deployment.environment.name` | Standard |
+| **Namespace** | `k8s.namespace.name` | Kubernetes |
+| **Deployment** | `k8s.deployment.name` | Kubernetes |
+| **Pod** | `k8s.pod.name` | Kubernetes |
+| **Node** | `k8s.node.name` | Kubernetes |
+| **Host** | `host.name` | Infrastructure |
 
 These facets are presence-gated — they only show up when your logs actually contain the corresponding resource attribute. For example, the Kubernetes facets won't appear if your services don't emit Kubernetes metadata.
 
@@ -69,9 +65,9 @@ To search log bodies, pick the **Message** field from the filter bar. Message su
 
 | Operator | Behavior |
 | --- | --- |
-| equals / doesn't equal | Exact match. Case-sensitive. |
-| contains / doesn't contain | Substring match. Case-insensitive. The default. |
-| matches regex / doesn't match regex | RE2 regex. Case-insensitive. |
+| `equals` / `doesn't equal` | Exact match. Case-sensitive. |
+| `contains` / `doesn't contain` | Substring match. **Case-insensitive.** The default. |
+| `matches regex` / `doesn't match regex` | RE2 regex. **Case-insensitive.** |
 
 ### Examples
 

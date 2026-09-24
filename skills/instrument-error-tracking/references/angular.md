@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Angular Error Tracking installation - Docs
-
-Copy page
-
-# Angular Error Tracking installation - Docs
+# Angular Error Tracking installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Install the PostHog JavaScript library using your package manager:
-
-    PostHog AI
 
     ### npm
 
@@ -56,8 +50,6 @@ Copy page
 
     src/main.ts
 
-    PostHog AI
-
     ```typescript
     // src/app/services/posthog.service.ts
     import { DestroyRef, Injectable, NgZone } from "@angular/core";
@@ -88,8 +80,6 @@ Copy page
 
     src/app/app.component.ts
 
-    PostHog AI
-
     ```typescript
     // src/app/app.component.ts
     import { Component } from "@angular/core";
@@ -113,8 +103,6 @@ Copy page
     In your `src/main.ts`, initialize PostHog using your project API key and instance address. You can find both in your [project settings](https://us.posthog.com/project/settings).
 
     src/main.ts
-
-    PostHog AI
 
     ```typescript
     // src/main.ts
@@ -141,8 +129,6 @@ Copy page
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     posthog.capture('my_custom_event', { property: 'value' })
     ```
@@ -159,12 +145,11 @@ Copy page
 
     src/app/posthog-error-handler.ts
 
-    PostHog AI
-
     ```typescript
     import { ErrorHandler, Injectable, Provider } from '@angular/core';
     import { HttpErrorResponse } from '@angular/common/http';
     import posthog from 'posthog-js';
+    
     @Injectable({ providedIn: 'root' })
     class PostHogErrorHandler implements ErrorHandler {
       public constructor() {}
@@ -183,11 +168,13 @@ Copy page
         return null;
       }
     }
+    
     function tryToUnwrapZonejsError(error: unknown): unknown | Error {
       return error && (error as { ngOriginalError: Error }).ngOriginalError
         ? (error as { ngOriginalError: Error }).ngOriginalError
         : error;
     }
+    
     function extractHttpModuleError(error: HttpErrorResponse): string | Error {
       if (isErrorOrErrorLikeObject(error.error)) {
         return error.error;
@@ -204,6 +191,7 @@ Copy page
       }
       return error.message;
     }
+    
     function isErrorOrErrorLikeObject(value: unknown): value is Error {
       if (value instanceof Error) {
         return true;
@@ -213,6 +201,7 @@ Copy page
       }
       return 'name' in value && 'message' in value && 'stack' in value;
     }
+    
     declare const Zone: any;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const isNgZoneEnabled = typeof Zone !== 'undefined' && Zone.root?.run;
@@ -220,6 +209,7 @@ Copy page
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return isNgZoneEnabled ? Zone.root.run(callback) : callback();
     }
+    
     export function providePostHogErrorHandler(): Provider {
       return {
         provide: ErrorHandler,
@@ -232,12 +222,11 @@ Copy page
 
     src/app/app.config.ts
 
-    PostHog AI
-
     ```typescript
     // src/app/app.config.ts
     import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
     import { provideRouter } from '@angular/router';
+    
     import { routes } from './app.routes';
     import { providePostHogErrorHandler } from './posthog-error-handler';
     export const appConfig: ApplicationConfig = {
@@ -258,8 +247,6 @@ Copy page
 
     TypeScript
 
-    PostHog AI
-
     ```typescript
     posthog.captureException(e, additionalProperties)
     ```
@@ -272,7 +259,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

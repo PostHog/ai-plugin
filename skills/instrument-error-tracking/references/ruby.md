@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Ruby Error Tracking installation - Docs
-
-Copy page
-
-# Ruby Error Tracking installation - Docs
+# Ruby Error Tracking installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Add the PostHog Ruby gem to your Gemfile:
 
     Gemfile
-
-    PostHog AI
 
     ```ruby
     gem "posthog-ruby"
@@ -32,10 +26,9 @@ Copy page
 
     Ruby
 
-    PostHog AI
-
     ```ruby
     require 'posthog'
+    
     posthog = PostHog::Client.new({
         api_key: "<ph_project_token>",
         host: "https://us.i.posthog.com",
@@ -52,8 +45,6 @@ Copy page
     Once installed, you can manually send events to test your integration:
 
     Ruby
-
-    PostHog AI
 
     ```ruby
     posthog.capture({
@@ -77,8 +68,6 @@ Copy page
 
     Ruby
 
-    PostHog AI
-
     ```ruby
     begin
       # Code that might raise an exception
@@ -98,9 +87,9 @@ Copy page
 
     | Param | Type | Description |
     | --- | --- | --- |
-    | exception | Exception | The exception object to capture (required) |
-    | distinct_id | String | The distinct ID of the user (optional) |
-    | additional_properties | Hash | Additional properties to attach to the exception event (optional) |
+    | `exception` | `Exception` | The exception object to capture (required) |
+    | `distinct_id` | `String` | The distinct ID of the user (optional) |
+    | `additional_properties` | `Hash` | Additional properties to attach to the exception event (optional) |
 
 5.  ## Verify error tracking
 
@@ -110,7 +99,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

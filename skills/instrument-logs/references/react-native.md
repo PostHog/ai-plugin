@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# React Native Logs installation - Docs
-
-Copy page
-
-# React Native Logs installation - Docs
+# React Native Logs installation
 
 PostHog's React Native SDK has built-in support for capturing structured logs. Unlike other languages where you wire OpenTelemetry directly, the SDK handles the OTLP encoding, batching, persistence, and lifecycle for you. You just call `posthog.captureLog(...)` or `posthog.logger.{trace,debug,info,warn,error,fatal}(...)`.
 
@@ -28,8 +24,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     Terminal
 
-    PostHog AI
-
     ```bash
     npx expo install posthog-react-native expo-file-system expo-application expo-device expo-localization
     ```
@@ -37,8 +31,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
     #### React Native apps
 
     Terminal
-
-    PostHog AI
 
     ```bash
     yarn add posthog-react-native @react-native-async-storage/async-storage react-native-device-info react-native-localize
@@ -60,12 +52,11 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     App.js
 
-    PostHog AI
-
     ```jsx
     // App.(js|ts)
     import { usePostHog, PostHogProvider } from 'posthog-react-native'
     ...
+    
     export function MyApp() {
         return (
             <PostHogProvider apiKey="<ph_project_token>" options={{
@@ -82,11 +73,10 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     React Native
 
-    PostHog AI
-
     ```jsx
     const MyComponent = () => {
         const posthog = usePostHog()
+    
         useEffect(() => {
             posthog.capture("event_name")
         }, [posthog])
@@ -99,10 +89,9 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     posthog.ts
 
-    PostHog AI
-
     ```jsx
     import PostHog from 'posthog-react-native'
+    
     export const posthog = new PostHog('<ph_project_token>', {
       // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
       host: 'https://us.i.posthog.com'
@@ -113,14 +102,14 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     React Native
 
-    PostHog AI
-
     ```jsx
     import { posthog } from './posthog'
+    
     export function MyApp1() {
         useEffect(() => {
             posthog.capture('event_name')
         }, [])
+    
         return <View>Your app code</View>
     }
     ```
@@ -129,10 +118,9 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     React Native
 
-    PostHog AI
-
     ```jsx
     import { posthog } from './posthog'
+    
     export function MyApp() {
       return <PostHogProvider client={posthog}>{/* Your app code */}</PostHogProvider>
     }
@@ -148,10 +136,9 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     React Native
 
-    PostHog AI
-
     ```jsx
     import PostHog from 'posthog-react-native'
+    
     const posthog = new PostHog('<ph_project_token>', {
       host: 'https://us.i.posthog.com',
       logs: {
@@ -172,13 +159,12 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     React Native
 
-    PostHog AI
-
     ```jsx
     // Per-level convenience methods
     posthog.logger.info('checkout completed', { order_id: 'ord_789', amount_cents: 4999 })
     posthog.logger.warn('payment retry', { attempt: 2 })
     posthog.logger.error('payment failed', { code: 'E001' })
+    
     // Lower-level API for custom severity / trace context
     posthog.captureLog({
       body: 'checkout failed',
@@ -203,8 +189,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
         React Native
 
-        PostHog AI
-
         ```jsx
         posthog.logger.info('hello from RN')
         await posthog.flushLogs()
@@ -227,8 +211,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     React Native
 
-    PostHog AI
-
     ```jsx
     const posthog = new PostHog('<ph_project_token>', {
       logs: {
@@ -246,16 +228,16 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     | Field | Default | What it does |
     | --- | --- | --- |
-    | serviceName | 'unknown_service' | OTLP service.name resource attribute |
-    | serviceVersion | undefined | OTLP service.version resource attribute |
-    | environment | undefined | OTLP deployment.environment resource attribute |
-    | resourceAttributes | {} | Extra OTLP resource attributes |
-    | flushIntervalMs | 10000 | Periodic flush interval in ms |
-    | maxBufferSize | 100 | Max records held in memory before eviction |
-    | maxBatchRecordsPerPost | 50 | Max records per outbound POST (halved on 413) |
-    | rateCap.maxLogs | 500 | Max records per windowMs window |
-    | rateCap.windowMs | 10000 | Rate-cap window length in ms |
-    | beforeSend | undefined | Pre-send filter (return null to drop) |
+    | `serviceName` | `'unknown_service'` | OTLP `service.name` resource attribute |
+    | `serviceVersion` | undefined | OTLP `service.version` resource attribute |
+    | `environment` | undefined | OTLP `deployment.environment` resource attribute |
+    | `resourceAttributes` | `{}` | Extra OTLP resource attributes |
+    | `flushIntervalMs` | `10000` | Periodic flush interval in ms |
+    | `maxBufferSize` | `100` | Max records held in memory before eviction |
+    | `maxBatchRecordsPerPost` | `50` | Max records per outbound POST (halved on 413) |
+    | `rateCap.maxLogs` | `500` | Max records per `windowMs` window |
+    | `rateCap.windowMs` | `10000` | Rate-cap window length in ms |
+    | `beforeSend` | undefined | Pre-send filter (return `null` to drop) |
 
     Defaults are tuned for cellular-aware mobile apps (~50 logs/sec ceiling, ~16KB max queue file). Raise `rateCap.maxLogs` and `maxBufferSize` for high-volume scenarios.
 
@@ -269,8 +251,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     React Native
 
-    PostHog AI
-
     ```jsx
     const posthog = new PostHog('<ph_project_token>', {
       host: 'https://us.i.posthog.com',
@@ -279,6 +259,7 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
         beforeSend: (record) => {
           // Drop debug logs in production
           if (record.level === 'debug') return null
+    
           // Redact secrets in the body
           return {
             ...record,
@@ -299,12 +280,12 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     | Action | Description |
     | --- | --- |
-    | [Why you need logs](/docs/logs/basics.md) | What logs show you that nothing else does |
-    | [Search logs](/docs/logs/search.md) | Use the search interface to find specific log entries |
-    | Filter by level | Filter by INFO, WARN, ERROR, etc. |
-    | [Link session replay](/docs/logs/link-session-replay.md) | Connect logs to users and session replays by passing posthogDistinctId and sessionId |
-    | [Link logs to a person](/docs/logs/link-person.md) | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
+    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
 

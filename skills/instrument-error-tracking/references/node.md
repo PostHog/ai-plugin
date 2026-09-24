@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Node.js Error Tracking installation - Docs
-
-Copy page
-
-# Node.js Error Tracking installation - Docs
+# Node.js Error Tracking installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Install the PostHog Node.js library using your package manager:
-
-    PostHog AI
 
     ### npm
 
@@ -50,10 +44,9 @@ Copy page
 
     Node.js
 
-    PostHog AI
-
     ```javascript
     import { PostHog } from 'posthog-node'
+    
     const client = new PostHog(
         '<ph_project_token>',
         {
@@ -71,8 +64,6 @@ Copy page
     Once installed, you can manually send events to test your integration:
 
     Node.js
-
-    PostHog AI
 
     ```javascript
     client.capture({
@@ -95,8 +86,6 @@ Copy page
 
     Node.js
 
-    PostHog AI
-
     ```javascript
     import { PostHog } from 'posthog-node'
     const client = new PostHog(
@@ -108,8 +97,6 @@ Copy page
     If you are using the Express framework, you will need to import and call `setupExpressErrorHandler` with your PostHog client and Express app. This is because Express handles uncaught exceptions internally meaning exception autocapture will not work by default.
 
     server.ts
-
-    PostHog AI
 
     ```javascript
     import express from 'express'
@@ -131,8 +118,6 @@ Copy page
 
     Node.js
 
-    PostHog AI
-
     ```javascript
     posthog.captureException(e, 'user_distinct_id', additionalProperties)
     ```
@@ -147,7 +132,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

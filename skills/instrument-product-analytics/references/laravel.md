@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Laravel - Docs
-
-Copy page
-
-# Laravel - Docs
+# Laravel
 
 PostHog integrates with Laravel through the [PostHog PHP SDK](/docs/libraries/php.md). This page covers Laravel-specific setup. For SDK features such as event capture, identifying users, feature flags, group analytics, and configuration options, see the [PHP SDK docs](/docs/libraries/php.md).
 
@@ -14,8 +10,6 @@ Install the PHP SDK as described in the [PHP installation guide](/docs/libraries
 
 .env
 
-PostHog AI
-
 ```bash
 POSTHOG_API_KEY=<ph_project_token>
 POSTHOG_HOST=https://us.i.posthog.com
@@ -24,8 +18,6 @@ POSTHOG_HOST=https://us.i.posthog.com
 Add PostHog to Laravel's services config:
 
 config/services.php
-
-PostHog AI
 
 ```php
 'posthog' => [
@@ -38,13 +30,14 @@ Initialize PostHog in the `boot` method of `app/Providers/AppServiceProvider.php
 
 app/Providers/AppServiceProvider.php
 
-PostHog AI
-
 ```php
 <?php
+
 namespace App\Providers;
+
 use Illuminate\Support\ServiceProvider;
 use PostHog\PostHog;
+
 class AppServiceProvider extends ServiceProvider
 {
     public function boot(): void
@@ -52,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
         if (! config('services.posthog.api_key')) {
             return;
         }
+
         PostHog::init(
             config('services.posthog.api_key'),
             [
@@ -72,15 +66,16 @@ Add middleware like this:
 
 app/Http/Middleware/PostHogRequestContext.php
 
-PostHog AI
-
 ```php
 <?php
+
 namespace App\Http\Middleware;
+
 use Closure;
 use Illuminate\Http\Request;
 use PostHog\PostHog;
 use Symfony\Component\HttpFoundation\Response;
+
 final class PostHogRequestContext
 {
     public function handle(Request $request, Closure $next): Response
@@ -88,7 +83,9 @@ final class PostHogRequestContext
         if (! config('services.posthog.api_key')) {
             return $next($request);
         }
+
         $context = PostHog::contextFromHeaders($request->headers->all());
+
         $context['properties'] = array_merge(
             $context['properties'] ?? [],
             array_filter([
@@ -99,6 +96,7 @@ final class PostHogRequestContext
                 '$ip' => $request->ip(),
             ], static fn ($value): bool => $value !== null && $value !== '')
         );
+
         return PostHog::withContext(
             $context,
             static fn (): Response => $next($request),
@@ -118,17 +116,17 @@ In Laravel 11 and later, add a report callback in `bootstrap/app.php`:
 
 bootstrap/app.php
 
-PostHog AI
-
 ```php
 use Illuminate\Foundation\Configuration\Exceptions;
 use PostHog\PostHog;
 use Throwable;
+
 ->withExceptions(function (Exceptions $exceptions): void {
     $exceptions->report(function (Throwable $e): void {
         if (! config('services.posthog.api_key')) {
             return;
         }
+
         PostHog::captureException(
             $e,
             auth()->id() !== null ? (string) auth()->id() : null,
@@ -150,8 +148,6 @@ In normal PHP request lifecycles, queued events flush when the client is destroy
 If you prefer immediate delivery in queue workers, configure the PHP SDK with `batch_size` set to `1` for those workers:
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog::init(

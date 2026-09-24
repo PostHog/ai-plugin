@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Manual capture AI Observability installation - Docs
-
-Copy page
-
-# Manual capture AI Observability installation - Docs
+# Manual capture AI Observability installation
 
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
 
@@ -69,6 +65,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     ```javascript
     import { PostHog } from 'posthog-node'
+    
     const client = new PostHog('<ph_project_token>', {
         host: 'https://us.i.posthog.com'
     })
@@ -96,6 +93,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
             // $ai_time_to_first_token: 0.25
         }
     })
+    
     client.shutdown()
     ```
 
@@ -111,6 +109,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     ```python
     from posthog import Posthog
+    
     posthog = Posthog("<ph_project_token>", host="https://us.i.posthog.com")
     ```
 
@@ -150,6 +149,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     ```go
     import "github.com/posthog/posthog-go"
+    
     client, _ := posthog.NewWithConfig("<ph_project_token>", posthog.Config{
         Endpoint: "https://us.i.posthog.com",
     })
@@ -191,6 +191,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     ```ruby
     require 'posthog'
+    
     posthog = PostHog::Client.new({
         api_key: '<ph_project_token>',
         host: 'https://us.i.posthog.com'
@@ -233,6 +234,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     <?php
     require_once __DIR__ . '/vendor/autoload.php';
     use PostHog\PostHog;
+    
     PostHog::init('<ph_project_token>', [
         'host' => 'https://us.i.posthog.com'
     ]);
@@ -276,23 +278,25 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Property | Description |
     | --- | --- |
-    | $ai_trace_id | The trace ID (a UUID to group AI events) like conversation_idMust contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
-    | $ai_session_id | (Optional) Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.Example: session-abc-123, conv-user-456 |
-    | $ai_span_id | (Optional) Unique identifier for this generation |
-    | $ai_span_name | (Optional) Name given to this generationExample: summarize_text |
-    | $ai_parent_id | (Optional) Parent span ID for tree view grouping |
-    | $ai_model | The model usedExample: gpt-5-mini |
-    | $ai_provider | The LLM providerExample: openai, anthropic, gemini |
-    | $ai_input_tokens | The number of tokens in the input (often found in response.usage) |
-    | $ai_output_tokens | The number of tokens in the output (often found in response.usage) |
-    | $ai_latency | (Optional) The latency of the LLM call in seconds |
-    | $ai_time_to_first_token | (Optional) Time to first token in seconds. Only applicable for streaming responses. |
-    | $ai_http_status | (Optional) The HTTP status code of the response |
-    | $ai_base_url | (Optional) The base URL of the LLM providerExample: https://api.openai.com/v1 |
-    | $ai_request_url | (Optional) The full URL of the request made to the LLM APIExample: https://api.openai.com/v1/chat/completions |
-    | $ai_is_error | (Optional) Boolean to indicate if the request was an error |
-    | $ai_error | (Optional) The error message or object |
-    | $ai_stop_reason | (Optional) The reason the model stopped generating tokensExample: end_turn, stop, max_tokens, tool_use |
+    | `$ai_trace_id` | The trace ID (a UUID to group AI events) like `conversation_id` Must contain only letters, numbers, and special characters: `-`, `_`, `~`, `.`, `@`, `(`, `)`, `!`, `'`, `:`, `\|` Example: `d9222e05-8708-41b8-98ea-d4a21849e761` |
+    | `$ai_session_id` | *(Optional)* Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id. Example: `session-abc-123`, `conv-user-456` |
+    | `$ai_span_id` | *(Optional)* Unique identifier for this generation |
+    | `$ai_span_name` | *(Optional)* Name given to this generation Example: `summarize_text` |
+    | `$ai_parent_id` | *(Optional)* Parent span ID for tree view grouping |
+    | `$ai_model` | The model used Example: `gpt-5-mini` |
+    | `$ai_provider` | The LLM provider Example: `openai`, `anthropic`, `gemini` |
+    | `$ai_input` | List of messages sent to the LLM. Each message should have a `role` property with one of: `"user"`, `"system"`, or `"assistant"` Example: ```json [ { "role": "user", "content": [ { "type": "text", "text": "What's in this image?" }, { "type": "image", "image": "https://example.com/image.jpg" }, { "type": "function", "function": { "name": "get_weather", "arguments": { "location": "San Francisco" } } } ] } ] ``` |
+    | `$ai_input_tokens` | The number of tokens in the input (often found in response.usage) |
+    | `$ai_output_choices` | List of response choices from the LLM. Each choice should have a `role` property with one of: `"user"`, `"system"`, or `"assistant"` Example: ```json [ { "role": "assistant", "content": [ { "type": "text", "text": "I can see a hedgehog in the image." }, { "type": "function", "function": { "name": "get_weather", "arguments": { "location": "San Francisco" } } } ] } ] ``` |
+    | `$ai_output_tokens` | The number of tokens in the output (often found in response.usage) |
+    | `$ai_latency` | *(Optional)* The latency of the LLM call in seconds |
+    | `$ai_time_to_first_token` | *(Optional)* Time to first token in seconds. Only applicable for streaming responses. |
+    | `$ai_http_status` | *(Optional)* The HTTP status code of the response |
+    | `$ai_base_url` | *(Optional)* The base URL of the LLM provider Example: `https://api.openai.com/v1` |
+    | `$ai_request_url` | *(Optional)* The full URL of the request made to the LLM API Example: `https://api.openai.com/v1/chat/completions` |
+    | `$ai_is_error` | *(Optional)* Boolean to indicate if the request was an error |
+    | `$ai_error` | *(Optional)* The error message or object |
+    | `$ai_stop_reason` | *(Optional)* The reason the model stopped generating tokens Example: `end_turn`, `stop`, `max_tokens`, `tool_use` |
 
     ### Cost properties
 
@@ -302,44 +306,45 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Property | Description |
     | --- | --- |
-    | $ai_input_cost_usd | (Optional) The cost in USD of the input tokens |
-    | $ai_output_cost_usd | (Optional) The cost in USD of the output tokens |
-    | $ai_request_cost_usd | (Optional) The cost in USD for the requests |
-    | $ai_web_search_cost_usd | (Optional) The cost in USD for the web searches |
-    | $ai_total_cost_usd | (Optional) The total cost in USD (sum of all cost components) |
-    | $ai_cost_passthrough | (Optional) Set this when your provider reports the real cost, such as an LLM gateway. We keep your $ai_total_cost_usd and leave the input and output costs unset. |
+    | `$ai_input_cost_usd` | *(Optional)* The cost in USD of the input tokens |
+    | `$ai_output_cost_usd` | *(Optional)* The cost in USD of the output tokens |
+    | `$ai_request_cost_usd` | *(Optional)* The cost in USD for the requests |
+    | `$ai_web_search_cost_usd` | *(Optional)* The cost in USD for the web searches |
+    | `$ai_total_cost_usd` | *(Optional)* The total cost in USD (sum of all cost components) |
+    | `$ai_cost_passthrough` | *(Optional)* Set this when your provider reports the real cost, such as an LLM gateway. We keep your `$ai_total_cost_usd` and leave the input and output costs unset. |
 
     #### Custom pricing
 
     | Property | Description |
     | --- | --- |
-    | $ai_input_token_price | (Optional) Price per input token (used to calculate $ai_input_cost_usd) |
-    | $ai_output_token_price | (Optional) Price per output token (used to calculate $ai_output_cost_usd) |
-    | $ai_cache_read_token_price | (Optional) Price per cached token read |
-    | $ai_cache_write_token_price | (Optional) Price per cached token write. For custom Anthropic pricing, this applies to both cache TTLs unless $ai_cache_write_1h_token_price is set. |
-    | $ai_cache_write_1h_token_price | (Optional) Price per token written to Anthropic's 1-hour cache. Takes precedence over $ai_cache_write_token_price for 1-hour writes. |
-    | $ai_request_price | (Optional) Price per request |
-    | $ai_request_count | (Optional) Number of requests (defaults to 1 if $ai_request_price is set) |
-    | $ai_web_search_price | (Optional) Price per web search |
-    | $ai_web_search_count | (Optional) Number of web searches performed |
+    | `$ai_input_token_price` | *(Optional)* Price per input token (used to calculate `$ai_input_cost_usd`) |
+    | `$ai_output_token_price` | *(Optional)* Price per output token (used to calculate `$ai_output_cost_usd`) |
+    | `$ai_cache_read_token_price` | *(Optional)* Price per cached token read |
+    | `$ai_cache_write_token_price` | *(Optional)* Price per cached token write. For custom Anthropic pricing, this applies to both cache TTLs unless `$ai_cache_write_1h_token_price` is set. |
+    | `$ai_cache_write_1h_token_price` | *(Optional)* Price per token written to Anthropic's 1-hour cache. Takes precedence over `$ai_cache_write_token_price` for 1-hour writes. |
+    | `$ai_request_price` | *(Optional)* Price per request |
+    | `$ai_request_count` | *(Optional)* Number of requests (defaults to 1 if `$ai_request_price` is set) |
+    | `$ai_web_search_price` | *(Optional)* Price per web search |
+    | `$ai_web_search_count` | *(Optional)* Number of web searches performed |
 
     ### Cache properties
 
     | Property | Description |
     | --- | --- |
-    | $ai_cache_read_input_tokens | (Optional) Number of tokens read from cache |
-    | $ai_cache_creation_input_tokens | (Optional) Number of tokens written to cacheFor Anthropic events, PostHog uses the TTL-specific counts instead of this aggregate when both are present. The aggregate should equal their sum. If either count is missing, PostHog uses the aggregate.Built-in Gemini pricing uses normal input rates for cache writes and does not estimate cache storage fees. Custom pricing can override these rates. |
-    | $ai_cache_creation_5m_input_tokens | (Optional) Number of tokens written to Anthropic's 5-minute cache |
-    | $ai_cache_creation_1h_input_tokens | (Optional) Number of tokens written to Anthropic's 1-hour cache |
-    | $ai_cache_reporting_exclusive | (Optional) Whether cache tokens are excluded from $ai_input_tokens. When true, cache tokens are separate from input tokens. When false, input tokens already include cache tokens. Defaults to true for Anthropic provider or Claude models, false otherwise. |
+    | `$ai_cache_read_input_tokens` | *(Optional)* Number of tokens read from cache |
+    | `$ai_cache_creation_input_tokens` | *(Optional)* Number of tokens written to cache For Anthropic events, PostHog uses the TTL-specific counts instead of this aggregate when both are present. The aggregate should equal their sum. If either count is missing, PostHog uses the aggregate. Built-in Gemini pricing uses normal input rates for cache writes and does not estimate cache storage fees. Custom pricing can override these rates. |
+    | `$ai_cache_creation_5m_input_tokens` | *(Optional)* Number of tokens written to Anthropic's 5-minute cache |
+    | `$ai_cache_creation_1h_input_tokens` | *(Optional)* Number of tokens written to Anthropic's 1-hour cache |
+    | `$ai_cache_reporting_exclusive` | *(Optional)* Whether cache tokens are excluded from `$ai_input_tokens`. When `true`, cache tokens are separate from input tokens. When `false`, input tokens already include cache tokens. Defaults to `true` for Anthropic provider or Claude models, `false` otherwise. |
 
     ### Model parameters
 
     | Property | Description |
     | --- | --- |
-    | $ai_temperature | (Optional) Temperature parameter used in the LLM request |
-    | $ai_stream | (Optional) Whether the response was streamed |
-    | $ai_max_tokens | (Optional) Maximum tokens setting for the LLM response |
+    | `$ai_temperature` | *(Optional)* Temperature parameter used in the LLM request |
+    | `$ai_stream` | *(Optional)* Whether the response was streamed |
+    | `$ai_max_tokens` | *(Optional)* Maximum tokens setting for the LLM response |
+    | `$ai_tools` | *(Optional)* Tools/functions available to the LLM Example: ```json [ { "type": "function", "function": { "name": "get_weather", "parameters": {} } } ] ``` |
 
     ## Trace
 
@@ -351,12 +356,14 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Property | Description |
     | --- | --- |
-    | $ai_trace_id | The trace ID (a UUID to group related AI events together)Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
-    | $ai_session_id | (Optional) Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: session-abc-123, conv-user-456 |
-    | $ai_latency | (Optional) The latency of the trace in seconds |
-    | $ai_span_name | (Optional) The name of the traceExample: chat_completion, rag_pipeline |
-    | $ai_is_error | (Optional) Boolean to indicate if the trace encountered an error |
-    | $ai_error | (Optional) The error message or object if the trace failed |
+    | `$ai_trace_id` | The trace ID (a UUID to group related AI events together) Must contain only letters, numbers, and special characters: `-`, `_`, `~`, `.`, `@`, `(`, `)`, `!`, `'`, `:`, `\|` Example: `d9222e05-8708-41b8-98ea-d4a21849e761` |
+    | `$ai_session_id` | *(Optional)* Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id. Must contain only letters, numbers, and special characters: `-`, `_`, `~`, `.`, `@`, `(`, `)`, `!`, `'`, `:`, `\|` Example: `session-abc-123`, `conv-user-456` |
+    | `$ai_input_state` | The input of the whole trace Example: ```json [ { "role": "user", "content": "What's the weather in SF?" } ] ``` or any JSON-serializable state |
+    | `$ai_output_state` | The output of the whole trace Example: ```json [ { "role": "assistant", "content": "The weather in San Francisco is..." } ] ``` or any JSON-serializable state |
+    | `$ai_latency` | *(Optional)* The latency of the trace in seconds |
+    | `$ai_span_name` | *(Optional)* The name of the trace Example: `chat_completion`, `rag_pipeline` |
+    | `$ai_is_error` | *(Optional)* Boolean to indicate if the trace encountered an error |
+    | `$ai_error` | *(Optional)* The error message or object if the trace failed |
 
     ### Pseudo-trace Events
 
@@ -382,13 +389,16 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Property | Description |
     | --- | --- |
-    | $ai_trace_id | The trace ID (a UUID to group related AI events together)Must contain only letters, numbers, and the following characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
-    | $ai_session_id | (Optional) Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.Example: session-abc-123, conv-user-456 |
-    | $ai_span_id | (Optional) Unique identifier for this spanExample: bdf42359-9364-4db7-8958-c001f28c9255 |
-    | $ai_span_name | (Optional) The name of the spanExample: vector_search, data_retrieval, tool_call |
-    | $ai_parent_id | (Optional) Parent ID for tree view grouping (trace_id or another span_id)Example: 537b7988-0186-494f-a313-77a5a8f7db26 |
-    | $ai_latency | (Optional) The latency of the span in secondsExample: 0.361 |
-    | $ai_is_error | (Optional) Boolean to indicate if the span encountered an error |
+    | `$ai_trace_id` | The trace ID (a UUID to group related AI events together) Must contain only letters, numbers, and the following characters: `-`, `_`, `~`, `.`, `@`, `(`, `)`, `!`, `'`, `:`, `\|` Example: `d9222e05-8708-41b8-98ea-d4a21849e761` |
+    | `$ai_session_id` | *(Optional)* Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id. Example: `session-abc-123`, `conv-user-456` |
+    | `$ai_span_id` | *(Optional)* Unique identifier for this span Example: `bdf42359-9364-4db7-8958-c001f28c9255` |
+    | `$ai_span_name` | *(Optional)* The name of the span Example: `vector_search`, `data_retrieval`, `tool_call` |
+    | `$ai_parent_id` | *(Optional)* Parent ID for tree view grouping (`trace_id` or another `span_id`) Example: `537b7988-0186-494f-a313-77a5a8f7db26` |
+    | `$ai_input_state` | The input state of the span Example: ```json { "query": "search for documents about hedgehogs" } ``` or any JSON-serializable state |
+    | `$ai_output_state` | The output state of the span Example: ```json { "results": ["doc1", "doc2"], "count": 2 } ``` or any JSON-serializable state |
+    | `$ai_latency` | *(Optional)* The latency of the span in seconds Example: `0.361` |
+    | `$ai_is_error` | *(Optional)* Boolean to indicate if the span encountered an error |
+    | `$ai_error` | *(Optional)* The error message or object if the span failed Example: ```json { "message": "Connection timeout", "code": "TIMEOUT" } ``` |
 
     ## Embedding
 
@@ -400,21 +410,21 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Property | Description |
     | --- | --- |
-    | $ai_trace_id | The trace ID (a UUID to group related AI events together). Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
-    | $ai_session_id | (Optional) Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.Example: session-abc-123, conv-user-456 |
-    | $ai_span_id | (Optional) Unique identifier for this embedding operation |
-    | $ai_span_name | (Optional) Name given to this embedding operationExample: embed_user_query, index_document |
-    | $ai_parent_id | (Optional) Parent span ID for tree-view grouping |
-    | $ai_model | The embedding model usedExample: text-embedding-3-small, text-embedding-ada-002 |
-    | $ai_provider | The LLM providerExample: openai, cohere, voyage |
-    | $ai_input | The text to embedExample: "Tell me a fun fact about hedgehogs" or array of strings for batch embeddings |
-    | $ai_input_tokens | The number of tokens in the input |
-    | $ai_latency | (Optional) The latency of the embedding call in seconds |
-    | $ai_http_status | (Optional) The HTTP status code of the response |
-    | $ai_base_url | (Optional) The base URL of the LLM providerExample: https://api.openai.com/v1 |
-    | $ai_request_url | (Optional) The full URL of the request made to the embedding APIExample: https://api.openai.com/v1/embeddings |
-    | $ai_is_error | (Optional) Boolean to indicate if the request was an error |
-    | $ai_error | (Optional) The error message or object if the embedding failed |
+    | `$ai_trace_id` | The trace ID (a UUID to group related AI events together). Must contain only letters, numbers, and special characters: `-`, `_`, `~`, `.`, `@`, `(`, `)`, `!`, `'`, `:`, `\|` Example: `d9222e05-8708-41b8-98ea-d4a21849e761` |
+    | `$ai_session_id` | *(Optional)* Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id. Example: `session-abc-123`, `conv-user-456` |
+    | `$ai_span_id` | *(Optional)* Unique identifier for this embedding operation |
+    | `$ai_span_name` | *(Optional)* Name given to this embedding operation Example: `embed_user_query`, `index_document` |
+    | `$ai_parent_id` | *(Optional)* Parent span ID for tree-view grouping |
+    | `$ai_model` | The embedding model used Example: `text-embedding-3-small`, `text-embedding-ada-002` |
+    | `$ai_provider` | The LLM provider Example: `openai`, `cohere`, `voyage` |
+    | `$ai_input` | The text to embed Example: `"Tell me a fun fact about hedgehogs"` or array of strings for batch embeddings |
+    | `$ai_input_tokens` | The number of tokens in the input |
+    | `$ai_latency` | *(Optional)* The latency of the embedding call in seconds |
+    | `$ai_http_status` | *(Optional)* The HTTP status code of the response |
+    | `$ai_base_url` | *(Optional)* The base URL of the LLM provider Example: `https://api.openai.com/v1` |
+    | `$ai_request_url` | *(Optional)* The full URL of the request made to the embedding API Example: `https://api.openai.com/v1/embeddings` |
+    | `$ai_is_error` | *(Optional)* Boolean to indicate if the request was an error |
+    | `$ai_error` | *(Optional)* The error message or object if the embedding failed |
 
     ### Cost properties
 
@@ -422,9 +432,9 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Property | Description |
     | --- | --- |
-    | $ai_input_cost_usd | (Optional) Cost in USD for input tokens |
-    | $ai_output_cost_usd | (Optional) Cost in USD for output tokens (usually 0 for embeddings) |
-    | $ai_total_cost_usd | (Optional) Total cost in USD |
+    | `$ai_input_cost_usd` | *(Optional)* Cost in USD for input tokens |
+    | `$ai_output_cost_usd` | *(Optional)* Cost in USD for output tokens (usually 0 for embeddings) |
+    | `$ai_total_cost_usd` | *(Optional)* Total cost in USD |
 
 3.  ## Verify traces and generations
 
@@ -434,7 +444,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     Let's make sure LLM events are being captured and sent to PostHog. Under **AI Observability**, you should see rows of data appear in the **Traces** and **Generations** tabs.
 
-    ![LLM generations in PostHog](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250807_syne_ecd0801880.png)![LLM generations in PostHog](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250807_syjm_5baab36590.png)
+    ![LLM generations in PostHog](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250807_syne_ecd0801880.png)
 
     [Check for LLM events in PostHog](https://app.posthog.com/ai-observability/generations)
 
@@ -449,7 +459,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | Resource | Description |
     | --- | --- |
     | [Basics](/docs/ai-observability/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
-    | [Generations](/docs/ai-observability/generations.md) | Read about the $ai_generation event and its properties. |
+    | [Generations](/docs/ai-observability/generations.md) | Read about the `$ai_generation` event and its properties. |
     | [Traces](/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
     | [Spans](/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
     | [Anaylze LLM performance](/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |

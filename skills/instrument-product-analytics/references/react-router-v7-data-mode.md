@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# React Router V7 data mode - Docs
-
-Copy page
-
-# React Router V7 data mode - Docs
+# React Router V7 data mode
 
 This guide walks you through setting up PostHog for React Router V7 in data mode. If you're using React Router in another mode, find the guide for that mode in the [React Router page](/docs/libraries/react-router.md). If you're using React with another framework, go to the [React integration guide](/docs/libraries/react.md).
 
@@ -15,8 +11,6 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
     Required
 
     First, you'll need to install [`posthog-js`](https://github.com/posthog/posthog-js) and `@posthog/react` using your package manager. These packages allow you to capture **client-side** events.
-
-    PostHog AI
 
     ### npm
 
@@ -44,8 +38,6 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
 
     > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
     >
-    > PostHog AI
-    >
     > ```
     > script-src 'self' https://*.posthog.com;
     > connect-src 'self' https://*.posthog.com;
@@ -64,8 +56,6 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
 
     .env.local
 
-    PostHog AI
-
     ```shell
     VITE_POSTHOG_PROJECT_TOKEN=<ph_project_token>
     VITE_POSTHOG_HOST=https://us.i.posthog.com
@@ -81,20 +71,22 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
 
     app/index.tsx
 
-    PostHog AI
-
     ```jsx
     import { StrictMode } from "react";
     import { createRoot } from "react-dom/client";
     import { createBrowserRouter, RouterProvider } from "react-router";
     import Root, { RootErrorBoundary } from "./app/root";
+    
     import posthog from 'posthog-js';
     import { PostHogProvider } from '@posthog/react'
+    
     posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {
       api_host: import.meta.env.VITE_POSTHOG_HOST,
       defaults: '2026-05-30',
     });
+    
     const router = createBrowserRouter([...]);
+    
     createRoot(document.getElementById("root")!).render(
       <StrictMode>
         {/* Pass PostHog client through PostHogProvider */}
@@ -115,11 +107,10 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
 
     React
 
-    PostHog AI
-
     ```jsx
     useEffect(() => {
       posthog?.capture('test') // using optional chaining (recommended)
+    
       if (posthog) {
         posthog.capture('test') // using an if statement
       }
@@ -140,10 +131,9 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
 
     TSX
 
-    PostHog AI
-
     ```jsx
     import { usePostHog } from '@posthog/react'
+    
     function App() {
       const posthog = usePostHog()
       return <button onClick={() => posthog?.capture('button_clicked')}>Click me</button>
@@ -162,10 +152,9 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
 
     TSX
 
-    PostHog AI
-
     ```jsx
     import { usePostHog } from '@posthog/react'
+    
     function App() {
       const posthog = usePostHog()
       return <button onClick={() => posthog?.capture('button_clicked')}>Click me</button>
@@ -186,15 +175,15 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
 
     TSX
 
-    PostHog AI
-
     ```jsx
     export default function Login() {
       const { user, login } = useAuth();
       const posthog = usePostHog();
+    
       const handleLogin = async (e: React.FormEvent) => {
         // existing code to handle login...
         const user = await login({ email, password });
+    
         posthog?.identify(user.email,
           {
             email: user.email,
@@ -203,6 +192,7 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
         );
         posthog?.capture('user_logged_in');
       };
+    
       return (
         <div>
           {/* ... existing code ... */}
@@ -224,16 +214,17 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
 
     app/root.tsx
 
-    PostHog AI
-
     ```jsx
     import { usePostHog } from '@posthog/react'
+    
     export function RootErrorBoundary() {
       const error = useRouteError();
+    
       const posthog = usePostHog();
       if (error) {
         posthog.captureException(error);
       }
+    
       // other error handling code...
     }
     ```
@@ -254,10 +245,9 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
 
     React
 
-    PostHog AI
-
     ```jsx
     import { PostHogCaptureOnViewed } from '@posthog/react'
+    
     function App() {
         return (
             <PostHogCaptureOnViewed name="hero-banner">
@@ -272,8 +262,6 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
     You can include additional properties with the event to provide more context:
 
     React
-
-    PostHog AI
 
     ```jsx
     <PostHogCaptureOnViewed
@@ -294,8 +282,6 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
 
     React
 
-    PostHog AI
-
     ```jsx
     <PostHogCaptureOnViewed
         name="product-gallery"
@@ -315,8 +301,6 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
     You can customize when elements are considered "viewed" by passing options to the `IntersectionObserver`:
 
     React
-
-    PostHog AI
 
     ```jsx
     <PostHogCaptureOnViewed
@@ -343,8 +327,6 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
     To help PostHog track your user sessions across the client and server, you'll need to add the `tracing_headers: ['your-backend-hostname1.com', 'your-backend-hostname2.com', ...]` option to your PostHog initialization:
 
     TSX
-
-    PostHog AI
 
     ```jsx
     posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {

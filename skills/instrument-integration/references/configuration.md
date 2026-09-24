@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# iOS SDK configuration - Docs
-
-Copy page
-
-# iOS SDK configuration - Docs
+# iOS SDK configuration
 
 ## Autocapture configuration
 
@@ -15,8 +11,6 @@ You can enable or disable autocapture through the `PostHogConfig` object.
 Use `tracingHeaders` to connect iOS network requests to backend events, errors, and LLM traces captured by a server-side PostHog SDK:
 
 Swift
-
-PostHog AI
 
 ```swift
 let configuration = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
@@ -38,8 +32,6 @@ You can also configure the flush interval with `flushIntervalSeconds` (default `
 
 Swift
 
-PostHog AI
-
 ```swift
 configuration.flushAt = 1
 configuration.flushIntervalSeconds = 30
@@ -48,8 +40,6 @@ configuration.flushIntervalSeconds = 30
 You can also manually flush the queue to start sending events immediately instead of waiting for the next batch:
 
 Swift
-
-PostHog AI
 
 ```swift
 PostHogSDK.shared.capture("logged_out")
@@ -74,10 +64,9 @@ Redact URLs in event properties
 
 Swift
 
-PostHog AI
-
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "<ph_api_client_host>")
+
 config.setBeforeSend { event in
     // Redact URLs
     if let url = event.properties["url"] as? String {
@@ -91,15 +80,15 @@ Redact sensitive information from event properties
 
 Swift
 
-PostHog AI
-
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "<ph_api_client_host>")
+
 config.setBeforeSend { event in
     // Redact sensitive information
     if let email = event.properties["email"] as? String {
         event.properties["email"] = email.map { _ in "*" }.joined()
     }
+
     return event
 }
 ```
@@ -108,10 +97,9 @@ Drop events by event name
 
 Swift
 
-PostHog AI
-
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "<ph_api_client_host>")
+
 config.setBeforeSend { event in
     // Drop all events named "Stale Event"
     if event.event == "Stale Event" {
@@ -129,11 +117,11 @@ Because it's just a function, you can filter however you like – an **ignorelis
 
 Swift
 
-PostHog AI
-
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "<ph_api_client_host>")
+
 let ignoredScreens: Set<String> = ["Splash", "Debug"]
+
 config.setBeforeSend { event in
     if event.event == "$screen",
        let screenName = event.properties["$screen_name"] as? String,
@@ -152,10 +140,9 @@ Sample events by event name
 
 Swift
 
-PostHog AI
-
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "<ph_api_client_host>")
+
 config.setBeforeSend { event in
     // Sample 10% of Sampled Event events
     if event.event == "Sampled Event" {
@@ -177,10 +164,9 @@ You can provide an array of `BeforeSendBlock` functions to be called one after t
 
 Swift
 
-PostHog AI
-
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "<ph_api_client_host>")
+
 config.setBeforeSend(
     // First block: Drop all events named "Stale Event"
     { event in
@@ -208,8 +194,6 @@ config.setBeforeSend(
 
 Swift
 
-PostHog AI
-
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "<ph_api_client_host>")
 config.appGroupIdentifier = "group.com.yourcompany.yourapp"
@@ -224,11 +208,11 @@ Method swizzling is enabled by default, but can be disabled by setting the relev
 
 | Feature | Description | Config option |
 | --- | --- | --- |
-| Screen view tracking | Automatically captures when view controllers are presented | config.captureScreenViews |
-| Element interactions | Automatically tracks user interactions with UI elements | config.captureElementInteractions |
-| Rage clicks | Automatically captures $rageclick events for rapid repeated taps in the same area (iOS/macCatalyst, UIKit) | config.rageClickConfig.enabled |
-| Session replay | Records user sessions | config.sessionReplay |
-| Surveys | Displays surveys at appropriate times | config.surveys |
+| Screen view tracking | Automatically captures when view controllers are presented | `config.captureScreenViews` |
+| Element interactions | Automatically tracks user interactions with UI elements | `config.captureElementInteractions` |
+| Rage clicks | Automatically captures `$rageclick` events for rapid repeated taps in the same area (iOS/macCatalyst, UIKit) | `config.rageClickConfig.enabled` |
+| Session replay | Records user sessions | `config.sessionReplay` |
+| Surveys | Displays surveys at appropriate times | `config.surveys` |
 | Advanced metrics tracking | Provides more precise session ID calculation and rotation by detecting user activity and idleness | N/A |
 
 ### Disabling all method swizzling
@@ -236,8 +220,6 @@ Method swizzling is enabled by default, but can be disabled by setting the relev
 Since version 3.34.0, you can opt out of all swizzling using the `enableSwizzling` configuration option. When you disable swizzling, the SDK disables the features listed above.
 
 Swift
-
-PostHog AI
 
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "<ph_api_client_host>")
@@ -265,37 +247,37 @@ The [`PostHogConfig` object](https://github.com/PostHog/posthog-ios/blob/main/Po
 
 | Attribute | Description |
 | --- | --- |
-| flushAtType: IntegerDefault: 20 (5 on tvOS) | The number of queued events that the posthog client should flush at. Setting this to 1 will not queue any events and will use more battery. |
-| flushIntervalSecondsType: TimeIntervalDefault: 30 | The amount of time to wait before each tick of the flush timer, in seconds. Smaller values will make events delivered in a more real-time manner and also use more battery. A value smaller than 10 seconds will seriously degrade overall performance. |
-| maxQueueSizeType: IntegerDefault: 1000 (100 on tvOS) | The maximum number of items to queue before starting to drop old ones. This should be a value greater than zero, the behavior is undefined otherwise. |
-| maxBatchSizeType: IntegerDefault: 50 | Number of maximum events in a batch call. |
-| maxRetriesType: IntegerDefault: 3 | Maximum number of consecutive flush attempts before the entire queue is dropped to avoid infinite retries against a permanently-broken backend (e.g. wrong API key, exhausted quota, deterministic 5xx). Increments on every retriable failure including HTTP 413 cap halving; resets on a successful 2xx response. |
-| captureApplicationLifecycleEventsType: BooleanDefault: true | Whether the posthog client should automatically make a capture call for application lifecycle events, such as "Application Installed", "Application Updated" and "Application Opened". |
-| captureScreenViewsType: BooleanDefault: true | Whether the posthog client should automatically make a screen call when a view controller is added to a view hierarchy. Because the underlying implementation uses method swizzling, we recommend initializing the posthog client as early as possible (before any screens are displayed), ideally during the Application delegate's applicationDidFinishLaunching method. |
-| enableSwizzlingType: BooleanDefault: true | Enable method swizzling for SDK functionality that depends on it. When disabled, functionality that requires swizzling (like autocapture, screen views, session replay, surveys) will not be installed. |
-| captureElementInteractionsType: BooleanDefault: false | (UIKit only) Whether the posthog client should automatically make a capture call when the user interacts with an element in a screen. |
-| rageClickConfigType: ObjectDefault: .init() | (iOS/macCatalyst, UIKit) Rage click detection configuration. Includes enabled (default true), minimumTapCount (default 3), thresholdPoints (default 30), and timeoutInterval (default 1.0). Works independently of captureElementInteractions. Available in version 3.51.0+. |
-| sendFeatureFlagEventType: BooleanDefault: true | Send a $feature_flag_called event when a feature flag is used automatically. |
-| preloadFeatureFlagsType: BooleanDefault: true | Preload feature flags automatically. |
-| evaluationContextsType: Array of StringsDefault: undefined | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. See [evaluation contexts documentation](/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 3.38.0+. The legacy parameter evaluationEnvironments (version 3.33.0+) is also supported for backward compatibility. |
-| debugType: BooleanDefault: false | Logs the SDK messages to the Xcode console. |
-| optOutType: BooleanDefault: false | Prevents capturing any data if enabled. |
-| getAnonymousIdType: FunctionDefault: undefined | Hook that allows for modification of the default mechanism for generating anonymous id (which as of now is just random UUID v7). |
-| dataModeType: EnumDefault: .any | Controls when queued data is flushed. Use .wifi to flush only on Wi-Fi; .cellular is a legacy value and behaves like .any. |
-| personProfilesType: EnumDefault: .identifiedOnly | Determines the behavior for processing user profiles. |
-| setDefaultPersonPropertiesType: BooleanDefault: true | Automatically set common device and app properties (such as $app_version, $os_name, and $device_type) as person properties for feature flag evaluation. See [property overrides](/docs/feature-flags/property-overrides.md) for more details. |
-| sessionReplayType: BooleanDefault: false | Enable Recording of Session Replays. |
-| sessionReplayConfigType: ObjectDefault: .init() | Session Replay configuration. See [Session Replay installation](/docs/session-replay/installation/ios.md) for more details. |
-| tracingHeadersType: Array of StringsDefault: nil | Exact hostnames that should receive PostHog tracing headers when the SDK instruments URLSession requests. |
-| errorTrackingConfigType: ObjectDefault: .init() | Error Tracking configuration. See the [error tracking docs](/docs/error-tracking.md) for more details. |
-| logsType: ObjectDefault: .init() | Structured Logs configuration. See [Logs installation](/docs/logs/installation/ios.md) for more details. |
-| surveysConfigType: ObjectDefault: .init() | Surveys configuration, including custom survey delegates and display language overrides. |
-| urlSessionConfigurationType: URLSessionConfigurationDefault: .default | Custom URLSessionConfiguration used by the SDK for PostHog API requests. |
-| appGroupIdentifierType: StringDefault: nil | The identifier of the App Group that should be used to store shared analytics data. PostHog will try to get the physical location of the App Group's shared container, otherwise fallback to the default location. |
-| reuseAnonymousIdType: BooleanDefault: false | Whether the SDK should reuse the anonymous Id between user changes. When enabled, a single Id will be used for all anonymous users on this device. |
-| surveysType: BooleanDefault: true | Enable Surveys. |
-| setBeforeSendType: FunctionDefault: undefined | Hook that allows for amending, sampling, or dropping events before they are sent to PostHog. |
-| bootstrapType: PostHogBootstrapConfigDefault: nil | Seeds identity (distinctId, isIdentifiedId) and feature-flag state (featureFlags, featureFlagPayloads) before the first /flags response. Bootstrapped identity applies to the first session; only enabled flags are served, until the first /flags response replaces them. See [SDK bootstrapping](/docs/libraries/bootstrapping.md#behavior-on-mobile-sdks). |
+| `flushAt` **Type:** Integer **Default:** `20` (`5` on tvOS) | The number of queued events that the posthog client should flush at. Setting this to `1` will not queue any events and will use more battery. |
+| `flushIntervalSeconds` **Type:** TimeInterval **Default:** `30` | The amount of time to wait before each tick of the flush timer, in seconds. Smaller values will make events delivered in a more real-time manner and also use more battery. A value smaller than 10 seconds will seriously degrade overall performance. |
+| `maxQueueSize` **Type:** Integer **Default:** `1000` (`100` on tvOS) | The maximum number of items to queue before starting to drop old ones. This should be a value greater than zero, the behavior is undefined otherwise. |
+| `maxBatchSize` **Type:** Integer **Default:** `50` | Number of maximum events in a batch call. |
+| `maxRetries` **Type:** Integer **Default:** `3` | Maximum number of consecutive flush attempts before the entire queue is dropped to avoid infinite retries against a permanently-broken backend (e.g. wrong API key, exhausted quota, deterministic 5xx). Increments on every retriable failure including HTTP 413 cap halving; resets on a successful 2xx response. |
+| `captureApplicationLifecycleEvents` **Type:** Boolean **Default:** `true` | Whether the posthog client should automatically make a capture call for application lifecycle events, such as "Application Installed", "Application Updated" and "Application Opened". |
+| `captureScreenViews` **Type:** Boolean **Default:** `true` | Whether the posthog client should automatically make a screen call when a view controller is added to a view hierarchy. Because the underlying implementation uses method swizzling, we recommend initializing the posthog client as early as possible (before any screens are displayed), ideally during the Application delegate's applicationDidFinishLaunching method. |
+| `enableSwizzling` **Type:** Boolean **Default:** `true` | Enable method swizzling for SDK functionality that depends on it. When disabled, functionality that requires swizzling (like autocapture, screen views, session replay, surveys) will not be installed. |
+| `captureElementInteractions` **Type:** Boolean **Default:** `false` | (UIKit only) Whether the posthog client should automatically make a capture call when the user interacts with an element in a screen. |
+| `rageClickConfig` **Type:** Object **Default:** `.init()` | (iOS/macCatalyst, UIKit) Rage click detection configuration. Includes `enabled` (default `true`), `minimumTapCount` (default `3`), `thresholdPoints` (default `30`), and `timeoutInterval` (default `1.0`). Works independently of `captureElementInteractions`. Available in version 3.51.0+. |
+| `sendFeatureFlagEvent` **Type:** Boolean **Default:** `true` | Send a `$feature_flag_called` event when a feature flag is used automatically. |
+| `preloadFeatureFlags` **Type:** Boolean **Default:** `true` | Preload feature flags automatically. |
+| `evaluationContexts` **Type:** Array of Strings **Default:** `undefined` | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. See [evaluation contexts documentation](/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 3.38.0+. The legacy parameter `evaluationEnvironments` (version 3.33.0+) is also supported for backward compatibility. |
+| `debug` **Type:** Boolean **Default:** `false` | Logs the SDK messages to the Xcode console. |
+| `optOut` **Type:** Boolean **Default:** `false` | Prevents capturing any data if enabled. |
+| `getAnonymousId` **Type:** Function **Default:** `undefined` | Hook that allows for modification of the default mechanism for generating anonymous id (which as of now is just random UUID v7). |
+| `dataMode` **Type:** Enum **Default:** `.any` | Controls when queued data is flushed. Use `.wifi` to flush only on Wi-Fi; `.cellular` is a legacy value and behaves like `.any`. |
+| `personProfiles` **Type:** Enum **Default:** `.identifiedOnly` | Determines the behavior for processing user profiles. |
+| `setDefaultPersonProperties` **Type:** Boolean **Default:** `true` | Automatically set common device and app properties (such as `$app_version`, `$os_name`, and `$device_type`) as person properties for feature flag evaluation. See [property overrides](/docs/feature-flags/property-overrides.md) for more details. |
+| `sessionReplay` **Type:** Boolean **Default:** `false` | Enable Recording of Session Replays. |
+| `sessionReplayConfig` **Type:** Object **Default:** `.init()` | Session Replay configuration. See [Session Replay installation](/docs/session-replay/installation/ios.md) for more details. |
+| `tracingHeaders` **Type:** Array of Strings **Default:** `nil` | Exact hostnames that should receive PostHog tracing headers when the SDK instruments `URLSession` requests. |
+| `errorTrackingConfig` **Type:** Object **Default:** `.init()` | Error Tracking configuration. See the [error tracking docs](/docs/error-tracking.md) for more details. |
+| `logs` **Type:** Object **Default:** `.init()` | Structured Logs configuration. See [Logs installation](/docs/logs/installation/ios.md) for more details. |
+| `surveysConfig` **Type:** Object **Default:** `.init()` | Surveys configuration, including custom survey delegates and display language overrides. |
+| `urlSessionConfiguration` **Type:** URLSessionConfiguration **Default:** `.default` | Custom `URLSessionConfiguration` used by the SDK for PostHog API requests. |
+| `appGroupIdentifier` **Type:** String **Default:** `nil` | The identifier of the App Group that should be used to store shared analytics data. PostHog will try to get the physical location of the App Group's shared container, otherwise fallback to the default location. |
+| `reuseAnonymousId` **Type:** Boolean **Default:** `false` | Whether the SDK should reuse the anonymous Id between user changes. When enabled, a single Id will be used for all anonymous users on this device. |
+| `surveys` **Type:** Boolean **Default:** `true` | Enable Surveys. |
+| `setBeforeSend` **Type:** Function **Default:** `undefined` | Hook that allows for amending, sampling, or dropping events before they are sent to PostHog. |
+| `bootstrap` **Type:** `PostHogBootstrapConfig` **Default:** `nil` | Seeds identity (`distinctId`, `isIdentifiedId`) and feature-flag state (`featureFlags`, `featureFlagPayloads`) before the first `/flags` response. Bootstrapped identity applies to the first session; only enabled flags are served, until the first `/flags` response replaces them. See [SDK bootstrapping](/docs/libraries/bootstrapping.md#behavior-on-mobile-sdks). |
 
 ### Still have questions?
 

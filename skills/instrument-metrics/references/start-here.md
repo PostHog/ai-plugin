@@ -1,14 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Getting started with metrics - Docs
+# Getting started with metrics
 
-Copy page
+**Metrics is in open alpha**
 
-# Getting started with metrics - Docs
-
-**Metrics is in private alpha**
-
-The metrics viewer is only turned on for selected teams. You can send metrics now and they are stored against your project, but you won't be able to view them in PostHog until your team is added. Setup details, including the ingestion endpoint, may change before general availability.
+Any team can turn on metrics: open [Metrics](https://app.posthog.com/metrics) in PostHog and select **Enable metrics** in the onboarding view. See [turn on metrics](/docs/metrics.md#turn-on-metrics) for the full flow. Setup details, including the ingestion endpoint, may change before general availability.
 
 ## Send your first metrics
 
@@ -17,8 +13,6 @@ There are three ways to get metrics into PostHog, and all take just a few minute
 If [posthog-js](/docs/libraries/js.md) is already running on your site, record metrics directly with the `posthog.metrics` API. No new packages, no extra authentication:
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.metrics.count("checkout.completed");
@@ -30,8 +24,6 @@ If you use OpenTelemetry anywhere else (backend services, infrastructure, an exi
 
 Terminal
 
-PostHog AI
-
 ```bash
 OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="https://us.i.posthog.com/i/v1/metrics"
 OTEL_EXPORTER_OTLP_METRICS_HEADERS="Authorization=Bearer <ph_project_token>"
@@ -41,8 +33,6 @@ OTEL_SERVICE_NAME="my-app"
 If you run **Kubernetes** and your pods already expose Prometheus metrics, install the PostHog metrics agent Helm chart to scrape and forward them automatically:
 
 Terminal
-
-PostHog AI
 
 ```bash
 helm install posthog-metrics-agent oci://ghcr.io/posthog/charts/posthog-metrics-agent \

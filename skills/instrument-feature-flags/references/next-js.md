@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Next.js - Docs
-
-Copy page
-
-# Next.js - Docs
+# Next.js
 
 PostHog makes it easy to get data about traffic and usage of your [Next.js](https://nextjs.org/) app. Integrating PostHog into your site enables analytics about user behavior, custom events capture, session recordings, feature flags, and more.
 
@@ -37,8 +33,6 @@ Or, to integrate manually, continue with the rest of this guide.
 
 Install `posthog-js` using your package manager:
 
-PostHog AI
-
 ### npm
 
 ```bash
@@ -65,8 +59,6 @@ bun add posthog-js
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
 >
-> PostHog AI
->
 > ```
 > script-src 'self' https://*.posthog.com;
 > connect-src 'self' https://*.posthog.com;
@@ -79,8 +71,6 @@ Add your environment variables to your `.env.local` file and to your hosting pro
 
 .env.local
 
-PostHog AI
-
 ```shell
 NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=<ph_project_token>
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
@@ -92,12 +82,11 @@ These values need to start with `NEXT_PUBLIC_` to be accessible on the client-si
 
 Next.js provides the [`instrumentation-client.ts|js`](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client) file for client-side setup. Add it to the root of your Next.js app (for both app and pages router) and initialize PostHog in it like this:
 
-PostHog AI
-
 ### instrumentation-client.js
 
 ```javascript
 import posthog from 'posthog-js'
+
 posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
   api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   defaults: '2026-05-30'
@@ -108,6 +97,7 @@ posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
 
 ```typescript
 import posthog from 'posthog-js'
+
 posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
   api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   defaults: '2026-05-30'
@@ -144,8 +134,6 @@ Next.js apps usually capture on both sides. To keep them on the same person, use
 If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.init('<ph_project_token>', {
@@ -193,11 +181,10 @@ Once initialized in `instrumentation-client.js|ts`, import `posthog` from `posth
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 "use client";
 import posthog from "posthog-js";
+
 export default function Home() {
   return (
     <div>
@@ -213,13 +200,13 @@ The [React feature flag hooks](/docs/libraries/react.md#feature-flags) work auto
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 "use client";
 import { useFeatureFlagEnabled } from "@posthog/react";
+
 export default function FeatureComponent() {
   const showNewFeature = useFeatureFlagEnabled("new-feature");
+
   return showNewFeature ? <NewFeature /> : <OldFeature />;
 }
 ```
@@ -238,8 +225,6 @@ You can also read [the full `posthog-js` documentation](/docs/libraries/js/usage
 Next.js enables you to both server-side render pages and add server-side functionality. To integrate PostHog into your Next.js app on the server-side, you can use the [Node SDK](/docs/libraries/node.md).
 
 First, install the `posthog-node` library:
-
-PostHog AI
 
 ### npm
 
@@ -275,11 +260,10 @@ This enables us to send events and fetch data from PostHog on the server – wit
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 // app/posthog.js
 import { PostHog } from 'posthog-node'
+
 export default function PostHogClient() {
   const posthogClient = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
     host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
@@ -299,17 +283,18 @@ To use this client, we import it into our pages and call it with the `PostHogCli
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 import Link from 'next/link'
 import PostHogClient from '../posthog'
+
 export default async function About() {
+
   const posthog = PostHogClient()
   const flags = await posthog.getAllFlags(
     'user_distinct_id' // replace with a user's distinct ID
   );
   await posthog.shutdown()
+
   return (
     <main>
       <h1>About</h1>
@@ -330,21 +315,22 @@ This looks like this:
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 // pages/posts/[id].js
 import { useContext, useEffect, useState } from 'react'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '@/lib/auth'
 import { PostHog } from 'posthog-node'
+
 export default function Post({ post, flags }) {
   const [ctaState, setCtaState] = useState()
+
   useEffect(() => {
     if (flags) {
       setCtaState(flags['blog-cta'])
     }
   })
+
   return (
     <div>
       <h1>{post.title}</h1>
@@ -357,10 +343,13 @@ export default function Post({ post, flags }) {
     </div>
   )
 }
+
 export async function getServerSideProps(ctx) {
+
   // Pass authOptions, or your session callbacks don't run.
   const session = await getServerSession(ctx.req, ctx.res, authOptions)
   let flags = null
+
   if (session) {
     const client = new PostHog(
       process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
@@ -368,8 +357,10 @@ export async function getServerSideProps(ctx) {
         host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
       }
     )
+
     // A stable ID from your auth system, not an email. See the note below.
     const distinctId = session.user.id
+
     flags = await client.getAllFlags(distinctId);
     client.capture({
       distinctId,
@@ -378,8 +369,10 @@ export async function getServerSideProps(ctx) {
         $current_url: ctx.req.url,
       },
     });
+
     await client.shutdown()
   }
+
   const { posts } = await import('../../blog.json')
   const post = posts.find((post) => post.id.toString() === ctx.params.id)
   return {
@@ -394,8 +387,6 @@ export async function getServerSideProps(ctx) {
 > **Note**: next-auth doesn't put a user ID on the session by default. Its session is `{ name, email, image }`, so `session.user.id` is `undefined` until you add it yourself with a session callback in your `authOptions`:
 >
 > JavaScript
->
-> PostHog AI
 >
 > ```javascript
 > // lib/auth.js
@@ -422,8 +413,6 @@ Next.js overrides the default `fetch` behavior on the server to introduce their 
 You can override that configuration when initializing PostHog, but make sure you understand the pros/cons of using Next.js's cache and that you might get cached results rather than the actual result our server would return. This is important for feature flags, for example.
 
 TSX
-
-PostHog AI
 
 ```jsx
 posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {

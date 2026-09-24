@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Send error tracking alerts - Docs
-
-Copy page
-
-# Send error tracking alerts - Docs
+# Send error tracking alerts
 
 To stay on top of issues, you can set up alerts. These enable you to post to Slack, Discord, Teams, or an HTTP Webhook when an issue is created or reopened.
 
@@ -12,7 +8,7 @@ To stay on top of issues, you can set up alerts. These enable you to post to Sla
 
 To alert when an issue is created or reopened, go to [error tracking's configuration page](https://app.posthog.com/error_tracking/configuration#selectedSetting=error-tracking-alerting) and click **Alerting**. This shows you a list of existing alerts. Clicking **New notification** brings you to a page to create a new one.
 
-![Error tracking alerting](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T14_03_05_339_Z_fce7707d31.png)![Error tracking alerting](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T14_02_44_265_Z_400e53c07a.png)
+![Error tracking alerting](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T14_03_05_339_Z_fce7707d31.png)
 
 Choosing an option brings you to a page to configure the alert. This may require setting up the Slack integration or pasting in a webhook URL. Once done, you can test the alert by clicking **Test function** and then finalize by clicking **Create & enable**.
 
@@ -22,7 +18,7 @@ This will then send alerts to your chosen destination when an issue is created o
 
 You can filter an alert based on the properties of an issue. This is useful for notifying a specific team when they have been automatically assigned an issue using [assignment rules](/docs/error-tracking/assigning-issues.md#automatic-issue-assignment).
 
-![Error tracking alert assignee filtering](https://res.cloudinary.com/dmukukwp6/image/upload/assignee_filter_light_e575af6512.png)![Error tracking alert assignee filtering](https://res.cloudinary.com/dmukukwp6/image/upload/assignee_filter_dark_9a8907af03.png)
+![Error tracking alert assignee filtering](https://res.cloudinary.com/dmukukwp6/image/upload/assignee_filter_light_e575af6512.png)
 
 ## Spike alerts
 
@@ -42,7 +38,7 @@ To create a real time destination, go to the [data pipelines tab](https://app.po
 
 On the destination creation screen, make sure to add an event matcher for the `$exception` event, filter for the properties you want, and set the trigger options.
 
-![Real time destination](https://res.cloudinary.com/dmukukwp6/image/upload/http_error_alert_light_9898376c56.png)![Real time destination](https://res.cloudinary.com/dmukukwp6/image/upload/http_error_alert_dark_7705f0e575.png)
+![Real time destination](https://res.cloudinary.com/dmukukwp6/image/upload/http_error_alert_light_9898376c56.png)
 
 Check out our [real time destinations docs](/docs/cdp/destinations.md) for more information.
 
@@ -52,7 +48,7 @@ You can also visualize your `$exception` events using [trends](/docs/product-ana
 
 Here you can set alerts for event volume value, increase, or decrease.
 
-![Insight alert](https://res.cloudinary.com/dmukukwp6/image/upload/Clean_Shot_2025_04_08_at_14_26_43_2x_4ef6402556.png)![Insight alert](https://res.cloudinary.com/dmukukwp6/image/upload/Clean_Shot_2025_04_08_at_14_25_35_2x_f36353143b.png)
+![Insight alert](https://res.cloudinary.com/dmukukwp6/image/upload/Clean_Shot_2025_04_08_at_14_26_43_2x_4ef6402556.png)
 
 This sends an email notification to the user you choose. Check out our [alerts docs](/docs/alerts.md) for more information.
 

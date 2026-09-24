@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# SvelteKit Error Tracking installation - Docs
-
-Copy page
-
-# SvelteKit Error Tracking installation - Docs
+# SvelteKit Error Tracking installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Install the PostHog JavaScript library using your package manager:
-
-    PostHog AI
 
     ### npm
 
@@ -50,12 +44,11 @@ Copy page
 
     src/routes/+layout.js
 
-    PostHog AI
-
     ```javascript
     import posthog from 'posthog-js'
     import { browser } from '$app/environment';
     import { onMount } from 'svelte';
+    
     export const load = async () => {
       if (browser) {
         posthog.init(
@@ -66,6 +59,7 @@ Copy page
           }
         )
       }
+    
       return
     };
     ```
@@ -81,8 +75,6 @@ Copy page
     Optional
 
     Install `posthog-node` using your package manager:
-
-    PostHog AI
 
     ### npm
 
@@ -112,16 +104,17 @@ Copy page
 
     routes/+page.server.js
 
-    PostHog AI
-
     ```javascript
     import { PostHog } from 'posthog-node';
+    
     export async function load() {
       const posthog = new PostHog('<ph_project_token>', { host: 'https://us.i.posthog.com' });
+    
       posthog.capture({
         distinctId: 'distinct_id_of_the_user',
         event: 'event_name',
       })
+    
       await posthog.shutdown()
     }
     ```
@@ -140,8 +133,6 @@ Copy page
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     posthog.capture('my_custom_event', { property: 'value' })
     ```
@@ -157,8 +148,6 @@ Copy page
     Capture exceptions in the `handleError` callback in your client-side hooks file:
 
     src/hooks.client.js
-
-    PostHog AI
 
     ```javascript
     import posthog from 'posthog-js';
@@ -180,8 +169,6 @@ Copy page
     To capture exceptions on the server-side, you will also need to implement the `handleError` callback:
 
     src/hooks.server.ts
-
-    PostHog AI
 
     ```javascript
     import type { HandleServerError } from '@sveltejs/kit';
@@ -206,7 +193,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

@@ -1,7 +1,7 @@
 {
   "name": "posthog-telemetry",
   "description": "Send Claude Code sessions to PostHog LLM analytics. Hooks only: no skills, no commands, no MCP server. Install this instead of the PostHog plugin, not alongside it.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "PostHog",
     "email": "hey@posthog.com",

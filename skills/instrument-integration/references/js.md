@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# JavaScript web - Docs
-
-Copy page
-
-# JavaScript web - Docs
+# JavaScript web
 
 > **Note:** This doc refers to our [posthog-js](https://github.com/PostHog/posthog-js) library for use on the browser. For server-side JavaScript, see our [Node SDK](/docs/libraries/node.md).
 
@@ -13,8 +9,6 @@ Copy page
 ### Option 1: Add the JavaScript snippet to your HTML Recommended
 
 HTML
-
-PostHog AI
 
 ```html
 <script>
@@ -36,8 +30,6 @@ If you're using TypeScript and want type safety for `window.posthog`, install th
 
 Terminal
 
-PostHog AI
-
 ```bash
 npm install @posthog/types
 ```
@@ -46,24 +38,22 @@ Then create a type declaration file:
 
 typescript
 
-PostHog AI
-
 ```typescript
 // posthog.d.ts
 import type { PostHog } from '@posthog/types'
+
 declare global {
     interface Window {
         posthog?: PostHog
     }
 }
+
 export {}
 ```
 
 See the [TypeScript types documentation](/docs/libraries/js/types.md) for more details.
 
 ### Option 2: Install via package manager
-
-PostHog AI
 
 ### npm
 
@@ -91,8 +81,6 @@ bun add posthog-js
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
 >
-> PostHog AI
->
 > ```
 > script-src 'self' https://*.posthog.com;
 > connect-src 'self' https://*.posthog.com;
@@ -105,10 +93,9 @@ And then include it with your project token and host (which you can find in [you
 
 Web
 
-PostHog AI
-
 ```javascript
 import posthog from 'posthog-js'
+
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
   defaults: '2026-05-30'
@@ -122,8 +109,6 @@ Update early, update often
 We ship weirdly fast, especially for our JavaScript web SDK. If you choose the npm package instead of the HTML snippet, be sure to update it frequently:
 
 To actually *update* the package, you need to update the version constraint in your `package.json` file and then reinstall, or run `update` instead of `install`:
-
-PostHog AI
 
 ### npm
 
@@ -159,15 +144,16 @@ To solve these issues, we have multiple import options available below.
 
 Web
 
-PostHog AI
-
 ```javascript
 // No external code loading possible (this disables all extensions such as Replay, Surveys, Exceptions etc.)
 import posthog from 'posthog-js/dist/module.no-external'
+
 // No external code loading possible but all external dependencies pre-bundled
 import posthog from 'posthog-js/dist/module.full.no-external'
+
 // All external dependencies pre-bundled and with the ability to load external scripts (primarily useful is you use JS snippets)
 import posthog from 'posthog-js/dist/module.full'
+
 // Finally you can also import specific extra dependencies
 import "posthog-js/dist/posthog-recorder"
 import "posthog-js/dist/surveys"
@@ -175,6 +161,7 @@ import "posthog-js/dist/exception-autocapture"
 import "posthog-js/dist/tracing-headers"
 import "posthog-js/dist/web-vitals"
 import posthog from 'posthog-js/dist/module.no-external'
+
 // All other posthog commands are the same as usual
 posthog.init('<ph_project_token>', { api_host: 'https://us.i.posthog.com', defaults: '2026-05-30' })
 ```
@@ -187,14 +174,13 @@ If you only need a subset of PostHog features, you can use the **slim bundle** t
 
 Web
 
-PostHog AI
-
 ```javascript
 import posthog from 'posthog-js/dist/module.slim'
 import {
     SessionReplayExtensions,
     AnalyticsExtensions,
 } from 'posthog-js/dist/extension-bundles'
+
 posthog.init('<ph_project_token>', {
     api_host: 'https://us.i.posthog.com',
     defaults: '2026-05-30',
@@ -211,18 +197,18 @@ posthog.init('<ph_project_token>', {
 
 | Bundle | What's included |
 | --- | --- |
-| FeatureFlagsExtensions | [Feature Flags](/docs/feature-flags.md) |
-| SessionReplayExtensions | [Session Replay](/docs/session-replay.md) |
-| AnalyticsExtensions | [Autocapture](/docs/product-analytics/autocapture.md), pageview tracking, [heatmaps](/docs/toolbar/heatmaps.md), dead click detection, [web vitals](/docs/web-analytics/web-vitals.md) |
-| ErrorTrackingExtensions | [Error Tracking](/docs/error-tracking.md) |
-| SurveysExtensions | [Surveys](/docs/surveys.md) |
-| ExperimentsExtensions | [Experiments](/docs/experiments.md) |
-| SiteAppsExtensions | [JS snippets](/docs/js-snippets.md) |
-| TracingExtensions | Distributed tracing header injection |
-| ToolbarExtensions | [Toolbar](/docs/toolbar.md) |
-| LogsExtensions | [Log capture](/docs/logs.md) |
-| ConversationsExtensions | [Support](/docs/support.md) |
-| AllExtensions | Everything (equivalent to the default posthog-js bundle) |
+| `FeatureFlagsExtensions` | [Feature Flags](/docs/feature-flags.md) |
+| `SessionReplayExtensions` | [Session Replay](/docs/session-replay.md) |
+| `AnalyticsExtensions` | [Autocapture](/docs/product-analytics/autocapture.md), pageview tracking, [heatmaps](/docs/toolbar/heatmaps.md), dead click detection, [web vitals](/docs/web-analytics/web-vitals.md) |
+| `ErrorTrackingExtensions` | [Error Tracking](/docs/error-tracking.md) |
+| `SurveysExtensions` | [Surveys](/docs/surveys.md) |
+| `ExperimentsExtensions` | [Experiments](/docs/experiments.md) |
+| `SiteAppsExtensions` | [JS snippets](/docs/js-snippets.md) |
+| `TracingExtensions` | Distributed tracing header injection |
+| `ToolbarExtensions` | [Toolbar](/docs/toolbar.md) |
+| `LogsExtensions` | [Log capture](/docs/logs.md) |
+| `ConversationsExtensions` | [Support](/docs/support.md) |
+| `AllExtensions` | Everything (equivalent to the default `posthog-js` bundle) |
 
 **Note:** Each extension bundle includes its own dependencies. You don't need to worry about adding them separately.
 
@@ -231,8 +217,6 @@ Don't want to send test data while developing?
 If you don't want to send test data while you're developing, you can do the following:
 
 Web
-
-PostHog AI
 
 ```javascript
 if (!window.location.host.includes('127.0.0.1') && !window.location.host.includes('localhost')) {
@@ -243,6 +227,8 @@ if (!window.location.host.includes('127.0.0.1') && !window.location.host.include
 What is the \`defaults\` option?
 
 The `defaults` is a date, such as `2026-05-30`, for a configuration snapshot used as defaults to initialize PostHog. This default is overridden when you explicitly set a value for any of the options.
+
+> **Using Google Tag Manager?** You can install and configure PostHog from Google Tag Manager with our tag template, without a custom HTML tag. See the [Google Tag Manager docs](/docs/libraries/google-tag-manager.md).
 
 ## Identifying users
 
@@ -278,8 +264,6 @@ You can completely opt-out users from data capture. To do this, there are two op
 
 Web
 
-PostHog AI
-
 ```javascript
 posthog.init('<ph_project_token>', {
     opt_out_capturing_by_default: true,
@@ -292,8 +276,6 @@ Similarly, you can opt users in:
 
 Web
 
-PostHog AI
-
 ```javascript
 posthog.opt_in_capturing()
 ```
@@ -301,8 +283,6 @@ posthog.opt_in_capturing()
 To check if a user is opted out:
 
 Web
-
-PostHog AI
 
 ```javascript
 posthog.has_opted_out_capturing()
@@ -316,8 +296,6 @@ While not a first-class citizen, PostHog allows you to run more than one instanc
 
 TypeScript
 
-PostHog AI
-
 ```typescript
 posthog.init('<ph_project_token>', {}, 'project1')
 posthog.init('<ph_project_token>', {}, 'project2')
@@ -326,8 +304,6 @@ posthog.init('<ph_project_token>', {}, 'project2')
 You can then call these different instances by accessing it on the global `posthog` object
 
 TypeScript
-
-PostHog AI
 
 ```typescript
 posthog.project1.capture('some_event')

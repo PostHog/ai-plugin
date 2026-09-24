@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Logs troubleshooting - Docs
-
-Copy page
-
-# Logs troubleshooting - Docs
+# Logs troubleshooting
 
 This page covers troubleshooting for Logs. For setup, see the [installation guide](/docs/logs/installation.md).
 

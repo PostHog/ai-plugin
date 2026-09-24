@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# PHP Feature Flags installation - Docs
-
-Copy page
-
-# PHP Feature Flags installation - Docs
+# PHP Feature Flags installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Install the PostHog PHP library using Composer:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     composer require posthog/posthog-php
@@ -31,8 +25,6 @@ Copy page
     Initialize the PostHog client with your project token and host:
 
     PHP
-
-    PostHog AI
 
     ```php
     PostHog\PostHog::init(
@@ -50,8 +42,6 @@ Copy page
     Once installed, you can manually send events to test your integration:
 
     PHP
-
-    PostHog AI
 
     ```php
     PostHog::capture([
@@ -106,8 +96,6 @@ Copy page
 
     PHP
 
-    PostHog AI
-
     ```php
     PostHog::capture(array(
         'distinctId' => 'distinct_id_of_your_user',
@@ -121,8 +109,6 @@ Copy page
     Include the `$feature/feature_flag_name` property in your event properties:
 
     PHP
-
-    PostHog AI
 
     ```php
     PostHog::capture(array(

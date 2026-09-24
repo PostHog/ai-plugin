@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Svelte - Docs
-
-Copy page
-
-# Svelte - Docs
+# Svelte
 
 PostHog makes it easy to get data about traffic and usage of your [Svelte](https://svelte.dev/) app. Integrating PostHog into your site enables analytics about user behavior, custom events capture, session recordings, feature flags, and more.
 
@@ -23,8 +19,6 @@ Or, to integrate manually, continue with the rest of this guide.
 ## Client-side setup
 
 Install `posthog-js` using your package manager:
-
-PostHog AI
 
 ### npm
 
@@ -52,8 +46,6 @@ bun add posthog-js
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
 >
-> PostHog AI
->
 > ```
 > script-src 'self' https://*.posthog.com;
 > connect-src 'self' https://*.posthog.com;
@@ -66,11 +58,10 @@ Then, if you haven't created a root [layout](https://kit.svelte.dev/docs/routing
 
 routes/+layout.js
 
-PostHog AI
-
 ```javascript
 import posthog from 'posthog-js'
 import { browser } from '$app/environment';
+
 export const load = async () => {
   if (browser) {
     posthog.init('<ph_project_token>', {
@@ -78,6 +69,7 @@ export const load = async () => {
       defaults: '2026-05-30',
     })
   }
+
   return
 };
 ```
@@ -95,8 +87,6 @@ export const load = async () => {
 If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.init('<ph_project_token>', {
@@ -144,8 +134,6 @@ An allowlist does not help when your app has a private address. For apps on an i
 
 Install `posthog-node` using your package manager:
 
-PostHog AI
-
 ### npm
 
 ```bash
@@ -174,16 +162,17 @@ Then, initialize the PostHog Node client where you'd like to use it on the serve
 
 routes/+page.server.js
 
-PostHog AI
-
 ```javascript
 import { PostHog } from 'posthog-node';
+
 export async function load() {
   const posthog = new PostHog('<ph_project_token>', { host: 'https://us.i.posthog.com' });
+
   posthog.capture({
     distinctId: 'distinct_id_of_the_user',
     event: 'event_name',
   })
+
   await posthog.shutdown()
 }
 ```
@@ -196,20 +185,21 @@ To use client-side feature flags, import PostHog into your Svelte component and 
 
 routes/+page.svelte
 
-PostHog AI
-
 ```javascript
 <script>
   import posthog from 'posthog-js'
   import { browser } from '$app/environment'
   import { onMount } from 'svelte'
+
   let coolFeature = $state(false)
+
   onMount(() => {
     if (browser) {
       coolFeature = posthog.isFeatureEnabled('cool-feature')
     }
   })
 </script>
+
 {#if coolFeature}
   <p>Welcome to the cool feature!</p>
 {/if}
@@ -219,20 +209,22 @@ To use server-side feature flags, import PostHog into your SvelteKit `load` func
 
 routes/+page.server.js
 
-PostHog AI
-
 ```javascript
 import { PostHog } from 'posthog-node';
+
 const client = new PostHog(
   '<ph_project_token>',
   { host: 'https://us.i.posthog.com' }
 );
+
 export async function load() {
   const distinctId = 'distinct_id_of_the_user';
+
   const megaFeature = await client.isFeatureEnabled(
     'mega-feature',
     distinctId
   );
+
   return {
     megaFeature
   };
@@ -248,8 +240,6 @@ By default, [Svelte uses relative asset paths](https://kit.svelte.dev/docs/confi
 To fix this, set the config to not use relative paths in `svelte.config.js`:
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 kit: {

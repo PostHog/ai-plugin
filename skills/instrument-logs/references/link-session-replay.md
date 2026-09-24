@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Link session replay - Docs
-
-Copy page
-
-# Link session replay - Docs
+# Link session replay
 
 Connecting your backend logs to frontend session replays provides complete visibility into the user journey, helping you understand the full context around issues in your application.
 
@@ -33,14 +29,14 @@ To link logs to session replays, you need to pass the session ID and user identi
 
 In your frontend code, retrieve the current session ID and send it with your API requests:
 
-PostHog AI
-
 ### JavaScript
 
 ```javascript
 import posthog from 'posthog-js'
+
 // Get the current session ID
 const sessionId = posthog.get_session_id()
+
 // Send it with your API request
 const response = await fetch('/api/chat', {
   method: 'POST',
@@ -56,8 +52,10 @@ const response = await fetch('/api/chat', {
 
 ```jsx
 import { posthog } from './posthog'
+
 // Get the current session ID
 const sessionId = posthog.get_session_id()
+
 // Send it with your API request
 const response = await fetch('https://api.example.com/chat', {
   method: 'POST',
@@ -73,16 +71,17 @@ const response = await fetch('https://api.example.com/chat', {
 
 Once you have the session ID, include it along with the user's identity using the `sessionId` and `posthogDistinctId` attributes. These examples assume you've already [set up a logging client](/docs/logs/installation.md) for your language.
 
-PostHog AI
-
 ### JavaScript
 
 ```javascript
 import { logs } from '@opentelemetry/api-logs'
+
 const logger = logs.getLogger('my-app')
+
 app.post('/api/chat', async (req, res) => {
   const { message, sessionId } = req.body
   const userId = req.userId // ... get your user ID
+
   logger.emit({
     severityText: 'info',
     body: 'Chat request received',
@@ -92,7 +91,9 @@ app.post('/api/chat', async (req, res) => {
       endpoint: '/api/chat',
     },
   })
+
   // ... handle the request
+
   res.json({ success: true })
 })
 ```
@@ -101,13 +102,16 @@ app.post('/api/chat', async (req, res) => {
 
 ```python
 import logging
+
 logger = logging.getLogger(__name__)
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     data = request.json
     message = data['message']
     session_id = data.get('sessionId')
     user_id = current_user.id
+
     logger.info(
         "Chat request received",
         extra={
@@ -116,7 +120,9 @@ def chat():
             "endpoint": "/api/chat",
         }
     )
+
     # ... handle the request
+
     return jsonify({"success": True})
 ```
 

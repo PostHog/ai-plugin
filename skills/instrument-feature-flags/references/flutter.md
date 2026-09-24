@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Flutter Feature Flags installation - Docs
-
-Copy page
-
-# Flutter Feature Flags installation - Docs
+# Flutter Feature Flags installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Add the PostHog Flutter SDK to your `pubspec.yaml`:
 
     pubspec.yaml
-
-    PostHog AI
 
     ```yaml
     posthog_flutter: ^5.24.0
@@ -34,8 +28,6 @@ Copy page
 
     android/app/src/main/AndroidManifest.xml
 
-    PostHog AI
-
     ```xml
     <application>
       <activity>
@@ -52,8 +44,6 @@ Copy page
 
     android/app/build.gradle
 
-    PostHog AI
-
     ```groovy
     defaultConfig {
       minSdkVersion 23
@@ -66,8 +56,6 @@ Copy page
     Add these values to your `Info.plist`:
 
     ios/Runner/Info.plist
-
-    PostHog AI
 
     ```xml
     <dict>
@@ -87,8 +75,6 @@ Copy page
 
     Podfile
 
-    PostHog AI
-
     ```ruby
     platform :ios, '13.0'
     # rest of your config
@@ -99,8 +85,6 @@ Copy page
     Add these values in `index.html`:
 
     web/index.html
-
-    PostHog AI
 
     ```html
     <!DOCTYPE html>
@@ -131,10 +115,9 @@ Copy page
 
     Dart
 
-    PostHog AI
-
     ```dart
     import 'package:posthog_flutter/posthog_flutter.dart';
+    
     await Posthog().capture(
         eventName: 'button_clicked',
         properties: {
@@ -152,8 +135,6 @@ Copy page
     Check if a feature flag is enabled:
 
     Dart
-
-    PostHog AI
 
     ```dart
     final isMyFlagEnabled = await Posthog().isFeatureEnabled('flag-key');
@@ -173,8 +154,6 @@ Copy page
     For multivariate flags, check which variant the user has been assigned:
 
     Dart
-
-    PostHog AI
 
     ```dart
     final enabledVariant = await Posthog().getFeatureFlag('flag-key');

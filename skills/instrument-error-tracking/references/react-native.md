@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# React Native Error Tracking installation - Docs
-
-Copy page
-
-# React Native Error Tracking installation - Docs
+# React Native Error Tracking installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Install the PostHog React Native library and its dependencies:
-
-    PostHog AI
 
     ### Expo
 
@@ -26,6 +20,7 @@ Copy page
 
     ```bash
     yarn add posthog-react-native @react-native-async-storage/async-storage react-native-device-info react-native-localize
+    
     # for iOS
     cd ios && pod install
     ```
@@ -34,6 +29,7 @@ Copy page
 
     ```bash
     npm i -s posthog-react-native @react-native-async-storage/async-storage react-native-device-info react-native-localize
+    
     # for iOS
     cd ios && pod install
     ```
@@ -48,10 +44,9 @@ Copy page
 
     App.tsx
 
-    PostHog AI
-
     ```jsx
     import { PostHogProvider } from 'posthog-react-native'
+    
     export function MyApp() {
         return (
             <PostHogProvider
@@ -76,17 +71,18 @@ Copy page
 
     Component.tsx
 
-    PostHog AI
-
     ```jsx
     import { usePostHog } from 'posthog-react-native'
+    
     function MyComponent() {
         const posthog = usePostHog()
+    
         const handlePress = () => {
             posthog.capture('button_pressed', {
                 button_name: 'signup'
             })
         }
+    
         return <Button onPress={handlePress} title="Sign Up" />
     }
     ```
@@ -105,8 +101,6 @@ Copy page
 
     React Native
 
-    PostHog AI
-
     ```jsx
     export const posthog = new PostHog('<ph_project_token>', {
       errorTracking: {
@@ -124,10 +118,10 @@ Copy page
 
     | Option | Description |
     | --- | --- |
-    | uncaughtExceptions | Captures Uncaught exceptions (ReactNativeGlobal.ErrorUtils.setGlobalHandler) |
-    | unhandledRejections | Captures Unhandled rejections (ReactNativeGlobal.onunhandledrejection) |
-    | console | Captures console logs as errors according to the reported LogLevel |
-    | nativeCrashes | Captures native iOS/Android crashes. Requires @posthog/react-native-plugin and uploaded native symbols (see below) |
+    | `uncaughtExceptions` | Captures Uncaught exceptions (`ReactNativeGlobal.ErrorUtils.setGlobalHandler`) |
+    | `unhandledRejections` | Captures Unhandled rejections (`ReactNativeGlobal.onunhandledrejection`) |
+    | `console` | Captures console logs as errors according to the reported `LogLevel` |
+    | `nativeCrashes` | Captures native iOS/Android crashes. Requires `@posthog/react-native-plugin` and uploaded native symbols (see below) |
 
     **Capturing native crashes**
 
@@ -147,11 +141,10 @@ Copy page
 
     React Native
 
-    PostHog AI
-
     ```jsx
     import { PostHogProvider, PostHogErrorBoundary } from 'posthog-react-native'
     import { View, Text } from 'react-native'
+    
     const App = () => {
       return (
         <PostHogProvider apiKey="<ph_project_token>">
@@ -164,6 +157,7 @@ Copy page
         </PostHogProvider>
       )
     }
+    
     const YourFallbackComponent = ({ error, componentStack }) => {
       return (
         <View>
@@ -191,8 +185,6 @@ Copy page
     You can manually capture exceptions using the `captureException` method:
 
     React Native
-
-    PostHog AI
 
     ```jsx
     try {
@@ -225,7 +217,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

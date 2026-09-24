@@ -59,14 +59,14 @@ STEP 7: Verify metrics arrive.
 
 ## Reference files
 
-- `references/javascript.md` - JavaScript (web) metrics installation - docs
-- `references/nodejs.md` - Node.js metrics installation - docs
-- `references/python.md` - Python metrics installation - docs
-- `references/kubernetes.md` - Kubernetes metrics installation - docs
-- `references/other.md` - Other languages metrics installation - docs
-- `references/start-here.md` - Getting started with metrics - docs
-- `references/basics.md` - Why you need metrics - docs
-- `references/architecture.md` - How metrics works - docs
+- `references/javascript.md` - JavaScript (web) metrics installation
+- `references/nodejs.md` - Node.js metrics installation
+- `references/python.md` - Python metrics installation
+- `references/kubernetes.md` - Kubernetes metrics installation
+- `references/other.md` - Other languages metrics installation
+- `references/start-here.md` - Getting started with metrics
+- `references/basics.md` - Why you need metrics
+- `references/architecture.md` - How metrics works
 - `references/COMMANDMENTS.md` - Framework-specific rules the integration must follow
 
 Each platform reference contains specific SDK setup, OTLP configuration, and integration patterns. Find the one matching the user's stack.
