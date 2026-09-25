@@ -171,6 +171,5 @@ jobs:
             --base "$BASE_REF" \
             --head "$HEAD_REF" \
             --title "$COMMIT_MESSAGE" \
-            --body "Automated skill sync from PostHog release and context-mill." \
-            --reviewer "PostHog/team-posthog-ai")
+            --body "Automated skill sync from PostHog release and context-mill.")
           gh pr merge "$PR_URL" --auto --squash
