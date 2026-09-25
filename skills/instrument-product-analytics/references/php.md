@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# PHP - Docs
-
-Copy page
-
-# PHP - Docs
+# PHP
 
 This is an optional library you can install if you're working with PHP. It uses an internal queue to batch requests, flushes at the end of the request, and optionally does so in an async manner.
 
@@ -14,8 +10,6 @@ Install the package with Composer:
 
 Terminal
 
-PostHog AI
-
 ```bash
 composer require posthog/posthog-php
 ```
@@ -23,8 +17,6 @@ composer require posthog/posthog-php
 In your app, set your project token before making any calls.
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog\PostHog::init("<ph_project_token>",
@@ -48,8 +40,6 @@ You can send custom events using `capture`:
 
 PHP
 
-PostHog AI
-
 ```php
 PostHog::capture([
   'distinctId' => 'distinct_id_of_the_user',
@@ -64,8 +54,6 @@ PostHog::capture([
 Optionally, you can include additional information with the event by including a [properties](/docs/data/events.md#event-properties) object:
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog::capture([
@@ -84,8 +72,6 @@ If you're aiming for a backend-only implementation of PostHog and won't be captu
 
 PHP
 
-PostHog AI
-
 ```php
 PostHog::capture([
   'distinctId' => 'distinct_id_of_the_user',
@@ -102,8 +88,6 @@ The PHP SDK captures identified events by default. These create [person profiles
 
 PHP
 
-PostHog AI
-
 ```php
 PostHog::identify([
     'distinctId' => 'distinct_id',
@@ -117,8 +101,6 @@ PostHog::identify([
 You can also include person properties when capturing an event:
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog::capture([
@@ -141,8 +123,6 @@ To capture [anonymous events](/docs/data/anonymous-vs-identified-events.md) with
 
 PHP
 
-PostHog AI
-
 ```php
 PostHog::capture([
     'distinctId' => 'distinct_id',
@@ -160,8 +140,6 @@ Sometimes, you want to assign multiple distinct IDs to a single user. This is he
 In this case, you can use `alias` to assign another distinct ID to the same user.
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog::alias([
@@ -186,10 +164,9 @@ Call `PostHog::evaluateFlags()` once for the user, then read values from the ret
 
 PHP
 
-PostHog AI
-
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
+
 if ($flags->isEnabled('flag-key')) {
     // Do something differently for this user
     // Optional: fetch the payload
@@ -201,11 +178,11 @@ if ($flags->isEnabled('flag-key')) {
 
 PHP
 
-PostHog AI
-
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
+
 $enabledVariant = $flags->getFlag('flag-key');
+
 if ($enabledVariant === 'variant-key') { // replace 'variant-key' with the key of your variant
     // Do something differently for this user
     // Optional: fetch the payload
@@ -233,13 +210,13 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 PHP
 
-PostHog AI
-
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
+
 if ($flags->isEnabled('flag-key')) {
     // Do something differently for this user
 }
+
 PostHog::capture([
     'distinctId' => 'distinct_id_of_your_user',
     'event' => 'event_name',
@@ -253,8 +230,6 @@ To reduce event property bloat, pass a filtered snapshot:
 
 PHP
 
-PostHog AI
-
 ```php
 // Attach only flags accessed with isEnabled() or getFlag() before this call
 PostHog::capture([
@@ -262,6 +237,7 @@ PostHog::capture([
     'event' => 'event_name',
     'flags' => $flags->onlyAccessed(),
 ]);
+
 // Attach only specific flags
 PostHog::capture([
     'distinctId' => 'distinct_id_of_your_user',
@@ -277,8 +253,6 @@ PostHog::capture([
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog::capture([
@@ -297,8 +271,6 @@ By default, `evaluateFlags()` evaluates every flag for the user. If you only nee
 
 PHP
 
-PostHog AI
-
 ```php
 $flags = PostHog::evaluateFlags(
     distinctId: 'distinct_id_of_your_user',
@@ -311,8 +283,6 @@ $flags = PostHog::evaluateFlags(
 `evaluateFlags()` also accepts optional parameters for local evaluation and GeoIP behavior:
 
 PHP
-
-PostHog AI
 
 ```php
 $flags = PostHog::evaluateFlags(
@@ -344,8 +314,6 @@ For example:
 
 PHP
 
-PostHog AI
-
 ```php
 $flags = PostHog::evaluateFlags(
     distinctId: 'distinct_id_of_the_user',
@@ -359,6 +327,7 @@ $flags = PostHog::evaluateFlags(
         'another_group_type' => ['group_property_name' => 'value'],
     ],
 );
+
 if ($flags->isEnabled('flag-key')) {
     // Do something differently for this user
 }
@@ -397,8 +366,6 @@ You can configure the `feature_flag_request_timeout_ms` parameter when initializ
 
 PHP
 
-PostHog AI
-
 ```php
 PostHog::init("<ph_project_token>",
     [
@@ -418,8 +385,6 @@ To load feature flag definitions for local evaluation, initialize the SDK with y
 
 PHP
 
-PostHog AI
-
 ```php
 PostHog::init(
     '<ph_project_token>',
@@ -436,11 +401,10 @@ Since [experiments](/docs/experiments/start-here.md) use feature flags, the code
 
 PHP
 
-PostHog AI
-
 ```php
 $flags = PostHog::evaluateFlags('user_distinct_id');
 $variant = $flags->getFlag('experiment-feature-flag-key');
+
 if ($variant === 'variant-name') {
     // Do something differently for this user
 }
@@ -457,8 +421,6 @@ Group analytics allows you to associate an event with a group (e.g. teams, organ
 To create a group or update its properties, use `groupIdentify`:
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog::groupIdentify([
@@ -482,8 +444,6 @@ Once a group is created, you can use the `capture` method and pass in the `group
 
 PHP
 
-PostHog AI
-
 ```php
 PostHog::capture([
     'distinctId' => 'user_distinct_id',
@@ -497,8 +457,6 @@ PostHog::capture([
 Use request context to apply a distinct ID, session ID, and common properties to all captures inside a callback. This is useful when connecting frontend activity to backend events, session replay, and error tracking.
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog::withContext([
@@ -520,10 +478,9 @@ Then read the incoming headers on the server:
 
 PHP
 
-PostHog AI
-
 ```php
 $context = PostHog::contextFromHeaders($_SERVER);
+
 PostHog::withContext($context, function () {
     PostHog::capture([
         'event' => 'backend_event',
@@ -542,8 +499,6 @@ The PHP SDK supports both manual exception capture and opt-in automatic error tr
 To automatically capture uncaught exceptions, PHP errors, and fatal shutdown errors, enable `error_tracking` when initializing the client:
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog::init(
@@ -567,8 +522,6 @@ When calling `PostHog::init`, there are various configuration options you can se
 
 PHP
 
-PostHog AI
-
 ```php
 PostHog::init(
     '<ph_project_token>',
@@ -585,39 +538,37 @@ All possible options below:
 
 | Attribute | Description |
 | --- | --- |
-| hostType: StringDefault: us.i.posthog.com | URL of your PostHog instance. |
-| sslType: BooleanDefault: true | Whether to use SSL for API requests or not. If host includes http:// or https://, the SDK infers this option unless you set it explicitly. |
-| timeoutType: IntegerDefault: 10000 | Request timeout in milliseconds. |
-| verify_batch_events_requestType: BooleanDefault: true | Whether to verify successful delivery of batch events (true, synchronous) or fire and forget (false, asynchronous) with the lib_curl consumer. |
-| feature_flag_request_timeout_msType: IntegerDefault: 3000 | Request timeout for feature flags in milliseconds. |
-| flag_definition_cache_providerType: PostHog\\FlagDefinitionCacheProviderDefault: null | Provider for distributed local-evaluation flag definition caching. See [local evaluation in distributed environments](/docs/feature-flags/local-evaluation/distributed-environments?tab=PHP.md). |
-| maximum_backoff_durationType: IntegerDefault: 10000 | Request retry backoff. Retries stop after this duration is hit. |
-| consumerType: StringDefault: lib_curl | One of socket, file, lib_curl, fork_curl, and noop. Determines what transport option to use for analytics capture. |
-| debugType: BooleanDefault: false | Output debug logs or not. |
-| max_queue_sizeType: IntegerDefault: 1000 | Maximum number of events to queue before rejecting new events. Applies to queued consumers. |
-| batch_sizeType: IntegerDefault: 100 | Number of queued events to send in each batch. Applies to queued consumers. |
-| compress_requestType: Boolean/StringDefault: false | Whether to gzip batch request payloads. |
-| error_handlerType: CallableDefault: null | Callback invoked for SDK transport errors. |
-| filenameType: StringDefault: sys_get_temp_dir() . '/posthog.log' | File path used when consumer is set to file. |
-| error_trackingType: ArrayDefault: [] | Enables automatic error tracking. See the options below or the [PHP error tracking setup guide](/docs/error-tracking/installation/php.md). |
+| `host` **Type:** String **Default:** `us.i.posthog.com` | URL of your PostHog instance. |
+| `ssl` **Type:** Boolean **Default:** `true` | Whether to use SSL for API requests or not. If `host` includes `http://` or `https://`, the SDK infers this option unless you set it explicitly. |
+| `timeout` **Type:** Integer **Default:** `10000` | Request timeout in milliseconds. |
+| `verify_batch_events_request` **Type:** Boolean **Default:** `true` | Whether to verify successful delivery of batch events (true, synchronous) or fire and forget (false, asynchronous) with the `lib_curl` consumer. |
+| `feature_flag_request_timeout_ms` **Type:** Integer **Default:** `3000` | Request timeout for feature flags in milliseconds. |
+| `flag_definition_cache_provider` **Type:** `PostHog\FlagDefinitionCacheProvider` **Default:** `null` | Provider for distributed local-evaluation flag definition caching. See [local evaluation in distributed environments](/docs/feature-flags/local-evaluation/distributed-environments?tab=PHP.md). |
+| `maximum_backoff_duration` **Type:** Integer **Default:** `10000` | Request retry backoff. Retries stop after this duration is hit. |
+| `consumer` **Type:** String **Default:** `lib_curl` | One of `socket`, `file`, `lib_curl`, `fork_curl`, and `noop`. Determines what transport option to use for analytics capture. |
+| `debug` **Type:** Boolean **Default:** `false` | Output debug logs or not. |
+| `max_queue_size` **Type:** Integer **Default:** `1000` | Maximum number of events to queue before rejecting new events. Applies to queued consumers. |
+| `batch_size` **Type:** Integer **Default:** `100` | Number of queued events to send in each batch. Applies to queued consumers. |
+| `compress_request` **Type:** Boolean/String **Default:** `false` | Whether to gzip batch request payloads. |
+| `error_handler` **Type:** Callable **Default:** `null` | Callback invoked for SDK transport errors. |
+| `filename` **Type:** String **Default:** `sys_get_temp_dir() . '/posthog.log'` | File path used when `consumer` is set to `file`. |
+| `error_tracking` **Type:** Array **Default:** `[]` | Enables automatic error tracking. See the options below or the [PHP error tracking setup guide](/docs/error-tracking/installation/php.md). |
 
 ### Error tracking options
 
 | Attribute | Description |
 | --- | --- |
-| enabledType: BooleanDefault: false | Enables automatic error tracking handlers. Manual captureException works regardless. |
-| capture_errorsType: BooleanDefault: true | When enabled, captures PHP errors and fatal shutdown errors in addition to uncaught exceptions. |
-| excluded_exceptionsType: Array of class stringsDefault: [] | Throwable classes to skip during automatic capture. |
-| max_framesType: IntegerDefault: 20 | Maximum number of stack frames included in $exception_list. |
-| context_providerType: Callable or nullDefault: null | Callback that returns distinctId and extra event properties for automatic captures. |
+| `enabled` **Type:** Boolean **Default:** `false` | Enables automatic error tracking handlers. Manual `captureException` works regardless. |
+| `capture_errors` **Type:** Boolean **Default:** `true` | When enabled, captures PHP errors and fatal shutdown errors in addition to uncaught exceptions. |
+| `excluded_exceptions` **Type:** Array of class strings **Default:** `[]` | Throwable classes to skip during automatic capture. |
+| `max_frames` **Type:** Integer **Default:** `20` | Maximum number of stack frames included in `$exception_list`. |
+| `context_provider` **Type:** Callable or `null` **Default:** `null` | Callback that returns `distinctId` and extra event properties for automatic captures. |
 
 ## Flushing and shutting down
 
 Call `PostHog::flush()` to send queued events without closing resources. When a script or long-running worker stops, call `PostHog::shutdown()` instead; it flushes queued events and releases resources held by providers such as `flag_definition_cache_provider`.
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog::shutdown();
@@ -626,8 +577,6 @@ PostHog::shutdown();
 ## Debug mode
 
 PHP
-
-PostHog AI
 
 ```php
 PostHog::init(

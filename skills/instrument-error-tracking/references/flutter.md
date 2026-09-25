@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Flutter Error Tracking installation - Docs
-
-Copy page
-
-# Flutter Error Tracking installation - Docs
+# Flutter Error Tracking installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Add the PostHog Flutter SDK to your `pubspec.yaml`:
 
     pubspec.yaml
-
-    PostHog AI
 
     ```yaml
     posthog_flutter: ^5.24.0
@@ -34,8 +28,6 @@ Copy page
 
     android/app/src/main/AndroidManifest.xml
 
-    PostHog AI
-
     ```xml
     <application>
       <activity>
@@ -52,8 +44,6 @@ Copy page
 
     android/app/build.gradle
 
-    PostHog AI
-
     ```groovy
     defaultConfig {
       minSdkVersion 23
@@ -66,8 +56,6 @@ Copy page
     Add these values to your `Info.plist`:
 
     ios/Runner/Info.plist
-
-    PostHog AI
 
     ```xml
     <dict>
@@ -87,8 +75,6 @@ Copy page
 
     Podfile
 
-    PostHog AI
-
     ```ruby
     platform :ios, '13.0'
     # rest of your config
@@ -99,8 +85,6 @@ Copy page
     Add these values in `index.html`:
 
     web/index.html
-
-    PostHog AI
 
     ```html
     <!DOCTYPE html>
@@ -131,10 +115,9 @@ Copy page
 
     Dart
 
-    PostHog AI
-
     ```dart
     import 'package:posthog_flutter/posthog_flutter.dart';
+    
     await Posthog().capture(
         eventName: 'button_clicked',
         properties: {
@@ -157,8 +140,6 @@ Copy page
 
     Dart
 
-    PostHog AI
-
     ```dart
     final config = PostHogConfig('<ph_project_token>');
     // Enable exception autocapture
@@ -175,11 +156,11 @@ Copy page
 
     | Option | Description |
     | --- | --- |
-    | captureFlutterErrors | Captures Flutter framework errors (FlutterError.onError) |
-    | capturePlatformDispatcherErrors | Captures Dart runtime errors (PlatformDispatcher.onError). Web not supported. |
-    | captureIsolateErrors | Captures errors from main isolate. Web not supported. |
-    | captureNativeExceptions | Captures native exceptions. Android (Java/Kotlin) and Apple platforms (iOS, macOS, tvOS). |
-    | captureSilentFlutterErrors | Captures Flutter errors that are marked as silent. Default: false. |
+    | `captureFlutterErrors` | Captures Flutter framework errors (`FlutterError.onError`) |
+    | `capturePlatformDispatcherErrors` | Captures Dart runtime errors (`PlatformDispatcher.onError`). Web not supported. |
+    | `captureIsolateErrors` | Captures errors from main isolate. Web not supported. |
+    | `captureNativeExceptions` | Captures native exceptions. Android (Java/Kotlin) and Apple platforms (iOS, macOS, tvOS). |
+    | `captureSilentFlutterErrors` | Captures Flutter errors that are marked as silent. Default: false. |
 
 5.  5
 
@@ -192,8 +173,6 @@ Copy page
     You can manually capture exceptions using the `captureException` method:
 
     Dart
-
-    PostHog AI
 
     ```dart
     try {
@@ -224,8 +203,6 @@ Copy page
 
     Dart
 
-    PostHog AI
-
     ```dart
     final config = PostHogConfig('<ph_project_token>');
     // Configure error tracking
@@ -239,9 +216,9 @@ Copy page
 
     | Option | Description |
     | --- | --- |
-    | inAppIncludes | List of package names to be considered inApp frames (takes precedence over excludes) |
-    | inAppExcludes | List of package names to be excluded from inApp frames |
-    | inAppByDefault | Whether frames are considered inApp by default when their origin cannot be determined |
+    | `inAppIncludes` | List of package names to be considered inApp frames (takes precedence over excludes) |
+    | `inAppExcludes` | List of package names to be excluded from inApp frames |
+    | `inAppByDefault` | Whether frames are considered inApp by default when their origin cannot be determined |
 
     `inApp` frames are stack trace frames that belong to your application code (as opposed to third-party libraries or system code). These are highlighted in the PostHog error tracking interface to help you focus on the relevant parts of the stack trace.
 
@@ -270,7 +247,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

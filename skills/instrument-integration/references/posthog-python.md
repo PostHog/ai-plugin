@@ -2,7 +2,7 @@
 
 # PostHog Python SDK
 
-**SDK Version:** 7.47.3
+**SDK Version:** 7.60.0
 
 Integrate PostHog into any python application.
 
@@ -13,6 +13,7 @@ Integrate PostHog into any python application.
 - Capture
 - Error Tracking
 - Feature flags
+- Tracing
 - Contexts
 - Events
 - Client management
@@ -79,6 +80,7 @@ Initialize a new PostHog client instance.
 - **`capture_trace_context`** (`bool`) - When OpenTelemetry is installed and a valid span is         active at capture time, add its trace and span IDs as ``$trace_id`` and         ``$span_id`` properties to events captured with ``capture()`` and         ``capture_ai()``, so they can be correlated with backend traces. Explicit         ``$trace_id``/``$span_id`` values passed in ``properties`` win. Exception         events (``capture_exception``) always attach these IDs regardless of this         setting. Defaults to False.
 - **`_use_ai_lane`** (`bool`)
 - **`_enable_multimodal_capture`** (`bool`)
+- **`traces?`** (`dict`) - Config dict for distributed tracing: ``service_name``,         ``service_version``, ``environment``, ``resource_attributes``,         ``flush_interval`` (5 s), ``max_queue_size`` (2048),         ``max_export_batch_size`` (512), ``max_live_spans`` (10000),         ``max_span_age`` (3600 s), ``max_attributes_per_span`` (128),         ``max_events_per_span`` (128), ``max_attribute_value_length``         (8192). ``before_span_send`` is a callable, or a         list run in order, that receives each finished span as a dict         (``trace_id``, ``span_id`` and ``parent_span_id`` are read-only)         and returns it, edited, or ``None`` to drop it; a hook that         raises drops the span. Tracing is off until this is provided.         Spans export on a background timer even with ``sync_mode``;         serverless handlers should call ``flush()`` before returning.         Defaults to None.
 
 ### Returns
 
@@ -480,6 +482,58 @@ if enabled_variant == 'variant-key': # replace 'variant-key' with the key of you
 
 ---
 
+#### get_feature_flag_evaluation_runtime()
+
+**Release Tag:** public
+
+Return where a locally loaded feature flag is meant to be evaluated.
+
+### Parameters
+
+- **`key?`** (`str`) - The feature flag key.
+
+### Returns
+
+- `Optional[FeatureFlagEvaluationRuntime]`
+
+### Examples
+
+```python
+from posthog import FeatureFlagEvaluationRuntime
+
+runtime = posthog.get_feature_flag_evaluation_runtime("my-flag")
+if runtime is FeatureFlagEvaluationRuntime.SERVER:
+    ...
+```
+
+---
+
+#### get_feature_flag_keys_by_evaluation_runtime()
+
+**Release Tag:** public
+
+Return the keys of locally loaded flags that a runtime can evaluate.  A flag set to ``FeatureFlagEvaluationRuntime.ALL`` suits either runtime, so it is returned for ``CLIENT`` and for ``SERVER``, and asking for ``ALL`` returns every loaded flag. Use this to decide which flags to hand to a browser when a backend serves flags to its own frontend.
+
+### Parameters
+
+- **`evaluation_runtime?`** (`FeatureFlagEvaluationRuntime`) - The runtime to match, as a         ``FeatureFlagEvaluationRuntime`` or its string value.
+
+### Returns
+
+- `list[str]`
+
+### Examples
+
+```python
+from posthog import FeatureFlagEvaluationRuntime
+
+client_keys = posthog.get_feature_flag_keys_by_evaluation_runtime(
+    FeatureFlagEvaluationRuntime.CLIENT
+)
+```
+
+---
+
 #### get_feature_flag_payload()
 
 **Release Tag:** public
@@ -548,7 +602,7 @@ result = posthog.get_feature_flags_and_payloads('<distinct_id>')
 
 **Release Tag:** public
 
-Get feature flag payloads for a user.
+Get feature flag payloads for a user, preserving valid serialized JSON.
 
 ### Parameters
 
@@ -562,7 +616,7 @@ Get feature flag payloads for a user.
 
 ### Returns
 
-- `dict[str, str]`
+- `dict[str, Optional[str]]`
 
 ### Examples
 
@@ -666,7 +720,7 @@ Force a flush from the internal queue to the server. Do not use directly, call `
 
 ### Parameters
 
-- **`timeout_seconds?`** (`float`) - Maximum seconds to wait for the queue to flush.         Defaults to 10 seconds. Pass ``None`` to wait indefinitely.
+- **`timeout_seconds?`** (`float`) - Maximum seconds to wait for the queue to flush.         Defaults to 10 seconds. Pass ``None`` to wait indefinitely.         Queued spans are sent at the same time, within the same
 
 ### Returns
 
@@ -737,7 +791,7 @@ posthog.join()
 
 **Release Tag:** public
 
-Flush all messages and cleanly shutdown the client. Call this before the process ends in serverless environments to avoid data loss.  Normally this method blocks until queued events have been attempted and cleanup finishes. Failed or undrainable events may be dropped and reported through logging or ``on_error``; returning does not guarantee server receipt. Lifecycle cleanup is attempted once, and cleanup failures are logged without retry. When called directly from an SDK callback such as ``on_error``, shutdown is deferred to avoid blocking the worker that invoked the callback. If the callback must coordinate a blocking shutdown, have it signal an application-owned thread and return before that thread calls shutdown. Do not wait inside the callback for another thread or task that calls a lifecycle method.
+Flush all messages and cleanly shutdown the client. Call this before the process ends in serverless environments to avoid data loss.  Normally this method blocks until queued events have been attempted and cleanup finishes. Failed or undrainable events may be dropped and reported through logging or ``on_error``; returning does not guarantee server receipt. Queued spans get one final flush of up to 30 s (plus a request already in flight); any it cannot send are discarded with a warning, as are spans still open. Lifecycle cleanup is attempted once, and cleanup failures are logged without retry. When called directly from an SDK callback such as ``on_error``, shutdown is deferred to avoid blocking the worker that invoked the callback. If the callback must coordinate a blocking shutdown, have it signal an application-owned thread and return before that thread calls shutdown. Do not wait inside the callback for another thread or task that calls a lifecycle method.
 
 ### Returns
 
@@ -747,6 +801,61 @@ Flush all messages and cleanly shutdown the client. Call this before the process
 
 ```python
 posthog.shutdown()
+```
+
+---
+
+### Tracing methods
+
+#### get_active_span()
+
+**Release Tag:** public
+
+The span that is active in the current context, or ``None``. Alpha.  Only entering a span (``with posthog.start_span(...) as span:``) makes it active; a span started manually is not. Use it to propagate the trace to the next service: ``span.traceparent()`` is the header value.
+
+### Returns
+
+- `Optional[Span]`
+
+### Examples
+
+```python
+span = posthog.get_active_span()
+if span is not None:
+    headers["traceparent"] = span.traceparent()
+```
+
+---
+
+#### start_span()
+
+**Release Tag:** public
+
+Start a span for distributed tracing. Alpha.  Returns a span handle. Use it as a context manager to make it the active span for the block and end it on exit (recording a raised exception on the way out); or call ``end()`` yourself for a span that cannot wrap a block. Spans started inside the block nest under it automatically. Always returns a usable handle, even when tracing is off, so calling code never branches.
+
+### Parameters
+
+- **`name?`** (`str`) - A low-cardinality operation name, e.g. ``GET /users/:id``.         Variable values belong in attributes, not the name.
+- **`kind?`** (`str`) - ``internal`` (default), ``server``, ``client``, ``producer``         or ``consumer``.
+- **`attributes?`** (`Mapping[str, Any]`) - Initial attributes.
+- **`parent`** (`Span`) - A span handle, or an inbound W3C ``traceparent`` header         value to continue a remote trace. Defaults to the active span.         A forked child starts with no active span; pass the parent         span to continue a trace across a fork.
+- **`tracestate?`** (`str`) - The inbound ``tracestate`` header accompanying a         ``traceparent`` string ``parent``; preserved and propagated.
+- **`start_time`** (`datetime`) - A ``datetime`` or epoch seconds, to backdate the span.
+
+### Returns
+
+- `Span`
+
+### Examples
+
+```python
+posthog = Posthog("<ph_project_api_key>", traces={"service_name": "checkout-api"})
+
+with posthog.start_span("POST /checkout", parent=request.headers.get("traceparent")) as span:
+    span.set_attribute("plan", user.plan)
+    with posthog.start_span("db.query", kind="client"):
+        ...
+    outgoing_headers = {"traceparent": span.traceparent()}
 ```
 
 ---
@@ -1345,6 +1454,60 @@ if enabled_variant == 'variant-key':
 
 ---
 
+#### get_feature_flag_evaluation_runtime()
+
+**Release Tag:** public
+
+Return where a locally loaded feature flag is meant to be evaluated.
+
+**Notes:**
+
+Reads the `evaluation_runtime` each flag definition carries, so no extra     request is made. Returns `None` when local evaluation has not loaded a     definition for this key. A definition that carries no runtime reports     `FeatureFlagEvaluationRuntime.ALL`, the default PostHog applies.
+
+### Parameters
+
+- **`key?`** (`str`)
+
+### Returns
+
+- `Optional[FeatureFlagEvaluationRuntime]`
+
+### Examples
+
+```python
+from posthog import FeatureFlagEvaluationRuntime, get_feature_flag_evaluation_runtime
+runtime = get_feature_flag_evaluation_runtime("my-flag")
+```
+
+---
+
+#### get_feature_flag_keys_by_evaluation_runtime()
+
+**Release Tag:** public
+
+Return the keys of locally loaded flags that a runtime can evaluate.
+
+**Notes:**
+
+A flag set to `FeatureFlagEvaluationRuntime.ALL` suits either runtime, so     it is returned for `CLIENT` and for `SERVER`. Use this to decide which     flags to hand to a browser when a backend serves flags to its own     frontend.
+
+### Parameters
+
+- **`evaluation_runtime?`** (`FeatureFlagEvaluationRuntime`)
+
+### Returns
+
+- `list[str]`
+
+### Examples
+
+```python
+from posthog import FeatureFlagEvaluationRuntime, get_feature_flag_keys_by_evaluation_runtime
+client_keys = get_feature_flag_keys_by_evaluation_runtime(FeatureFlagEvaluationRuntime.CLIENT)
+```
+
+---
+
 #### get_feature_flag_payload()
 
 **Release Tag:** public
@@ -1448,6 +1611,62 @@ Flush all messages and cleanly shutdown the client.  This normally blocks until 
 ```python
 from posthog import shutdown
 shutdown()
+```
+
+---
+
+### Tracing methods
+
+#### get_active_span()
+
+**Release Tag:** public
+
+The span that is active in the current context, or ``None``. Alpha.  Only entering a span (``with posthog.start_span(...) as span:``) makes it active; a span started manually is not. Use it to propagate the trace to the next service: ``span.traceparent()`` is the header value.
+
+### Returns
+
+- `Optional[Span]`
+
+### Examples
+
+```python
+span = posthog.get_active_span()
+if span is not None:
+    headers["traceparent"] = span.traceparent()
+```
+
+---
+
+#### start_span()
+
+**Release Tag:** public
+
+Start a span for distributed tracing. Alpha.  Returns a span handle. Use it as a context manager to make it the active span for the block and end it on exit (recording a raised exception on the way out); or call ``end()`` yourself for a span that cannot wrap a block. Spans started inside the block nest under it automatically. Always returns a usable handle, even when tracing is off, so calling code never branches.
+
+### Parameters
+
+- **`name?`** (`str`) - A low-cardinality operation name, e.g. ``GET /users/:id``.         Variable values belong in attributes, not the name.
+- **`kind?`** (`str`) - ``internal`` (default), ``server``, ``client``, ``producer`` or         ``consumer``.
+- **`attributes?`** (`Mapping[str, Any]`) - Initial attributes.
+- **`parent`** (`Span`) - A span handle, or an inbound W3C ``traceparent`` header value         to continue a remote trace. Defaults to the active span.
+- **`tracestate?`** (`str`) - The inbound ``tracestate`` header accompanying a         ``traceparent`` string ``parent``; preserved and propagated.
+- **`start_time`** (`datetime`) - A ``datetime`` or epoch seconds, to backdate the span.
+
+### Returns
+
+- `Span`
+
+### Examples
+
+```python
+import posthog
+posthog.traces = {"service_name": "checkout-api"}
+
+with posthog.start_span("POST /checkout", parent=request.headers.get("traceparent")) as span:
+    span.set_attribute("plan", user.plan)
+    with posthog.start_span("db.query", kind="client"):
+        ...
+    outgoing_headers = {"traceparent": span.traceparent()}
 ```
 
 ---

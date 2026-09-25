@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Calculating LLM costs - Docs
-
-Copy page
-
-# Calculating LLM costs - Docs
+# Calculating LLM costs
 
 ## How are LLM costs calculated?
 
@@ -68,21 +64,22 @@ If you know your pricing per token, you can set the following [custom properties
 
 **Important:** Token prices should be per individual token, not per million tokens. For example, if your provider charges $0.03 per 1M tokens, you would set `$ai_input_token_price: 0.00000003` (0.03 / 1,000,000).
 
-PostHog AI
-
 ### JavaScript
 
 ```javascript
 import { OpenAI } from '@posthog/ai'
 import { PostHog } from 'posthog-node'
+
 const phClient = new PostHog(
   '<ph_project_token>',
   { host: 'https://us.i.posthog.com' }
 )
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   posthog: phClient
 })
+
 const response = await openai.responses.create({
   model: 'my-custom-model',
   messages: [{ role: 'user', content: 'Hello' }],
@@ -101,14 +98,17 @@ const response = await openai.responses.create({
 ```python
 from posthog.ai.openai import OpenAI
 from posthog import Posthog
+
 posthog = Posthog(
     "<ph_project_token>",
     host="https://us.i.posthog.com"
 )
+
 client = OpenAI(
     api_key="sk-...",
     posthog_client=posthog
 )
+
 response = client.responses.create(
     model="my-custom-model",
     messages=[{"role": "user", "content": "Hello"}],
@@ -132,8 +132,6 @@ If you're [manually capturing](/docs/ai-observability/installation/manual-captur
 -   `$ai_output_cost_usd`: Total cost for output/completion tokens in USD
 -   `$ai_request_cost_usd`: Total cost for requests in USD
 -   `$ai_web_search_cost_usd`: Total cost for web searches in USD
-
-PostHog AI
 
 ### JavaScript
 
@@ -186,9 +184,9 @@ When PostHog calculates costs automatically, it sets the following metadata prop
 
 | Property | Description | Examples |
 | --- | --- | --- |
-| $ai_model_cost_used | The model identifier used for cost calculation. May differ from the requested model when a variant or alias is resolved. | openai/gpt-4o-mini |
-| $ai_cost_model_source | Where the cost data for this model was sourced from. | openrouter, manual, custom, passthrough |
-| $ai_cost_model_provider | The provider used to look up the cost for this model. | openai, anthropic, custom |
+| `$ai_model_cost_used` | The model identifier used for cost calculation. May differ from the requested model when a variant or alias is resolved. | `openai/gpt-4o-mini` |
+| `$ai_cost_model_source` | Where the cost data for this model was sourced from. | `openrouter`, `manual`, `custom`, `passthrough` |
+| `$ai_cost_model_provider` | The provider used to look up the cost for this model. | `openai`, `anthropic`, `custom` |
 
 These properties are useful for debugging cost discrepancies or understanding which pricing was applied when using model aliases or custom configurations.
 

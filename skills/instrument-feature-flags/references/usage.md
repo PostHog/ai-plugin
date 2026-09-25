@@ -1,18 +1,12 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# iOS SDK usage - Docs
-
-Copy page
-
-# iOS SDK usage - Docs
+# iOS SDK usage
 
 ## Capturing events
 
 You can send custom events using `capture`:
 
 Swift
-
-PostHog AI
 
 ```swift
 PostHogSDK.shared.capture("user_signed_up")
@@ -25,8 +19,6 @@ PostHogSDK.shared.capture("user_signed_up")
 Optionally, you can include additional information with the event by including a [properties](/docs/data/events.md#event-properties) object:
 
 Swift
-
-PostHog AI
 
 ```swift
 PostHogSDK.shared.capture("user_signed_up", properties: ["login_type": "email"], userProperties: ["is_free_trial": true])
@@ -54,8 +46,6 @@ If you want to manually send a new screen capture event, use the `screen` functi
 
 Swift
 
-PostHog AI
-
 ```swift
 PostHogSDK.shared.screen("Dashboard", properties: ["fromIcon": "bottom"])
 ```
@@ -70,8 +60,6 @@ To track a screen view in `SwiftUI`, apply the `postHogScreenView` modifier to y
 
 HomeView.swift
 
-PostHog AI
-
 ```swift
 // This will trigger a screen view event with $screen_name: "HomeViewContent"
 struct HomeView: View {
@@ -80,6 +68,7 @@ struct HomeView: View {
             .postHogScreenView()
     }
 }
+
 // This will trigger a screen view event with $screen_name: "My Home View" and an additional event property from_button: "start"
 struct HomeView: View {
     var body: some View {
@@ -103,8 +92,6 @@ To assign a custom label to a UIView, use the `postHogLabel` property:
 
 Swift
 
-PostHog AI
-
 ```swift
 let view = UIView()
 view.postHogLabel = "usernameTextField"
@@ -117,8 +104,6 @@ In this example, interactions with the UITextField will be captured with an addi
 In SwiftUI, use the `.postHogLabel(_:)` modifier instead:
 
 Swift
-
-PostHog AI
 
 ```swift
 var body: some View {
@@ -135,8 +120,6 @@ Since SwiftUI's `TextField` uses `UITextField` under the hood, interactions with
 The generated analytics element in the examples above will have the following form:
 
 Swift
-
-PostHog AI
 
 ```swift
 <UITextField id="usernameTextField">text value</UITextField>
@@ -163,8 +146,6 @@ Interaction autocapture is **not enabled by default**. You can enable it by sett
 
 Swift
 
-PostHog AI
-
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
 config.captureElementInteractions = true // Disabled by default
@@ -182,8 +163,6 @@ This is captured as a `$rageclick` event. You can use this event to identify opp
 It is enabled by default (`rageClickConfig.enabled = true`).
 
 Swift
-
-PostHog AI
 
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
@@ -217,8 +196,6 @@ An `identify` call has the following arguments:
 
 Swift
 
-PostHog AI
-
 ```swift
 PostHogSDK.shared.identify("user_id_from_your_database",
                             userProperties: ["name": "Peter Griffin", "email": "peter@familyguy.com"],
@@ -242,8 +219,6 @@ Sometimes, you want to assign multiple distinct IDs to a single user. This is he
 In this case, you can use `alias` to assign another distinct ID to the same user.
 
 Swift
-
-PostHog AI
 
 ```swift
 PostHogSDK.shared.alias("alias_id")
@@ -289,8 +264,6 @@ For example:
 
 iOS
 
-PostHog AI
-
 ```swift
 let config = PostHogConfig(
     projectToken: POSTHOG_PROJECT_TOKEN,
@@ -320,8 +293,6 @@ When capturing an event, you can pass a property called `$set` as an event prope
 
 Swift
 
-PostHog AI
-
 ```swift
 PostHogSDK.shared.capture("signed_up", properties: ["plan": "Pro++"], userProperties: ["user_property_name": "your_value"])
 ```
@@ -329,8 +300,6 @@ PostHogSDK.shared.capture("signed_up", properties: ["plan": "Pro++"], userProper
 `userPropertiesSetOnce` works just like `userProperties`, except that it will **only set the property if the user doesn't already have that property set**.
 
 Swift
-
-PostHog AI
 
 ```swift
 PostHogSDK.shared.capture("signed_up", properties: ["plan": "Pro++"], userPropertiesSetOnce: ["user_property_name": "your_value"])
@@ -340,10 +309,9 @@ Use `setPersonProperties` when you want to update the current person's profile w
 
 Swift
 
-PostHog AI
-
 ```swift
 PostHogSDK.shared.setPersonProperties(userPropertiesToSet: ["plan": "Pro++"])
+
 PostHogSDK.shared.setPersonProperties(
     userPropertiesToSet: ["plan": "Pro++"],
     userPropertiesToSetOnce: ["first_seen_source": "ios"]
@@ -360,8 +328,6 @@ For example, take a look at the following call:
 
 Swift
 
-PostHog AI
-
 ```swift
 PostHogSDK.shared.register(["team_id": 22])
 ```
@@ -375,8 +341,6 @@ However, please note that this does not store properties against the User, only 
 Super properties persist across sessions so you have to explicitly remove them if they are no longer relevant. To stop sending a super property with events, you can use `PostHogSDK.shared.unregister`, like so:
 
 Swift
-
-PostHog AI
 
 ```swift
 PostHogSDK.shared.unregister("team_id")
@@ -408,11 +372,10 @@ PostHog's [feature flags](/docs/feature-flags.md) enable you to safely deploy an
 
 Swift
 
-PostHog AI
-
 ```swift
 if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.enabled {
     // Do something differently for this user
+
     // Optional: fetch the payload from the same evaluation result
     let matchedFlagPayload = result.payload
 }
@@ -422,11 +385,10 @@ if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.enabl
 
 Swift
 
-PostHog AI
-
 ```swift
 if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.variant == "variant-key" { // replace "variant-key" with the key of your variant
     // Do something differently for this user
+
     // Optional: fetch the payload from the same evaluation result
     let matchedFlagPayload = result.payload
 }
@@ -438,12 +400,11 @@ If your payload is a JSON object, you can decode it into a `Decodable` type:
 
 Swift
 
-PostHog AI
-
 ```swift
 struct FlagPayload: Decodable {
     let title: String
 }
+
 if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"),
    let payload = result.payloadAs(FlagPayload.self) {
     // Use payload.title
@@ -456,8 +417,6 @@ You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. 
 
 Swift
 
-PostHog AI
-
 ```swift
 for flag in PostHogSDK.shared.getAllFeatureFlags() ?? [] {
     print(flag.key, flag.enabled, flag.variant as Any, flag.payload as Any)
@@ -469,8 +428,6 @@ for flag in PostHogSDK.shared.getAllFeatureFlags() ?? [] {
 Feature flag values are cached. If something has changed with your user and you'd like to refetch their flag values, call:
 
 Swift
-
-PostHog AI
 
 ```swift
 PostHogSDK.shared.reloadFeatureFlags()
@@ -486,8 +443,6 @@ To handle this, you can use the `didReceiveFeatureFlags` notification to wait fo
 
 Swift
 
-PostHog AI
-
 ```swift
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -498,13 +453,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             name: PostHogSDK.didReceiveFeatureFlags,
             object: nil
         )
+
         let POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
         // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
         let POSTHOG_HOST = "https://us.i.posthog.com"
+
         let config = PostHogConfig(projectToken: POSTHOG_PROJECT_TOKEN, host: POSTHOG_HOST)
+
         PostHogSDK.shared.setup(config)
+
         return true
     }
+
     // The "receiveFeatureFlags" method will be called when the SDK receives the feature flags from the server.
     @objc func receiveFeatureFlags() {
         print("receiveFeatureFlags called")
@@ -515,8 +475,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 Alternatively, you can use the completion block of the `reloadFeatureFlags(_:)` method. This allows you to execute logic immediately after the flags are reloaded:
 
 Swift
-
-PostHog AI
 
 ```swift
 // Reload feature flags and check if a specific feature is enabled
@@ -533,8 +491,6 @@ To track when someone sees or interacts with a feature, use `captureFeatureView`
 
 Swift
 
-PostHog AI
-
 ```swift
 PostHogSDK.shared.captureFeatureView(flag: "flag-key", flagVariant: "variant-key")
 PostHogSDK.shared.captureFeatureInteraction(flag: "flag-key", flagVariant: "variant-key")
@@ -549,8 +505,6 @@ To have your feature flags available immediately, you can initialize PostHog wit
 Set `config.bootstrap` before calling `setup()` to seed identity and flag values before the first `/flags` response (requires iOS SDK `3.66.0`+):
 
 Swift
-
-PostHog AI
 
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
@@ -609,8 +563,6 @@ You can enable debug mode by setting the `debug` option to `true` in the `PostHo
 
 Swift
 
-PostHog AI
-
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
 config.debug = true
@@ -623,11 +575,10 @@ You can also toggle debug by calling the `PostHogSDK.shared.debug()` method in y
 
 Swift
 
-PostHog AI
-
 ```swift
 // Enable debug mode
 PostHogSDK.shared.debug(true)
+
 // Disable debug mode
 PostHogSDK.shared.debug(false)
 ```

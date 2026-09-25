@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Use Logs over PostHog MCP - Docs
-
-Copy page
-
-# Use Logs over PostHog MCP - Docs
+# Use Logs over PostHog MCP
 
 The [PostHog MCP server](/docs/model-context-protocol.md) gives coding agents direct access to your logs. Ask your agent to search, filter, and analyze log data without leaving your editor, then fix the bug in the same session.
 
@@ -33,12 +29,12 @@ For the full list of tools and how to scope a session to a subset, see the [MCP 
 
 | Goal | Ask your agent |
 | --- | --- |
-| Triage | Show me all error logs from the last hour |
-| Narrow by service | What services are logging errors? Search for error logs from the payments service |
-| Follow a request | Find logs related to trace ID abc123 |
-| Explore the schema | What log attributes are available? Show me the values for service.name |
-| Spot what changed | Compare log patterns from today against yesterday and show me what's new |
-| Cut noise | Show me warning and error logs from the last 24 hours, excluding debug noise |
+| Triage | `Show me all error logs from the last hour` |
+| Narrow by service | `What services are logging errors? Search for error logs from the payments service` |
+| Follow a request | `Find logs related to trace ID abc123` |
+| Explore the schema | `What log attributes are available? Show me the values for service.name` |
+| Spot what changed | `Compare log patterns from today against yesterday and show me what's new` |
+| Cut noise | `Show me warning and error logs from the last 24 hours, excluding debug noise` |
 
 Because your agent has both your codebase and your logs in one session, it can connect a log line to the exact code path that emitted it and draft the fix.
 

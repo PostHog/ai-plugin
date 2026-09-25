@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Astro - Docs
-
-Copy page
-
-# Astro - Docs
+# Astro
 
 PostHog makes it easy to get data about traffic and usage of your [Astro](https://astro.build/) app. Integrating PostHog into your site enables analytics about user behavior, custom events capture, session recordings, feature flags, and more.
 
@@ -26,8 +22,6 @@ In your `src/components` folder, create a `posthog.astro` file:
 
 Terminal
 
-PostHog AI
-
 ```bash
 cd ./src/components
 # or 'cd ./src && mkdir components && cd ./components' if your components folder doesnt exist
@@ -38,9 +32,10 @@ In this file, add your `Web snippet` which you can find in [your project setting
 
 posthog.astro
 
-PostHog AI
-
 ```javascript
+---
+// src/components/posthog.astro
+---
 <script is:inline>
   !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagResult reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
   posthog.init('<ph_project_token>', {
@@ -51,8 +46,6 @@ PostHog AI
 ```
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
->
-> PostHog AI
 >
 > ```
 > script-src 'self' https://*.posthog.com;
@@ -70,8 +63,6 @@ Update your `posthog.astro` file to wrap the snippet with a check:
 
 posthog.astro
 
-PostHog AI
-
 ```javascript
 ---
 // src/components/posthog.astro
@@ -79,7 +70,9 @@ PostHog AI
 <script is:inline>
   if (!window.__posthog_initialized) {
     window.__posthog_initialized = true;
+
     !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagResult reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
     posthog.init('<ph_project_token>', {
       api_host: 'https://us.i.posthog.com',
       defaults: '2026-05-30',
@@ -95,8 +88,6 @@ The next step is to a create a [Layout](https://docs.astro.build/en/core-concept
 
 Terminal
 
-PostHog AI
-
 ```bash
 cd .. && cd .. # move back to your base directory if you're still in src/components/posthog.astro
 cd ./src/layouts
@@ -107,8 +98,6 @@ touch PostHogLayout.astro
 Add the following code to `PostHogLayout.astro`:
 
 PostHogLayout.astro
-
-PostHog AI
 
 ```javascript
 ---
@@ -122,8 +111,6 @@ import PostHog from '../components/posthog.astro'
 Lastly, update `index.astro` to wrap your existing app components with the new Layout:
 
 index.astro
-
-PostHog AI
 
 ```javascript
 ---
@@ -147,8 +134,6 @@ import PostHogLayout from '../layouts/PostHogLayout.astro';
 If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.init('<ph_project_token>', {

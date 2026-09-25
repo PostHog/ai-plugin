@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# iOS Logs installation - Docs
-
-Copy page
-
-# iOS Logs installation - Docs
+# iOS Logs installation
 
 The PostHog iOS SDK has built-in support for capturing structured Logs from iOS, macOS, tvOS, watchOS, and visionOS apps. The SDK handles OTLP encoding, batching, on-disk persistence across app restarts, and lifecycle integration. You just call `PostHogSDK.shared.captureLog(...)` or `PostHogSDK.shared.logger?.{trace,debug,info,warn,error,fatal}(...)`.
 
@@ -26,8 +22,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     Podfile
 
-    PostHog AI
-
     ```ruby
     pod "PostHog", "~> 3.59.3"
     ```
@@ -40,8 +34,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     Package.swift
 
-    PostHog AI
-
     ```swift
     dependencies: [
       .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.59.3")
@@ -51,8 +43,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
     and then as a dependency for the Package target utilizing PostHog:
 
     Package.swift
-
-    PostHog AI
 
     ```swift
     .target(
@@ -70,19 +60,20 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     Swift
 
-    PostHog AI
-
     ```swift
     import Foundation
     import PostHog
     import UIKit
+    
     class AppDelegate: NSObject, UIApplicationDelegate {
         func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
             let POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
             // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
             let POSTHOG_HOST = "https://us.i.posthog.com"
+    
             let config = PostHogConfig(projectToken: POSTHOG_PROJECT_TOKEN, host: POSTHOG_HOST)
             PostHogSDK.shared.setup(config)
+    
             return true
         }
     }
@@ -92,22 +83,27 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     Swift
 
-    PostHog AI
-
     ```swift
     import SwiftUI
     import PostHog
+    
     @main
     struct YourGreatApp: App {
+    
         // Add PostHog to your app's initializer.
         // If using UIApplicationDelegateAdaptor, see the UIKit tab.
+    
         init() {
+    
             let POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
             // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
             let POSTHOG_HOST = "https://us.i.posthog.com"
+    
             let config = PostHogConfig(projectToken: POSTHOG_PROJECT_TOKEN, host: POSTHOG_HOST)
             PostHogSDK.shared.setup(config)
+    
         }
+    
         var body: some Scene {
             WindowGroup {
                 ContentView()
@@ -126,14 +122,14 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     Swift
 
-    PostHog AI
-
     ```swift
     import PostHog
+    
     let config = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
     config.logs.serviceName = "my-app"        // OTLP service.name – shown in the Logs UI
     config.logs.environment = "production"    // OTLP deployment.environment
     config.logs.serviceVersion = "1.2.3"      // OTLP service.version
+    
     PostHogSDK.shared.setup(config)
     ```
 
@@ -149,13 +145,12 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     Swift
 
-    PostHog AI
-
     ```swift
     // Per-level convenience methods – Optional, since logger is created at setup
     PostHogSDK.shared.logger?.info("checkout completed", attributes: ["order_id": "ord_789", "amount_cents": 4999])
     PostHogSDK.shared.logger?.warn("payment retry", attributes: ["attempt": 2])
     PostHogSDK.shared.logger?.error("payment failed", attributes: ["code": "E001"])
+    
     // Lower-level API for custom severity / trace context
     PostHogSDK.shared.captureLog(
         "checkout failed",
@@ -182,8 +177,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
         Swift
 
-        PostHog AI
-
         ```swift
         PostHogSDK.shared.logger?.info("hello from iOS")
         PostHogSDK.shared.flush()
@@ -206,8 +199,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     Swift
 
-    PostHog AI
-
     ```swift
     let config = PostHogConfig(projectToken: "<ph_project_token>")
     config.logs.serviceName = "my-app"
@@ -225,16 +216,16 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     | Field | Default | What it does |
     | --- | --- | --- |
-    | serviceName | bundle identifier | OTLP service.name resource attribute |
-    | serviceVersion | CFBundleShortVersionString | OTLP service.version resource attribute |
-    | environment | nil | OTLP deployment.environment resource attribute |
-    | resourceAttributes | [:] | Extra OTLP resource attributes (SDK keys win on collision) |
-    | flushIntervalSeconds | 30 | Periodic flush interval |
-    | flushAt | 20 | Buffer threshold that triggers an automatic flush |
-    | maxBatchSize | 50 | Max records per outbound POST (halved on 413) |
-    | maxBufferSize | 1000 | Max records held on disk before FIFO eviction |
-    | rateCapMaxLogs | 500 | Max records per rateCapWindowSeconds window. Set to 0 to disable. |
-    | rateCapWindowSeconds | 10 | Rate-cap tumbling window length |
+    | `serviceName` | bundle identifier | OTLP `service.name` resource attribute |
+    | `serviceVersion` | `CFBundleShortVersionString` | OTLP `service.version` resource attribute |
+    | `environment` | `nil` | OTLP `deployment.environment` resource attribute |
+    | `resourceAttributes` | `[:]` | Extra OTLP resource attributes (SDK keys win on collision) |
+    | `flushIntervalSeconds` | `30` | Periodic flush interval |
+    | `flushAt` | `20` | Buffer threshold that triggers an automatic flush |
+    | `maxBatchSize` | `50` | Max records per outbound POST (halved on 413) |
+    | `maxBufferSize` | `1000` | Max records held on disk before FIFO eviction |
+    | `rateCapMaxLogs` | `500` | Max records per `rateCapWindowSeconds` window. Set to `0` to disable. |
+    | `rateCapWindowSeconds` | `10` | Rate-cap tumbling window length |
 
     All of the above are captured at `setup(_:)`; mutating them later has no effect. Defaults are tuned for cellular-aware mobile apps. Raise `rateCapMaxLogs` and `maxBufferSize` for high-volume scenarios.
 
@@ -248,12 +239,11 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     Swift
 
-    PostHog AI
-
     ```swift
     config.logs.setBeforeSend({ record in
         // Drop debug logs in production
         if record.level == .debug { return nil }
+    
         // Redact secrets in the body
         record.body = record.body.replacingOccurrences(
             of: #"api_key=\S+"#,
@@ -269,8 +259,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
     From Objective-C, wrap each closure in a `BoxedBeforeSendLogBlock`:
 
     objc
-
-    PostHog AI
 
     ```objc
     [posthogConfig.logs setBeforeSend:@[
@@ -288,12 +276,12 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     | Action | Description |
     | --- | --- |
-    | [Why you need logs](/docs/logs/basics.md) | What logs show you that nothing else does |
-    | [Search logs](/docs/logs/search.md) | Use the search interface to find specific log entries |
-    | Filter by level | Filter by INFO, WARN, ERROR, etc. |
-    | [Link session replay](/docs/logs/link-session-replay.md) | Connect logs to users and session replays by passing posthogDistinctId and sessionId |
-    | [Link logs to a person](/docs/logs/link-person.md) | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
+    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
 

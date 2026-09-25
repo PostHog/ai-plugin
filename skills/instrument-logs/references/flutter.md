@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Flutter Logs installation - Docs
-
-Copy page
-
-# Flutter Logs installation - Docs
+# Flutter Logs installation
 
 The PostHog Flutter SDK has built-in support for capturing structured Logs from your Flutter app across mobile and web. The SDK handles the OTLP encoding, batching, and flushing — and on mobile, on-disk persistence across app restarts and app-lifecycle integration (web buffers in memory via `posthog-js`). You just call `Posthog().captureLog(...)` or `Posthog().logger.{trace,debug,info,warn,error,fatal}(...)`.
 
@@ -32,14 +28,14 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     pubspec.yaml
 
-    PostHog AI
-
     ```yaml
     # rest of your code
+    
     dependencies:
       flutter:
         sdk: flutter
       posthog_flutter: ^5.26.0
+    
     # rest of your code
     ```
 
@@ -56,8 +52,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
     Add your PostHog configuration to your `AndroidManifest.xml` file located in the `android/app/src/main`:
 
     android/app/src/main/AndroidManifest.xml
-
-    PostHog AI
 
     ```xml
     <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="your.package.name">
@@ -77,8 +71,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     android/app/src/main/AndroidManifest.xml
 
-    PostHog AI
-
     ```xml
     <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="your.package.name">
         <application>
@@ -92,14 +84,14 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     android/app/build.gradle
 
-    PostHog AI
-
     ```kotlin
     // rest of your config
+    
         defaultConfig {
             minSdkVersion 23
             // rest of your config
         }
+    
     // rest of your config
     ```
 
@@ -114,8 +106,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
     Add your PostHog configuration to the `Info.plist` file located in the `ios/Runner` directory:
 
     ios/Runner/Info.plist
-
-    PostHog AI
 
     ```xml
     <?xml version="1.0" encoding="UTF-8"?>
@@ -140,8 +130,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     ios/Runner/Info.plist
 
-    PostHog AI
-
     ```xml
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -160,8 +148,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     ios/Podfile
 
-    PostHog AI
-
     ```yaml
     platform :ios, '13.0'
     # rest of your config
@@ -170,8 +156,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
     For Swift Package Manager projects without a `Podfile`, set the **Minimum Deployments** version to iOS 13.0 for the `Runner` target in Xcode (**Runner > General > Minimum Deployments**). After you change **Minimum Deployments**, regenerate the iOS project's configuration files:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     flutter build ios --config-only
@@ -185,11 +169,11 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     Dart
 
-    PostHog AI
-
     ```dart
     import 'package:flutter/material.dart';
+    
     import 'package:posthog_flutter/posthog_flutter.dart';
+    
     Future<void> main() async {
       // init WidgetsFlutterBinding if not yet
       WidgetsFlutterBinding.ensureInitialized();
@@ -210,13 +194,12 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     web/index.html
 
-    PostHog AI
-
     ```html
     <!DOCTYPE html>
     <html>
       <head>
         <!-- ... other head elements ... -->
+    
         <script async>
           !(function (t, e) {
             var o, n, p, r;
@@ -276,6 +259,7 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
           });
         </script>
       </head>
+    
       <!-- other elements -->
     </html>
     ```
@@ -291,8 +275,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
     Configure Logs through `config.logsConfig` before calling `Posthog().setup(...)`. All fields are optional; unset fields fall back to the native defaults, which are tuned for mobile (cellular bandwidth, battery, app lifecycle).
 
     Dart
-
-    PostHog AI
 
     ```dart
     final config = PostHogConfig('<ph_project_token>');
@@ -310,8 +292,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
     For example, set the same service identity on the `posthog-js` snippet in `web/index.html`:
 
     HTML
-
-    PostHog AI
 
     ```html
     <script>
@@ -338,14 +318,14 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     Dart
 
-    PostHog AI
-
     ```dart
     import 'package:posthog_flutter/posthog_flutter.dart';
+    
     // Per-level convenience methods
     Posthog().logger.info('checkout completed', {'order_id': 'ord_789', 'amount_cents': 4999});
     Posthog().logger.warn('payment retry', {'attempt': 2});
     Posthog().logger.error('payment failed', {'code': 'E001'});
+    
     // Lower-level API for custom severity / trace context
     Posthog().captureLog(
       body: 'checkout failed',
@@ -375,8 +355,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
         Dart
 
-        PostHog AI
-
         ```dart
         Posthog().logger.info('hello from Flutter');
         Posthog().flush();
@@ -399,8 +377,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     Dart
 
-    PostHog AI
-
     ```dart
     final config = PostHogConfig('<ph_project_token>');
     config.logsConfig.serviceName = 'my-app';
@@ -418,16 +394,16 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     | Field | Default | What it does |
     | --- | --- | --- |
-    | serviceName | app bundle id (iOS) / app namespace (Android) | OTLP service.name resource attribute |
-    | serviceVersion | app version | OTLP service.version resource attribute |
-    | environment | none | OTLP deployment.environment resource attribute |
-    | resourceAttributes | {} | Extra OTLP resource attributes |
-    | flushInterval | 30s | Periodic flush interval |
-    | flushAt | 20 | Buffer threshold that triggers an automatic flush |
-    | maxBatchSize | 50 | Max records per outbound POST |
-    | maxBufferSize | 1000 | Max records held on disk before FIFO eviction |
-    | rateCapMaxLogs | 500 | Max records per rateCapWindow. Set to 0 to disable. |
-    | rateCapWindow | 10s | Rate-cap window length |
+    | `serviceName` | app bundle id (iOS) / app namespace (Android) | OTLP `service.name` resource attribute |
+    | `serviceVersion` | app version | OTLP `service.version` resource attribute |
+    | `environment` | none | OTLP `deployment.environment` resource attribute |
+    | `resourceAttributes` | `{}` | Extra OTLP resource attributes |
+    | `flushInterval` | `30s` | Periodic flush interval |
+    | `flushAt` | `20` | Buffer threshold that triggers an automatic flush |
+    | `maxBatchSize` | `50` | Max records per outbound POST |
+    | `maxBufferSize` | `1000` | Max records held on disk before FIFO eviction |
+    | `rateCapMaxLogs` | `500` | Max records per `rateCapWindow`. Set to `0` to disable. |
+    | `rateCapWindow` | `10s` | Rate-cap window length |
 
     Defaults are tuned for cellular-aware mobile apps. Raise `rateCapMaxLogs` and `maxBufferSize` for high-volume scenarios.
 
@@ -443,13 +419,12 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     Dart
 
-    PostHog AI
-
     ```dart
     config.logsConfig.beforeSend = [
       (record) {
         // Drop debug logs in production
         if (record.level == PostHogLogSeverity.debug) return null;
+    
         // Redact a sensitive attribute
         record.attributes?.remove('password');
         return record;
@@ -469,12 +444,12 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     | Action | Description |
     | --- | --- |
-    | [Why you need logs](/docs/logs/basics.md) | What logs show you that nothing else does |
-    | [Search logs](/docs/logs/search.md) | Use the search interface to find specific log entries |
-    | Filter by level | Filter by INFO, WARN, ERROR, etc. |
-    | [Link session replay](/docs/logs/link-session-replay.md) | Connect logs to users and session replays by passing posthogDistinctId and sessionId |
-    | [Link logs to a person](/docs/logs/link-person.md) | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
+    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
 

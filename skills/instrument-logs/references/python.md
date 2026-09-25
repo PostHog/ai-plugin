@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Python Logs installation - Docs
-
-Copy page
-
-# Python Logs installation - Docs
+# Python Logs installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Terminal
-
-    PostHog AI
 
     ```bash
     pip install opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp
@@ -44,26 +38,28 @@ Copy page
 
     Python
 
-    PostHog AI
-
     ```python
     import logging
     from opentelemetry._logs import set_logger_provider
     from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
     from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
     from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+    
     # Configure the logger provider
     logger_provider = LoggerProvider()
     set_logger_provider(logger_provider)
+    
     # Create OTLP exporter with API key in header
     otlp_exporter = OTLPLogExporter(
         endpoint="https://us.i.posthog.com/i/v1/logs",
         headers={"Authorization": "Bearer <ph_project_token>"}
     )
+    
     # Add processor
     logger_provider.add_log_record_processor(
         BatchLogRecordProcessor(otlp_exporter)
     )
+    
     # Attach the OpenTelemetry handler to the root logger
     logging.getLogger().addHandler(LoggingHandler(logger_provider=logger_provider))
     ```
@@ -71,8 +67,6 @@ Copy page
     Alternatively, you can pass the API key as a query parameter:
 
     Python
-
-    PostHog AI
 
     ```python
     otlp_exporter = OTLPLogExporter(
@@ -90,11 +84,11 @@ Copy page
 
     Python
 
-    PostHog AI
-
     ```python
     import logging
+    
     logging.basicConfig(level=logging.INFO)
+    
     # Use standard Python logging
     logger = logging.getLogger("my-app")
     logger.info("User action", extra={"userId": "123", "action": "login"})
@@ -124,12 +118,12 @@ Copy page
 
     | Action | Description |
     | --- | --- |
-    | [Why you need logs](/docs/logs/basics.md) | What logs show you that nothing else does |
-    | [Search logs](/docs/logs/search.md) | Use the search interface to find specific log entries |
-    | Filter by level | Filter by INFO, WARN, ERROR, etc. |
-    | [Link session replay](/docs/logs/link-session-replay.md) | Connect logs to users and session replays by passing posthogDistinctId and sessionId |
-    | [Link logs to a person](/docs/logs/link-person.md) | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
+    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
 

@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Semantic Kernel AI Observability installation - Docs
-
-Copy page
-
-# Semantic Kernel AI Observability installation - Docs
+# Semantic Kernel AI Observability installation
 
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
 
@@ -52,11 +48,13 @@ Skip the manual setup — run this in your project and the wizard installs the S
     from opentelemetry.sdk.resources import Resource, SERVICE_NAME
     from posthog.ai.otel import PostHogSpanProcessor
     from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
+    
     resource = Resource(attributes={
         SERVICE_NAME: "my-app",
         "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
         "foo": "bar", # custom properties are passed through
     })
+    
     provider = TracerProvider(resource=resource)
     provider.add_span_processor(
         PostHogSpanProcessor(
@@ -65,6 +63,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
         )
     )
     trace.set_tracer_provider(provider)
+    
     OpenAIInstrumentor().instrument()
     ```
 
@@ -80,6 +79,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     import asyncio
     from semantic_kernel import Kernel
     from semantic_kernel.connectors.ai.open_ai import OpenAIChatCompletion
+    
     async def main():
         kernel = Kernel()
         kernel.add_service(
@@ -90,6 +90,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
         )
         result = await kernel.invoke_prompt("Tell me a fun fact about hedgehogs")
         print(result)
+    
     asyncio.run(main())
     ```
 
@@ -99,16 +100,16 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Property | Description |
     | --- | --- |
-    | $ai_model | The specific model, like gpt-5-mini or claude-4-sonnet |
-    | $ai_latency | The latency of the LLM call in seconds |
-    | $ai_time_to_first_token | Time to first token in seconds (streaming only) |
-    | $ai_tools | Tools and functions available to the LLM |
-    | $ai_input | List of messages sent to the LLM |
-    | $ai_input_tokens | The number of tokens in the input (often found in response.usage) |
-    | $ai_output_choices | List of response choices from the LLM |
-    | $ai_output_tokens | The number of tokens in the output (often found in response.usage) |
-    | $ai_total_cost_usd | The total cost in USD (input + output) |
-    | [[...]](/docs/ai-observability/generations.md#event-properties) | See [full list](/docs/ai-observability/generations.md#event-properties) of properties |
+    | `$ai_model` | The specific model, like `gpt-5-mini` or `claude-4-sonnet` |
+    | `$ai_latency` | The latency of the LLM call in seconds |
+    | `$ai_time_to_first_token` | Time to first token in seconds (streaming only) |
+    | `$ai_tools` | Tools and functions available to the LLM |
+    | `$ai_input` | List of messages sent to the LLM |
+    | `$ai_input_tokens` | The number of tokens in the input (often found in response.usage) |
+    | `$ai_output_choices` | List of response choices from the LLM |
+    | `$ai_output_tokens` | The number of tokens in the output (often found in `response.usage`) |
+    | `$ai_total_cost_usd` | The total cost in USD (input + output) |
+    | [\[...\]](/docs/ai-observability/generations.md#event-properties) | See [full list](/docs/ai-observability/generations.md#event-properties) of properties |
 
 4.  4
 
@@ -122,23 +123,27 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     Python
 
-    PostHog AI
-
     ```python
     import contextvars
     from collections.abc import Iterator
     from contextlib import contextmanager
     from typing import Optional
+    
     from opentelemetry.context import Context
     from opentelemetry.sdk.trace import Span, SpanProcessor
+    
     session_id_var: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
         "ai_session_id", default=None
     )
+    
+    
     class SessionIdSpanProcessor(SpanProcessor):
         def on_start(self, span: Span, parent_context: Optional[Context] = None) -> None:
             session_id = session_id_var.get()
             if session_id is not None:
                 span.set_attribute("$ai_session_id", session_id)
+    
+    
     @contextmanager
     def ai_session(session_id: str) -> Iterator[None]:
         token = session_id_var.set(session_id)
@@ -146,8 +151,11 @@ Skip the manual setup — run this in your project and the wizard installs the S
             yield
         finally:
             session_id_var.reset(token)
+    
+    
     # Register it on the same provider as PostHogSpanProcessor
     provider.add_span_processor(SessionIdSpanProcessor())
+    
     # Resetting on exit keeps the ID off the next request that reuses this thread
     with ai_session("conversation-abc"):
         reply = handle_turn(user_message)
@@ -163,7 +171,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     Let's make sure LLM events are being captured and sent to PostHog. Under **AI Observability**, you should see rows of data appear in the **Traces** and **Generations** tabs.
 
-    ![LLM generations in PostHog](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250807_syne_ecd0801880.png)![LLM generations in PostHog](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250807_syjm_5baab36590.png)
+    ![LLM generations in PostHog](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250807_syne_ecd0801880.png)
 
     [Check for LLM events in PostHog](https://app.posthog.com/ai-observability/generations)
 
@@ -178,7 +186,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | Resource | Description |
     | --- | --- |
     | [Basics](/docs/ai-observability/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
-    | [Generations](/docs/ai-observability/generations.md) | Read about the $ai_generation event and its properties. |
+    | [Generations](/docs/ai-observability/generations.md) | Read about the `$ai_generation` event and its properties. |
     | [Traces](/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
     | [Spans](/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
     | [Anaylze LLM performance](/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |

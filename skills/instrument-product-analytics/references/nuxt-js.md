@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Nuxt.js - Docs
-
-Copy page
-
-# Nuxt.js - Docs
+# Nuxt.js
 
 PostHog makes it easy to get data about usage of your [Nuxt.js](https://nuxt.com/) app. Integrating PostHog into your app enables analytics about user behavior, custom events capture, session replays, feature flags, and more.
 
@@ -24,8 +20,6 @@ For server-side event capture beyond error tracking, use the `posthog-node` SDK 
 ## Installation
 
 Install the PostHog Nuxt module using your package manager:
-
-PostHog AI
 
 ### npm
 
@@ -53,8 +47,6 @@ bun add @posthog/nuxt
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
 >
-> PostHog AI
->
 > ```
 > script-src 'self' https://*.posthog.com;
 > connect-src 'self' https://*.posthog.com;
@@ -77,8 +69,6 @@ If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-I
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
@@ -97,8 +87,6 @@ Store your PostHog keys in environment variables rather than hard-coding them. A
 
 .env
 
-PostHog AI
-
 ```shell
 NUXT_PUBLIC_POSTHOG_KEY=<ph_project_token>
 NUXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
@@ -107,8 +95,6 @@ NUXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 Then reference them when you add the module to your `nuxt.config.ts` file:
 
 nuxt.config.ts
-
-PostHog AI
 
 ```typescript
 export default defineNuxtConfig({
@@ -137,11 +123,10 @@ The module provides the `usePostHog()` composable which is auto-imported and ava
 
 app/pages/index.vue
 
-PostHog AI
-
 ```html
 <script setup>
 const posthog = usePostHog()
+
 // Capture a custom event
 posthog?.capture('button_clicked', { button_name: 'signup' })
 </script>
@@ -159,11 +144,11 @@ First, create a server utility to reuse the PostHog client across requests:
 
 server/utils/posthog.ts
 
-PostHog AI
-
 ```typescript
 import { PostHog } from 'posthog-node'
+
 let client: PostHog | null = null
+
 export function useServerPostHog(): PostHog {
   if (!client) {
     const config = useRuntimeConfig()
@@ -179,15 +164,15 @@ Then use it in your server routes:
 
 server/api/example.ts
 
-PostHog AI
-
 ```typescript
 export default defineEventHandler((event) => {
   const posthog = useServerPostHog()
+
   posthog.capture({
     distinctId: 'user_123',
     event: 'server_event',
   })
+
   return { success: true }
 })
 ```
@@ -226,13 +211,12 @@ The module provides auto-imported composables for feature flags. All composables
 
 Vue
 
-PostHog AI
-
 ```html
 <script setup>
 const isEnabled = useFeatureFlagEnabled('new-feature')
 // returns true, false, or undefined
 </script>
+
 <template>
   <div v-if="isEnabled">Feature is enabled!</div>
 </template>
@@ -240,13 +224,12 @@ const isEnabled = useFeatureFlagEnabled('new-feature')
 
 Vue
 
-PostHog AI
-
 ```html
 <script setup>
 const variant = useFeatureFlagVariantKey('experiment')
 // returns the variant string, true/false, or undefined
 </script>
+
 <template>
   <div v-if="variant === 'control'">Control group</div>
   <div v-else-if="variant === 'test'">Test group</div>
@@ -255,13 +238,12 @@ const variant = useFeatureFlagVariantKey('experiment')
 
 Vue
 
-PostHog AI
-
 ```html
 <script setup>
 const payload = useFeatureFlagPayload('config-flag')
 // returns any JSON value or undefined
 </script>
+
 <template>
   <div v-if="payload">Config: {{ payload.value }}</div>
 </template>

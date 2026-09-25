@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Android Feature Flags installation - Docs
-
-Copy page
-
-# Android Feature Flags installation - Docs
+# Android Feature Flags installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Add the PostHog Android SDK to your `build.gradle` dependencies:
 
     build.gradle
-
-    PostHog AI
 
     ```kotlin
     dependencies {
@@ -34,21 +28,23 @@ Copy page
 
     SampleApp.kt
 
-    PostHog AI
-
     ```kotlin
     class SampleApp : Application() {
+    
         companion object {
             const val POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
             const val POSTHOG_HOST = "https://us.i.posthog.com"
         }
+    
         override fun onCreate() {
             super.onCreate()
+    
             // Create a PostHog Config with the given project token and host
             val config = PostHogAndroidConfig(
                 apiKey = POSTHOG_PROJECT_TOKEN,
                 host = POSTHOG_HOST
             )
+    
             // Setup PostHog with the given Context and Config
             PostHogAndroid.setup(this, config)
         }
@@ -65,10 +61,9 @@ Copy page
 
     Kotlin
 
-    PostHog AI
-
     ```kotlin
     import com.posthog.PostHog
+    
     PostHog.capture(
         event = "button_clicked",
         properties = mapOf(
@@ -86,8 +81,6 @@ Copy page
     Check if a feature flag is enabled:
 
     Kotlin
-
-    PostHog AI
 
     ```kotlin
     val isMyFlagEnabled = PostHog.isFeatureEnabled("flag-key")
@@ -107,8 +100,6 @@ Copy page
     For multivariate flags, check which variant the user has been assigned:
 
     Kotlin
-
-    PostHog AI
 
     ```kotlin
     val enabledVariant = PostHog.getFeatureFlag("flag-key")

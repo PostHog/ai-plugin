@@ -26,7 +26,7 @@ FROM
         LIMIT 100)
     ARRAY JOIN (kv).1 AS key, (kv).2 AS value
     WHERE
-        and(not(match(key, '(\\$set|\\$time|\\$set_once|\\$sent_at|distinct_id|\\$ip|\\$feature\\/|\\$feature_enrollment\\/|\\$feature_interaction\\/|\\$product_tour|__|survey_dismiss|survey_responded|phjs|partial_filter_chosen|changed_action|window-id|changed_event|partial_filter)')), notEquals(value, NULL), notEquals(value, ''))
+        and(not(match(key, '(\\$set|\\$time|\\$set_once|\\$sent_at|distinct_id|\\$ip|\\$feature\\/|^\\$feature_flags$|\\$feature_enrollment\\/|\\$feature_interaction\\/|\\$product_tour|__|survey_dismiss|survey_responded|phjs|partial_filter_chosen|changed_action|window-id|changed_event|partial_filter)')), notEquals(value, NULL), notEquals(value, ''))
     GROUP BY
         key,
         value)

@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# React Native - Docs
-
-Copy page
-
-# React Native - Docs
+# React Native
 
 ## Installation
 
@@ -16,8 +12,6 @@ To install, add the `posthog-react-native` package to your project as well as th
 
 Terminal
 
-PostHog AI
-
 ```bash
 npx expo install posthog-react-native expo-file-system expo-application expo-device expo-localization
 ```
@@ -25,8 +19,6 @@ npx expo install posthog-react-native expo-file-system expo-application expo-dev
 #### React Native apps
 
 Terminal
-
-PostHog AI
 
 ```bash
 yarn add posthog-react-native @react-native-async-storage/async-storage react-native-device-info react-native-localize
@@ -48,12 +40,11 @@ To set up `PostHogProvider`, add it to your `App.js` or `App.ts` file:
 
 App.js
 
-PostHog AI
-
 ```jsx
 // App.(js|ts)
 import { usePostHog, PostHogProvider } from 'posthog-react-native'
 ...
+
 export function MyApp() {
     return (
         <PostHogProvider apiKey="<ph_project_token>" options={{
@@ -70,11 +61,10 @@ Then you can access PostHog using the `usePostHog()` hook:
 
 React Native
 
-PostHog AI
-
 ```jsx
 const MyComponent = () => {
     const posthog = usePostHog()
+
     useEffect(() => {
         posthog.capture("event_name")
     }, [posthog])
@@ -87,10 +77,9 @@ If you prefer not to use the provider, you can initialize PostHog in its own fil
 
 posthog.ts
 
-PostHog AI
-
 ```jsx
 import PostHog from 'posthog-react-native'
+
 export const posthog = new PostHog('<ph_project_token>', {
   // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
   host: 'https://us.i.posthog.com'
@@ -101,14 +90,14 @@ Then you can access PostHog by importing your instance:
 
 React Native
 
-PostHog AI
-
 ```jsx
 import { posthog } from './posthog'
+
 export function MyApp1() {
     useEffect(() => {
         posthog.capture('event_name')
     }, [])
+
     return <View>Your app code</View>
 }
 ```
@@ -117,10 +106,9 @@ You can even use this instance with the PostHogProvider:
 
 React Native
 
-PostHog AI
-
 ```jsx
 import { posthog } from './posthog'
+
 export function MyApp() {
   return <PostHogProvider client={posthog}>{/* Your app code */}</PostHogProvider>
 }
@@ -132,9 +120,9 @@ The optional `@posthog/react-native-plugin` package adds native features such as
 
 | Path | Requirements | What it resolves |
 | --- | --- | --- |
-| CocoaPods | A React Native project that uses CocoaPods | CocoaPods resolves the plugin and posthog-ios. This remains the default path. |
-| CocoaPods with posthog-ios through Swift Package Manager | React Native 0.75 or later and a CocoaPods project with dynamic frameworks | CocoaPods resolves the plugin. Swift Package Manager resolves posthog-ios. |
-| Full Swift Package Manager | Verified with an iOS-only React Native 0.87.1 app and React Native Community CLI 20.2.0.Requires @posthog/react-native-plugin 2.4.0 or later, Xcode 16 or later, and an iOS 15.1 or later app deployment target. | React Native's experimental Swift Package Manager integration resolves the plugin and posthog-ios. This path does not use CocoaPods. |
+| CocoaPods | A React Native project that uses CocoaPods | CocoaPods resolves the plugin and `posthog-ios`. This remains the default path. |
+| CocoaPods with `posthog-ios` through Swift Package Manager | React Native 0.75 or later and a CocoaPods project with dynamic frameworks | CocoaPods resolves the plugin. Swift Package Manager resolves `posthog-ios`. |
+| Full Swift Package Manager | Verified with an iOS-only React Native 0.87.1 app and React Native Community CLI 20.2.0. Requires `@posthog/react-native-plugin` 2.4.0 or later, Xcode 16 or later, and an iOS 15.1 or later app deployment target. | React Native's experimental Swift Package Manager integration resolves the plugin and `posthog-ios`. This path does not use CocoaPods. |
 
 This verification does not cover Expo or other React Native versions. Use CocoaPods or the hybrid path unless you validate the full Swift Package Manager path for your configuration.
 
@@ -143,8 +131,6 @@ This verification does not cover Expo or other React Native versions. Use CocoaP
 Use the standard React Native CocoaPods flow:
 
 Terminal
-
-PostHog AI
 
 ```bash
 cd ios
@@ -159,8 +145,6 @@ Add the following property to `ios/Podfile.properties.json`:
 
 JSON
 
-PostHog AI
-
 ```json
 {
   "posthog.useSpm": "true"
@@ -171,8 +155,6 @@ Add dynamic frameworks to your `ios/Podfile`:
 
 Ruby
 
-PostHog AI
-
 ```ruby
 use_frameworks! :linkage => :dynamic
 ```
@@ -180,8 +162,6 @@ use_frameworks! :linkage => :dynamic
 Then install the pods:
 
 Terminal
-
-PostHog AI
 
 ```bash
 cd ios
@@ -197,8 +177,6 @@ This path uses React Native's experimental CocoaPods-free iOS integration. Every
 Install your JavaScript dependencies first. Make a clean commit or a backup of your iOS project before the conversion. Then run this command from the `ios` directory:
 
 Terminal
-
-PostHog AI
 
 ```bash
 npx react-native spm add --deintegrate --yes
@@ -242,44 +220,42 @@ You can further customize how PostHog works through its configuration on initial
 
 | Attribute | Description |
 | --- | --- |
-| hostType: StringDefault: https://us.i.posthog.com | PostHog API host (usually https://us.i.posthog.com by default or https://eu.i.posthog.com). Host is optional if you use https://us.i.posthog.com. |
-| flushAtType: NumberDefault: 20 | The number of events to queue before sending to PostHog (flushing). |
-| flushIntervalType: NumberDefault: 10000 | The interval in milliseconds between periodic flushes. |
-| maxBatchSizeType: NumberDefault: 100 | The maximum number of queued messages to be flushed as part of a single batch (must be higher than flushAt). |
-| maxQueueSizeType: NumberDefault: 1000 | The maximum number of cached messages either in memory or on the local storage (must be higher than flushAt). |
-| disabledType: BooleanDefault: false | If set to true, the SDK is essentially disabled (useful for local environments where you don't want to track anything). |
-| defaultOptInType: BooleanDefault: true | If set to false, the SDK will not track until the optIn() function is called. |
-| sendFeatureFlagEventType: BooleanDefault: true | Whether to track that getFeatureFlag was called (used by experiments). |
-| preloadFeatureFlagsType: BooleanDefault: true | Whether to load feature flags when initialized or not. |
-| bootstrapType: ObjectDefault: {} | Seeds identity (distinctId, isIdentifiedId) and feature flag state (featureFlags, featureFlagPayloads) during initialization. See [SDK bootstrapping](/docs/libraries/bootstrapping.md). |
-| disableRemoteFeatureFlagsType: BooleanDefault: false | When true, the SDK never fetches or evaluates feature flags from PostHog, and identify(), group(), and reset() stop triggering /flags requests. Supply flag values yourself via bootstrap (at startup) and updateFlags() (at runtime). Available in version 4.49.0+. |
-| fetchRetryCountType: NumberDefault: 3 | How many times HTTP requests will be retried. |
-| fetchRetryDelayType: NumberDefault: 3000 | The delay between HTTP request retries. |
-| requestTimeoutType: NumberDefault: 10000 | Timeout in milliseconds for any calls. |
-| featureFlagsRequestTimeoutMsType: NumberDefault: 10000 | Timeout in milliseconds for feature flag calls. |
-| sessionExpirationTimeSecondsType: NumberDefault: 1800 | For session analysis, how long before a session expires (defaults to 30 minutes). |
-| persistenceType: StringDefault: file | Allows you to provide the storage type. file will try to load the best available storage, the provided customStorage, customAsyncStorage, or in-memory storage. |
-| customAppPropertiesType: Object or FunctionDefault: null | Allows you to provide your own implementation of the common information about your App or a function to modify the default App properties generated. |
-| customStorageType: ObjectDefault: null | Allows you to provide a custom asynchronous storage such as async-storage, expo-file-system, or a synchronous storage such as mmkv. If not provided, PostHog will attempt to use the best available storage via optional peer dependencies. If persistence is set to memory, this option is ignored. |
-| captureAppLifecycleEventsType: BooleanDefault: true | Captures app lifecycle events such as Application Installed, Application Updated, Application Opened, Application Became Active, and Application Backgrounded. Enabled by default since version 4.39.0. |
-| disableGeoipType: BooleanDefault: false | When true, disables automatic GeoIP resolution for events and feature flags. |
-| enableSessionReplayType: BooleanDefault: false | Enable Recording of Session replay for Android and iOS. |
-| sessionReplayConfigType: ObjectDefault: null | Session replay configuration. See the [replay install docs](/docs/session-replay/installation.md) for more details. |
-| enablePersistSessionIdAcrossRestartType: BooleanDefault: false | When true, persists the $session_id across app restarts. If false, $session_id always resets on app restart. |
-| evaluationContextsType: Array of StringsDefault: undefined | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. This helps reduce unnecessary flag evaluations and improves performance. See [evaluation contexts documentation](/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 4.21.0+. The legacy parameter evaluationEnvironments (version 4.10.0+) is also supported for backward compatibility. |
-| addTracingHeadersType: Array of StringsDefault: undefined | Hostnames for which PostHog should add tracing headers to outgoing fetch requests. Matching requests include X-POSTHOG-DISTINCT-ID and X-POSTHOG-SESSION-ID, which lets backend events, errors, and LLM traces link back to frontend sessions and replays. Use hostnames only, without the protocol or path. |
-| before_sendType: FunctionDefault: undefined | A callback function that is called before each event is sent to PostHog. You can use it to modify, filter, or suppress events. Return null to drop the event, or return the modified event to send it. See [customizing exception capture](#customizing-exception-capture-with-before_send) for details. |
-| capturePushNotificationSubscriptionsType: BooleanDefault: true | Whether to automatically register this device's push token so [Workflows](/docs/workflows.md) can target it. Requires @posthog/react-native-plugin. See [push notifications](#push-notifications). Available in version 4.62.0+. |
-| capturePushNotificationOpenedType: BooleanDefault: true | Whether to automatically capture $push_notification_opened when the user taps a push notification. Requires @posthog/react-native-plugin. See [push notifications](#push-notifications). Available in version 4.62.0+. |
-| pushIdentityProviderType: FunctionDefault: undefined | Supplies a signed identity-verification token for push subscription requests. Only needed when your push channel requires identity verification. See [identity verification](#identity-verification). Available in version 4.62.0+. |
+| `host` **Type:** String **Default:** `https://us.i.posthog.com` | PostHog API host (usually `https://us.i.posthog.com` by default or `https://eu.i.posthog.com`). Host is optional if you use `https://us.i.posthog.com`. |
+| `flushAt` **Type:** Number **Default:** `20` | The number of events to queue before sending to PostHog (flushing). |
+| `flushInterval` **Type:** Number **Default:** `10000` | The interval in milliseconds between periodic flushes. |
+| `maxBatchSize` **Type:** Number **Default:** `100` | The maximum number of queued messages to be flushed as part of a single batch (must be higher than `flushAt`). |
+| `maxQueueSize` **Type:** Number **Default:** `1000` | The maximum number of cached messages either in memory or on the local storage (must be higher than `flushAt`). |
+| `disabled` **Type:** Boolean **Default:** `false` | If set to true, the SDK is essentially disabled (useful for local environments where you don't want to track anything). |
+| `defaultOptIn` **Type:** Boolean **Default:** `true` | If set to false, the SDK will not track until the `optIn()` function is called. |
+| `sendFeatureFlagEvent` **Type:** Boolean **Default:** `true` | Whether to track that `getFeatureFlag` was called (used by experiments). |
+| `preloadFeatureFlags` **Type:** Boolean **Default:** `true` | Whether to load feature flags when initialized or not. |
+| `bootstrap` **Type:** Object **Default:** `{}` | Seeds identity (`distinctId`, `isIdentifiedId`) and feature flag state (`featureFlags`, `featureFlagPayloads`) during initialization. See [SDK bootstrapping](/docs/libraries/bootstrapping.md). |
+| `disableRemoteFeatureFlags` **Type:** Boolean **Default:** `false` | When `true`, the SDK never fetches or evaluates feature flags from PostHog, and `identify()`, `group()`, and `reset()` stop triggering `/flags` requests. Supply flag values yourself via `bootstrap` (at startup) and `updateFlags()` (at runtime). Available in version 4.49.0+. |
+| `fetchRetryCount` **Type:** Number **Default:** `3` | How many times HTTP requests will be retried. |
+| `fetchRetryDelay` **Type:** Number **Default:** `3000` | The delay between HTTP request retries. |
+| `requestTimeout` **Type:** Number **Default:** `10000` | Timeout in milliseconds for any calls. |
+| `featureFlagsRequestTimeoutMs` **Type:** Number **Default:** `10000` | Timeout in milliseconds for feature flag calls. |
+| `sessionExpirationTimeSeconds` **Type:** Number **Default:** `1800` | For session analysis, how long before a session expires (defaults to 30 minutes). |
+| `persistence` **Type:** String **Default:** `file` | Allows you to provide the storage type. `file` will try to load the best available storage, the provided `customStorage`, `customAsyncStorage`, or in-memory storage. |
+| `customAppProperties` **Type:** Object or Function **Default:** `null` | Allows you to provide your own implementation of the common information about your App or a function to modify the default App properties generated. |
+| `customStorage` **Type:** Object **Default:** `null` | Allows you to provide a custom asynchronous storage such as `async-storage`, `expo-file-system`, or a synchronous storage such as `mmkv`. If not provided, PostHog will attempt to use the best available storage via optional peer dependencies. If `persistence` is set to `memory`, this option is ignored. |
+| `captureAppLifecycleEvents` **Type:** Boolean **Default:** `true` | Captures app lifecycle events such as Application Installed, Application Updated, Application Opened, Application Became Active, and Application Backgrounded. Enabled by default since version 4.39.0. |
+| `disableGeoip` **Type:** Boolean **Default:** `false` | When true, disables automatic GeoIP resolution for events and feature flags. |
+| `enableSessionReplay` **Type:** Boolean **Default:** `false` | Enable Recording of Session replay for Android and iOS. |
+| `sessionReplayConfig` **Type:** Object **Default:** `null` | Session replay configuration. See the [replay install docs](/docs/session-replay/installation.md) for more details. |
+| `enablePersistSessionIdAcrossRestart` **Type:** Boolean **Default:** `false` | When true, persists the `$session_id` across app restarts. If false, `$session_id` always resets on app restart. |
+| `evaluationContexts` **Type:** Array of Strings **Default:** `undefined` | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. This helps reduce unnecessary flag evaluations and improves performance. See [evaluation contexts documentation](/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 4.21.0+. The legacy parameter `evaluationEnvironments` (version 4.10.0+) is also supported for backward compatibility. |
+| `addTracingHeaders` **Type:** Array of Strings **Default:** `undefined` | Hostnames for which PostHog should add tracing headers to outgoing `fetch` requests. Matching requests include `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID`, which lets backend events, errors, and LLM traces link back to frontend sessions and replays. Use hostnames only, without the protocol or path. |
+| `before_send` **Type:** Function **Default:** `undefined` | A callback function that is called before each event is sent to PostHog. You can use it to modify, filter, or suppress events. Return `null` to drop the event, or return the modified event to send it. See [customizing exception capture](#customizing-exception-capture-with-before_send) for details. |
+| `capturePushNotificationSubscriptions` **Type:** Boolean **Default:** `true` | Whether to automatically register this device's push token so [Workflows](/docs/workflows.md) can target it. Requires `@posthog/react-native-plugin`. See [push notifications](#push-notifications). Available in version 4.62.0+. |
+| `capturePushNotificationOpened` **Type:** Boolean **Default:** `true` | Whether to automatically capture `$push_notification_opened` when the user taps a push notification. Requires `@posthog/react-native-plugin`. See [push notifications](#push-notifications). Available in version 4.62.0+. |
+| `pushIdentityProvider` **Type:** Function **Default:** `undefined` | Supplies a signed identity-verification token for push subscription requests. Only needed when your push channel requires identity verification. See [identity verification](#identity-verification). Available in version 4.62.0+. |
 
 ### Tracing headers
 
 Use `addTracingHeaders` to connect React Native network requests to backend events, errors, and LLM traces captured by a server-side PostHog SDK:
 
 typescript
-
-PostHog AI
 
 ```typescript
 const posthog = new PostHog('<ph_project_token>', {
@@ -296,8 +272,6 @@ You can send custom events using `capture`:
 
 React Native
 
-PostHog AI
-
 ```jsx
 posthog.capture('user_signed_up')
 ```
@@ -309,8 +283,6 @@ posthog.capture('user_signed_up')
 Optionally, you can include additional information with the event by including a [properties](/docs/data/events.md#event-properties) object:
 
 React Native
-
-PostHog AI
 
 ```jsx
 posthog.capture('user_signed_up', {
@@ -329,12 +301,12 @@ It is important that the `PostHogProvider` is configured as a child of the `Navi
 
 React Native
 
-PostHog AI
-
 ```jsx
 // App.(js|ts)
+
 import { PostHogProvider } from 'posthog-react-native'
 import { NavigationContainer } from '@react-navigation/native'
+
 export function App() {
     return (
         <NavigationContainer>
@@ -350,12 +322,12 @@ When using [@react-navigation/native](https://reactnavigation.org/docs/7.x/getti
 
 React Native
 
-PostHog AI
-
 ```jsx
 // App.(js|ts)
+
 import { PostHogProvider } from 'posthog-react-native'
 import { NavigationContainer } from '@react-navigation/native'
+
 // Using `PostHogProvider` is optional, but needed if you want to capture touch events automatically with the `captureTouches` option.
 export function App() {
     return (
@@ -377,8 +349,6 @@ Then call the `screen` method within the `trackScreenView` method.
 
 React Native
 
-PostHog AI
-
 ```jsx
 const posthog = usePostHog() // use the usePostHog hook if using the PostHogProvider or your own custom posthog instance
 // you can read the params from `getCurrentRoute()`
@@ -391,12 +361,12 @@ First, simplify the wrapping of your screens with a shared PostHogProvider:
 
 React Native
 
-PostHog AI
-
 ```jsx
 import PostHog, { PostHogProvider } from 'posthog-react-native'
 import { Navigation } from 'react-native-navigation';
+
 export const posthog = new PostHog('<ph_project_token>');
+
 export const SharedPostHogProvider = (props: any) => {
   return (
     <PostHogProvider client={posthog} autocapture={{
@@ -413,8 +383,6 @@ Then, every screen needs to be wrapped with this provider if you want to capture
 
 React Native
 
-PostHog AI
-
 ```jsx
 export const MyScreen = () => {
   return (
@@ -425,7 +393,9 @@ export const MyScreen = () => {
     </SharedPostHogProvider>
   );
 };
+
 Navigation.registerComponent('Screen', () => MyScreen);
+
 Navigation.events().registerAppLaunchedListener(async () => {
   posthog.initReactNativeNavigation({
     navigation: {
@@ -447,8 +417,6 @@ Then call the `screen` method within the `useEffect` callback.
 
 React Native
 
-PostHog AI
-
 ```jsx
 const posthog = usePostHog() // use the usePostHog hook if using the PostHogProvider or your own custom posthog instance
 posthog.screen(pathname, params)
@@ -459,8 +427,6 @@ posthog.screen(pathname, params)
 If you prefer not to use autocapture, you can manually capture screen views by calling `posthog.screen()`. This function requires a `name`. You may also pass in an optional `properties` object.
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.screen('dashboard', {
@@ -498,8 +464,6 @@ PostHog will try to generate a sensible name for touched elements based on the R
 
 React Native
 
-PostHog AI
-
 ```jsx
 <View ph-label="my-special-label"></View>
 ```
@@ -507,8 +471,6 @@ PostHog AI
 ### Autocapture configuration
 
 React Native
-
-PostHog AI
 
 ```jsx
 <PostHogProvider apiKey="<ph_project_token>" autocapture={{
@@ -519,6 +481,7 @@ PostHog AI
     maxElementsCaptured: 20,
     noCaptureProp: "ph-no-capture",
     propsToCapture: ["testID"], // Limit which props are captured. By default, identifiers and text content are captured.
+
     navigation: {
         // By default, only the screen name is tracked but it is possible to track the
         // params or modify the name by intercepting the autocapture like so
@@ -542,8 +505,6 @@ If there are elements you don't want to be captured, you can add the `ph-no-capt
 
 React Native
 
-PostHog AI
-
 ```jsx
 <View ph-no-capture>Sensitive view here</View>
 ```
@@ -555,8 +516,6 @@ With `captureScreens: true` (the default in `PostHogProvider`), PostHog captures
 To manually send a screen capture event, use the `screen` method:
 
 React Native
-
-PostHog AI
 
 ```jsx
 posthog.screen('Dashboard', { fromIcon: 'bottom' })
@@ -574,10 +533,9 @@ Because it's just a function, you can filter however you like – an **ignorelis
 
 React Native
 
-PostHog AI
-
 ```jsx
 const IGNORED_SCREENS = new Set(['Splash', 'Debug'])
+
 <PostHogProvider
     apiKey="<ph_project_token>"
     autocapture={{ captureScreens: true }}
@@ -606,8 +564,6 @@ Swap the check for an allowlist (`return TRACKED_SCREENS.has(screenName) ? event
 
 React Native
 
-PostHog AI
-
 ```jsx
 const posthog = new PostHog('<ph_project_token>', {
     before_send: (event) => {
@@ -623,8 +579,6 @@ const posthog = new PostHog('<ph_project_token>', {
 
 React Native
 
-PostHog AI
-
 ```jsx
 const posthog = new PostHog('<ph_project_token>', {
     before_send: (event) => {
@@ -637,8 +591,6 @@ const posthog = new PostHog('<ph_project_token>', {
 **Redact sensitive properties.** Strip a value before it leaves the device:
 
 React Native
-
-PostHog AI
 
 ```jsx
 const posthog = new PostHog('<ph_project_token>', {
@@ -666,8 +618,6 @@ An `identify` call has the following arguments:
 
 React Native
 
-PostHog AI
-
 ```jsx
 posthog.identify('distinctID',
   { // ($set):
@@ -680,8 +630,6 @@ posthog.identify('distinctID',
 `$set_once` works just like `$set`, except that it will **only set the property if the user doesn't already have that property set**. [See the difference between `$set` and `$set_once`](/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once)
 
 React Native
-
-PostHog AI
 
 ```jsx
 posthog.identify('distinctID',
@@ -715,8 +663,6 @@ In this case, you can use `alias` to assign another distinct ID to the same user
 
 React Native
 
-PostHog AI
-
 ```jsx
 // Sets alias for current user
 posthog.alias('distinct_id')
@@ -734,8 +680,6 @@ To set a user's properties, include the `$set` or `$set_once` property when capt
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 posthog.capture('some_event', { $set: { userProperty: 'value' } })
 ```
@@ -745,8 +689,6 @@ posthog.capture('some_event', { $set: { userProperty: 'value' } })
 `$set_once` works just like `$set`, except it **only sets the property if the user doesn't already have that property set**.
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.capture('some_event', { $set_once: { userProperty: 'value' } })
@@ -764,8 +706,6 @@ For example:
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 posthog.register({
     'icecream pref': 'vanilla',
@@ -782,8 +722,6 @@ This does **not** set the user's properties. This only sets the properties for t
 Super Properties are persisted across sessions so you have to explicitly remove them if they are no longer relevant. In order to stop sending a Super Property with events, you can use `posthog.unregister`, like so:
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.unregister('icecream pref'),
@@ -805,8 +743,6 @@ You can also configure the flush interval with `flushInterval`, in milliseconds 
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 const posthog = new PostHog('<ph_project_token>', {
   flushAt: 20,
@@ -817,8 +753,6 @@ const posthog = new PostHog('<ph_project_token>', {
 You can also manually flush the queue to start sending events immediately instead of waiting for the next batch:
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 await posthog.flush()
@@ -833,8 +767,6 @@ Flushing is best-effort and asynchronous – it starts sending queued events in 
 To reset the user's ID and anonymous ID, call `reset`. Usually you would do this right after the user logs out.
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.reset()
@@ -857,8 +789,6 @@ You can give your users the option to opt in or out by calling the relevant meth
 To opt in/out of tracking, use the following calls.
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.optedOut // See if a user has opted out
@@ -883,17 +813,19 @@ There are two ways to implement feature flags in React Native:
 
 React Native
 
-PostHog AI
-
 ```jsx
 import { useFeatureFlag } from 'posthog-react-native'
+
 const MyComponent = () => {
     const booleanFlag = useFeatureFlag('key-for-your-boolean-flag')
+
     if (booleanFlag === undefined) {
         // the response is undefined if the flags are being loaded
         return null
     }
+
     // Optional use the 'useFeatureFlagWithPayload' hook for fetching the feature flag payload
+
     return booleanFlag ? <Text>Testing feature 😄</Text> : <Text>Not Testing feature 😢</Text>
 }
 ```
@@ -902,19 +834,21 @@ const MyComponent = () => {
 
 React Native
 
-PostHog AI
-
 ```jsx
 import { useFeatureFlag } from 'posthog-react-native'
+
 const MyComponent = () => {
     const multiVariantFeature = useFeatureFlag('key-for-your-multivariate-flag')
+
     if (multiVariantFeature === undefined) {
         // the response is undefined if the flags are being loaded
         return null
     } else if (multiVariantFeature === 'variant-name') { // replace 'variant-name' with the name of your variant
       // Do something
     }
+
     // Optional use the 'useFeatureFlagWithPayload' hook for fetching the feature flag payload
+
     return <div/>
 }
 ```
@@ -923,15 +857,16 @@ const MyComponent = () => {
 
 React Native
 
-PostHog AI
-
 ```jsx
 // Defaults to undefined if not loaded yet or if there was a problem loading
 posthog.isFeatureEnabled('key-for-your-boolean-flag')
+
 // Defaults to undefined if not loaded yet or if there was a problem loading
 posthog.getFeatureFlag('key-for-your-boolean-flag')
+
 // Multivariant feature flags are returned as a string
 posthog.getFeatureFlag('key-for-your-multivariate-flag')
+
 // Optional: fetch the payload (returns 'JsonType' or undefined if not loaded yet or if there was a problem loading)
 posthog.getFeatureFlagResult('key-for-your-multivariate-flag')?.payload
 ```
@@ -941,8 +876,6 @@ posthog.getFeatureFlagResult('key-for-your-multivariate-flag')?.payload
 You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
 
 React Native
-
-PostHog AI
 
 ```jsx
 for (const flag of posthog.getAllFeatureFlags()) {
@@ -959,8 +892,6 @@ This means that for most screens, the feature flags are available immediately �
 To handle this, you can use the `onFeatureFlags` callback to wait for the feature flag request to finish:
 
 React Native
-
-PostHog AI
 
 ```jsx
 posthog.onFeatureFlags((flags) => {
@@ -979,8 +910,6 @@ If want to manually trigger a refresh, you can call `reloadFeatureFlagsAsync()`:
 
 React Native
 
-PostHog AI
-
 ```jsx
 posthog.reloadFeatureFlagsAsync().then((refreshedFlags) => console.log(refreshedFlags))
 ```
@@ -988,8 +917,6 @@ posthog.reloadFeatureFlagsAsync().then((refreshedFlags) => console.log(refreshed
 Or when you want to trigger the reload, but don't care about the result:
 
 React Native
-
-PostHog AI
 
 ```jsx
 posthog.reloadFeatureFlags()
@@ -1005,8 +932,6 @@ To ensure fresh flag values:
 
 React Native
 
-PostHog AI
-
 ```jsx
 // Force refresh on app start
 await posthog.reloadFeatureFlagsAsync()
@@ -1015,8 +940,6 @@ await posthog.reloadFeatureFlagsAsync()
 Or clear cached values for inactive users:
 
 React Native
-
-PostHog AI
 
 ```jsx
 if (lastActiveDate < migrationDate) {
@@ -1029,8 +952,6 @@ if (lastActiveDate < migrationDate) {
 You can configure the `featureFlagsRequestTimeoutMs` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked in the case when PostHog's servers are too slow to respond. By default, this is set at 10 seconds.
 
 React Native
-
-PostHog AI
 
 ```jsx
 export const posthog = new PostHog('<ph_project_token>', {
@@ -1046,8 +967,6 @@ When using the PostHog SDK, it's important to handle potential errors that may o
 
 React Native
 
-PostHog AI
-
 ```jsx
 function handleFeatureFlag(client, flagKey, distinctId) {
     try {
@@ -1061,6 +980,7 @@ function handleFeatureFlag(client, flagKey, distinctId) {
         throw error;
     }
 }
+
 // Usage example
 try {
     const flagEnabled = handleFeatureFlag(client, 'new-feature', 'user-123');
@@ -1082,8 +1002,6 @@ Sometimes, you might want to evaluate feature flags using properties that haven'
 
 React Native
 
-PostHog AI
-
 ```jsx
 posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'})
 ```
@@ -1094,8 +1012,6 @@ Whenever you set these properties, we also trigger a reload of feature flags to 
 
 React Native
 
-PostHog AI
-
 ```jsx
 posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'}, false)
 ```
@@ -1103,8 +1019,6 @@ posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'},
 At any point, you can reset these properties by calling `resetPersonPropertiesForFlags`:
 
 React Native
-
-PostHog AI
 
 ```jsx
 posthog.resetPersonPropertiesForFlags()
@@ -1114,11 +1028,10 @@ The same holds for [group](/docs/product-analytics/group-analytics.md) propertie
 
 React Native
 
-PostHog AI
-
 ```jsx
 // set properties for a group
 posthog.setGroupPropertiesForFlags({'company': {'property1': 'value', property2: 'value2'}})
+
 // reset properties for all groups:
 posthog.resetGroupPropertiesForFlags()
 ```
@@ -1155,8 +1068,6 @@ Pass `bootstrap` in the initialization options to seed identity and flag values:
 
 React Native
 
-PostHog AI
-
 ```jsx
 <PostHogProvider
     apiKey="<ph_project_token>"
@@ -1186,8 +1097,6 @@ Set `disableRemoteFeatureFlags: true` so the SDK never requests `/flags` (includ
 
 React Native
 
-PostHog AI
-
 ```jsx
 const posthog = new PostHog('<ph_project_token>', {
   host: 'https://us.i.posthog.com',
@@ -1200,11 +1109,13 @@ const posthog = new PostHog('<ph_project_token>', {
     featureFlagPayloads: { 'my-flag': { color: 'blue' } },
   },
 })
+
 // Later – e.g. after login, once your backend has evaluated flags for this user:
 posthog.updateFlags(
   { 'my-flag': true, 'my-variant-flag': 'test' },
   { 'my-flag': { color: 'blue' } }
 )
+
 posthog.getFeatureFlag('my-variant-flag') // 'test'
 posthog.getFeatureFlagResult('my-flag')?.payload // { color: 'blue' }
 ```
@@ -1241,11 +1152,10 @@ You can use the `PostHogErrorBoundary` component to capture React rendering erro
 
 React Native
 
-PostHog AI
-
 ```jsx
 import { PostHogProvider, PostHogErrorBoundary } from 'posthog-react-native'
 import { View, Text } from 'react-native'
+
 const App = () => {
   return (
     <PostHogProvider apiKey="<ph_project_token>">
@@ -1258,6 +1168,7 @@ const App = () => {
     </PostHogProvider>
   )
 }
+
 const YourFallbackComponent = ({ error, componentStack }) => {
   return (
     <View>
@@ -1285,8 +1196,6 @@ You can use the `before_send` callback to modify, filter, or suppress exception 
 
 React Native
 
-PostHog AI
-
 ```jsx
 const posthog = new PostHog('<ph_project_token>', {
   host: 'https://us.i.posthog.com',
@@ -1294,12 +1203,15 @@ const posthog = new PostHog('<ph_project_token>', {
     if (event.event === '$exception') {
       const exceptionList = event.properties?.['$exception_list'] || []
       const exception = exceptionList.length > 0 ? exceptionList[0] : null
+
       if (exception) {
         // Add custom properties
         event.properties['custom_property'] = 'custom_value'
+
         // Override fingerprint for custom grouping
         event.properties['$exception_fingerprint'] = 'MyCustomGroup'
       }
+
       // Suppress specific exception types
       if (exception?.['$exception_type'] === 'IgnoredError') {
         return null // Drop the event
@@ -1340,8 +1252,6 @@ You can enable debug mode by setting the `debug` option to `true` in the `PostHo
 
 React Native
 
-PostHog AI
-
 ```jsx
 <PostHogProvider
     debug={true}
@@ -1356,8 +1266,6 @@ You can also call the `debug()` method in your code.
 
 React Native
 
-PostHog AI
-
 ```jsx
 posthog.debug()
 ```
@@ -1368,12 +1276,11 @@ You may want to disable PostHog when working locally or in a test environment. Y
 
 React Native
 
-PostHog AI
-
 ```jsx
 // App.(js|ts)
 import { usePostHog, PostHogProvider } from 'posthog-react-native'
 ...
+
 export function MyApp() {
     return (
         <PostHogProvider apiKey="<ph_project_token>" options={{
@@ -1384,8 +1291,10 @@ export function MyApp() {
         </PostHogProvider>
     )
 }
+
 const MyComponent = () => {
     const posthog = usePostHog()
+
     useEffect(() => {
         // Safe to call even when disabled!
         posthog.capture("mycomponent_loaded", { foo: "bar" })
@@ -1405,11 +1314,11 @@ Events such as `Application Installed` and `Application Updated` that require pr
 
 JSX
 
-PostHog AI
-
 ```jsx
 // DEPRECATED V1 Setup
+
 import PostHog from 'posthog-react-native'
+
 await PostHog.setup('<ph_project_token>', {
     // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
     host: 'https://us.i.posthog.com',
@@ -1421,27 +1330,37 @@ await PostHog.setup('<ph_project_token>', {
     android: {...}, // No longer needed
     iOS: {...}, // No longer needed
 })
+
 PostHog.capture("foo")
+
+
 // V2 Setup difference
 import PostHog from 'posthog-react-native'
+
 const posthog = await Posthog.initAsync('<ph_project_token>', {
     // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
     host: 'https://us.i.posthog.com',
     // Add any other options here.
 })
+
 // Use created instance rather than the PostHog class
 posthog.capture("foo")
+
 // V3 Setup difference
 import PostHog from 'posthog-react-native'
+
 const posthog = new PostHog('<ph_project_token>', {
     // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
     host: 'https://us.i.posthog.com',
     // Add any other options here.
 })
+
 // Use created instance rather than the PostHog class
 posthog.capture("foo")
+
 // V4 Setup difference
 import PostHog from 'posthog-react-native'
+
 const posthog = new PostHog('<ph_project_token>', {
     // usually 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
     host: 'https://us.i.posthog.com',
@@ -1449,6 +1368,7 @@ const posthog = new PostHog('<ph_project_token>', {
     // captureMode: 'json', // No longer supported
     // maskPhotoLibraryImages: true, // No longer supported
 })
+
 posthog.setPersonPropertiesForFlags(...) // instead of `personProperties`
 posthog.setGroupPropertiesForFlags(...) // instead of `groupProperties`
 ```

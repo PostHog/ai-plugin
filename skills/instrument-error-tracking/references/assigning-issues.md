@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Assign issues to teammates - Docs
-
-Copy page
-
-# Assign issues to teammates - Docs
+# Assign issues to teammates
 
 Error tracking enables you to assign issues to specific PostHog [roles](https://app.posthog.com/settings/organization-roles) or teammates. This helps your team find relevant issues through **filtering**. You can also set up team-specific **alerting** to notify them when assigned issues are created or reopened.
 
@@ -14,15 +10,15 @@ You can manually assign issues as you triage them in the UI, either from the iss
 
 From your error tracking [issue list](https://app.posthog.com/error_tracking), click the **Unassigned** selector under any issue to assign it to a role or user.
 
-![Assigning an issue from the issue list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_52_16_655_Z_b73751c99d.png)![Assigning an issue from the issue list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_52_59_843_Z_d3d394bf7e.png)
+![Assigning an issue from the issue list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_52_16_655_Z_b73751c99d.png)
 
 Alternatively, open an issue and click the **Assignee** selector on its details page.
 
-![Assigning an issue from its details page](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_53_43_196_Z_4fe353e323.png)![Assigning an issue from its details page](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_54_12_467_Z_35902a2f98.png)
+![Assigning an issue from its details page](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_53_43_196_Z_4fe353e323.png)
 
 Want to assign issues to a **team** rather than an individual teammate? You can create a role in [your project settings](https://app.posthog.com/settings/organization-roles).
 
-![Error tracking role assignees](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_55_26_069_Z_ecff46f618.png)![Error tracking role assignees](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_55_55_647_Z_085f6efe19.png)
+![Error tracking role assignees](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_55_26_069_Z_ecff46f618.png)
 
 ## Automatic issue assignment
 
@@ -30,11 +26,11 @@ You can set up automatic issue assignment through a set of rules. Configure this
 
 The settings show a list of your existing assignment rules:
 
-![List of assignment rules](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_57_06_125_Z_a7f920a3dc.png)![List of assignment rules](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_56_47_967_Z_3ddddd1841.png)
+![List of assignment rules](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_57_06_125_Z_a7f920a3dc.png)
 
 When adding or editing a rule, you can test it before saving. Click **Test** to see how many exceptions matched the rule's conditions over the last 7 days, so you can confirm it behaves as expected.
 
-![Adding an assignment rule](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_30_30_887_Z_7a01202bc4.png)![Adding an assignment rule](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_30_54_381_Z_d468514190.png)
+![Adding an assignment rule](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_30_30_887_Z_7a01202bc4.png)
 
 Assignment conditions are evaluated against the properties of the exception event that created the issue. Because assignment rules are evaluated during ingestion, the stack trace (if present) will be unminified, which enables filtering on exception properties such as function name and source file.
 
@@ -46,15 +42,15 @@ Here are some common properties you can filter on:
 
 | Property | Event property | Description |
 | --- | --- | --- |
-| Exception type | $exception_types | The type of exception(s) that occurred |
-| Exception message | $exception_values | The message(s) detected on the error |
-| Exception function | $exception_functions | The function(s) where the exception occurred |
-| Exception source | $exception_sources | The source file(s) where the exception occurred |
-| Exception was handled | $exception_handled | Whether the exception was handled by the application |
-| Device type | $device_type | The type of device that the error occurred on |
-| Browser | $browser | The browser that the error occurred in |
-| Current URL | $current_url | The URL that the error occurred on |
-| Feature flag | $feature_flag | The feature flag that the error occurred on |
+| Exception type | `$exception_types` | The type of exception(s) that occurred |
+| Exception message | `$exception_values` | The message(s) detected on the error |
+| Exception function | `$exception_functions` | The function(s) where the exception occurred |
+| Exception source | `$exception_sources` | The source file(s) where the exception occurred |
+| Exception was handled | `$exception_handled` | Whether the exception was handled by the application |
+| Device type | `$device_type` | The type of device that the error occurred on |
+| Browser | `$browser` | The browser that the error occurred in |
+| Current URL | `$current_url` | The URL that the error occurred on |
+| Feature flag | `$feature_flag` | The feature flag that the error occurred on |
 
 You can also set custom properties on the error tracking event to filter on. For example, setting a custom `params_received` property to provide more context or debug information.
 
@@ -80,7 +76,7 @@ First, set up an [integration](/docs/error-tracking/integrations.md) with your t
 
 From an issue's details page, under **External references**, click **Create issue**.
 
-![Error tracking create issue in external tracking system](https://res.cloudinary.com/dmukukwp6/image/upload/create_issue_error_light_b89cd91da1.png)![Error tracking create issue in external tracking system](https://res.cloudinary.com/dmukukwp6/image/upload/create_issue_error_dark_7d158087f8.png)
+![Error tracking create issue in external tracking system](https://res.cloudinary.com/dmukukwp6/image/upload/create_issue_error_light_b89cd91da1.png)
 
 The new issue has a partial stack trace and a link to the issue in PostHog.
 

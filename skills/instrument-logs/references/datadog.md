@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Datadog Logs installation - Docs
-
-Copy page
-
-# Datadog Logs installation - Docs
+# Datadog Logs installation
 
 If you're already using Datadog to collect logs, you can forward them to PostHog by configuring your existing Datadog log exporters (like the Datadog Agent) to send logs to PostHog's Datadog-compatible endpoint.
 
@@ -28,8 +24,6 @@ If you're already using Datadog to collect logs, you can forward them to PostHog
 
     Set the Datadog logs URL to point to PostHog's Datadog-compatible endpoint. The endpoint format is:
 
-    PostHog AI
-
     ```
     https://us.i.posthog.com/i/v1/logs/datadog/<ph_project_token>
     ```
@@ -38,8 +32,6 @@ If you're already using Datadog to collect logs, you can forward them to PostHog
 
     Terminal
 
-    PostHog AI
-
     ```bash
     export DD_LOGS_CONFIG_LOGS_DD_URL="https://us.i.posthog.com/i/v1/logs/datadog/<ph_project_token>"
     ```
@@ -47,8 +39,6 @@ If you're already using Datadog to collect logs, you can forward them to PostHog
     Alternatively, you can set this in your `datadog.yaml` configuration file:
 
     YAML
-
-    PostHog AI
 
     ```yaml
     logs_config:
@@ -62,8 +52,6 @@ If you're already using Datadog to collect logs, you can forward them to PostHog
     Optional
 
     If you're using other Datadog log exporters or forwarders, configure them to send logs to the same endpoint:
-
-    PostHog AI
 
     ```
     https://us.i.posthog.com/i/v1/logs/datadog/<ph_project_token>
@@ -94,12 +82,12 @@ If you're already using Datadog to collect logs, you can forward them to PostHog
 
     | Action | Description |
     | --- | --- |
-    | [Why you need logs](/docs/logs/basics.md) | What logs show you that nothing else does |
-    | [Search logs](/docs/logs/search.md) | Use the search interface to find specific log entries |
-    | Filter by level | Filter by INFO, WARN, ERROR, etc. |
-    | [Link session replay](/docs/logs/link-session-replay.md) | Connect logs to users and session replays by passing posthogDistinctId and sessionId |
-    | [Link logs to a person](/docs/logs/link-person.md) | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
+    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
 

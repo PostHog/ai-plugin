@@ -1,211 +1,178 @@
 ---
 name: managing-subscriptions
-description: 'Manage PostHog subscriptions — scheduled email, Slack, or webhook deliveries of insight or dashboard snapshots, optionally with an AI-written summary attached to each delivery. Use when the user wants to subscribe to an insight or dashboard, get an AI summary attached to those deliveries, check existing subscriptions, change delivery frequency, add or remove recipients, or stop receiving updates.'
+description: >
+  Create and manage scheduled PostHog subscriptions for insight snapshots,
+  dashboard snapshots, and AI prompt reports. Use when a user wants recurring
+  email, Slack, or Microsoft Teams delivery; an AI summary; delivery history;
+  schedule or recipient changes; a test delivery; pause, resume, or deletion;
+  or help with subscription permissions, limits, billing, and failures. Use
+  product alerts when delivery must depend on a threshold or anomaly.
 ---
 
 # Managing subscriptions
 
-This skill guides you through managing PostHog subscriptions.
-Subscriptions deliver scheduled snapshots of insights or dashboards via email, Slack, or webhook.
+Subscriptions deliver product data on a fixed schedule.
+They support insight snapshots, dashboard snapshots, and AI prompt reports.
 
-## When to use this skill
+## Read the relevant references
 
-Use this skill when the user:
+- Read [subscription-types.md](references/subscription-types.md) before you select or change a resource type.
+- Read [destinations.md](references/destinations.md) before you create or change a destination.
+- Read [operations.md](references/operations.md) for schedules, limits, billing, delivery checks, and failures.
+- Use `creating-ai-subscription` for the detailed prompt report creation workflow.
 
-- Wants to "track", "follow", "subscribe to", or "get updates" about an insight or dashboard
-- Asks for "daily updates", "weekly reports", or "send me this every morning"
-- Wants an **AI-written summary** attached to each delivery of an insight or dashboard (see step 6)
-- Asks to "post", "send", or "share" the key numbers from an existing dashboard or insight to a channel on a schedule — even when phrased as "set up a scout/bot to post this daily" (a recurring message like this is usually a better fit for a dashboard/insight subscription than a Signals scout; when it's unclear which they want, confirm before building — see the happy path below)
-- Wants to know what subscriptions they have
-- Asks to stop, pause, or unsubscribe from something
-- Wants to change who receives an update or how often
+## Choose the correct product
 
-## Subscriptions vs alerts
+- Use a subscription for fixed delivery, such as "send this dashboard every Monday."
+- Use a product alert for a condition, such as "notify me when conversion falls below 10%."
+- Use a reminder when the user wants a private prompt to inspect a resource later.
+- Use a Signals scout when an agent must decide what is important to report.
 
-Subscriptions and alerts serve different purposes:
+Subscriptions do not evaluate thresholds, recovery, consecutive breaches, or quiet hours.
+Snapshot subscriptions attempt each scheduled occurrence even when the saved results do not change.
 
-- **Subscriptions** deliver a snapshot on a fixed schedule (daily, weekly, etc.) regardless of the data
-- **Alerts** fire only when a condition is met (threshold crossed, anomaly detected)
+## Tools
 
-If the user says "notify me when this drops below 100", use alerts.
-If the user says "send me this every morning", use subscriptions.
+| Tool                                         | Purpose                                 |
+| -------------------------------------------- | --------------------------------------- |
+| `posthog:subscriptions-list`                 | Find subscriptions                      |
+| `posthog:subscriptions-retrieve`             | Read one subscription                   |
+| `posthog:subscriptions-create`               | Create a subscription                   |
+| `posthog:subscriptions-partial-update`       | Change, pause, or resume a subscription |
+| `posthog:subscriptions-test-delivery-create` | Send a test delivery                    |
+| `posthog:subscriptions-deliveries-list`      | List delivery attempts                  |
+| `posthog:subscriptions-deliveries-retrieve`  | Read one delivery                       |
+| `posthog:subscriptions-delete`               | Stop all future deliveries              |
+| `posthog:integrations-list`                  | Find a Slack integration                |
+| `posthog:integrations-channels-retrieve`     | Find Slack channels                     |
+| `posthog:dashboard-get`                      | Read dashboard tiles                    |
+| `posthog:insight-get`                        | Resolve an insight ID                   |
 
-## The happy path: recurring numbers from a dashboard or insight
+## Create a subscription
 
-When someone wants the **key numbers from an existing dashboard or insight** posted to a channel on a schedule — "post the top-line from this dashboard in #launch once a day", "send the team these metrics every morning", or even "set up a scout/bot to post this daily" — the right tool is a **dashboard (or insight) subscription**, and an AI summary is its natural companion:
+1. Call `posthog:subscriptions-list` and check for a duplicate.
+2. Select one resource type from [subscription-types.md](references/subscription-types.md).
+3. Resolve the destination with [destinations.md](references/destinations.md).
+4. Resolve the schedule with [operations.md](references/operations.md).
+5. Ask whether the user wants an immediate delivery.
+6. Set `send_test_now` to the user's choice.
+7. Call `posthog:subscriptions-create`.
+8. Read the saved subscription and check each requested field.
+9. If the user approved an immediate delivery, check its delivery record.
 
-- Set `dashboard` (or `insight`) and deliver to Slack or email. For a **dashboard** subscription, pick the tiles via `dashboard_export_insights` — that field is dashboard-only, and an insight subscription is rejected if you send it (an insight subscription needs no tile list).
-- **Offer the AI summary, don't assume it.** Per step 6, ask before enabling it, then set `summary_enabled: true` once the user agrees — it has AI-consent, quota, and budget gates that can reject the create, so keep it opt-in.
-- The attached **tile snapshots are exact**. The AI summary text is model-written, so treat any figure it quotes as approximate (the same drift caveat as a prompt subscription) and lean on the snapshot for exact numbers.
+If creation times out or returns an uncertain result, list matching subscriptions before you retry.
+Creation is not idempotent.
+A blind retry can create a duplicate subscription and send a duplicate immediate delivery.
 
-Usually a better fit than a **prompt subscription** (`creating-ai-subscription`) or a **Signals scout**.
-A prompt subscription composes its own HogQL and can drift from the dashboard's numbers; a scout is for open-ended watching that decides what's worth surfacing, not scheduled delivery of a fixed, user-specified metric set.
-Don't override a user who's certain they want one of those — but when the ask is ambiguous (e.g. "set up a scout to post this daily"), suggest the subscription and confirm before building: _"A dashboard subscription is a better fit for a recurring message. Want me to set that up?"_
-Reach for a prompt subscription when the user specifically asks for a free-text AI report, or when no existing insight/dashboard covers the ask.
+Do not infer missing recipients, channels, times, or time zones.
+Ask for these values before creation.
 
-## Workflow
+### Find existing subscriptions
 
-### Listing existing subscriptions
+Use these list filters when they reduce ambiguity:
 
-Before creating a new subscription, check if one already exists.
+- `resource_type`: `insight`, `dashboard`, or `ai_prompt`.
+- `target_type`: `email`, `slack`, or `teams`.
+- `insight` or `insights`: One insight ID or a comma-separated ID list.
+- `dashboard`: One dashboard ID.
+- `dashboard_tiles`: Insight subscriptions for live tiles on one dashboard.
+- `created_by`: One creator UUID.
 
-Use `subscriptions-list` with optional filters:
+### Check for duplicates
 
-- Filter by insight: pass the `insight` query parameter with the insight ID
-- Filter by dashboard: pass the `dashboard` query parameter with the dashboard ID
-- Filter by channel: pass `target_type` as `email`, `slack`, or `webhook`
+Use `search` when the user supplied a title, insight name, dashboard name, or prompt text.
+Prompt subscriptions match their title and prompt text.
+Compare the resource, destination type, target, schedule, and enabled state.
 
-### Creating a subscription
+A Teams result contains only the webhook host.
+One host can serve many channels.
+Do not use the host to identify a duplicate.
 
-#### Step 1: Ask the user how they want to receive it
+Show the title, schedule, creator, and creation date for possible Teams matches.
+Ask the user to select a subscription when these fields identify it.
+Create a new subscription when no field identifies the target channel.
 
-**Always ask the user whether they want email or Slack delivery** before creating a subscription.
-Do not assume a channel — ask explicitly:
+### Confirm the saved result
 
-> Would you like to receive this via **email** or **Slack**?
+Check these fields after creation:
 
-If the user says Slack, you must verify the integration is available (see step 2).
-If the user doesn't have a preference, suggest email as the simplest option.
+- `resource_type` matches `insight`, `dashboard`, or `ai_prompt`.
+- `target_type` and the safe target label match the request.
+- `enabled` is `true`.
+- `next_delivery_date` matches the schedule and time zone.
+- The AI and delivery options match the user's choices.
 
-#### Step 2: Verify channel availability
+## Change a subscription
 
-**Email** requires no setup — it works out of the box. You just need the user's email address.
-Get it from the user context or from `org-members-list`.
+Call `posthog:subscriptions-retrieve` before each update.
+Before an update that can send a delivery, list the current delivery IDs.
+Then call `posthog:subscriptions-partial-update` with the changed fields.
 
-**Slack** requires a connected Slack integration. Before creating a Slack subscription:
+Ask before an update that can send an immediate delivery.
+The MCP update tool cannot suppress an immediate delivery for these changes.
+If the user does not approve delivery, do not make the update.
 
-1. Call `integrations-list` and look for an integration where `kind` is `"slack"`
-2. If a Slack integration exists, note its `id` — you'll need it as `integration_id`
-3. If **no Slack integration exists**, tell the user:
-   > Slack isn't connected to this project yet. You can set it up in
-   > [Project settings > Integrations](/settings/integrations).
-   > In the meantime, would you like to receive this via email instead?
+- Set `enabled: false` to pause delivery.
+- Set `enabled: true` to resume delivery.
+- Send the complete new target when you change recipients.
+- Send `target_type` and `target_value` together when you change the destination type.
+- Omit `target_value` to keep a saved Teams webhook URL.
+- Send the full new Teams webhook URL when you replace it.
 
-Slack setup requires an OAuth flow in the browser — it cannot be done via MCP.
+The resource type cannot change.
+Create a new subscription when the user wants a different resource type.
 
-**Webhook** requires the user to provide a URL. Verify it looks like a valid URL before submitting.
+Check the new `next_delivery_date` after a schedule update.
+An exhausted schedule cannot resume until the user extends or removes its end condition.
 
-#### Step 3: Identify the target
+After an update that sends a delivery, poll for a new `target_change` delivery ID.
+Read that delivery until it reaches a final state.
+Then retrieve the subscription and check its final `enabled` value.
 
-Get the insight ID or dashboard ID. If the user provides a URL like `/project/2/insights/pKxzopBG`,
-fetch the insight first with `insight-get` to get the numeric ID.
+## Test and inspect delivery
 
-#### Step 4: Determine delivery settings from the user's request
+1. Ask for approval unless the user already requested a test.
+2. List the current delivery IDs.
+3. Call `posthog:subscriptions-test-delivery-create`.
+4. Poll for a new manual delivery ID.
+5. Read the new delivery when the list result needs more detail.
 
-| User says                               | Parameters                                                                |
-| --------------------------------------- | ------------------------------------------------------------------------- |
-| "every day" / "daily" / "every morning" | `frequency: "daily"`                                                      |
-| "every week" / "weekly"                 | `frequency: "weekly"`                                                     |
-| "every Monday"                          | `frequency: "weekly"`, `byweekday: ["monday"]`                            |
-| "every month" / "monthly"               | `frequency: "monthly"`                                                    |
-| "twice a week"                          | `frequency: "weekly"`, `interval: 1`, `byweekday: ["monday", "thursday"]` |
+Wait between polls and stop after two minutes.
+If delivery does not reach a final state, report the last state and suggest another check later.
 
-#### Step 5: Create with `subscriptions-create`
+A test sends a real message.
+The tool returns `202` after it queues the delivery.
+It returns `409` when another test is active or the subscription is disabled.
 
-For an insight subscription via email:
+Delivery states are `starting`, `completed`, `failed`, and `skipped`.
+Filter the delivery list by `status` when you investigate a failure.
+A queued workflow does not prove delivery.
+A completed delivery can contain partial recipient failures.
+The MCP tools hide per-recipient results.
+Do not claim that each recipient succeeded.
 
-```json
-{
-  "insight": 12345,
-  "target_type": "email",
-  "target_value": "user@example.com",
-  "frequency": "daily",
-  "start_date": "2025-01-01T09:00:00Z"
-}
-```
+## Stop a subscription
 
-For a dashboard subscription (requires selecting which insights to include, max 10):
+Confirm the subscription ID and safe destination label.
+Ask for approval unless the user already requested deletion or unsubscribe.
+Then call `posthog:subscriptions-delete`.
 
-```json
-{
-  "dashboard": 67,
-  "dashboard_export_insights": [101, 102, 103],
-  "target_type": "email",
-  "target_value": "user@example.com",
-  "frequency": "weekly",
-  "byweekday": ["monday"],
-  "start_date": "2025-01-01T09:00:00Z"
-}
-```
+Deletion is a one-way soft delete through MCP.
+It stops future deliveries and frees a plan slot.
+Create a new subscription if the user needs it again.
 
-For Slack delivery, include the `integration_id` from step 2:
+## Report the result
 
-```json
-{
-  "insight": 12345,
-  "target_type": "slack",
-  "target_value": "#general",
-  "integration_id": 789,
-  "frequency": "daily",
-  "start_date": "2025-01-01T09:00:00Z"
-}
-```
-
-#### Step 6 (optional): Attach an AI summary
-
-For **insight and dashboard** subscriptions you can attach an AI-written summary to every
-delivery — a short narrative that calls out what changed, outliers, and notable insights
-alongside the snapshot. Set it at create time (or toggle later via `subscriptions-partial-update`):
-
-- `summary_enabled: true` — turns on the per-delivery AI summary
-- `summary_prompt_guide: "..."` — optional steer, e.g. "focus on sign-up conversion and any new drop-off points"
-
-```json
-{
-  "dashboard": 67,
-  "dashboard_export_insights": [101, 102, 103],
-  "target_type": "email",
-  "target_value": "user@example.com",
-  "frequency": "weekly",
-  "byweekday": ["monday"],
-  "start_date": "2025-01-01T09:00:00Z",
-  "summary_enabled": true,
-  "summary_prompt_guide": "Call out outliers and new insights since last week"
-}
-```
-
-Enabling a summary requires the organization to have **approved AI data processing**
-(`Org settings → Data → AI data processing`) and to be within its active-summary cap and AI
-credit budget; otherwise the create/update is rejected. `summary_enabled` does not apply to
-prompt subscriptions — those are AI-generated by definition (see `creating-ai-subscription`).
-
-### Updating a subscription
-
-Use `subscriptions-partial-update` with the subscription ID. Common updates:
-
-- **Change frequency**: `{"frequency": "weekly", "byweekday": ["monday"]}`
-- **Add recipients**: Update `target_value` with the full comma-separated list
-- **Change channel**: Update `target_type` and `target_value` together
-- **Toggle the AI summary** (insight/dashboard subs): `{"summary_enabled": true, "summary_prompt_guide": "..."}` — same AI-data-processing and budget gates as step 6
-
-### Deactivating a subscription
-
-Subscriptions are soft-deleted. Use `subscriptions-partial-update`:
-
-```json
-{
-  "id": 456,
-  "deleted": true
-}
-```
-
-## Defaults
-
-When the user doesn't specify details:
-
-- **Frequency**: `"daily"`
-- **Channel**: email to the current user
-- **Start date**: now (ISO 8601)
-- **Title**: auto-generated from the insight/dashboard name if not specified
-
-## Error handling
-
-- **Duplicate check**: If a subscription already exists for the same insight/dashboard and channel, inform the user and offer to update it rather than creating a duplicate
-- **Slack not connected**: If a Slack subscription is requested but no Slack integration exists, explain that Slack must be connected in [Project settings > Integrations](/settings/integrations) first, then offer email as an alternative. Do not attempt to create the subscription — it will fail with a validation error
-- **Slack integration wrong team**: The Slack integration must belong to the same PostHog team. If `integrations-list` returns Slack integrations but creation still fails, the integration may be misconfigured
-- **Dashboard insights**: Dashboard subscriptions require at least 1 and at most 10 insights selected via `dashboard_export_insights`. If the user doesn't specify which insights, fetch the dashboard with `dashboard-get` and select up to the first 10 insights from its tiles
+- State the resource type, destination type, schedule, and next delivery date.
+- State whether the subscription is enabled.
+- State whether AI features can consume AI credits.
+- Do not repeat email addresses unless the user needs them for confirmation.
+- Never repeat a Teams webhook URL.
 
 ## Related skills
 
-- **`building-a-dashboard`** — assemble the dashboard worth subscribing to first
-- **`creating-ai-subscription`** — schedule a free-text AI report instead of an insight/dashboard snapshot
+- `creating-ai-subscription`: Create a report from a free-text AI prompt.
+- `building-a-dashboard`: Create a dashboard before you subscribe to it.
+- `adding-product-alerting`: Notify users when data meets a condition.
+- `managing-reminders`: Schedule a private prompt to inspect a resource.
+- `understanding-billing-usage`: Investigate PostHog AI credit use.

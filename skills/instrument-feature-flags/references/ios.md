@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# iOS Feature Flags installation - Docs
-
-Copy page
-
-# iOS Feature Flags installation - Docs
+# iOS Feature Flags installation
 
 1.  1
 
@@ -16,8 +12,6 @@ Copy page
 
     Package.swift
 
-    PostHog AI
-
     ```swift
     dependencies: [
       .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.56.0")
@@ -27,8 +21,6 @@ Copy page
     Or add PostHog to your Podfile:
 
     Podfile
-
-    PostHog AI
 
     ```ruby
     pod "PostHog", "~> 3.56"
@@ -44,18 +36,19 @@ Copy page
 
     AppDelegate.swift
 
-    PostHog AI
-
     ```swift
     import Foundation
     import PostHog
     import UIKit
+    
     class AppDelegate: NSObject, UIApplicationDelegate {
         func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
             let POSTHOG_PROJECT_TOKEN = "<ph_project_token>"
             let POSTHOG_HOST = "https://us.i.posthog.com"
+    
             let config = PostHogConfig(projectToken: POSTHOG_PROJECT_TOKEN, host: POSTHOG_HOST)
             PostHogSDK.shared.setup(config)
+    
             return true
         }
     }
@@ -71,8 +64,6 @@ Copy page
 
     Swift
 
-    PostHog AI
-
     ```swift
     PostHogSDK.shared.capture("button_clicked", properties: ["button_name": "signup"])
     ```
@@ -86,8 +77,6 @@ Copy page
     Check if a feature flag is enabled:
 
     Swift
-
-    PostHog AI
 
     ```swift
     let isMyFlagEnabled = PostHogSDK.shared.isFeatureEnabled("flag-key")
@@ -107,8 +96,6 @@ Copy page
     For multivariate flags, check which variant the user has been assigned:
 
     Swift
-
-    PostHog AI
 
     ```swift
     let enabledVariant = PostHogSDK.shared.getFeatureFlag("flag-key")

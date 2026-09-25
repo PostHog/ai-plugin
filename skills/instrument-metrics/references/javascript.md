@@ -1,12 +1,8 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# JavaScript (web) metrics installation - Docs
+# JavaScript (web) metrics installation
 
-Copy page
-
-# JavaScript (web) metrics installation - Docs
-
-> **Note:** Metrics is in private alpha and the viewer is only turned on for selected teams, so you may not be able to view metrics you send yet. Setup details may change before general availability.
+> **Note:** Metrics is in open alpha. Any team can turn it on — open [Metrics](https://app.posthog.com/metrics) and select **Enable metrics** in the onboarding view. Setup details may change before general availability.
 
 If [posthog-js](/docs/libraries/js.md) is already running on your site, you can record metrics directly with the `posthog.metrics` API. No new packages, no extra authentication.
 
@@ -21,8 +17,6 @@ If [posthog-js](/docs/libraries/js.md) is already running on your site, you can 
     There is no metrics-specific setup required: the metrics API authenticates with the same project token the SDK already uses. Optionally, set a service name so your metrics are easy to find and filter:
 
     JavaScript
-
-    PostHog AI
 
     ```javascript
     posthog.init('<ph_project_api_key>', {
@@ -44,13 +38,13 @@ If [posthog-js](/docs/libraries/js.md) is already running on your site, you can 
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     // Counters only go up: things you count
     posthog.metrics.count('checkout.completed')
+    
     // Gauges go up and down: current values
     posthog.metrics.gauge('cart.items', 3)
+    
     // Histograms record distributions: durations, sizes
     posthog.metrics.histogram('api.request.duration', 187, { unit: 'ms' })
     ```
@@ -58,8 +52,6 @@ If [posthog-js](/docs/libraries/js.md) is already running on your site, you can 
     Add attributes to slice a metric by dimension, keeping the set of values small and bounded:
 
     JavaScript
-
-    PostHog AI
 
     ```javascript
     posthog.metrics.count('checkout.completed', 1, { attributes: { plan: 'pro' } })
@@ -97,11 +89,11 @@ If [posthog-js](/docs/libraries/js.md) is already running on your site, you can 
 
     | Action | Description |
     | --- | --- |
-    | [Why you need metrics](/docs/metrics/basics.md) | What metrics show you that events and logs don't |
-    | [Getting started guide](/docs/metrics/start-here.md) | Pick the right metric type, add attributes carefully, and chart what matters |
-    | Group and filter | Group by an attribute for one line per value, or filter with key=value chips |
-    | [How metrics works](/docs/metrics/architecture.md) | How metrics are ingested, stored, and queried |
-    | Query with SQL | Every metric lands in the posthog.metrics table, queryable from the SQL tab |
+    | **[Why you need metrics](/docs/metrics/basics.md)** | What metrics show you that events and logs don't |
+    | **[Getting started guide](/docs/metrics/start-here.md)** | Pick the right metric type, add attributes carefully, and chart what matters |
+    | **Group and filter** | Group by an attribute for one line per value, or filter with `key=value` chips |
+    | **[How metrics works](/docs/metrics/architecture.md)** | How metrics are ingested, stored, and queried |
+    | **Query with SQL** | Every metric lands in the `posthog.metrics` table, queryable from the SQL tab |
 
     [Continue with the getting started guide](/docs/metrics/start-here.md)
 

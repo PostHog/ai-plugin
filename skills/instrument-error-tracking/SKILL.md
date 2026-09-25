@@ -61,36 +61,36 @@ STEP 8: Verify and clean up.
 
 ## Reference files
 
-- `references/react.md` - React error tracking installation - docs
-- `references/web.md` - Web error tracking installation - docs
-- `references/nextjs.md` - Next.js error tracking installation - docs
-- `references/node.md` - Node.js error tracking installation - docs
-- `references/python.md` - Python error tracking installation - docs
-- `references/django.md` - Django - docs
-- `references/flask.md` - Flask - docs
-- `references/php.md` - Php error tracking installation - docs
-- `references/laravel.md` - Laravel - docs
-- `references/ruby.md` - Ruby error tracking installation - docs
-- `references/ruby-on-rails.md` - Ruby on rails error tracking installation - docs
-- `references/ruby-on-rails.md` - Ruby on rails - docs
-- `references/go.md` - Go error tracking installation - docs
-- `references/dotnet.md` - .net error tracking installation - docs
-- `references/dotnet.md` - .net - docs
-- `references/elixir.md` - Elixir error tracking installation - docs
-- `references/angular.md` - Angular error tracking installation - docs
-- `references/svelte.md` - Sveltekit error tracking installation - docs
-- `references/nuxt-3-7.md` - Nuxt error tracking installation (v3.7 and above) - docs
-- `references/nuxt-3-6.md` - Nuxt error tracking installation (v3.6 and below) - docs
-- `references/react-native.md` - React native error tracking installation - docs
-- `references/flutter.md` - Flutter error tracking installation - docs
-- `references/ios.md` - Ios error tracking installation - docs
-- `references/android.md` - Android error tracking installation - docs
-- `references/hono.md` - Hono error tracking installation - docs
-- `references/fingerprints.md` - Fingerprints - docs
-- `references/alerts.md` - Send error tracking alerts - docs
-- `references/monitoring.md` - Monitor and search issues - docs
-- `references/assigning-issues.md` - Assign issues to teammates - docs
-- `references/upload-source-maps.md` - Upload source maps - docs
+- `references/react.md` - React error tracking installation
+- `references/web.md` - Web error tracking installation
+- `references/nextjs.md` - Next.js error tracking installation
+- `references/node.md` - Node.js error tracking installation
+- `references/python.md` - Python error tracking installation
+- `references/django.md` - Django
+- `references/flask.md` - Flask
+- `references/php.md` - Php error tracking installation
+- `references/laravel.md` - Laravel
+- `references/ruby.md` - Ruby error tracking installation
+- `references/ruby-on-rails.md` - Ruby on rails error tracking installation
+- `references/ruby-on-rails.md` - Ruby on rails
+- `references/go.md` - Go error tracking installation
+- `references/dotnet.md` - .net error tracking installation
+- `references/dotnet.md` - .net
+- `references/elixir.md` - Elixir error tracking installation
+- `references/angular.md` - Angular error tracking installation
+- `references/svelte.md` - Sveltekit error tracking installation
+- `references/nuxt-3-7.md` - Nuxt error tracking installation (v3.7 and above)
+- `references/nuxt-3-6.md` - Nuxt error tracking installation (v3.6 and below)
+- `references/react-native.md` - React native error tracking installation
+- `references/flutter.md` - Flutter error tracking installation
+- `references/ios.md` - Ios error tracking installation
+- `references/android.md` - Android error tracking installation
+- `references/hono.md` - Hono error tracking installation
+- `references/fingerprints.md` - Fingerprints
+- `references/alerts.md` - Send error tracking alerts
+- `references/monitoring.md` - Monitor and search issues
+- `references/assigning-issues.md` - Assign issues to teammates
+- `references/upload-source-maps.md` - Upload source maps
 - `references/COMMANDMENTS.md` - Framework-specific rules the integration must follow
 
 Each platform reference contains SDK-specific installation and manual capture patterns. Find the one matching the user's stack.

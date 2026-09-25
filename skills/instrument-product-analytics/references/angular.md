@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Angular - Docs
-
-Copy page
-
-# Angular - Docs
+# Angular
 
 PostHog makes it easy to get data about traffic and usage of your [Angular](https://angular.dev/) app. Integrating PostHog into your site enables analytics about user behavior, custom events capture, session recordings, feature flags, and more.
 
@@ -13,8 +9,6 @@ This guide walks you through integrating PostHog into your Angular app using the
 ## Installation
 
 Install `posthog-js` using your package manager:
-
-PostHog AI
 
 ### npm
 
@@ -42,8 +36,6 @@ bun add posthog-js
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
 >
-> PostHog AI
->
 > ```
 > script-src 'self' https://*.posthog.com;
 > connect-src 'self' https://*.posthog.com;
@@ -67,13 +59,12 @@ Create a service by running `ng g service services/posthog`. The service should 
 
 posthog.service.ts
 
-PostHog AI
-
 ```typescript
 // src/app/services/posthog.service.ts
 import { Injectable, NgZone } from "@angular/core";
 import posthog from "posthog-js";
 import { environment } from "../../environments/environment";
+
 @Injectable({ providedIn: "root" })
 export class PosthogService {
   constructor(
@@ -98,13 +89,12 @@ Then, inject the service in your app's root component `app.component.ts`. This w
 
 app.component.ts
 
-PostHog AI
-
 ```typescript
 // src/app/app.component.ts
 import { Component } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { PosthogService } from "./services/posthog.service";
+
 @Component({
   selector: "app-root",
   styleUrls: ["./app.component.scss"],
@@ -114,6 +104,7 @@ import { PosthogService } from "./services/posthog.service";
 })
 export class AppComponent {
   title = "angular-app";
+
   constructor(posthogService: PosthogService) {}
 }
 ```
@@ -124,8 +115,6 @@ In your `src/main.ts`, initialize PostHog using your project token and instance 
 
 main.ts
 
-PostHog AI
-
 ```typescript
 // src/main.ts
 import { bootstrapApplication } from '@angular/platform-browser';
@@ -133,10 +122,12 @@ import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
 import { environment } from "./environments/environment";
 import posthog from 'posthog-js'
+
 posthog.init(environment.posthogKey, {
   api_host: environment.posthogHost,
   defaults: '2026-05-30'
 })
+
 bootstrapApplication(AppComponent, appConfig)
   .catch((err) => console.error(err));
 ```
@@ -154,8 +145,6 @@ bootstrapApplication(AppComponent, appConfig)
 If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.init('<ph_project_token>', {
@@ -213,14 +202,14 @@ To [capture custom events](/docs/product-analytics/capture-events.md), import `p
 
 app.component.ts
 
-PostHog AI
-
 ```typescript
 import { Component } from '@angular/core';
 import posthog from 'posthog-js'
+
 @Component({
  // existing component code
 })
+
 export class AppComponent {
   handleClick() {
     posthog.capture(
@@ -241,11 +230,10 @@ The recorder tool attempts to detect when an Angular zone is present and avoid t
 
 posthog.service.ts
 
-PostHog AI
-
 ```typescript
 import { Injectable } from '@angular/core';
 import posthog from 'posthog-js'
+
 @Injectable({ providedIn: 'root' })
 export class PostHogSessionRecordingService {
   constructor(private ngZone: NgZone) {}
@@ -272,10 +260,9 @@ Update your `posthog.service.ts` to restrict the initialization of the PostHog w
 
 posthog.service.ts
 
-PostHog AI
-
 ```typescript
 import { PLATFORM_ID } from "@angular/core";
+
 @Injectable({ providedIn: "root" })
 export class PosthogService {
   constructor(
@@ -287,6 +274,7 @@ export class PosthogService {
       this.initPostHog(); //+
     }
   }
+
   private initPostHog() {
     this.ngZone.runOutsideAngular(() => {
       posthog.init(environment.posthogKey, {
@@ -297,8 +285,6 @@ export class PosthogService {
 Angular SSR uses a `server.ts` file to handle requests. We can add any server-side initialization code to this file.
 
 First, install the `posthog-node` package to run on the server side.
-
-PostHog AI
 
 ### npm
 
@@ -328,17 +314,18 @@ Then, add the following code to the `server.ts` file:
 
 server.ts
 
-PostHog AI
-
 ```typescript
 // src/server.ts
+
 import { environment } from './environments/environment';
 import { PostHog } from 'posthog-node'
+
 /**
  * Extract distinct ID from PostHog cookie
  */
 function getDistinctIdFromCookie(cookieHeader: string | undefined): string | null {
   if (!cookieHeader) return null;
+
   const cookieMatch = cookieHeader.match(`ph_${environment.posthogKey}_posthog=([^;]+)`);
   if (cookieMatch) {
     try {
@@ -351,17 +338,21 @@ function getDistinctIdFromCookie(cookieHeader: string | undefined): string | nul
   }
   return null;
 }
+
 /**
  * Handle all other requests by rendering the Angular application.
  */
 app.get('**', async (req, res, next) => {
   const { protocol, originalUrl, baseUrl, headers } = req;
+
   const distinctId = getDistinctIdFromCookie(headers.cookie);
   let isFeatureEnabled = false;
+
   const client = new PostHog(
       environment.posthogKey,
       { host: environment.posthogHost }
   );
+
   if (distinctId) {
     client.capture({
       distinctId: distinctId,
@@ -370,9 +361,11 @@ app.get('**', async (req, res, next) => {
         message: 'Hello from Angular SSR!'
       }
     })
+
     isFeatureEnabled = await client.isFeatureEnabled(
       'your_feature_flag_key', distinctId) || false;
   }
+
   commonEngine
     .render({
       bootstrap,
@@ -386,6 +379,7 @@ app.get('**', async (req, res, next) => {
     })
     .then((html) => res.send(html))
     .catch((err) => next(err));
+
   await client.shutdown()
 });
 ```

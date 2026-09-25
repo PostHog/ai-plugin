@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Nuxt Error Tracking installation (v3.6 and below) - Docs
-
-Copy page
-
-# Nuxt Error Tracking installation (v3.6 and below) - Docs
+# Nuxt Error Tracking installation (v3.6 and below)
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Install the PostHog JavaScript library using your package manager:
-
-    PostHog AI
 
     ### npm
 
@@ -54,8 +48,6 @@ Copy page
 
     nuxt.config.js
 
-    PostHog AI
-
     ```javascript
     export default defineNuxtConfig({
       runtimeConfig: {
@@ -78,11 +70,10 @@ Copy page
 
     plugins/posthog.client.js
 
-    PostHog AI
-
     ```javascript
     import { defineNuxtPlugin } from '#app'
     import posthog from 'posthog-js'
+    
     export default defineNuxtPlugin(nuxtApp => {
       const runtimeConfig = useRuntimeConfig();
       const posthogClient = posthog.init(runtimeConfig.public.posthogPublicKey, {
@@ -92,6 +83,7 @@ Copy page
           if (import.meta.env.MODE === 'development') posthog.debug();
         }
       })
+    
       return {
         provide: {
           posthog: () => posthogClient
@@ -107,8 +99,6 @@ Copy page
     Optional
 
     To capture events from server routes, install `posthog-node` and instantiate it directly. You can also use it to evaluate feature flags on the server:
-
-    PostHog AI
 
     ### npm
 
@@ -136,20 +126,22 @@ Copy page
 
     server/api/example.js
 
-    PostHog AI
-
     ```javascript
     import { PostHog } from 'posthog-node'
+    
     export default defineEventHandler(async (event) => {
         const runtimeConfig = useRuntimeConfig()
+    
         const posthog = new PostHog(
             runtimeConfig.public.posthogPublicKey,
             { host: runtimeConfig.public.posthogHost }
         )
+    
         posthog.capture({
             distinctId: 'distinct_id_of_the_user',
             event: 'event_name'
         })
+    
         await posthog.shutdown()
     })
     ```
@@ -163,8 +155,6 @@ Copy page
     If you'd like, you can also manually capture custom events:
 
     JavaScript
-
-    PostHog AI
 
     ```javascript
     posthog.capture('my_custom_event', { property: 'value' })
@@ -180,8 +170,6 @@ Copy page
 
     Vue
 
-    PostHog AI
-
     ```html
     <script>
       const { $posthog } = useNuxtApp()
@@ -195,8 +183,6 @@ Copy page
     On the server side, you can use the `posthog` object directly.
 
     server/api/example.js
-
-    PostHog AI
 
     ```javascript
     const runtimeConfig = useRuntimeConfig()
@@ -224,8 +210,6 @@ Copy page
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     export default defineNuxtPlugin((nuxtApp) => {
         ...
@@ -244,7 +228,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

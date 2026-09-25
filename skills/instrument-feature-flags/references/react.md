@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# React Feature Flags installation - Docs
-
-Copy page
-
-# React Feature Flags installation - Docs
+# React Feature Flags installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Install [`posthog-js`](https://github.com/posthog/posthog-js) and `@posthog/react` using your package manager:
-
-    PostHog AI
 
     ### npm
 
@@ -50,8 +44,6 @@ Copy page
 
     .env
 
-    PostHog AI
-
     ```bash
     VITE_POSTHOG_PROJECT_TOKEN=<ph_project_token>
     VITE_POSTHOG_HOST=https://us.i.posthog.com
@@ -67,18 +59,18 @@ Copy page
 
     main.tsx
 
-    PostHog AI
-
     ```jsx
     import { StrictMode } from 'react'
     import { createRoot } from 'react-dom/client'
     import './index.css'
     import App from './App.jsx'
     import { PostHogProvider } from '@posthog/react'
+    
     const options = {
       api_host: import.meta.env.VITE_POSTHOG_HOST,
       defaults: '2026-05-30',
     } as const
+    
     createRoot(document.getElementById('root')).render(
       <StrictMode>
         <PostHogProvider apiKey={import.meta.env.VITE_POSTHOG_PROJECT_TOKEN} options={options}>
@@ -102,15 +94,16 @@ Copy page
 
     MyComponent.tsx
 
-    PostHog AI
-
     ```jsx
     import { usePostHog } from '@posthog/react'
+    
     function MyComponent() {
         const posthog = usePostHog()
+    
         function handleClick() {
             posthog.capture('button_clicked', { button_name: 'signup' })
         }
+    
         return <button onClick={handleClick}>Sign up</button>
     }
     ```
@@ -119,10 +112,9 @@ Copy page
 
     utils/analytics.ts
 
-    PostHog AI
-
     ```jsx
     import posthog from 'posthog-js'
+    
     export function trackPurchase(amount: number) {
         posthog.capture('purchase_completed', { amount })
     }
@@ -140,8 +132,6 @@ Copy page
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     posthog.capture('my_custom_event', { property: 'value' })
     ```
@@ -158,6 +148,7 @@ Copy page
 
     ```jsx
     import { useFeatureFlagEnabled } from '@posthog/react'
+    
     function App() {
         const showWelcomeMessage = useFeatureFlagEnabled('flag-key')
         const payload = useFeatureFlagPayload('flag-key')
@@ -185,6 +176,7 @@ Copy page
 
     ```jsx
     import { useFeatureFlagVariantKey } from '@posthog/react'
+    
     function App() {
         const variantKey = useFeatureFlagVariantKey('show-welcome-message')
         let welcomeMessage = ''
@@ -217,6 +209,7 @@ Copy page
 
     ```jsx
     import { useFeatureFlagPayload, useFeatureFlagEnabled } from '@posthog/react'
+    
     function App() {
         const variant = useFeatureFlagEnabled('show-welcome-message')
         const payload = useFeatureFlagPayload('show-welcome-message')
@@ -244,10 +237,9 @@ Copy page
 
     App.tsx
 
-    PostHog AI
-
     ```jsx
     import { PostHogFeature } from '@posthog/react'
+    
     function App() {
         return (
             <PostHogFeature flag='show-welcome-message' match={true}>
@@ -265,8 +257,6 @@ Copy page
     If your flag has a payload, you can pass a function to children whose first argument is the payload:
 
     App.tsx
-
-    PostHog AI
 
     ```jsx
     <PostHogFeature flag='show-welcome-message' match={true}>

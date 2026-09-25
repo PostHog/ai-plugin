@@ -1,12 +1,8 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Other languages metrics installation - Docs
+# Other languages metrics installation
 
-Copy page
-
-# Other languages metrics installation - Docs
-
-> **Note:** Metrics is in private alpha and the viewer is only turned on for selected teams, so you may not be able to view metrics you send yet. Setup details, including the ingestion endpoint, may change before general availability.
+> **Note:** Metrics is in open alpha. Any team can turn it on — open [Metrics](https://app.posthog.com/metrics) and select **Enable metrics** in the onboarding view. Setup details, including the ingestion endpoint, may change before general availability.
 
 PostHog's application metrics work with any OpenTelemetry-compatible client. If your app or infrastructure already exports OTLP metrics, point the exporter at PostHog. No PostHog packages required.
 
@@ -46,8 +42,6 @@ PostHog's application metrics work with any OpenTelemetry-compatible client. If 
 
     Terminal
 
-    PostHog AI
-
     ```bash
     OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="https://us.i.posthog.com/i/v1/metrics"
     OTEL_EXPORTER_OTLP_METRICS_HEADERS="Authorization=Bearer <ph_project_token>"
@@ -60,23 +54,17 @@ PostHog's application metrics work with any OpenTelemetry-compatible client. If 
 
     **Endpoint:**
 
-    PostHog AI
-
     ```
     https://us.i.posthog.com/i/v1/metrics
     ```
 
     **Authentication:** Include your project token either as an `Authorization` header:
 
-    PostHog AI
-
     ```
     Authorization: Bearer <ph_project_token>
     ```
 
     Or as a query parameter on the endpoint:
-
-    PostHog AI
 
     ```
     https://us.i.posthog.com/i/v1/metrics?token=<ph_project_token>
@@ -104,11 +92,11 @@ PostHog's application metrics work with any OpenTelemetry-compatible client. If 
 
     | Action | Description |
     | --- | --- |
-    | [Why you need metrics](/docs/metrics/basics.md) | What metrics show you that events and logs don't |
-    | [Getting started guide](/docs/metrics/start-here.md) | Pick the right metric type, add attributes carefully, and chart what matters |
-    | Group and filter | Group by an attribute for one line per value, or filter with key=value chips |
-    | [How metrics works](/docs/metrics/architecture.md) | How metrics are ingested, stored, and queried |
-    | Query with SQL | Every metric lands in the posthog.metrics table, queryable from the SQL tab |
+    | **[Why you need metrics](/docs/metrics/basics.md)** | What metrics show you that events and logs don't |
+    | **[Getting started guide](/docs/metrics/start-here.md)** | Pick the right metric type, add attributes carefully, and chart what matters |
+    | **Group and filter** | Group by an attribute for one line per value, or filter with `key=value` chips |
+    | **[How metrics works](/docs/metrics/architecture.md)** | How metrics are ingested, stored, and queried |
+    | **Query with SQL** | Every metric lands in the `posthog.metrics` table, queryable from the SQL tab |
 
     [Continue with the getting started guide](/docs/metrics/start-here.md)
 

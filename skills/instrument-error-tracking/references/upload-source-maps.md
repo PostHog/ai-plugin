@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Upload source maps - Docs
-
-Copy page
-
-# Upload source maps - Docs
+# Upload source maps
 
 If you serve compiled or minified code, PostHog requires source maps to generate accurate stack traces.
 

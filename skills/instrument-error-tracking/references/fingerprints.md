@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Fingerprints - Docs
-
-Copy page
-
-# Fingerprints - Docs
+# Fingerprints
 
 Every captured exception is assigned a fingerprint. This fingerprint is used to group similar exceptions into issues. This page covers how fingerprints are generated, how they're used, and how you can override them when capturing exceptions.
 
@@ -12,7 +8,7 @@ Every captured exception is assigned a fingerprint. This fingerprint is used to 
 
 Every exception has a fingerprint, whether generated or defined by the user. Each fingerprint links to exactly one issue. Exceptions that share the same fingerprint define an issue.
 
-Multiple different fingerprints can point to the same issue (a many-to-one relationship) if you [merge issues](/docs/error-tracking/managing-issues.md#merging-issues).
+Multiple different fingerprints can point to the same issue (a many-to-one relationship) if you [merge issues](/docs/error-tracking/grouping-issues.md#merging-separate-issues).
 
 ## How are fingerprints generated?
 
@@ -43,7 +39,7 @@ This also means that if the exception **type** or **message** changes from one v
 Fingerprints are used to group similar exceptions into issues automatically. Automatic issue grouping is only done when:
 
 -   No [issue grouping rules](/docs/error-tracking/grouping-issues.md) are applied
--   No [issue merging](/docs/error-tracking/managing-issues.md#merging-issues) has been configured
+-   No [issue merging](/docs/error-tracking/grouping-issues.md#merging-separate-issues) has been configured
 -   No [custom fingerprint](#customizing-fingerprints) is set during capture
 
 You can find details about how issue grouping works in the [issues and exceptions](/docs/error-tracking/issues-and-exceptions.md) guide.
@@ -55,8 +51,6 @@ Fingerprints can be manually set during exception capture. This is a very useful
 When you set a custom fingerprint, you can also name the resulting issue with the `$issue_name` and `$issue_description` properties:
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.captureException(error, {

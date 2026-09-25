@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# React Error Tracking installation - Docs
-
-Copy page
-
-# React Error Tracking installation - Docs
+# React Error Tracking installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Install [`posthog-js`](https://github.com/posthog/posthog-js) and `@posthog/react` using your package manager:
-
-    PostHog AI
 
     ### npm
 
@@ -50,8 +44,6 @@ Copy page
 
     .env
 
-    PostHog AI
-
     ```bash
     VITE_POSTHOG_PROJECT_TOKEN=<ph_project_token>
     VITE_POSTHOG_HOST=https://us.i.posthog.com
@@ -67,18 +59,18 @@ Copy page
 
     main.tsx
 
-    PostHog AI
-
     ```jsx
     import { StrictMode } from 'react'
     import { createRoot } from 'react-dom/client'
     import './index.css'
     import App from './App.jsx'
     import { PostHogProvider } from '@posthog/react'
+    
     const options = {
       api_host: import.meta.env.VITE_POSTHOG_HOST,
       defaults: '2026-05-30',
     } as const
+    
     createRoot(document.getElementById('root')).render(
       <StrictMode>
         <PostHogProvider apiKey={import.meta.env.VITE_POSTHOG_PROJECT_TOKEN} options={options}>
@@ -102,15 +94,16 @@ Copy page
 
     MyComponent.tsx
 
-    PostHog AI
-
     ```jsx
     import { usePostHog } from '@posthog/react'
+    
     function MyComponent() {
         const posthog = usePostHog()
+    
         function handleClick() {
             posthog.capture('button_clicked', { button_name: 'signup' })
         }
+    
         return <button onClick={handleClick}>Sign up</button>
     }
     ```
@@ -119,10 +112,9 @@ Copy page
 
     utils/analytics.ts
 
-    PostHog AI
-
     ```jsx
     import posthog from 'posthog-js'
+    
     export function trackPurchase(amount: number) {
         posthog.capture('purchase_completed', { amount })
     }
@@ -139,8 +131,6 @@ Copy page
     If you'd like, you can also manually capture custom events:
 
     JavaScript
-
-    PostHog AI
 
     ```javascript
     posthog.capture('my_custom_event', { property: 'value' })
@@ -165,8 +155,6 @@ Copy page
     You can use the `PostHogErrorBoundary` component to capture rendering errors thrown by components:
 
     JavaScript
-
-    PostHog AI
 
     ```javascript
     import { PostHogProvider, PostHogErrorBoundary } from '@posthog/react'
@@ -196,8 +184,6 @@ Copy page
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     posthog.captureException(error, additionalProperties)
     ```
@@ -210,7 +196,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

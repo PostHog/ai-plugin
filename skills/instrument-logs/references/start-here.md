@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Getting started with Logs - Docs
-
-Copy page
-
-# Getting started with Logs - Docs
+# Getting started with Logs
 
 ## Use your logging client
 
@@ -54,13 +50,13 @@ Enrich your logs with granular detail and business context for `INFO`, `DEBUG`, 
 
 Python
 
-PostHog AI
-
 ```python
 import logging
+
 # Configure logging to use OpenTelemetry
 logging.basicConfig(level=logging.INFO)
 logging.getLogger().addHandler(LoggingHandler())
+
 # Use standard Python logging
 logger = logging.getLogger("my-app")
 logger.info("User action", extra={"userId": "123", "action": "login"})
@@ -79,7 +75,7 @@ Once your logs are flowing into PostHog, you can:
 -   **Filter on attributes** for specific resources or events
 -   **Correlate logs with events** from your PostHog analytics
 
-![PostHog Logs search interface](https://res.cloudinary.com/dmukukwp6/image/upload/w_1600,c_limit,q_auto,f_auto/logs_light_dd81ff5093.png)![PostHog Logs search interface](https://res.cloudinary.com/dmukukwp6/image/upload/w_1600,c_limit,q_auto,f_auto/logs_dark_d7135f1b22.png)
+![PostHog Logs search interface](https://res.cloudinary.com/dmukukwp6/image/upload/w_1600,c_limit,q_auto,f_auto/logs_light_dd81ff5093.png)
 
 [Learn how to search logs](/docs/logs/search.md)
 
@@ -127,19 +123,19 @@ With PostHog, your logs live alongside your [Product Analytics](/docs/product-an
 
 Log events in PostHog can be connected to the session and user who triggered them. Jump from a log line to a session replay in one click.
 
-![logs and errors](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_tlab_c79adf4315.png)![logs and errors](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_tpbx_e2154c4155.png)
+![logs and errors](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_tlab_c79adf4315.png)
 
 ### Product Analytics
 
 Turn log patterns into trends, funnels, and retention insights. Know which logged errors actually hurt user retention vs. which are just noise.
 
-![logs and product analytics](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_twkv_8d5e77b42d.png)![logs and product analytics](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_twoz_4e12550875.png)
+![logs and product analytics](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_twkv_8d5e77b42d.png)
 
 ### Error Tracking
 
 Logs with `$exception` events become issues you can assign, resolve, and alert on. No separate error tracking tool needed.
 
-![logs and session replay](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_tpic_6c27c8b1e0.png)![logs and session replay](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_tlie_6ffdbd4369.png)
+![logs and session replay](https://res.cloudinary.com/dmukukwp6/image/upload/q_auto,f_auto/SCR_20260427_tpic_6c27c8b1e0.png)
 
 ### Dashboards
 
@@ -154,7 +150,7 @@ PostHog's Logs is built to be cost-effective by default, with a generous free ti
 -   No credit card required to start
 -   First 10 GB of ingested logs per month are free
 -   Above 10 GB we have usage-based pricing at $0.25/GB with discounts
--   All logs are retained 14 days by default, and we also offer 30-day (and soon 90-day) retention options for an additional storage charge – see [pricing](/pricing.md) for more details
+-   All logs are retained 14 days by default. Set custom retention per service or per source for $0.05/GB per month retained – see [logs pricing](/docs/logs/pricing.md#retention) for more details
 -   Set billing limits to avoid surprise charges
 -   See our [pricing page](/docs/logs/pricing.md) for more up-to-date details
 

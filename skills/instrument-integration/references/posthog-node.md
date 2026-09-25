@@ -12,6 +12,7 @@ PostHog Node.js SDK allows you to capture events and send them to PostHog from y
 - Error tracking
 - Privacy
 - Feature flags
+- Traces
 - Context
 
 ## PostHog
@@ -1229,6 +1230,62 @@ const flagValue = await client.getFeatureFlag('local-flag', 'user_123', {
 
 ---
 
+#### getFeatureFlagEvaluationRuntime()
+
+**Release Tag:** public
+
+Get where a locally loaded feature flag is meant to be evaluated.
+
+**Notes:**
+
+Read from the definitions local evaluation already holds, so no request is made. A definition that carries no runtime reports `all`, the default PostHog applies.
+
+### Parameters
+
+- **`key`** (`string`) - The feature flag key
+
+### Returns
+
+**Union of:**
+- `FeatureFlagEvaluationRuntime`
+- `undefined`
+
+### Examples
+
+```node
+const runtime = client.getFeatureFlagEvaluationRuntime('my-flag')
+// Returns: 'client'
+```
+
+---
+
+#### getFeatureFlagKeysByEvaluationRuntime()
+
+**Release Tag:** public
+
+Get the keys of locally loaded flags that a runtime can evaluate.
+
+**Notes:**
+
+A flag set to `all` suits either runtime, so it is returned for `client` and for `server`, and asking for `all` returns every loaded flag. Use this to decide which flags to hand to a browser when a backend serves flags to its own frontend.
+
+### Parameters
+
+- **`evaluationRuntime`** (`FeatureFlagEvaluationRuntime`) - The runtime to match
+
+### Returns
+
+- `string[]`
+
+### Examples
+
+```node
+const clientKeys = client.getFeatureFlagKeysByEvaluationRuntime('client')
+// Returns: ['web-banner', 'shared-copy']
+```
+
+---
+
 #### getFeatureFlagPayload()
 
 **Release Tag:** deprecated
@@ -1533,6 +1590,91 @@ if (isReady) {
 ```node
 // Wait with custom timeout
 const isReady = await client.waitForLocalEvaluationReady(10000) // 10 seconds
+```
+
+---
+
+### Traces methods
+
+#### getActiveSpan()
+
+**Release Tag:** public
+
+The span currently active on this async execution path, or `null` outside any `withSpan` callback.
+On the edge build this returns `null` after an `await`, because the active span is tracked synchronously there.
+
+Subject to change in a minor release.
+
+### Returns
+
+**Union of:**
+- `Span`
+- `null`
+
+### Examples
+
+```node
+// Propagate the trace to another service
+const traceparent = posthog.getActiveSpan()?.traceparent()
+await fetch(url, { headers: traceparent ? { traceparent } : {} })
+```
+
+---
+
+#### startSpan()
+
+**Release Tag:** public
+
+Starts a span without making it active — for work that can't wrap a callback. Prefer `withSpan`, which ends the span for you.
+Always returns a handle, so calling code never has to branch: when the `traces` option is absent, the SDK is disabled, or the user has opted out, the handle is inert and nothing is exported. An inert handle given a `parent` header still returns it from `traceparent()`, so a service with tracing off passes a distributed trace through instead of severing it.
+
+Subject to change in a minor release.
+
+### Parameters
+
+- **`name`** (`string`)
+- **`options?`** (`StartSpanOptions`)
+
+### Returns
+
+- `Span`
+
+### Examples
+
+```node
+const span = posthog.startSpan('checkout', { attributes: { plan: 'pro' } })
+span.setAttribute('cart.items', 3)
+span.end()
+```
+
+---
+
+#### withSpan()
+
+**Release Tag:** public
+
+Runs a callback with a span active for its duration and ends the span for you — at return for a sync callback, at settle for an async one. Takes an optional `StartSpanOptions` between the name and the callback: `withSpan(name, fn)` or `withSpan(name, options, fn)`.
+Spans started inside the callback nest under it automatically. If the callback throws or rejects, the span records the exception and the original error is rethrown unchanged. A callback that ends the span itself gets the rethrow but not the recording, since the span is already exported by then.
+Spans nest across `await` only on the Node runtime, which tracks the active span with `AsyncLocalStorage`. The edge build restores the active span when the callback returns its promise, so spans started after an `await` there begin a new trace.
+
+Subject to change in a minor release.
+
+### Parameters
+
+- **`name`** (`string`)
+- **`fn`** (`(span: Span) => T`)
+
+### Returns
+
+- `T`
+
+### Examples
+
+```node
+await posthog.withSpan('POST /checkout', { parent: req.get('traceparent') }, async (span) => {
+  span.setAttribute('plan', user.plan)
+  return processOrder()
+})
 ```
 
 ---

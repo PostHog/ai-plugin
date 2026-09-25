@@ -1,12 +1,8 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Python metrics installation - Docs
+# Python metrics installation
 
-Copy page
-
-# Python metrics installation - Docs
-
-> **Note:** Metrics is in private alpha and the viewer is only turned on for selected teams, so you may not be able to view metrics you send yet. Setup details may change before general availability.
+> **Note:** Metrics is in open alpha. Any team can turn it on — open [Metrics](https://app.posthog.com/metrics) and select **Enable metrics** in the onboarding view. Setup details may change before general availability.
 
 The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metrics` API, so you can record metrics with the same client you use for events and feature flags.
 
@@ -17,8 +13,6 @@ The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metric
     Required
 
     Terminal
-
-    PostHog AI
 
     ```bash
     pip install posthog
@@ -36,10 +30,9 @@ The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metric
 
     Python
 
-    PostHog AI
-
     ```python
     from posthog import Posthog
+    
     posthog = Posthog(
         "<ph_project_token>",
         host="https://us.i.posthog.com",
@@ -59,13 +52,13 @@ The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metric
 
     Python
 
-    PostHog AI
-
     ```python
     # Counters only go up: things you count
     posthog.metrics.count("invoices.processed", 1, attributes={"plan": "pro"})
+    
     # Gauges go up and down: current values
     posthog.metrics.gauge("queue.depth", 42)
+    
     # Histograms record distributions: durations, sizes
     posthog.metrics.histogram("job.duration", 187, unit="ms")
     ```
@@ -92,8 +85,6 @@ The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metric
 
     Python
 
-    PostHog AI
-
     ```python
     posthog.metrics.flush()
     ```
@@ -118,11 +109,11 @@ The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metric
 
     | Action | Description |
     | --- | --- |
-    | [Why you need metrics](/docs/metrics/basics.md) | What metrics show you that events and logs don't |
-    | [Getting started guide](/docs/metrics/start-here.md) | Pick the right metric type, add attributes carefully, and chart what matters |
-    | Group and filter | Group by an attribute for one line per value, or filter with key=value chips |
-    | [How metrics works](/docs/metrics/architecture.md) | How metrics are ingested, stored, and queried |
-    | Query with SQL | Every metric lands in the posthog.metrics table, queryable from the SQL tab |
+    | **[Why you need metrics](/docs/metrics/basics.md)** | What metrics show you that events and logs don't |
+    | **[Getting started guide](/docs/metrics/start-here.md)** | Pick the right metric type, add attributes carefully, and chart what matters |
+    | **Group and filter** | Group by an attribute for one line per value, or filter with `key=value` chips |
+    | **[How metrics works](/docs/metrics/architecture.md)** | How metrics are ingested, stored, and queried |
+    | **Query with SQL** | Every metric lands in the `posthog.metrics` table, queryable from the SQL tab |
 
     [Continue with the getting started guide](/docs/metrics/start-here.md)
 

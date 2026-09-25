@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# .NET - Docs
-
-Copy page
-
-# .NET - Docs
+# .NET
 
 This is an optional library you can install if you're working with .NET Core. It uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server side application that needs performance.
 
@@ -18,8 +14,6 @@ The `PostHog` package supports any .NET platform that targets .NET Standard 2.1 
 
 Terminal
 
-PostHog AI
-
 ```bash
 dotnet add package PostHog.AspNetCore
 ```
@@ -28,11 +22,11 @@ In your `Program.cs` (or `Startup.cs` for ASP.NET Core 2.x) file, add the follow
 
 C#
 
-PostHog AI
-
 ```csharp
 using PostHog;
+
 var builder = WebApplication.CreateBuilder(args);
+
 // Add PostHog to the dependency injection container as a singleton.
 builder.AddPostHog();
 ```
@@ -40,8 +34,6 @@ builder.AddPostHog();
 Make sure to configure PostHog with your project token, instance address, and optional personal API key. For example, in `appsettings.json`:
 
 JSON
-
-PostHog AI
 
 ```json
 {
@@ -58,8 +50,6 @@ Use a secrets manager to store your personal API key. For example, when developi
 
 Terminal
 
-PostHog AI
-
 ```bash
 dotnet user-secrets init
 dotnet user-secrets set "PostHog:PersonalApiKey" "phx_..."
@@ -75,14 +65,13 @@ To use feature flags with the .NET Feature Management library, you'll need to im
 
 C#
 
-PostHog AI
-
 ```csharp
 public class MyFeatureFlagContextProvider(IHttpContextAccessor httpContextAccessor)
     : PostHogFeatureFlagContextProvider
 {
     protected override string? GetDistinctId()
         => httpContextAccessor.HttpContext?.User.Identity?.Name;
+
     protected override ValueTask<FeatureFlagOptions> GetFeatureFlagOptionsAsync()
     {
         // In a real app, you might get this information from a
@@ -104,8 +93,6 @@ Then, register your implementation in `Program.cs` (or `Startup.cs`):
 
 C#
 
-PostHog AI
-
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 builder.AddPostHog(options => {
@@ -116,8 +103,6 @@ builder.AddPostHog(options => {
 With this in place, you can now use `feature` tag helpers in your Razor views:
 
 HTML
-
-PostHog AI
 
 ```html
 <feature name="awesome-new-feature">
@@ -132,8 +117,6 @@ Multivariate feature flags are also supported:
 
 HTML
 
-PostHog AI
-
 ```html
 <feature name="awesome-new-feature" value="variant-a">
     <p>This is the new feature variant A!</p>
@@ -146,8 +129,6 @@ PostHog AI
 You can also use the `FeatureGateAttribute` to gate access to controllers or actions:
 
 C#
-
-PostHog AI
 
 ```csharp
 [FeatureGate("awesome-new-feature")]
@@ -166,8 +147,6 @@ If you're not using ASP.NET Core (for example, in a console application, MAUI ap
 
 Terminal
 
-PostHog AI
-
 ```bash
 dotnet add package PostHog
 ```
@@ -175,8 +154,6 @@ dotnet add package PostHog
 The `PostHogClient` class must be implemented as a singleton in your project. For `PostHog.AspNetCore`, this is handled by the `builder.AddPostHog();` method. For the `PostHog` package, you can do the following if you're using dependency injection:
 
 C#
-
-PostHog AI
 
 ```csharp
 builder.Services.AddPostHog();
@@ -186,10 +163,9 @@ If you're not using a `builder` (such as in a console application), you can do t
 
 C#
 
-PostHog AI
-
 ```csharp
 using PostHog;
+
 var services = new ServiceCollection();
 services.AddPostHog();
 var serviceProvider = services.BuildServiceProvider();
@@ -202,10 +178,9 @@ If you're not using dependency injection, you can create a static instance of th
 
 C#
 
-PostHog AI
-
 ```csharp
 using PostHog;
+
 public static readonly PostHogClient PostHog = new(new PostHogOptions {
     ProjectToken = "<ph_project_token>",
     HostUrl = new Uri("https://us.i.posthog.com"),
@@ -221,8 +196,6 @@ If you're not seeing the expected events being captured, the feature flags being
 To see detailed logging, set the log level to `Debug` or `Trace` in `appsettings.json`:
 
 JSON
-
-PostHog AI
 
 ```json
 {
@@ -250,8 +223,6 @@ You can send custom events using `capture`:
 
 C#
 
-PostHog AI
-
 ```csharp
 posthog.Capture("distinct_id_of_the_user", "user_signed_up");
 ```
@@ -263,8 +234,6 @@ posthog.Capture("distinct_id_of_the_user", "user_signed_up");
 Optionally, you can include additional information with the event by including a [properties](/docs/data/events.md#event-properties) object:
 
 C#
-
-PostHog AI
 
 ```csharp
 posthog.Capture(
@@ -283,11 +252,10 @@ If you're aiming for a backend-only implementation of PostHog and won't be captu
 
 C#
 
-PostHog AI
-
 ```csharp
 using PostHog;
 using Microsoft.AspNetCore.Http.Extensions;
+
 posthog.CapturePageView(
     "distinct_id_of_the_user",
     HttpContext.Request.GetDisplayUrl());
@@ -299,14 +267,15 @@ For ASP.NET Core apps using `PostHog.AspNetCore`, add request context middleware
 
 Program.cs
 
-PostHog AI
-
 ```csharp
 using PostHog;
 using PostHog.AspNetCore;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.AddPostHog();
+
 var app = builder.Build();
+
 app.UsePostHogRequestContext();
 ```
 
@@ -317,8 +286,6 @@ The middleware reads `X-PostHog-Distinct-Id` and `X-PostHog-Session-Id` as reque
 Tracing headers are client-controlled analytics context, not authentication or authorization. For security-sensitive server-side decisions, pass an authenticated distinct ID explicitly. You can ignore tracing headers while still collecting request metadata:
 
 C#
-
-PostHog AI
 
 ```csharp
 app.UsePostHogRequestContext(options =>
@@ -337,8 +304,6 @@ File names, line numbers, and source context depend on debug information already
 
 C#
 
-PostHog AI
-
 ```csharp
 try
 {
@@ -353,8 +318,6 @@ catch (Exception exception)
 Add custom properties to include request, tenant, or domain context:
 
 C#
-
-PostHog AI
 
 ```csharp
 posthog.CaptureException(
@@ -382,8 +345,6 @@ The .NET SDK captures identified events by default. These create [person profile
 
 C#
 
-PostHog AI
-
 ```csharp
 posthog.Capture(
     "distinct_id",
@@ -398,8 +359,6 @@ For more details on the difference between `$set` and `$set_once`, see our [pers
 To capture [anonymous events](/docs/data/anonymous-vs-identified-events.md) without person profiles, set the event's `$process_person_profile` property to `false`:
 
 C#
-
-PostHog AI
 
 ```csharp
 posthog.Capture(
@@ -419,8 +378,6 @@ In this case, you can use `alias` to assign another distinct ID to the same user
 
 C#
 
-PostHog AI
-
 ```csharp
 await posthog.AliasAsync("current_distinct_id", "new_distinct_id");
 ```
@@ -437,8 +394,6 @@ To capture an event and associate it with a group, add the `groups` argument to 
 
 C#
 
-PostHog AI
-
 ```csharp
 posthog.Capture(
     "user_distinct_id",
@@ -449,8 +404,6 @@ posthog.Capture(
 Update properties on a group, use the `GroupIdentifyAsync` method:
 
 C#
-
-PostHog AI
 
 ```csharp
 await posthog.GroupIdentifyAsync(
@@ -480,10 +433,9 @@ Call `EvaluateFlagsAsync()` once for the user, then read values from the returne
 
 C#
 
-PostHog AI
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
+
 if (flags.IsEnabled("flag-key"))
 {
     // Do something differently for this user
@@ -496,11 +448,11 @@ if (flags.IsEnabled("flag-key"))
 
 C#
 
-PostHog AI
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
+
 var enabledVariant = flags.GetFlag("flag-key")?.VariantKey;
+
 if (enabledVariant == "variant-key") // replace "variant-key" with the key of your variant
 {
     // Do something differently for this user
@@ -527,14 +479,14 @@ Pass the same `flags` object that you used for branching. This attaches the exac
 
 C#
 
-PostHog AI
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
+
 if (flags.IsEnabled("flag-key"))
 {
     // Do something differently for this user
 }
+
 posthog.Capture(
     "distinct_id_of_your_user",
     "event_name",
@@ -550,8 +502,6 @@ To reduce event property bloat, pass a filtered snapshot:
 
 C#
 
-PostHog AI
-
 ```csharp
 // Attach only flags accessed with IsEnabled() or GetFlag() before this call
 posthog.Capture(
@@ -561,6 +511,7 @@ posthog.Capture(
     groups: null,
     flags: flags.OnlyAccessed()
 );
+
 // Attach only specific flags
 posthog.Capture(
     "distinct_id_of_your_user",
@@ -576,8 +527,6 @@ posthog.Capture(
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
 C#
-
-PostHog AI
 
 ```csharp
 posthog.Capture(
@@ -596,8 +545,6 @@ posthog.Capture(
 By default, `EvaluateFlagsAsync()` evaluates every flag for the user. If you only need a few flags, pass `FlagKeysToEvaluate` to request only those flags:
 
 C#
-
-PostHog AI
 
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync(
@@ -627,8 +574,6 @@ For example:
 
 C#
 
-PostHog AI
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync(
     "distinct_id_of_the_user",
@@ -651,6 +596,7 @@ var flags = await posthog.EvaluateFlagsAsync(
         },
     }
 );
+
 if (flags.IsEnabled("flag-key"))
 {
     // Do something differently for this user
@@ -690,8 +636,6 @@ Configure evaluation contexts so this SDK only evaluates flags intended for the 
 
 JSON
 
-PostHog AI
-
 ```json
 {
     "PostHog": {
@@ -705,8 +649,6 @@ PostHog AI
 For code-based configuration, set `EvaluationContexts` on `PostHogOptions`:
 
 C#
-
-PostHog AI
 
 ```csharp
 var posthog = new PostHogClient(new PostHogOptions
@@ -735,11 +677,10 @@ Since [experiments](/docs/experiments/start-here.md) use feature flags, the code
 
 C#
 
-PostHog AI
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("user_distinct_id");
 var variant = flags.GetFlag("experiment-feature-flag-key")?.VariantKey;
+
 if (variant == "variant-name")
 {
     // Do something

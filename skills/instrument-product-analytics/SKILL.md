@@ -99,36 +99,36 @@ STEP 10: Verify and clean up.
 - `references/EXAMPLE-swift.md` - swift example project code
 - `references/EXAMPLE-react-native.md` - react-native example project code
 - `references/EXAMPLE-expo.md` - expo example project code
-- `references/next-js.md` - Next.js - docs
-- `references/react-router-v6.md` - React router v6 - docs
-- `references/react-router-v7-framework-mode.md` - React router v7 framework mode (remix v3) - docs
-- `references/react-router-v7-data-mode.md` - React router v7 data mode - docs
-- `references/react-router-v7-declarative-mode.md` - React router v7 declarative mode - docs
-- `references/nuxt-js-3-6.md` - Nuxt.js (v3.0 to v3.6) - docs
-- `references/nuxt-js.md` - Nuxt.js - docs
-- `references/vue-js.md` - Vue.js - docs
-- `references/tanstack-start.md` - Tanstack start - docs
-- `references/svelte.md` - Svelte - docs
-- `references/astro.md` - Astro - docs
-- `references/angular.md` - Angular - docs
-- `references/django.md` - Django - docs
-- `references/flask.md` - Flask - docs
-- `references/python.md` - Python - docs
+- `references/next-js.md` - Next.js
+- `references/react-router-v6.md` - React router v6
+- `references/react-router-v7-framework-mode.md` - React router v7 framework mode (remix v3)
+- `references/react-router-v7-data-mode.md` - React router v7 data mode
+- `references/react-router-v7-declarative-mode.md` - React router v7 declarative mode
+- `references/nuxt-js-3-6.md` - Nuxt.js (v3.0 to v3.6)
+- `references/nuxt-js.md` - Nuxt.js
+- `references/vue-js.md` - Vue.js
+- `references/tanstack-start.md` - Tanstack start
+- `references/svelte.md` - Svelte
+- `references/astro.md` - Astro
+- `references/angular.md` - Angular
+- `references/django.md` - Django
+- `references/flask.md` - Flask
+- `references/python.md` - Python
 - `references/posthog-python.md` - PostHog python SDK
-- `references/dotnet.md` - .net - docs
-- `references/elixir.md` - Elixir - docs
-- `references/go.md` - Go - docs
-- `references/laravel.md` - Laravel - docs
-- `references/php.md` - Php - docs
-- `references/ruby-on-rails.md` - Ruby on rails - docs
-- `references/ruby.md` - Ruby - docs
-- `references/android.md` - Android - docs
-- `references/ios.md` - Ios - docs
-- `references/usage.md` - Ios SDK usage - docs
-- `references/configuration.md` - Ios SDK configuration - docs
-- `references/flutter.md` - Flutter - docs
-- `references/react-native.md` - React native - docs
-- `references/identify-users.md` - Identify users - docs
+- `references/dotnet.md` - .net
+- `references/elixir.md` - Elixir
+- `references/go.md` - Go
+- `references/laravel.md` - Laravel
+- `references/php.md` - Php
+- `references/ruby-on-rails.md` - Ruby on rails
+- `references/ruby.md` - Ruby
+- `references/android.md` - Android
+- `references/ios.md` - Ios
+- `references/usage.md` - Ios SDK usage
+- `references/configuration.md` - Ios SDK configuration
+- `references/flutter.md` - Flutter
+- `references/react-native.md` - React native
+- `references/identify-users.md` - Identify users
 - `references/COMMANDMENTS.md` - Framework-specific rules the integration must follow
 
 Each framework reference contains SDK-specific installation, initialization, and usage patterns. Find the one matching the user's stack.

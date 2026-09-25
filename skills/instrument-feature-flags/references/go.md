@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Go Feature Flags installation - Docs
-
-Copy page
-
-# Go Feature Flags installation - Docs
+# Go Feature Flags installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Install the PostHog Go library:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     go get "github.com/posthog/posthog-go"
@@ -32,13 +26,13 @@ Copy page
 
     main.go
 
-    PostHog AI
-
     ```go
     package main
+    
     import (
         "github.com/posthog/posthog-go"
     )
+    
     func main() {
         client, _ := posthog.NewWithConfig("<ph_project_token>", posthog.Config{Endpoint: "https://us.i.posthog.com"})
         defer client.Close()
@@ -54,8 +48,6 @@ Copy page
     Once installed, you can manually send events to test your integration:
 
     Go
-
-    PostHog AI
 
     ```go
     client.Enqueue(posthog.Capture{
@@ -124,8 +116,6 @@ Copy page
 
     Go
 
-    PostHog AI
-
     ```go
     client.Enqueue(posthog.Capture{
         DistinctId: "distinct_id_of_your_user",
@@ -139,8 +129,6 @@ Copy page
     Include the `$feature/feature_flag_name` property in your event properties:
 
     Go
-
-    PostHog AI
 
     ```go
     client.Enqueue(posthog.Capture{

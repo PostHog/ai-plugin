@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Node.js Feature Flags installation - Docs
-
-Copy page
-
-# Node.js Feature Flags installation - Docs
+# Node.js Feature Flags installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Install the PostHog Node.js library using your package manager:
-
-    PostHog AI
 
     ### npm
 
@@ -50,10 +44,9 @@ Copy page
 
     Node.js
 
-    PostHog AI
-
     ```javascript
     import { PostHog } from 'posthog-node'
+    
     const client = new PostHog(
         '<ph_project_token>',
         {
@@ -71,8 +64,6 @@ Copy page
     Once installed, you can manually send events to test your integration:
 
     Node.js
-
-    PostHog AI
 
     ```javascript
     client.capture({
@@ -135,8 +126,6 @@ Copy page
 
     Node.js
 
-    PostHog AI
-
     ```javascript
     client.capture({
         distinctId: 'distinct_id_of_your_user',
@@ -150,8 +139,6 @@ Copy page
     Include the `$feature/feature_flag_name` property in your event properties:
 
     Node.js
-
-    PostHog AI
 
     ```javascript
     client.capture({

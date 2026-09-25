@@ -11,8 +11,8 @@ schemas below are rendered from the backend Pydantic models at build time, so th
 | `description`         | no             | Defaults to `""`.                                                                    |
 | `evaluation_type`     | yes            | `"hog"`, `"llm_judge"`, or `"sentiment"`.                                            |
 | `evaluation_config`   | yes            | Shape depends on `evaluation_type` (below).                                           |
-| `output_type`         | yes            | `"boolean"` for `hog`/`llm_judge`; `"sentiment"` for `sentiment`.                    |
-| `output_config`       | no             | `{ "allows_na": bool, "true_is_failure": bool }` for boolean; `{}` for sentiment. |
+| `output_type`         | yes            | `"boolean"` or `"numeric"` for `hog`/`llm_judge`; `"sentiment"` for `sentiment`.                    |
+| `output_config`       | no             | `{ "allows_na": bool, "true_is_failure": bool }` for boolean; numeric settings below; `{}` for sentiment. |
 | `model_configuration` | llm_judge only | Provider + model; key ID optional. Rejected on `hog`/`sentiment`.                     |
 | `target`              | no             | `"generation"` (default), `"trace"`, or `"session"`. Sentiment supports only `"generation"`. |
 | `target_config`       | trace/session only | Settle config discriminated on `strategy` (below); defaults to a 30-minute fixed window for `trace`, and to a 1-hour inactivity window for `session`. |
@@ -20,7 +20,9 @@ schemas below are rendered from the backend Pydantic models at build time, so th
 | `enabled`             | no             | Defaults to `false`. Create disabled, then flip with `llma-evaluation-update`.         |
 
 Valid `(evaluation_type, output_type)` pairs: `(hog, boolean)`, `(llm_judge, boolean)`,
-`(sentiment, sentiment)`.
+`(hog, numeric)`, `(llm_judge, numeric)`, `(sentiment, sentiment)`.
+The output type cannot change after creation.
+Numeric evaluations require the `llm-analytics-numeric-evaluations` rollout flag for the project. Existing numeric evaluations remain editable when it is off.
 
 ## `target` and `target_config`
 
@@ -127,6 +129,7 @@ Valid `(evaluation_type, output_type)` pairs: `(hog, boolean)`, `(llm_judge, boo
 
 ```json
 {
+  "additionalProperties": false,
   "description": "Configuration for boolean output type",
   "properties": {
     "allows_na": {
@@ -145,9 +148,107 @@ Valid `(evaluation_type, output_type)` pairs: `(hog, boolean)`, `(llm_judge, boo
 }
 ```
 
-`allows_na: true` lets the evaluator return N/A (skip) in addition to pass/fail.
+`allows_na: true` lets the evaluator return N/A in addition to true/false. N/A differs from an execution error that skips a run.
 `true_is_failure: true` treats a raw `true` result as a failure and a raw `false` result as a pass.
 Leave it `false` for the default mapping.
+
+### numeric output
+
+```json
+{
+  "$defs": {
+    "NumericPassingRule": {
+      "additionalProperties": false,
+      "properties": {
+        "operator": {
+          "enum": [
+            "gte",
+            "lte"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "threshold": {
+          "title": "Threshold",
+          "type": "number"
+        }
+      },
+      "required": [
+        "operator",
+        "threshold"
+      ],
+      "title": "NumericPassingRule",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "min": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Min"
+    },
+    "max": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max"
+    },
+    "step": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Step"
+    },
+    "allows_na": {
+      "default": false,
+      "title": "Allows Na",
+      "type": "boolean"
+    },
+    "passing_rule": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NumericPassingRule"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "title": "NumericOutputConfig",
+  "type": "object"
+}
+```
+
+Return a finite number, not a boolean or numeric string.
+Optional `min` and `max` are inclusive; an out-of-bounds score skips that run.
+`step` guides scoring without rounding results.
+`allows_na` defaults to false; set it to true to allow `null` from Hog.
+Set `passing_rule` to `{"operator": "gte", "threshold": 7}` (at least 7) or use `lte` (at most).
+Without a passing rule, scores remain ungraded and reports are unavailable.
+Changing the rule reinterprets historical scores; previously generated reports stay unchanged.
 
 ### sentiment output
 

@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Monitor and search issues - Docs
-
-Copy page
-
-# Monitor and search issues - Docs
+# Monitor and search issues
 
 This guide covers how to find the most relevant, urgent, and impactful issues in your error tracking using the [issues page](https://app.posthog.com/error_tracking).
 
@@ -51,11 +47,11 @@ The search bar provides two modes of filtering:
 
 This operates like property filters elsewhere in PostHog, enabling you to add terms like `where 'http_referer' is set` or `where 'library' equals 'web'`. You add a property filter by clicking the property name shown here:
 
-![Adding a property to the property filter](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_06_35_277_Z_54ad9274ba.png)![Adding a property to the property filter](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_07_25_246_Z_709bdb93ad.png)
+![Adding a property to the property filter](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_06_35_277_Z_54ad9274ba.png)
 
 Added property filters look like this:
 
-![Search bar with property filter](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_08_41_220_Z_ac7ad6c492.png)![Search bar with property filter](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_08_14_625_Z_6c0ba08732.png)
+![Search bar with property filter](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_08_41_220_Z_ac7ad6c492.png)
 
 The results of both of these filter types (property filters and freeform search) are combined with `AND` logic, such that only exceptions that match all filters are included in the search results.
 
@@ -69,8 +65,6 @@ This does text matching for a subset of the error tracking specific properties o
 -   The file paths in the exception stack trace (if known)
 
 For example, imagine you have an exception that looks like this:
-
-PostHog AI
 
 ```
 TypeError: Cannot read property 'name' of undefined
@@ -109,7 +103,7 @@ This page shows you the following:
 -   Name, description, status, assignee, and external tracking links for the issue.
 -   A filterable list of all exceptions in the issue. **Selecting an exception** will show you the stack trace, properties, and sessions related to that exception at the top of the page.
 
-![An issue, with an unfiltered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_50_11_322_Z_dfe9b9dd79.png)![An issue, with an unfiltered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_49_48_664_Z_30d13a2ef1.png)
+![An issue, with an unfiltered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T13_50_11_322_Z_dfe9b9dd79.png)
 
 ### Filtering exception occurrences within an issue
 
@@ -117,7 +111,7 @@ Once you've found and opened the issue you want to investigate, you can use the 
 
 For example, you can add a property filter on `http_referer` that shows all exceptions where the `http_referer` is set:
 
-![An issue, with a filtered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_11_45_290_Z_bf3b371db8.png)![An issue, with a filtered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_11_28_842_Z_fe608ddf0a.png)
+![An issue, with a filtered exception list](https://res.cloudinary.com/dmukukwp6/image/upload/pasted_image_2026_06_24_T10_11_45_290_Z_bf3b371db8.png)
 
 **Alerts**
 

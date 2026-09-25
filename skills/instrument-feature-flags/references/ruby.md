@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Ruby Feature Flags installation - Docs
-
-Copy page
-
-# Ruby Feature Flags installation - Docs
+# Ruby Feature Flags installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Add the PostHog Ruby gem to your Gemfile:
 
     Gemfile
-
-    PostHog AI
 
     ```ruby
     gem "posthog-ruby"
@@ -32,10 +26,9 @@ Copy page
 
     Ruby
 
-    PostHog AI
-
     ```ruby
     require 'posthog'
+    
     posthog = PostHog::Client.new({
         api_key: "<ph_project_token>",
         host: "https://us.i.posthog.com",
@@ -52,8 +45,6 @@ Copy page
     Once installed, you can manually send events to test your integration:
 
     Ruby
-
-    PostHog AI
 
     ```ruby
     posthog.capture({
@@ -115,8 +106,6 @@ Copy page
 
     Ruby
 
-    PostHog AI
-
     ```ruby
     posthog.capture({
         distinct_id: 'distinct_id_of_your_user',
@@ -130,8 +119,6 @@ Copy page
     Include the `$feature/feature_flag_name` property in your event properties:
 
     Ruby
-
-    PostHog AI
 
     ```ruby
     posthog.capture({

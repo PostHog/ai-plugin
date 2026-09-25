@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Nuxt Error Tracking installation (v3.7 and above) - Docs
-
-Copy page
-
-# Nuxt Error Tracking installation (v3.7 and above) - Docs
+# Nuxt Error Tracking installation (v3.7 and above)
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Install the PostHog Nuxt module using your package manager:
-
-    PostHog AI
 
     ### npm
 
@@ -43,8 +37,6 @@ Copy page
     Add the module to your `nuxt.config.ts` file:
 
     nuxt.config.ts
-
-    PostHog AI
 
     ```typescript
     export default defineNuxtConfig({
@@ -102,8 +94,6 @@ Copy page
 
     Vue
 
-    PostHog AI
-
     ```html
     <script>
       const { $posthog } = useNuxtApp()
@@ -117,8 +107,6 @@ Copy page
     On the server side instantiate PostHog using:
 
     server/api/example.js
-
-    PostHog AI
 
     ```javascript
     const runtimeConfig = useRuntimeConfig()
@@ -146,8 +134,6 @@ Copy page
 
     Terminal
 
-    PostHog AI
-
     ```bash
     nuxt build
     ```
@@ -162,7 +148,7 @@ Copy page
 
     Before proceeding, let's make sure exception events are being captured and sent to PostHog. You should see events appear in the activity feed.
 
-    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_owae_7c3490822c.png)
+    ![Activity feed with events](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250729_ouxl_f788dd8cd2.png)
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 

@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Traces - Docs
-
-Copy page
-
-# Traces - Docs
+# Traces
 
 Traces are a collection of [generations](/docs/ai-observability/generations.md) and [spans](/docs/ai-observability/spans.md) that capture a full interaction between a user and an LLM. The [traces tab](https://app.posthog.com/ai-observability/traces) lists them along with the properties autocaptured by PostHog like the person, total cost, total latency, and more.
 
@@ -19,7 +15,7 @@ See the [Sessions](/docs/ai-observability/sessions.md) documentation for more de
 
 Clicking on a trace opens a timeline of the interaction with all the generation and span events. The trace timeline enables you to see the entire conversation, profiling details, and the individual generations and spans.
 
-![LLM traces](https://res.cloudinary.com/dmukukwp6/image/upload/llma_traces_25e203aa50.png)![LLM traces](https://res.cloudinary.com/dmukukwp6/image/upload/llma_traces_dark_dd6ad555dc.png)
+![LLM traces](https://res.cloudinary.com/dmukukwp6/image/upload/llma_traces_25e203aa50.png)
 
 A trace presents LLM event data in a timeline, tree-structured view
 
@@ -89,12 +85,14 @@ A trace is a group that contains multiple spans, generations, and embeddings. Tr
 
 | Property | Description |
 | --- | --- |
-| $ai_trace_id | The trace ID (a UUID to group related AI events together)Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: d9222e05-8708-41b8-98ea-d4a21849e761 |
-| $ai_session_id | (Optional) Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.Must contain only letters, numbers, and special characters: -, _, ~, ., @, (, ), !, ', :, \|Example: session-abc-123, conv-user-456 |
-| $ai_latency | (Optional) The latency of the trace in seconds |
-| $ai_span_name | (Optional) The name of the traceExample: chat_completion, rag_pipeline |
-| $ai_is_error | (Optional) Boolean to indicate if the trace encountered an error |
-| $ai_error | (Optional) The error message or object if the trace failed |
+| `$ai_trace_id` | The trace ID (a UUID to group related AI events together) Must contain only letters, numbers, and special characters: `-`, `_`, `~`, `.`, `@`, `(`, `)`, `!`, `'`, `:`, `\|` Example: `d9222e05-8708-41b8-98ea-d4a21849e761` |
+| `$ai_session_id` | *(Optional)* Groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. A workload that finishes in a single trace does not need it. Send it as null to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id. Must contain only letters, numbers, and special characters: `-`, `_`, `~`, `.`, `@`, `(`, `)`, `!`, `'`, `:`, `\|` Example: `session-abc-123`, `conv-user-456` |
+| `$ai_input_state` | The input of the whole trace Example: ```json [ { "role": "user", "content": "What's the weather in SF?" } ] ``` or any JSON-serializable state |
+| `$ai_output_state` | The output of the whole trace Example: ```json [ { "role": "assistant", "content": "The weather in San Francisco is..." } ] ``` or any JSON-serializable state |
+| `$ai_latency` | *(Optional)* The latency of the trace in seconds |
+| `$ai_span_name` | *(Optional)* The name of the trace Example: `chat_completion`, `rag_pipeline` |
+| `$ai_is_error` | *(Optional)* Boolean to indicate if the trace encountered an error |
+| `$ai_error` | *(Optional)* The error message or object if the trace failed |
 
 ### Pseudo-trace Events
 

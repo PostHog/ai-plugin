@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# DSPy AI Observability installation - Docs
-
-Copy page
-
-# DSPy AI Observability installation - Docs
+# DSPy AI Observability installation
 
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
 
@@ -58,12 +54,15 @@ Skip the manual setup — run this in your project and the wizard installs the S
     import os
     import dspy
     import litellm
+    
     # Set PostHog environment variables
     os.environ["POSTHOG_API_KEY"] = "<ph_project_token>"
     os.environ["POSTHOG_API_URL"] = "https://us.i.posthog.com"
+    
     # Enable PostHog callbacks in LiteLLM
     litellm.success_callback = ["posthog"]
     litellm.failure_callback = ["posthog"]
+    
     # Configure DSPy to use an LLM
     lm = dspy.LM(
         "openai/gpt-5-mini",
@@ -91,8 +90,11 @@ Skip the manual setup — run this in your project and the wizard installs the S
     ```python
     from posthog import Posthog
     import time, uuid
+    
     posthog = Posthog("<ph_project_token>", host="https://us.i.posthog.com")
+    
     trace_id = str(uuid.uuid4())
+    
     lm = dspy.LM(
         "openai/gpt-5-mini",
         api_key="your_openai_api_key",
@@ -103,11 +105,14 @@ Skip the manual setup — run this in your project and the wizard installs the S
         },
     )
     dspy.configure(lm=lm)
+    
+    
     # Define a simple signature
     class QA(dspy.Signature):
         """Answer the question."""
         question: str = dspy.InputField()
         answer: str = dspy.OutputField()
+    
     predictor = dspy.Predict(QA)
     result = predictor(question="What's a fun fact about hedgehogs?")
     print(result.answer)
@@ -117,16 +122,16 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Property | Description |
     | --- | --- |
-    | $ai_model | The specific model, like gpt-5-mini or claude-4-sonnet |
-    | $ai_latency | The latency of the LLM call in seconds |
-    | $ai_time_to_first_token | Time to first token in seconds (streaming only) |
-    | $ai_tools | Tools and functions available to the LLM |
-    | $ai_input | List of messages sent to the LLM |
-    | $ai_input_tokens | The number of tokens in the input (often found in response.usage) |
-    | $ai_output_choices | List of response choices from the LLM |
-    | $ai_output_tokens | The number of tokens in the output (often found in response.usage) |
-    | $ai_total_cost_usd | The total cost in USD (input + output) |
-    | [[...]](/docs/ai-observability/generations.md#event-properties) | See [full list](/docs/ai-observability/generations.md#event-properties) of properties |
+    | `$ai_model` | The specific model, like `gpt-5-mini` or `claude-4-sonnet` |
+    | `$ai_latency` | The latency of the LLM call in seconds |
+    | `$ai_time_to_first_token` | Time to first token in seconds (streaming only) |
+    | `$ai_tools` | Tools and functions available to the LLM |
+    | `$ai_input` | List of messages sent to the LLM |
+    | `$ai_input_tokens` | The number of tokens in the input (often found in response.usage) |
+    | `$ai_output_choices` | List of response choices from the LLM |
+    | `$ai_output_tokens` | The number of tokens in the output (often found in `response.usage`) |
+    | `$ai_total_cost_usd` | The total cost in USD (input + output) |
+    | [\[...\]](/docs/ai-observability/generations.md#event-properties) | See [full list](/docs/ai-observability/generations.md#event-properties) of properties |
 
 5.  5
 
@@ -140,6 +145,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     # retrieve() is your existing retrieval setup
     start = time.time()
     context = retrieve("hedgehog facts")
+    
     posthog.capture(
         distinct_id="user_123",
         event="$ai_span",
@@ -153,6 +159,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
             "$ai_latency": time.time() - start,
         },
     )
+    
     question = f"Using this context, answer what a fun fact about hedgehogs is: {context}"
     result = predictor(question=question)
     ```
@@ -167,7 +174,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     Let's make sure LLM events are being captured and sent to PostHog. Under **AI Observability**, you should see rows of data appear in the **Traces** and **Generations** tabs.
 
-    ![LLM generations in PostHog](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250807_syne_ecd0801880.png)![LLM generations in PostHog](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250807_syjm_5baab36590.png)
+    ![LLM generations in PostHog](https://res.cloudinary.com/dmukukwp6/image/upload/SCR_20250807_syne_ecd0801880.png)
 
     [Check for LLM events in PostHog](https://app.posthog.com/ai-observability/generations)
 
@@ -182,7 +189,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | Resource | Description |
     | --- | --- |
     | [Basics](/docs/ai-observability/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
-    | [Generations](/docs/ai-observability/generations.md) | Read about the $ai_generation event and its properties. |
+    | [Generations](/docs/ai-observability/generations.md) | Read about the `$ai_generation` event and its properties. |
     | [Traces](/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
     | [Spans](/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
     | [Anaylze LLM performance](/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |

@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# PHP Error Tracking installation - Docs
-
-Copy page
-
-# PHP Error Tracking installation - Docs
+# PHP Error Tracking installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Install the [PostHog PHP SDK](/docs/libraries/php.md) via Composer:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     composer require posthog/posthog-php
@@ -31,8 +25,6 @@ Copy page
     Set your project token and instance address before making any calls:
 
     PHP
-
-    PostHog AI
 
     ```php
     PostHog\PostHog::init(
@@ -55,8 +47,6 @@ Copy page
 
     PHP
 
-    PostHog AI
-
     ```php
     try {
         // Your code that might throw
@@ -71,8 +61,6 @@ Copy page
     You can pass extra properties to include with the exception event:
 
     PHP
-
-    PostHog AI
 
     ```php
     try {
@@ -96,8 +84,6 @@ Copy page
     Automatic capture is opt-in for PHP. When enabled, the SDK installs handlers for uncaught exceptions. With the default `capture_errors: true`, it also captures PHP errors and fatal shutdown errors.
 
     PHP
-
-    PostHog AI
 
     ```php
     PostHog\PostHog::init(
@@ -124,8 +110,6 @@ Copy page
     By default, automatically captured errors are anonymous. Use `context_provider` to attach a `distinctId` and request metadata to every automatically captured error event.
 
     PHP
-
-    PostHog AI
 
     ```php
     PostHog\PostHog::init(
@@ -159,8 +143,6 @@ Copy page
 
     PHP
 
-    PostHog AI
-
     ```php
     PostHog\PostHog::init(
         '<ph_project_token>',
@@ -186,11 +168,11 @@ Copy page
 
     | Option | Type | Default | Description |
     | --- | --- | --- | --- |
-    | enabled | boolean | false | Enables automatic error tracking handlers. Manual captureException works regardless. |
-    | capture_errors | boolean | true | When enabled, also captures PHP errors and fatal shutdown errors in addition to uncaught exceptions. |
-    | excluded_exceptions | array of class strings | [] | Throwable classes to skip during automatic capture. |
-    | max_frames | integer | 20 | Maximum number of stack frames included in $exception_list. |
-    | context_provider | callable or null | null | Callback that returns distinctId and extra event properties for automatic captures. |
+    | `enabled` | boolean | `false` | Enables automatic error tracking handlers. Manual `captureException` works regardless. |
+    | `capture_errors` | boolean | `true` | When enabled, also captures PHP errors and fatal shutdown errors in addition to uncaught exceptions. |
+    | `excluded_exceptions` | array of class strings | `[]` | Throwable classes to skip during automatic capture. |
+    | `max_frames` | integer | `20` | Maximum number of stack frames included in `$exception_list`. |
+    | `context_provider` | callable or `null` | `null` | Callback that returns `distinctId` and extra event properties for automatic captures. |
 
 7.  ## Verify error tracking
 
@@ -199,8 +181,6 @@ Copy page
     Trigger a test exception to confirm events are being sent to PostHog. You should see them appear in the [Error Tracking](https://app.posthog.com/error_tracking) tab.
 
     PHP
-
-    PostHog AI
 
     ```php
     PostHog\PostHog::init(
@@ -212,6 +192,7 @@ Copy page
             ],
         ]
     );
+    
     try {
         throw new \Exception('Test exception from PHP');
     } catch (\Throwable $e) {

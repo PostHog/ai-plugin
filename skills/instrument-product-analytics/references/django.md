@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Django - Docs
-
-Copy page
-
-# Django - Docs
+# Django
 
 PostHog makes it easy to get data about traffic and usage of your Django app. Integrating PostHog enables analytics, custom events capture, feature flags, error tracking, and more.
 
@@ -30,13 +26,13 @@ Then, configure PostHog in your app config so it's initialized when Django start
 
 your\_app/apps.py
 
-PostHog AI
-
 ```python
 from django.apps import AppConfig
 import posthog
+
 class YourAppConfig(AppConfig):
     name = 'your_app_name'
+
     def ready(self):
         posthog.api_key = '<ph_project_token>'
         posthog.host = 'https://us.i.posthog.com'
@@ -45,8 +41,6 @@ class YourAppConfig(AppConfig):
 Next, if you haven't done so already, add your `AppConfig` to `INSTALLED_APPS` in `settings.py`:
 
 settings.py
-
-PostHog AI
 
 ```python
 INSTALLED_APPS = [
@@ -61,17 +55,17 @@ To capture events from any file, import `posthog` and call the method you need. 
 
 Python
 
-PostHog AI
-
 ```python
 import posthog
 from posthog import identify_context
+
 def some_request(request):
     with posthog.new_context():
         # Django includes request.user for anonymous visitors too. Only identify
         # the context when the visitor is logged in.
         if request.user.is_authenticated:
             identify_context(str(request.user.pk))
+
         posthog.capture('event_name')
 ```
 
@@ -85,10 +79,9 @@ Events captured without a context or explicit `distinct_id` are sent as [anonymo
 >
 > Python
 >
-> PostHog AI
->
 > ```python
 > from posthog import new_context, identify_context, capture
+>
 > @app.get("/foo")
 > def foo(current_user: User = Depends(get_current_user)):
 >     with new_context(): # Set context at the top of a route
@@ -108,8 +101,6 @@ The Python SDK provides a Django middleware that automatically wraps all request
 Add the middleware to your Django settings. If your app uses Django authentication, place it after `django.contrib.auth.middleware.AuthenticationMiddleware` so the middleware can use the authenticated Django user as a distinct ID fallback and capture the user's email.
 
 Python
-
-PostHog AI
 
 ```python
 MIDDLEWARE = [
@@ -144,12 +135,11 @@ Identify the context from inside the request once you know who the user is. Djan
 
 Python
 
-PostHog AI
-
 ```python
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 from posthog import identify_context
+
 @receiver(user_logged_in)
 def identify_posthog_user(sender, request, user, **kwargs):
     identify_context(str(user.pk))
@@ -167,8 +157,6 @@ Disable this by setting:
 
 Python
 
-PostHog AI
-
 ```python
 # settings.py
 POSTHOG_MW_CAPTURE_EXCEPTIONS = False
@@ -180,8 +168,6 @@ Use `POSTHOG_MW_EXTRA_TAGS` to add custom properties to all requests:
 
 Python
 
-PostHog AI
-
 ```python
 # settings.py
 def add_user_tags(request):
@@ -192,6 +178,7 @@ def add_user_tags(request):
         tags['user_id'] = str(request.user.pk)
         tags['email'] = request.user.email
     return tags
+
 POSTHOG_MW_EXTRA_TAGS = add_user_tags
 ```
 
@@ -201,8 +188,6 @@ Skip tracking for certain requests using `POSTHOG_MW_REQUEST_FILTER`:
 
 Python
 
-PostHog AI
-
 ```python
 # settings.py
 def should_track_request(request):
@@ -211,6 +196,7 @@ def should_track_request(request):
     if request.path.startswith('/health') or request.path.startswith('/admin'):
         return False
     return True
+
 POSTHOG_MW_REQUEST_FILTER = should_track_request
 ```
 
@@ -219,8 +205,6 @@ POSTHOG_MW_REQUEST_FILTER = should_track_request
 Use `POSTHOG_MW_TAG_MAP` to modify or remove default tags:
 
 Python
-
-PostHog AI
 
 ```python
 # settings.py
@@ -232,14 +216,13 @@ def customize_tags(tags):
     if '$request_method' in tags:
         tags['http_method'] = tags.pop('$request_method')
     return tags
+
 POSTHOG_MW_TAG_MAP = customize_tags
 ```
 
 ### Complete configuration example
 
 Python
-
-PostHog AI
 
 ```python
 # settings.py
@@ -252,18 +235,22 @@ def add_request_context(request):
         tags['user_id'] = str(request.user.pk)
     else:
         tags['user_type'] = 'anonymous'
+
     # Add request info
     tags['user_agent'] = request.META.get('HTTP_USER_AGENT', '')
     return tags
+
 def filter_tracking(request):
     # type: (HttpRequest) -> bool
     # Skip internal endpoints
     return not request.path.startswith(('/health', '/metrics', '/admin'))
+
 def clean_tags(tags):
     # type: (Dict[str, Any]) -> Dict[str, Any]
     # Remove sensitive data
     tags.pop('user_agent', None)
     return tags
+
 POSTHOG_MW_EXTRA_TAGS = add_request_context
 POSTHOG_MW_REQUEST_FILTER = filter_tracking
 POSTHOG_MW_TAG_MAP = clean_tags

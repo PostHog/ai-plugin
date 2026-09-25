@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Python Feature Flags installation - Docs
-
-Copy page
-
-# Python Feature Flags installation - Docs
+# Python Feature Flags installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Install the PostHog Python library using pip:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     pip install posthog
@@ -32,10 +26,9 @@ Copy page
 
     Python
 
-    PostHog AI
-
     ```python
     from posthog import Posthog
+    
     posthog = Posthog(
         project_api_key='<ph_project_token>',
         host='https://us.i.posthog.com'
@@ -57,8 +50,6 @@ Copy page
     Capture custom events by calling the `capture` method with an event name and properties:
 
     Python
-
-    PostHog AI
 
     ```python
     import posthog
@@ -113,8 +104,6 @@ Copy page
 
     Python
 
-    PostHog AI
-
     ```python
     posthog.capture(
         distinct_id="distinct_id_of_the_user",
@@ -128,8 +117,6 @@ Copy page
     Include the `$feature/feature_flag_name` property in your event properties:
 
     Python
-
-    PostHog AI
 
     ```python
     posthog.capture(

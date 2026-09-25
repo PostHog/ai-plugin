@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Go Logs installation - Docs
-
-Copy page
-
-# Go Logs installation - Docs
+# Go Logs installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Terminal
-
-    PostHog AI
 
     ```bash
     go get go.opentelemetry.io/otel/sdk/log
@@ -43,23 +37,25 @@ Copy page
 
     Go
 
-    PostHog AI
-
     ```go
     package main
+    
     import (
         "os"
         "context"
         "log"
         "log/slog"
+    
         "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
         "go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
         "go.opentelemetry.io/contrib/bridges/otelslog"
         otellog "go.opentelemetry.io/otel/sdk/log"
         "go.opentelemetry.io/otel/log/global"
     )
+    
     func main() {
         ctx := context.Background()
+    
         // Create OTLP HTTP exporter
         exporter, err := otlploghttp.New(ctx,
             otlploghttp.WithEndpoint("us.i.posthog.com"),
@@ -71,9 +67,12 @@ Copy page
         if err != nil {
             panic(err)
         }
+    
         // you could also set this outside your application
         os.Setenv("OTEL_SERVICE_NAME", "my-service")
+    
         stdoutExporter, _ := stdoutlog.New()
+    
         // Create logger provider
         loggerProvider := otellog.NewLoggerProvider(
             otellog.WithProcessor(otellog.NewBatchProcessor(exporter)),
@@ -83,8 +82,10 @@ Copy page
         defer func() {
             loggerProvider.Shutdown(context.Background())
         }()
+    
         global.SetLoggerProvider(loggerProvider)
         slog.SetDefault(otelslog.NewLogger(""))
+    
         log.Println("this is a log line")
     }
     ```
@@ -92,8 +93,6 @@ Copy page
     Alternatively, you can pass the API key as a query parameter by modifying the URL path:
 
     Go
-
-    PostHog AI
 
     ```go
     otlploghttp.WithURLPath("/i/v1/logs?token=<ph_project_token>")
@@ -109,13 +108,13 @@ Copy page
 
     Go
 
-    PostHog AI
-
     ```go
     import (
         "go.opentelemetry.io/otel/log"
     )
+    
     logger := otel.GetLoggerProvider().Logger("my-app")
+    
     logger.Info(ctx, "User action",
         log.String("userId", "123"),
         log.String("action", "login"),
@@ -144,12 +143,12 @@ Copy page
 
     | Action | Description |
     | --- | --- |
-    | [Why you need logs](/docs/logs/basics.md) | What logs show you that nothing else does |
-    | [Search logs](/docs/logs/search.md) | Use the search interface to find specific log entries |
-    | Filter by level | Filter by INFO, WARN, ERROR, etc. |
-    | [Link session replay](/docs/logs/link-session-replay.md) | Connect logs to users and session replays by passing posthogDistinctId and sessionId |
-    | [Link logs to a person](/docs/logs/link-person.md) | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
+    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
 

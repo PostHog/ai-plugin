@@ -1,12 +1,8 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Kubernetes metrics installation - Docs
+# Kubernetes metrics installation
 
-Copy page
-
-# Kubernetes metrics installation - Docs
-
-> **Note:** Metrics is in private alpha and the viewer is only turned on for selected teams, so you may not be able to view metrics you send yet. Setup details, including the ingestion endpoint, may change before general availability.
+> **Note:** Metrics is in open alpha. Any team can turn it on — open [Metrics](https://app.posthog.com/metrics) and select **Enable metrics** in the onboarding view. Setup details, including the ingestion endpoint, may change before general availability.
 
 If your Kubernetes workloads already expose Prometheus-format `/metrics` endpoints, the PostHog metrics agent scrapes them and forwards everything to PostHog. One `helm install`, no application changes.
 
@@ -46,8 +42,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
     Terminal
 
-    PostHog AI
-
     ```bash
     helm install posthog-metrics-agent oci://ghcr.io/posthog/charts/posthog-metrics-agent \
       --set posthog.apiKey=<ph_project_token>
@@ -56,8 +50,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
     For EU Cloud, set the host explicitly:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     helm install posthog-metrics-agent oci://ghcr.io/posthog/charts/posthog-metrics-agent \
@@ -68,8 +60,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
     If you manage secrets separately, point the chart at an existing Kubernetes Secret containing a `posthog-api-key` key instead of passing the token directly:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     helm install posthog-metrics-agent oci://ghcr.io/posthog/charts/posthog-metrics-agent \
@@ -90,15 +80,13 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
     | Annotation | Default | Description |
     | --- | --- | --- |
-    | prometheus.io/scrape | – | Set to "true" to opt a pod in |
-    | prometheus.io/path | /metrics | Override the metrics path |
-    | prometheus.io/port | Pod's container port | Override the scrape port |
+    | `prometheus.io/scrape` | – | Set to `"true"` to opt a pod in |
+    | `prometheus.io/path` | `/metrics` | Override the metrics path |
+    | `prometheus.io/port` | Pod's container port | Override the scrape port |
 
     Example pod annotation:
 
     YAML
-
-    PostHog AI
 
     ```yaml
     metadata:
@@ -113,8 +101,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
     For services that don't carry Prometheus annotations, add fixed `host:port` targets:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     helm install posthog-metrics-agent oci://ghcr.io/posthog/charts/posthog-metrics-agent \
@@ -138,8 +124,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
     Terminal
 
-    PostHog AI
-
     ```bash
     kubectl get pods -l app.kubernetes.io/name=posthog-metrics-agent
     ```
@@ -150,8 +134,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
     If nothing shows up, check the agent logs for connection or authentication errors:
 
     Terminal
-
-    PostHog AI
 
     ```bash
     kubectl logs -l app.kubernetes.io/name=posthog-metrics-agent
@@ -171,8 +153,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
     Terminal
 
-    PostHog AI
-
     ```bash
     --set persistence.enabled=true
     ```
@@ -189,8 +169,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
     Terminal
 
-    PostHog AI
-
     ```bash
     --set shards=4
     ```
@@ -205,11 +183,11 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
     | Action | Description |
     | --- | --- |
-    | [Why you need metrics](/docs/metrics/basics.md) | What metrics show you that events and logs don't |
-    | [Getting started guide](/docs/metrics/start-here.md) | Pick the right metric type, add attributes carefully, and chart what matters |
-    | Group and filter | Group by an attribute for one line per value, or filter with key=value chips |
-    | [How metrics works](/docs/metrics/architecture.md) | How metrics are ingested, stored, and queried |
-    | Query with SQL | Every metric lands in the posthog.metrics table, queryable from the SQL tab |
+    | **[Why you need metrics](/docs/metrics/basics.md)** | What metrics show you that events and logs don't |
+    | **[Getting started guide](/docs/metrics/start-here.md)** | Pick the right metric type, add attributes carefully, and chart what matters |
+    | **Group and filter** | Group by an attribute for one line per value, or filter with `key=value` chips |
+    | **[How metrics works](/docs/metrics/architecture.md)** | How metrics are ingested, stored, and queried |
+    | **Query with SQL** | Every metric lands in the `posthog.metrics` table, queryable from the SQL tab |
 
     [Continue with the getting started guide](/docs/metrics/start-here.md)
 
@@ -217,27 +195,27 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
 | Value | Default | Description |
 | --- | --- | --- |
-| posthog.apiKey | '' | Project token (phc_...). Stored in a chart-managed Secret |
-| posthog.existingSecret | '' | Name of an existing Secret with a posthog-api-key key. Takes precedence over apiKey |
-| posthog.host | https://us.i.posthog.com | PostHog ingestion origin. Set to https://eu.i.posthog.com for EU Cloud |
-| scrape.interval | 15s | How often to scrape targets |
-| scrape.annotationDiscovery | true | Discover pods via prometheus.io/scrape annotations |
-| scrape.staticTargets | [] | Fixed host:port targets, e.g. ['my-svc:9090'] |
-| scrape.extraScrapeConfigs | '' | Raw Prometheus scrape_configs YAML appended verbatim |
-| shards | 1 | Agent fleet size. Above 1, a StatefulSet partitions targets so each is scraped once |
-| persistence.enabled | false | Buffer undelivered batches on a persistent volume so restarts lose nothing |
-| persistence.size | 10Gi | Size of each agent's queue volume |
-| persistence.storageClass | '' | StorageClass for the queue volume. Empty uses the cluster default |
-| podEnv | {} | Extra environment variables for the agent container |
-| resources.requests.cpu | 100m | CPU request |
-| resources.requests.memory | 256Mi | Memory request |
-| resources.limits.memory | 512Mi | Memory limit |
-| rbac.create | true | Create a ClusterRole for pod discovery |
-| serviceAccount.create | true | Create a dedicated ServiceAccount |
-| serviceAccount.name | '' | Override the ServiceAccount name. Required when serviceAccount.create is false |
-| nodeSelector | {} | Kubernetes node selector |
-| tolerations | [] | Kubernetes tolerations |
-| affinity | {} | Kubernetes affinity rules |
+| `posthog.apiKey` | `''` | Project token (`phc_...`). Stored in a chart-managed Secret |
+| `posthog.existingSecret` | `''` | Name of an existing Secret with a `posthog-api-key` key. Takes precedence over `apiKey` |
+| `posthog.host` | `https://us.i.posthog.com` | PostHog ingestion origin. Set to `https://eu.i.posthog.com` for EU Cloud |
+| `scrape.interval` | `15s` | How often to scrape targets |
+| `scrape.annotationDiscovery` | `true` | Discover pods via `prometheus.io/scrape` annotations |
+| `scrape.staticTargets` | `[]` | Fixed `host:port` targets, e.g. `['my-svc:9090']` |
+| `scrape.extraScrapeConfigs` | `''` | Raw Prometheus `scrape_configs` YAML appended verbatim |
+| `shards` | `1` | Agent fleet size. Above 1, a StatefulSet partitions targets so each is scraped once |
+| `persistence.enabled` | `false` | Buffer undelivered batches on a persistent volume so restarts lose nothing |
+| `persistence.size` | `10Gi` | Size of each agent's queue volume |
+| `persistence.storageClass` | `''` | StorageClass for the queue volume. Empty uses the cluster default |
+| `podEnv` | `{}` | Extra environment variables for the agent container |
+| `resources.requests.cpu` | `100m` | CPU request |
+| `resources.requests.memory` | `256Mi` | Memory request |
+| `resources.limits.memory` | `512Mi` | Memory limit |
+| `rbac.create` | `true` | Create a ClusterRole for pod discovery |
+| `serviceAccount.create` | `true` | Create a dedicated ServiceAccount |
+| `serviceAccount.name` | `''` | Override the ServiceAccount name. Required when `serviceAccount.create` is `false` |
+| `nodeSelector` | `{}` | Kubernetes node selector |
+| `tolerations` | `[]` | Kubernetes tolerations |
+| `affinity` | `{}` | Kubernetes affinity rules |
 
 ### Still have questions?
 

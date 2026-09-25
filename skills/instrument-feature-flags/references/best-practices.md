@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Best practices for production-ready flags - Docs
-
-Copy page
-
-# Best practices for production-ready flags - Docs
+# Best practices for production-ready flags
 
 ## Checklist
 
@@ -30,8 +26,6 @@ Copy page
 
 A flag hashes two things – the **flag key** and the **distinct ID** – and returns a deterministic result. Same inputs, same output. Every time.
 
-PostHog AI
-
 ```
 hash("my-experiment", "user-123") → 0.31 → always 0.31
 ```
@@ -45,8 +39,6 @@ On top of that, PostHog layers property targeting (does this user match?), rollo
 ### How the hash works
 
 PostHog uses SHA-1:
-
-PostHog AI
 
 ```
 hash_key = "{flag_key}.{distinct_id}"
@@ -139,8 +131,6 @@ If you can't bootstrap, use `onFeatureFlags()` to wait. This means you will need
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 // Returns undefined before flags load – not false
 if (posthog.getFeatureFlag('my-experiment') === 'test') {
@@ -187,8 +177,6 @@ Ad blockers can disable your Feature Flags, leading to users seeing the wrong ve
 The more locations a flag appears in your code, the more likely it is to cause problems – a developer removes it in one place but forgets another. If you use a flag in multiple places, wrap it in a single function:
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 function useBetaFeature() {

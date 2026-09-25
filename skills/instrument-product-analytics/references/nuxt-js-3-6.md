@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Nuxt.js (v3.0 to v3.6) - Docs
-
-Copy page
-
-# Nuxt.js (v3.0 to v3.6) - Docs
+# Nuxt.js (v3.0 to v3.6)
 
 PostHog makes it easy to get data about usage of your [Nuxt.js](https://nuxt.com/) app. Integrating PostHog into your app enables analytics about user behavior, custom events capture, session replays, feature flags, and more.
 
@@ -13,8 +9,6 @@ These docs are for Nuxt v3.0 to v3.6. You can see a working example of the Nuxt 
 ## Setting up PostHog on the client side
 
 1.  Install `posthog-js` using your package manager:
-
-PostHog AI
 
 ### npm
 
@@ -42,8 +36,6 @@ bun add posthog-js
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
 >
-> PostHog AI
->
 > ```
 > script-src 'self' https://*.posthog.com;
 > connect-src 'self' https://*.posthog.com;
@@ -56,8 +48,6 @@ bun add posthog-js
 
 .env
 
-PostHog AI
-
 ```shell
 NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN=<ph_project_token>
 NUXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
@@ -66,8 +56,6 @@ NUXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 Then reference them in your `nuxt.config.js` file:
 
 nuxt.config.js
-
-PostHog AI
 
 ```javascript
 export default defineNuxtConfig({
@@ -93,11 +81,11 @@ Either way, prefer reading keys from environment variables rather than hard-codi
 
 plugins/posthog.client.js
 
-PostHog AI
-
 ```javascript
 import { defineNuxtPlugin, useRuntimeConfig } from '#imports'
+
 import posthog from 'posthog-js'
+
 export default defineNuxtPlugin(() => {
   const runtimeConfig = useRuntimeConfig()
   const posthogClient = posthog.init(runtimeConfig.public.posthogToken, {
@@ -107,6 +95,7 @@ export default defineNuxtPlugin(() => {
       if (import.meta.env.MODE === 'development') posthog.debug()
     },
   })
+
   return {
     provide: {
       posthog: () => posthogClient,
@@ -118,8 +107,6 @@ export default defineNuxtPlugin(() => {
 PostHog can then be accessed throughout your Nuxt.js using the provider accessor, for example:
 
 Vue
-
-PostHog AI
 
 ```html
 <script setup>
@@ -139,8 +126,6 @@ See the [JavaScript SDK docs](/docs/libraries/js/usage.md) for all usable functi
 If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
 
 JavaScript
-
-PostHog AI
 
 ```javascript
 posthog.init('<ph_project_token>', {
@@ -186,8 +171,6 @@ An allowlist does not help when your app has a private address. For apps on an i
 
 Install `posthog-node` using your package manager:
 
-PostHog AI
-
 ### npm
 
 ```bash
@@ -216,8 +199,6 @@ Add your PostHog API key and host to your `nuxt.config.js` file, reading them fr
 
 nuxt.config.js
 
-PostHog AI
-
 ```javascript
 export default defineNuxtConfig({
   runtimeConfig: {
@@ -234,16 +215,16 @@ Initialize the PostHog Node client where you'd like to use it on the server side
 
 server/api/example.js
 
-PostHog AI
-
 ```javascript
-const runtimeConfig = useRuntimeConfig()
+  const runtimeConfig = useRuntimeConfig()
+
   const posthog = new PostHog(
     runtimeConfig.public.posthogToken,
     {
       host: runtimeConfig.public.posthogHost,
     }
   );
+
   posthog.capture({
     event: 'api_call',
     distinctId: distinctID,
@@ -253,6 +234,7 @@ const runtimeConfig = useRuntimeConfig()
     }
   })
   posthog.shutdown()
+
   return {
     message: "example response"
 ```

@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Go Error Tracking installation - Docs
-
-Copy page
-
-# Go Error Tracking installation - Docs
+# Go Error Tracking installation
 
 1.  1
 
@@ -15,8 +11,6 @@ Copy page
     Install the [PostHog Go SDK](/docs/libraries/go.md):
 
     Terminal
-
-    PostHog AI
 
     ```bash
     go get github.com/posthog/posthog-go
@@ -34,13 +28,13 @@ Copy page
 
     Go
 
-    PostHog AI
-
     ```go
     package main
+    
     import (
         "github.com/posthog/posthog-go"
     )
+    
     func main() {
         client, _ := posthog.NewWithConfig(
             "<ph_project_token>",
@@ -66,13 +60,12 @@ Copy page
 
     Go
 
-    PostHog AI
-
     ```go
     import (
         "time"
         "github.com/posthog/posthog-go"
     )
+    
     exception := posthog.NewDefaultException(
         time.Now(),
         "user_distinct_id",
@@ -86,15 +79,15 @@ Copy page
 
     Go
 
-    PostHog AI
-
     ```go
     import (
         "time"
         "github.com/posthog/posthog-go"
     )
+    
     handled := true
     fingerprint := "my-custom-fingerprint"
+    
     exception := posthog.Exception{
         DistinctId: "user_distinct_id",
         Timestamp:  time.Now(),
@@ -122,16 +115,16 @@ Copy page
 
     Go
 
-    PostHog AI
-
     ```go
     import (
         "context"
         "fmt"
         "log/slog"
         "os"
+    
         "github.com/posthog/posthog-go"
     )
+    
     client, _ := posthog.NewWithConfig(
         "<ph_project_token>",
         posthog.Config{
@@ -139,15 +132,18 @@ Copy page
         },
     )
     defer client.Close()
+    
     baseHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
         Level: slog.LevelInfo,
     })
+    
     logger := slog.New(posthog.NewSlogCaptureHandler(baseHandler, client,
         posthog.WithDistinctIDFn(func(ctx context.Context, r slog.Record) string {
             // Return the user ID from context or another source
             return "user_distinct_id"
         }),
     ))
+    
     // This warning is automatically captured as an exception in PostHog
     logger.Warn("Something broke",
         "error", fmt.Errorf("connection refused"),
@@ -158,12 +154,12 @@ Copy page
 
     | Option | Description | Default |
     | --- | --- | --- |
-    | WithMinCaptureLevel(level) | Minimum log level to capture | slog.LevelWarn |
-    | WithDistinctIDFn(fn) | Function to extract distinct ID from context/record | Returns "" (skips capture) |
-    | WithFingerprintFn(fn) | Custom fingerprint for error grouping | nil (PostHog assigns) |
-    | WithSkip(n) | Stack frames to skip | 5 |
-    | WithStackTraceExtractor(e) | Custom stack trace extractor | DefaultStackTraceExtractor |
-    | WithDescriptionExtractor(e) | Custom description extractor | ErrorExtractor |
+    | `WithMinCaptureLevel(level)` | Minimum log level to capture | `slog.LevelWarn` |
+    | `WithDistinctIDFn(fn)` | Function to extract distinct ID from context/record | Returns `""` (skips capture) |
+    | `WithFingerprintFn(fn)` | Custom fingerprint for error grouping | `nil` (PostHog assigns) |
+    | `WithSkip(n)` | Stack frames to skip | `5` |
+    | `WithStackTraceExtractor(e)` | Custom stack trace extractor | `DefaultStackTraceExtractor` |
+    | `WithDescriptionExtractor(e)` | Custom description extractor | `ErrorExtractor` |
 
     **Error extraction**
 
@@ -179,8 +175,6 @@ Copy page
 
     Go
 
-    PostHog AI
-
     ```go
     exception := posthog.NewDefaultException(
         time.Now(),
@@ -189,6 +183,7 @@ Copy page
         "This is a test exception from Go",
     )
     client.Enqueue(exception)
+    
     // Flush the queue before exiting
     client.Close()
     ```

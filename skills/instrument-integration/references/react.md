@@ -1,14 +1,10 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# React - Docs
-
-Copy page
-
-# React - Docs
+# React
 
 PostHog makes it easy to get data about traffic and usage of your React app. Integrating PostHog into your site enables analytics about user behavior, custom events capture, session recordings, feature flags, and more.
 
-This guide walks you through an example integration of PostHog using vanilla React and the [posthog-js library](/docs/integrate/client/js.md).
+This guide walks you through an example integration of PostHog using vanilla React and the [posthog-js library](/docs/libraries/js.md).
 
 ## Using a framework?
 
@@ -36,8 +32,6 @@ Or, to integrate manually, continue with the rest of this guide.
 
 1.  Install [`posthog-js`](https://github.com/posthog/posthog-js) and `@posthog/react` using your package manager:
 
-PostHog AI
-
 ### npm
 
 ```bash
@@ -64,8 +58,6 @@ bun add posthog-js @posthog/react
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
 >
-> PostHog AI
->
 > ```
 > script-src 'self' https://*.posthog.com;
 > connect-src 'self' https://*.posthog.com;
@@ -78,8 +70,6 @@ bun add posthog-js @posthog/react
 
 .env.local
 
-PostHog AI
-
 ```shell
 VITE_POSTHOG_PROJECT_TOKEN=<ph_project_token>
 VITE_POSTHOG_HOST=https://us.i.posthog.com
@@ -89,8 +79,6 @@ VITE_POSTHOG_HOST=https://us.i.posthog.com
 
 React
 
-PostHog AI
-
 ```jsx
 // src/main.jsx
 import { StrictMode } from 'react'
@@ -99,10 +87,12 @@ import './index.css'
 import App from './App.jsx'
 import posthog from 'posthog-js';
 import { PostHogProvider } from '@posthog/react'
+
 posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {
   api_host: import.meta.env.VITE_POSTHOG_HOST,
   defaults: '2026-05-30',
 });
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <PostHogProvider client={posthog}>
@@ -136,18 +126,18 @@ The provider takes an initialized and configured client instance like this:
 
 React
 
-PostHog AI
-
 ```jsx
 // src/index.js
 import posthog from 'posthog-js';
 import { PostHogProvider} from '@posthog/react'
+
 posthog.init(process.env.REACT_APP_PUBLIC_POSTHOG_PROJECT_TOKEN, {
   api_host: process.env.REACT_APP_PUBLIC_POSTHOG_HOST,
   defaults: '2026-05-30',
   // Optional: send PostHog session/user context to your backend
   tracing_headers: ['api.example.com'],
 });
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
@@ -174,17 +164,17 @@ If your React app calls your own backend, `tracing_headers` adds `X-POSTHOG-DIST
 
 React
 
-PostHog AI
-
 ```jsx
 import { usePostHog } from '@posthog/react'
 import { useEffect } from 'react'
 import { useUser, useLogin } from '../lib/user'
+
 function App() {
     // `usePostHog`, like other React contexts, must be called at the top level of your component
     const posthog = usePostHog()
     const login = useLogin()
     const user = useUser()
+
     useEffect(() => {
         if (user) {
             // Identify sends an event, so you may want to limit how often you call it
@@ -194,10 +184,12 @@ function App() {
             posthog?.group('company', user.company_id)
         }
     }, [posthog, user.id, user.email, user.company_id])
+
     const loginClicked = () => {
         posthog?.capture('clicked_log_in')
         login()
     }
+
     return (
         <div className="App">
             {/* Fire a custom event when the button is clicked */}
@@ -210,6 +202,7 @@ function App() {
         </div>
     )
 }
+
 export default App
 ```
 
@@ -221,11 +214,10 @@ To fix this error, add a check that posthog has been initialized such as:
 
 React
 
-PostHog AI
-
 ```jsx
 useEffect(() => {
   posthog?.capture('test') // using optional chaining (recommended)
+
   if (posthog) {
     posthog.capture('test') // using an if statement
   }
@@ -244,10 +236,9 @@ The component wraps your content and sends a `$element_viewed` event to PostHog 
 
 React
 
-PostHog AI
-
 ```jsx
 import { PostHogCaptureOnViewed } from '@posthog/react'
+
 function App() {
     return (
         <PostHogCaptureOnViewed name="hero-banner">
@@ -262,8 +253,6 @@ function App() {
 You can include additional properties with the event to provide more context:
 
 React
-
-PostHog AI
 
 ```jsx
 <PostHogCaptureOnViewed
@@ -284,8 +273,6 @@ Use `trackAllChildren` to track each child element separately. This is useful fo
 
 React
 
-PostHog AI
-
 ```jsx
 <PostHogCaptureOnViewed
     name="product-gallery"
@@ -305,8 +292,6 @@ When `trackAllChildren` is enabled, each child element sends its own event with 
 You can customize when elements are considered "viewed" by passing options to the `IntersectionObserver`:
 
 React
-
-PostHog AI
 
 ```jsx
 <PostHogCaptureOnViewed
@@ -337,22 +322,22 @@ PostHog provides several hooks to make it easy to use feature flags in your Reac
 
 | Hook | Description |
 | --- | --- |
-| useFeatureFlagEnabled | Returns whether the feature flag is enabled. This sends a $feature_flag_called event. Without a default value, it returns boolean \\\| undefined while flags are loading or absent. Pass an optional default value to return that value instead and narrow the return type to boolean. |
-| useFeatureFlagVariantKey | Returns the variant key of the feature flag. This sends a $feature_flag_called event. |
-| useActiveFeatureFlags | Returns an array of active feature flags. This does not send a $feature_flag_called event. |
-| useFeatureFlagPayload | Returns the payload of the feature flag. This does not send a $feature_flag_called event. Always use this with useFeatureFlagEnabled or useFeatureFlagVariantKey. |
+| `useFeatureFlagEnabled` | Returns whether the feature flag is enabled. This sends a `$feature_flag_called` event. Without a default value, it returns `boolean \| undefined` while flags are loading or absent. Pass an optional default value to return that value instead and narrow the return type to `boolean`. |
+| `useFeatureFlagVariantKey` | Returns the variant key of the feature flag. This sends a `$feature_flag_called` event. |
+| `useActiveFeatureFlags` | Returns an array of active feature flags. This does *not* send a `$feature_flag_called` event. |
+| `useFeatureFlagPayload` | Returns the payload of the feature flag. This does *not* send a `$feature_flag_called` event. Always use this with `useFeatureFlagEnabled` or `useFeatureFlagVariantKey`. |
 
 #### Example 1: Using a boolean feature flag
 
 React
 
-PostHog AI
-
 ```jsx
 import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
+
 function App() {
   const showWelcomeMessage = useFeatureFlagEnabled('flag-key')
   const payload = useFeatureFlagPayload('flag-key')
+
   return (
     <div className="App">
       {
@@ -371,14 +356,13 @@ function App() {
     </div>
   );
 }
+
 export default App;
 ```
 
 To avoid handling `undefined` while flags are loading, pass a default value as the second argument:
 
 React
-
-PostHog AI
 
 ```jsx
 const showWelcomeMessage = useFeatureFlagEnabled('flag-key', false)
@@ -388,10 +372,9 @@ const showWelcomeMessage = useFeatureFlagEnabled('flag-key', false)
 
 React
 
-PostHog AI
-
 ```jsx
 import { useFeatureFlagVariantKey } from '@posthog/react'
+
 function App() {
   const variantKey = useFeatureFlagVariantKey('show-welcome-message')
   let welcomeMessage = ''
@@ -400,6 +383,7 @@ function App() {
   } else if (variantKey === 'variant-b') {
     welcomeMessage = 'Welcome to the Beta!'
   }
+
   return (
     <div className="App">
       {
@@ -418,6 +402,7 @@ function App() {
     </div>
   );
 }
+
 export default App;
 ```
 
@@ -429,13 +414,13 @@ The `useFeatureFlagPayload` hook does *not* send a [`$feature_flag_called`](http
 
 React
 
-PostHog AI
-
 ```jsx
 import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
+
 function App() {
   const variant = useFeatureFlagEnabled('show-welcome-message')
   const payload = useFeatureFlagPayload('show-welcome-message')
+
     return (
                 <>
                 {
@@ -466,11 +451,11 @@ Here is an example:
 
 React
 
-PostHog AI
-
 ```jsx
 import { PostHogFeature } from '@posthog/react'
+
 function App() {
+
     return (
         <PostHogFeature flag='show-welcome-message' match={true}>
             <div>
@@ -494,11 +479,11 @@ If your flag has a payload, you can pass a function to children whose first argu
 
 React
 
-PostHog AI
-
 ```jsx
 import { PostHogFeature } from '@posthog/react'
+
 function App() {
+
     return (
         <PostHogFeature flag='show-welcome-message' match={true}>
            {(payload) => {
@@ -520,8 +505,6 @@ You can configure the `feature_flag_request_timeout_ms` parameter when initializ
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
@@ -537,8 +520,6 @@ When using the PostHog SDK, it's important to handle potential errors that may o
 
 JavaScript
 
-PostHog AI
-
 ```javascript
 function handleFeatureFlag(client, flagKey, distinctId) {
     try {
@@ -552,6 +533,7 @@ function handleFeatureFlag(client, flagKey, distinctId) {
         throw error;
     }
 }
+
 // Usage example
 try {
     const flagEnabled = handleFeatureFlag(client, 'new-feature', 'user-123');
@@ -581,21 +563,23 @@ Since [experiments](/docs/experiments/start-here.md) use feature flags, the code
 
 React
 
-PostHog AI
-
 ```jsx
 // You can either use the `useFeatureFlagVariantKey` hook,
 // or you can use the feature flags component - /docs/libraries/react#feature-flags-react-component
+
 // Method one: using the useFeatureFlagVariantKey hook
 import { useFeatureFlagVariantKey } from '@posthog/react'
+
 function App() {
     const variant = useFeatureFlagVariantKey('experiment-feature-flag-key')
     if (variant == 'variant-name') {
         // do something
     }
 }
+
 // Method two: using the feature flags component
 import { PostHogFeature } from '@posthog/react'
+
 function App() {
     return (
         <PostHogFeature flag='experiment-feature-flag-key' match={'variant-name'}>
@@ -603,6 +587,7 @@ function App() {
         </PostHogFeature>
     )
 }
+
 // You can also test your code by overriding the feature flag:
 // e.g., posthog.featureFlags.overrideFeatureFlags({ flags: {'experiment-feature-flag-key': 'test'}})
 ```

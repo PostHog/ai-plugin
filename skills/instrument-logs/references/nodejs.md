@@ -1,10 +1,6 @@
 > AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
 
-# Node.js Logs installation - Docs
-
-Copy page
-
-# Node.js Logs installation - Docs
+# Node.js Logs installation
 
 1.  1
 
@@ -13,8 +9,6 @@ Copy page
     Required
 
     Terminal
-
-    PostHog AI
 
     ```bash
     npm install @opentelemetry/sdk-node @opentelemetry/exporter-logs-otlp-http @opentelemetry/api-logs @opentelemetry/resources @opentelemetry/sdk-logs
@@ -42,26 +36,28 @@ Copy page
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     import { NodeSDK } from '@opentelemetry/sdk-node';
     import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
     import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
     import { resourceFromAttributes } from '@opentelemetry/resources';
+    
     const sdk = new NodeSDK({
       resource: resourceFromAttributes({
         'service.name': 'my-node-service',
       }),
-      logRecordProcessor: new BatchLogRecordProcessor(
-        new OTLPLogExporter({
-          url: 'https://us.i.posthog.com/i/v1/logs',
-          headers: {
-            'Authorization': 'Bearer <ph_project_token>'
-          }
+      logRecordProcessors: [
+        new BatchLogRecordProcessor({
+          exporter: new OTLPLogExporter({
+            url: 'https://us.i.posthog.com/i/v1/logs',
+            headers: {
+              'Authorization': 'Bearer <ph_project_token>'
+            }
+          })
         })
-      )
+      ]
     });
+    
     sdk.start();
     ```
 
@@ -69,15 +65,15 @@ Copy page
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     const sdk = new NodeSDK({
-      logRecordProcessor: new BatchLogRecordProcessor(
-        new OTLPLogExporter({
-          url: 'https://us.i.posthog.com/i/v1/logs?token=<ph_project_token>'
+      logRecordProcessors: [
+        new BatchLogRecordProcessor({
+          exporter: new OTLPLogExporter({
+            url: 'https://us.i.posthog.com/i/v1/logs?token=<ph_project_token>'
+          })
         })
-      )
+      ]
     });
     ```
 
@@ -91,11 +87,11 @@ Copy page
 
     JavaScript
 
-    PostHog AI
-
     ```javascript
     import { logs } from '@opentelemetry/api-logs';
+    
     const logger = logs.getLogger('my-app');
+    
     // Log with different levels and attributes
     logger.emit({ severityText: 'trace', body: 'log data', attributes: {'my_attribute': 'stringValue'} });
     logger.emit({ severityText: 'warn', body: 'log data', attributes: {'warning_count': 3} });
@@ -124,12 +120,12 @@ Copy page
 
     | Action | Description |
     | --- | --- |
-    | [Why you need logs](/docs/logs/basics.md) | What logs show you that nothing else does |
-    | [Search logs](/docs/logs/search.md) | Use the search interface to find specific log entries |
-    | Filter by level | Filter by INFO, WARN, ERROR, etc. |
-    | [Link session replay](/docs/logs/link-session-replay.md) | Connect logs to users and session replays by passing posthogDistinctId and sessionId |
-    | [Link logs to a person](/docs/logs/link-person.md) | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | [Logging best practices](/docs/logs/best-practices.md) | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
+    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
     [Troubleshoot common issues](/docs/logs/troubleshooting.md)
 
