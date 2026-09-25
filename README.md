@@ -58,6 +58,10 @@ Install it instead of the `posthog` plugin, not alongside it. Both register the 
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add manually in Cursor Settings > Plugins.
 
+### Grok Bot
+
+PostHog is listed in the Grok Bot plugin marketplace (desktop and mobile). Open **Plugins**, search for **PostHog**, and install. On first use, Grok Bot prompts you to authorize in your browser; log into PostHog to connect. No MCP URL or API key is needed.
+
 ### Codex
 
 1. Add the marketplace:
