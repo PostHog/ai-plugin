@@ -1,6 +1,18 @@
 {
-  "description": "PostHog LLM Analytics + permission gating for write commands via mcp__posthog__exec",
+  "description": "PostHog LLM Analytics + permission gating for write commands via mcp__posthog__exec + anonymous skill-usage telemetry",
   "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}/hooks/skill-invoked.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "hooks": [
