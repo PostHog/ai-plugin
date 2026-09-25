@@ -480,6 +480,7 @@ mapAdd
 mapApply
 mapContains
 mapContainsKeyLike
+mapExists
 mapExtractKeyLike
 mapFilter
 mapFromArrays
