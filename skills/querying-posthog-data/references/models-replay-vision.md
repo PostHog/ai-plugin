@@ -13,7 +13,7 @@ One-off inline scans are not listed.
 
 Column | Type | Nullable | Description
 --- | --- | --- | ---
-`id` | String | NOT NULL | Scanner UUID.
+`id` | UUID | NOT NULL | Scanner UUID. Cast with toString(id) to join on a string property such as scanner_id.
 `team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Scanner name, unique within the project.
 `description` | String | NOT NULL | Free-text description; blank when unset.
@@ -36,6 +36,17 @@ Column | Type | Nullable | Description
 ### Key Relationships
 
 - `$recording_observed` events carry the scanner as `properties.scanner_id` and the recording as `properties.session_id`
+
+To join scanners to their observations, cast the UUID `id`, since `properties.scanner_id` is a string:
+
+```sql
+SELECT s.name, count() AS observations
+FROM events e
+JOIN system.replay_scanners s ON toString(s.id) = e.properties.scanner_id
+WHERE e.event = '$recording_observed' AND e.timestamp > now() - INTERVAL 7 DAY
+GROUP BY s.name
+ORDER BY observations DESC
+```
 
 ### Important Notes
 
