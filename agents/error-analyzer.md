@@ -16,8 +16,8 @@ Analyze multiple errors from PostHog to identify patterns and prioritize fixes.
 
 ## Workflow
 
-1. Use `list-errors` to fetch recent errors
-2. Use `error-details` to get details on each error
+1. Follow the `triaging-error-issues` skill to list and rank recent errors (`posthog:query-error-tracking-issues-list`)
+2. Follow the `investigating-error-issue` skill for each issue worth a closer look (`posthog:query-error-tracking-issue`, `posthog:query-error-tracking-issue-events`)
 3. Analyze patterns (common stack traces, affected users, timing)
 4. Prioritize by user impact
 5. Provide actionable recommendations
