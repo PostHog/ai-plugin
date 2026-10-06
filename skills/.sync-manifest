@@ -1,6 +1,7 @@
 adding-warehouse-person-properties
 analyzing-expensive-users
 analyzing-experiment-session-replays
+analyzing-offline-evaluations
 analyzing-task-runs
 assessing-heatmaps
 auditing-endpoints
@@ -38,8 +39,10 @@ creating-online-evaluations
 creating-replay-vision-scanners
 creating-surveys
 debugging-experiments
+debugging-failed-data-quality-checks
 debugging-surveys
 designing-email-templates
+designing-replay-vision-scanners
 diagnosing-ci-and-merge-bottlenecks
 diagnosing-endpoint-performance
 diagnosing-experiment-results
