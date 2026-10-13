@@ -25,8 +25,6 @@ Install PostHog for Next.js in seconds with our wizard by running this prompt wi
 
 `npx @posthog/wizard`
 
-[Learn more](/wizard.md)
-
 Or, to integrate manually, continue with the rest of this guide.
 
 ## Client-side setup

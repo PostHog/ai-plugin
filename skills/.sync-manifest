@@ -1,6 +1,7 @@
 adding-warehouse-person-properties
 analyzing-expensive-users
 analyzing-experiment-session-replays
+analyzing-offline-evaluations
 analyzing-task-runs
 assessing-heatmaps
 auditing-endpoints
@@ -38,11 +39,13 @@ creating-online-evaluations
 creating-replay-vision-scanners
 creating-surveys
 debugging-experiments
+debugging-failed-data-quality-checks
 debugging-surveys
 designing-email-templates
+designing-replay-vision-scanners
 diagnosing-ci-and-merge-bottlenecks
 diagnosing-endpoint-performance
-diagnosing-experiment-results
+diagnosing-experiment-health
 diagnosing-failed-warehouse-syncs
 diagnosing-missing-recordings
 diagnosing-sdk-health
@@ -107,6 +110,8 @@ review-hog-perspective-contracts-security
 review-hog-perspective-logic-correctness
 review-hog-perspective-performance-reliability
 review-hog-resolution-criteria
+review-hog-resolution-criteria-gaps
+review-hog-resolution-criteria-small
 review-hog-validation-criteria
 scanning-experiments-with-replay-vision
 setting-up-a-custom-rest-source
@@ -141,6 +146,7 @@ signals-scout-session-replay
 signals-scout-skills-store
 signals-scout-surveys
 signals-scout-tasks
+signals-scout-unused-features
 signals-scout-web-analytics
 signals-scout-web-vitals
 signals-scout-workflows
@@ -154,6 +160,7 @@ tuning-incremental-sync-config
 turning-engineering-analytics-into-insights
 understanding-billing-usage
 validating-and-publishing-canvases
+working-with-autoresearch
 working-with-scouts
 working-with-skills
 working-with-task-comments

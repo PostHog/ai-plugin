@@ -200,6 +200,16 @@
     }
     ```
 
+8.  7
+
+    ## Link releases
+
+    Optional
+
+    Great, you're capturing exceptions! To see which release each exception comes from, give your app the release ID when you deploy.
+
+    [Link releases](/docs/error-tracking/link-releases/php.md)
+
 ### Still have questions?
 
 Ask PostHog AI

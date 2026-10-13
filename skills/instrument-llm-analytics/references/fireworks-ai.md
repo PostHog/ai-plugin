@@ -12,8 +12,6 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
 `npx @posthog/wizard ai-observability`
 
-[Learn more](/wizard.md)
-
 ![PostHog Wizard hedgehog](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)
 
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)Let AI instrument your LLM calls for you
