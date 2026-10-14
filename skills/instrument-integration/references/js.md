@@ -128,6 +128,12 @@ pnpm update posthog-js
 yarn upgrade posthog-js
 ```
 
+### Bun
+
+```bash
+bun update posthog-js
+```
+
 Bundle all required extensions (advanced)
 
 By default, the JavaScript Web library only loads the core functionality. It lazy-loads extensions such as surveys or the session replay 'recorder' when needed.

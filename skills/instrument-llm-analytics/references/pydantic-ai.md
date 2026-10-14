@@ -12,8 +12,6 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
 `npx @posthog/wizard ai-observability`
 
-[Learn more](/wizard.md)
-
 ![PostHog Wizard hedgehog](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)
 
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/wizard_3f8bb7a240.png)Let AI instrument your LLM calls for you
@@ -114,6 +112,8 @@ Skip the manual setup — run this in your project and the wizard installs the S
     PostHog groups traces into a session when they share an `$ai_session_id`. Set it if your product has multi-turn conversations, so the Sessions tab can reconstruct them. Workloads that finish in a single trace, like batch jobs or one-shot generation, do not need it.
 
     The instrumentation creates the LLM span for you, so there is no call to pass the session ID to. Add a span processor that sets the `$ai_session_id` attribute as each span starts. PostHog forwards span attributes it does not recognize onto the event, so the value arrives as the `$ai_session_id` property.
+
+    If your instrumentation already sets the `gen_ai.conversation.id` attribute, PostHog uses it as the session ID and you can skip this step. An explicit `$ai_session_id` takes priority.
 
     Python
 

@@ -61,7 +61,7 @@ import PostHog
 
 // The project token is a public client-side key, so it's safe to ship in the
 // binary. Replace the placeholder with your token from the PostHog project settings.
-let config = PostHogConfig(apiKey: "<your-project-token>", host: "https://us.i.posthog.com")
+let config = PostHogConfig(projectToken: "<your-project-token>", host: "https://us.i.posthog.com")
 config.captureApplicationLifecycleEvents = true
 PostHogSDK.shared.setup(config)
 ```
@@ -143,8 +143,8 @@ PostHogSDK.shared.reset()
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios",
       "state" : {
-        "revision" : "1783865d79a1cabc472cf2d56a1fe3f797417b52",
-        "version" : "3.40.0"
+        "revision" : "835f624c2618d72d73650d0ed0029325232f5b0a",
+        "version" : "3.92.0"
       }
     }
   ],
@@ -280,7 +280,7 @@ struct BurritoConsiderationClientApp: App {
     @State private var userState = UserState()
 
     init() {
-        let config = PostHogConfig(apiKey: posthogProjectToken, host: posthogHost)
+        let config = PostHogConfig(projectToken: posthogProjectToken, host: posthogHost)
         config.captureApplicationLifecycleEvents = true
         config.debug = true
         PostHogSDK.shared.setup(config)

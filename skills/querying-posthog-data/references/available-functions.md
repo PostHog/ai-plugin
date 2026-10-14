@@ -319,6 +319,7 @@ groupBitmapState
 groupBitmapXor
 groupBitOr
 groupBitXor
+grouping
 groupUniqArray
 groupUniqArrayArray
 h3CellAreaM2
