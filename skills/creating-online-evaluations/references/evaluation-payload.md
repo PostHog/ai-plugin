@@ -11,8 +11,8 @@ schemas below are rendered from the backend Pydantic models at build time, so th
 | `description`         | no             | Defaults to `""`.                                                                    |
 | `evaluation_type`     | yes            | `"hog"`, `"llm_judge"`, or `"sentiment"`.                                            |
 | `evaluation_config`   | yes            | Shape depends on `evaluation_type` (below).                                           |
-| `output_type`         | yes            | `"boolean"` or `"numeric"` for `hog`/`llm_judge`; `"sentiment"` for `sentiment`.                    |
-| `output_config`       | no             | `{ "allows_na": bool, "true_is_failure": bool }` for boolean; numeric settings below; `{}` for sentiment. |
+| `output_type`         | yes            | `"boolean"`, `"numeric"`, or `"categorical"` for `hog`/`llm_judge`; `"sentiment"` for `sentiment`. |
+| `output_config`       | no             | `{ "allows_na": bool, "true_is_failure": bool }` for boolean; numeric and categorical settings below; `{}` for sentiment. |
 | `model_configuration` | llm_judge only | Provider + model; key ID optional. Rejected on `hog`/`sentiment`.                     |
 | `target`              | no             | `"generation"` (default), `"trace"`, or `"session"`. Sentiment supports only `"generation"`. |
 | `target_config`       | trace/session only | Settle config discriminated on `strategy` (below); defaults to a 30-minute fixed window for `trace`, and to a 1-hour inactivity window for `session`. |
@@ -20,9 +20,9 @@ schemas below are rendered from the backend Pydantic models at build time, so th
 | `enabled`             | no             | Defaults to `false`. Create disabled, then flip with `llma-evaluation-update`.         |
 
 Valid `(evaluation_type, output_type)` pairs: `(hog, boolean)`, `(llm_judge, boolean)`,
-`(hog, numeric)`, `(llm_judge, numeric)`, `(sentiment, sentiment)`.
+`(hog, numeric)`, `(llm_judge, numeric)`, `(hog, categorical)`, `(llm_judge, categorical)`,
+`(sentiment, sentiment)`.
 The output type cannot change after creation.
-Numeric evaluations require the `llm-analytics-numeric-evaluations` rollout flag for the project. Existing numeric evaluations remain editable when it is off.
 
 ## `target` and `target_config`
 
@@ -65,6 +65,23 @@ Numeric evaluations require the `llm-analytics-numeric-evaluations` rollout flag
       "minLength": 1,
       "title": "Prompt",
       "type": "string"
+    },
+    "judge_method": {
+      "anyOf": [
+        {
+          "enum": [
+            "llm",
+            "decision"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Judge method. Omit to keep the saved method; null restores automatic routing.",
+      "title": "Judge Method"
     }
   },
   "required": [
@@ -249,6 +266,108 @@ Optional `min` and `max` are inclusive; an out-of-bounds score skips that run.
 Set `passing_rule` to `{"operator": "gte", "threshold": 7}` (at least 7) or use `lte` (at most).
 Without a passing rule, scores remain ungraded and reports are unavailable.
 Changing the rule reinterprets historical scores; previously generated reports stay unchanged.
+
+### categorical output
+
+```json
+{
+  "$defs": {
+    "CategoricalOption": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(?:[_-][a-z0-9]+)*$",
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "label"
+      ],
+      "title": "CategoricalOption",
+      "type": "object"
+    },
+    "CategoricalPassingRule": {
+      "additionalProperties": false,
+      "properties": {
+        "categories": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Categories",
+          "type": "array"
+        }
+      },
+      "required": [
+        "categories"
+      ],
+      "title": "CategoricalPassingRule",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "options": {
+      "items": {
+        "$ref": "#/$defs/CategoricalOption"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Options",
+      "type": "array"
+    },
+    "selection_mode": {
+      "default": "single",
+      "enum": [
+        "single",
+        "multiple"
+      ],
+      "title": "Selection Mode",
+      "type": "string"
+    },
+    "allows_na": {
+      "default": false,
+      "title": "Allows Na",
+      "type": "boolean"
+    },
+    "passing_rule": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CategoricalPassingRule"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "options"
+  ],
+  "title": "CategoricalOutputConfig",
+  "type": "object"
+}
+```
+
+`options` holds 1 to 100 `{key, label}` pairs. Keys are unique lowercase identifiers (`a-z`, `0-9`, `_`, `-`)
+and are what results store; labels are for display. Keep a key stable when you rename its label.
+`selection_mode` is `single` (each result has exactly one key) or `multiple` (zero or more keys).
+Hog returns a list of keys, or a single key string in `single` mode; `null` is N/A when `allows_na` is true.
+Set `passing_rule` to `{"categories": ["no_problem"]}`: a result passes when it has at least one key and every
+key is a passing key, so an empty result fails.
+In `multiple` mode, `{"categories": []}` passes only empty results, which fits detectors where every key is a problem.
+Without a passing rule, results are recorded but there are no pass rates or reports.
+Changing the rule reclassifies historical results; previously generated reports stay unchanged.
 
 ### sentiment output
 

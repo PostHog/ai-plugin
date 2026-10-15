@@ -12,8 +12,6 @@ Install PostHog for Rails in seconds with our wizard by running this prompt with
 
 `npx @posthog/wizard`
 
-[Learn more](/wizard.md)
-
 Or, to integrate manually, continue with the rest of this guide.
 
 ## Features

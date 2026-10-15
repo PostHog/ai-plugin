@@ -2,7 +2,7 @@
 
 # PostHog Python SDK
 
-**SDK Version:** 7.60.0
+**SDK Version:** 7.68.0
 
 Integrate PostHog into any python application.
 
@@ -1242,7 +1242,7 @@ Capture exception is idempotent - if it is called twice with the same exception 
 
 ### Parameters
 
-- **`exception`** (`BaseException`) - The exception to capture. If not provided, the current exception is captured via `sys.exc_info()`     **kwargs: Optional capture arguments including distinct_id, properties,         timestamp, uuid, groups, flags, send_feature_flags, and disable_geoip.
+- **`exception`** (`BaseException`) - The exception to capture. If not provided, the current exception is captured via `sys.exc_info()`     **kwargs: Optional capture arguments including distinct_id, properties,         timestamp, uuid, groups, flags, send_feature_flags, and disable_geoip.         Overriding reserved exception properties through ``properties`` is         deprecated and will stop working in the next major version.
 - **`kwargs?`** (`Unpack[OptionalCaptureArgs]`)
 
 ### Returns

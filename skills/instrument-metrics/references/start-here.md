@@ -4,7 +4,7 @@
 
 **Metrics is in open alpha**
 
-Any team can turn on metrics: open [Metrics](https://app.posthog.com/metrics) in PostHog and select **Enable metrics** in the onboarding view. See [turn on metrics](/docs/metrics.md#turn-on-metrics) for the full flow. Setup details, including the ingestion endpoint, may change before general availability.
+Any team can turn on metrics: open [Metrics](https://app.posthog.com/metrics) in PostHog and select **Enable metrics** in the onboarding view. See [turn on metrics](/docs/metrics.md#turn-on-metrics) for the full flow. Setup details, including the ingestion endpoint, may change before general availability. During the alpha, PostHog keeps metrics data for 30 days.
 
 ## Send your first metrics
 
