@@ -163,6 +163,18 @@
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 
+9.  7
+
+    ## Link releases
+
+    Optional
+
+    Great, you're capturing exceptions! To see which release each exception comes from, give your app the release ID when you deploy.
+
+    Let's continue to the next section.
+
+    [Link releases](/docs/error-tracking/link-releases/python.md)
+
 ### Still have questions?
 
 Ask PostHog AI

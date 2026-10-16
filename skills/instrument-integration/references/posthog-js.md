@@ -977,6 +977,32 @@ posthog.getSurveys(callback, false)
 
 ---
 
+#### onActiveMatchingSurveysChanged()
+
+**Release Tag:** public
+
+Register an event listener that runs when the set of active matching surveys changes. The listener receives the initial matching set and updates after event/action triggers, cancellation, consumption, session expiry, definitions refresh, captured pageviews, feature-flag updates, marking a survey as seen, and reset. Unchanged results are suppressed.
+URL conditions are re-evaluated on captured `$pageview` events, including automatic SPA pageviews when `capture_pageview` is `'history_change'`. With automatic pageviews disabled, capture `$pageview` after navigation. This does not observe arbitrary DOM mutations or time passing; selector, device and wait-period conditions are checked on the supported updates.
+The optional callback context distinguishes load errors from a successfully loaded empty result. New subscribers receive the current snapshot without replaying earlier errors: a settled unavailable state is `([], { isLoaded: false })`, while usable cached definitions are evaluated normally. An initial load already in progress delivers when it resolves. Recoverable load failures keep the subscription alive. Unsubscribing prevents any further delivery, including callbacks from an outstanding initial request.
+
+### Parameters
+
+- **`callback`** (`SurveyCallback`) - The callback to call with active matching surveys.
+
+### Returns
+
+- `() => void`
+
+### Examples
+
+```ts
+const unsubscribe = posthog.onActiveMatchingSurveysChanged((surveys) => {
+    // respond to changes in currently matching surveys
+})
+```
+
+---
+
 #### onSurveysLoaded()
 
 **Release Tag:** public

@@ -22,8 +22,6 @@ Install PostHog for React in seconds with our wizard by running this prompt with
 
 `npx @posthog/wizard`
 
-[Learn more](/wizard.md)
-
 Or, to integrate manually, continue with the rest of this guide.
 
 ## Installation
@@ -102,9 +100,9 @@ createRoot(document.getElementById('root')).render(
 )
 ```
 
-**Don't directly import PostHog**
+**Use the usePostHog hook in components**
 
-Do not directly import `posthog` apart from installation as shown above. This will likely cause errors as the library might not be initialized yet. Initialization is handled automatically when you use the `PostHogProvider` and `usePostHog` hook.
+Inside React components, use the `usePostHog` hook to access PostHog. Outside components, you can import `posthog` directly, as long as it's the instance you initialized above. Events captured before `posthog.init()` runs are dropped.
 
 ## Identifying users
 
@@ -154,9 +152,11 @@ By default, the `posthog-js` library automatically captures pageviews, element c
 
 To call PostHog methods for actions like identifying users, capturing events, using feature flags, or using other features, you can access the initialized `posthog-js` library using the `usePostHog` hook.
 
-**Don't directly import PostHog**
+**Using PostHog outside React components**
 
-Always use the `usePostHog` hook to access the PostHog library. Directly importing `posthog` will likely cause errors as the library might not be initialized yet. Initialization is handled automatically when you use the `PostHogProvider` and hook.
+Inside React components, use the `usePostHog` hook. It returns the client from the nearest `PostHogProvider`, so your components always use the instance you gave the provider.
+
+Outside React components, such as in utility modules or API clients, you can import `posthog` from `posthog-js` directly, as long as it's the same instance you initialized and passed to `PostHogProvider` as shown above. Events captured before `posthog.init()` runs are dropped, so make sure initialization happens first. If you pass the provider a different client instance, import that instance instead.
 
 All the methods of the library are available and can be used as described in the [posthog-js documentation](/docs/libraries/js.md).
 

@@ -12,8 +12,6 @@ Install PostHog for Django in seconds with our wizard by running this prompt wit
 
 `npx @posthog/wizard`
 
-[Learn more](/wizard.md)
-
 Or, to integrate manually, continue with the rest of this guide.
 
 > These docs cover version `7.x` of the Python SDK, which requires Python 3.10 or higher. On Python 3.9? See [supported versions](#supported-versions).

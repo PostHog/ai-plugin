@@ -12,11 +12,11 @@ If you're using a JavaScript or TypeScript framework, set up source map uploadin
 
 `npx @posthog/wizard upload-source-maps`
 
-[Learn more](/wizard.md)
-
 Otherwise, choose your platform below for manual instructions.
 
 ## Platforms
+
+Python, Ruby, and PHP apps have no source maps to upload. To link their exceptions to releases, see [link releases](/docs/error-tracking/link-releases.md).
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/js.svg)Web](/docs/error-tracking/upload-source-maps/web.md)
 

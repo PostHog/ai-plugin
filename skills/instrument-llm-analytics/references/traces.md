@@ -11,6 +11,8 @@ Traces are a collection of [generations](/docs/ai-observability/generations.md) 
 
 See the [Sessions](/docs/ai-observability/sessions.md) documentation for more details on how to use `$ai_session_id`.
 
+If you also send OpenTelemetry spans to [Distributed tracing](/docs/distributed-tracing.md), you can set `$ai_trace_id` to the trace ID of the surrounding span and correlate the two products. See [Link traces to AI Observability](/docs/distributed-tracing/link-ai-observability.md).
+
 ## Trace timeline
 
 Clicking on a trace opens a timeline of the interaction with all the generation and span events. The trace timeline enables you to see the entire conversation, profiling details, and the individual generations and spans.
