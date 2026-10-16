@@ -699,6 +699,7 @@ rowNumberInAllBlocks
 rowNumberInBlock
 rpad
 rtrim
+sha1
 sign
 simpleLinearRegression
 sin

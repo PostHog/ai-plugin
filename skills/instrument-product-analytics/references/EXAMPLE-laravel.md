@@ -195,7 +195,7 @@ The `/api/test-error` endpoint demonstrates manual exception capture. Use `?capt
 ## Project Structure
 
 ```
-basics/laravel/
+example-apps/laravel/
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/
@@ -1251,7 +1251,7 @@ This document summarizes the implementation of the Laravel PostHog example appli
 ## 📁 File Structure
 
 ```
-basics/laravel/
+example-apps/laravel/
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/

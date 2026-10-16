@@ -85,7 +85,7 @@ The app tracks these events in PostHog:
 ## Code Structure
 
 ```
-basics/python/
+example-apps/python/
 ├── todo.py              # Main CLI application
 ├── requirements.txt     # Python dependencies
 ├── .env.example        # Environment variable template

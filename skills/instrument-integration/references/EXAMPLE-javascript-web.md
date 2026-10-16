@@ -68,7 +68,7 @@ The app tracks these custom events in PostHog (in addition to autocaptured click
 ## Code Structure
 
 ```
-basics/javascript/
+example-apps/javascript-web/
 ├── index.html           # Entry HTML page
 ├── package.json         # Dependencies (posthog-js, vite)
 ├── vite.config.js       # Vite configuration

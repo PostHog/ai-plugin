@@ -91,7 +91,7 @@ The app tracks these events in PostHog:
 ## Code structure
 
 ```
-basics/javascript-node/
+example-apps/javascript-node/
 ├── todo.js              # Express server with PostHog tracking
 ├── package.json         # Node.js dependencies
 ├── .env.example         # Environment variable template
