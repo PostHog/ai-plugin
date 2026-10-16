@@ -13,6 +13,8 @@ on:
 jobs:
   sync-skills:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Generate GitHub App token
         id: app-token
@@ -159,10 +161,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
-      - name: Create PR with auto-merge
+      - name: Create and approve PR with auto-merge
         if: steps.check.outputs.has_changes == 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_APPROVAL_TOKEN: ${{ github.token }}
           COMMIT_MESSAGE: ${{ steps.check.outputs.commit_message }}
           BASE_REF: ${{ steps.branch.outputs.base }}
           HEAD_REF: ${{ steps.branch.outputs.branch }}
@@ -172,4 +175,5 @@ jobs:
             --head "$HEAD_REF" \
             --title "$COMMIT_MESSAGE" \
             --body "Automated skill sync from PostHog release and context-mill.")
+          GH_TOKEN="$GH_APPROVAL_TOKEN" gh pr review "$PR_URL" --approve
           gh pr merge "$PR_URL" --auto --squash
