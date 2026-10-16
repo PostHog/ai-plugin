@@ -80,7 +80,7 @@ The app tracks these events in PostHog:
 ## Code Structure
 
 ```
-basics/php/
+example-apps/php/
 ├── todo.php             # Main CLI application
 ├── composer.json        # PHP dependencies
 ├── .env.example         # Environment variable template

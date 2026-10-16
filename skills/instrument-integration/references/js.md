@@ -214,6 +214,7 @@ posthog.init('<ph_project_token>', {
 | `ToolbarExtensions` | [Toolbar](/docs/toolbar.md) |
 | `LogsExtensions` | [Log capture](/docs/logs.md) |
 | `ConversationsExtensions` | [Support](/docs/support.md) |
+| `WebMCPExtensions` | [WebMCP tool call capture](/docs/mcp-analytics/installation/webmcp.md) for MCP Analytics. Add `ErrorTrackingExtensions` to also send failed calls to Error Tracking. |
 | `AllExtensions` | Everything (equivalent to the default `posthog-js` bundle) |
 
 **Note:** Each extension bundle includes its own dependencies. You don't need to worry about adding them separately.

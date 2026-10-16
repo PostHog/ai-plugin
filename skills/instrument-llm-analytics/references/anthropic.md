@@ -2,6 +2,400 @@
 
 # Anthropic AI Observability installation
 
+## Claude Platform Beta
+
+Claude Platform+PostHog
+
+### Become a trace explorer
+
+Send OpenTelemetry traces from Claude to PostHog with no extra code. Add PostHog as a destination in the Claude Console and run evals on live traces and ship fixes that actually make a difference.
+
+100K free events, every month
+
+![Explorer hedgehog holding a folded map](/images/docs/ai-observability/explorer-hedgehog.png)
+
+Click the map
+
+1.  1
+
+    ## Copy your project token
+
+    Required
+
+    Log in to see your project token here
+
+    [Log in to PostHog](https://app.posthog.com/login)[or open your project settings](https://app.posthog.com/settings/project#variables)
+
+    A personal API key (`phx_...`) won't work here.
+
+2.  2
+
+    ## Choose how to send traces
+
+    Required
+
+    The Claude Platform can send traces from two places. Pick one for each PostHog project. If you use both, each request reaches PostHog twice.
+
+    -   **SDK tracing:** you set it up in your code with the Claude SDK. It covers the calls your app makes and the tools it runs itself. You can link traces to your users and add custom properties.
+    -   **Console destination:** you add PostHog in the Claude Console, with no code changes. It covers your Messages API requests, server tools such as web search, and Managed Agents sessions.
+
+    ## SDK tracing
+
+    Install the Claude SDK with the steps in Anthropic's [OpenTelemetry guide](https://platform.claude.com/docs/en/manage-claude/opentelemetry/sdk#install-the-sdk). Then install the OpenTelemetry packages. PostHog has a span processor for Python, Node, and Go. Java and Ruby use the standard OTLP exporter.
+
+    ### Python
+
+    ```bash
+    pip install "posthog[otel]"
+    ```
+
+    ### Node
+
+    ```bash
+    npm install @posthog/ai @opentelemetry/sdk-trace-node @opentelemetry/resources @opentelemetry/exporter-trace-otlp-http
+    ```
+
+    ### Go
+
+    ```bash
+    go get github.com/posthog/posthog-go/otel go.opentelemetry.io/otel go.opentelemetry.io/otel/sdk
+    ```
+
+    ### Java
+
+    ```kotlin
+    dependencies {
+        implementation(platform("io.opentelemetry:opentelemetry-bom:1.57.0"))
+        implementation("io.opentelemetry:opentelemetry-sdk")
+        implementation("io.opentelemetry:opentelemetry-exporter-otlp")
+    }
+    ```
+
+    ### Ruby
+
+    ```bash
+    bundle add opentelemetry-sdk opentelemetry-exporter-otlp
+    ```
+
+    Register a tracer provider before your first Claude call. Set the content mode to see prompts and responses, because the SDK sends metadata only by default:
+
+    ### Python
+
+    ```python
+    from anthropic import Anthropic
+    from opentelemetry import trace
+    from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from posthog.ai.otel import PostHogSpanProcessor
+    
+    resource = Resource(attributes={
+        SERVICE_NAME: "my-app",
+        "posthog.distinct_id": "user_123", # optional: identifies the user in PostHog
+        "foo": "bar", # custom properties are passed through
+    })
+    
+    provider = TracerProvider(resource=resource)
+    provider.add_span_processor(
+        PostHogSpanProcessor(
+            api_key="<ph_project_token>",
+            host="https://us.i.posthog.com",
+        )
+    )
+    trace.set_tracer_provider(provider)
+    
+    client = Anthropic(open_telemetry={"traces": {"content_mode": "content"}})
+    
+    message = client.messages.create(
+        model="claude-opus-5",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": "Tell me about hedgehogs"}],
+    )
+    
+    # Flush the batched spans before a script exits.
+    provider.shutdown()
+    ```
+
+    ### Node
+
+    ```typescript
+    import Anthropic from '@anthropic-ai/sdk'
+    import { resourceFromAttributes } from '@opentelemetry/resources'
+    import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node'
+    import { PostHogSpanProcessor } from '@posthog/ai/otel'
+    
+    const provider = new NodeTracerProvider({
+      resource: resourceFromAttributes({
+        'service.name': 'my-app',
+        'posthog.distinct_id': 'user_123', // optional: identifies the user in PostHog
+        foo: 'bar', // custom properties are passed through
+      }),
+      spanProcessors: [
+        new PostHogSpanProcessor({
+          projectToken: '<ph_project_token>',
+          host: 'https://us.i.posthog.com',
+        }),
+      ],
+    })
+    provider.register()
+    
+    const client = new Anthropic({ openTelemetry: { traces: { contentMode: 'content' } } })
+    
+    const message = await client.messages.create({
+      model: 'claude-opus-5',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: 'Tell me about hedgehogs' }],
+    })
+    
+    // Flush the batched spans before a script exits.
+    await provider.shutdown()
+    ```
+
+    ### Go
+
+    ```go
+    package main
+    
+    import (
+        "context"
+        "fmt"
+    
+        "github.com/anthropics/anthropic-sdk-go"
+        "github.com/anthropics/anthropic-sdk-go/option"
+        posthogotel "github.com/posthog/posthog-go/otel"
+        "go.opentelemetry.io/otel"
+        "go.opentelemetry.io/otel/attribute"
+        "go.opentelemetry.io/otel/propagation"
+        sdkresource "go.opentelemetry.io/otel/sdk/resource"
+        sdktrace "go.opentelemetry.io/otel/sdk/trace"
+    )
+    
+    func main() {
+        ctx := context.Background()
+    
+        processor, err := posthogotel.NewSpanProcessor(ctx, "<ph_project_token>",
+            posthogotel.WithHost("https://us.i.posthog.com"),
+        )
+        if err != nil {
+            panic(err)
+        }
+    
+        resource := sdkresource.NewWithAttributes("",
+            attribute.String("service.name", "my-app"),
+            attribute.String("posthog.distinct_id", "user_123"), // optional: identifies the user in PostHog
+            attribute.String("foo", "bar"), // custom properties are passed through
+        )
+        provider := sdktrace.NewTracerProvider(
+            sdktrace.WithResource(resource),
+            sdktrace.WithSpanProcessor(processor),
+        )
+        // Flush the batched spans before the program exits.
+        defer provider.Shutdown(ctx)
+        otel.SetTracerProvider(provider)
+        otel.SetTextMapPropagator(propagation.TraceContext{})
+    
+        client := anthropic.NewClient(
+            option.WithOpenTelemetryTracesContentMode(option.OpenTelemetryContentModeContent),
+        )
+    
+        message, err := client.Messages.New(ctx, anthropic.MessageNewParams{
+            Model:     anthropic.ModelClaudeOpus5,
+            MaxTokens: 1024,
+            Messages: []anthropic.MessageParam{
+                anthropic.NewUserMessage(anthropic.NewTextBlock("Tell me about hedgehogs")),
+            },
+        })
+        if err != nil {
+            panic(err)
+        }
+        fmt.Println(message.StopReason)
+    }
+    ```
+
+    ### Java
+
+    ```java
+    import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+    import com.anthropic.core.opentelemetry.OpenTelemetryContentMode;
+    import com.anthropic.core.opentelemetry.OpenTelemetryOptions;
+    import com.anthropic.models.messages.MessageCreateParams;
+    import com.anthropic.models.messages.Model;
+    import io.opentelemetry.api.common.AttributeKey;
+    import io.opentelemetry.api.common.Attributes;
+    import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+    import io.opentelemetry.context.propagation.ContextPropagators;
+    import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter;
+    import io.opentelemetry.sdk.OpenTelemetrySdk;
+    import io.opentelemetry.sdk.resources.Resource;
+    import io.opentelemetry.sdk.trace.SdkTracerProvider;
+    import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+    
+    public class Main {
+        public static void main(String[] args) {
+            var exporter = OtlpHttpSpanExporter.builder()
+                .setEndpoint("https://us.i.posthog.com/i/v0/ai/otel")
+                .addHeader("Authorization", "Bearer <ph_project_token>")
+                .build();
+    
+            var resource = Resource.getDefault().merge(Resource.create(Attributes.of(
+                AttributeKey.stringKey("service.name"), "my-app",
+                AttributeKey.stringKey("posthog.distinct_id"), "user_123", // optional: identifies the user in PostHog
+                AttributeKey.stringKey("foo"), "bar"))); // custom properties are passed through
+    
+            var tracerProvider = SdkTracerProvider.builder()
+                .setResource(resource)
+                .addSpanProcessor(BatchSpanProcessor.builder(exporter).build())
+                .build();
+            OpenTelemetrySdk.builder()
+                .setTracerProvider(tracerProvider)
+                .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
+                .buildAndRegisterGlobal();
+    
+            var envOptions = OpenTelemetryOptions.fromEnv();
+            var client = AnthropicOkHttpClient.builder()
+                .fromEnv()
+                .openTelemetry(envOptions.toBuilder()
+                    .traces(envOptions.traces().toBuilder()
+                        .contentMode(OpenTelemetryContentMode.CONTENT)
+                        .build())
+                    .build())
+                .build();
+    
+            var message = client.messages().create(MessageCreateParams.builder()
+                .model(Model.CLAUDE_OPUS_5)
+                .maxTokens(1024)
+                .addUserMessage("Tell me about hedgehogs")
+                .build());
+    
+            // Flush the batched spans before the program exits.
+            tracerProvider.close();
+        }
+    }
+    ```
+
+    ### Ruby
+
+    ```ruby
+    require "anthropic"
+    require "opentelemetry/sdk"
+    require "opentelemetry/exporter/otlp"
+    
+    OpenTelemetry::SDK.configure do |config|
+      config.resource = OpenTelemetry::SDK::Resources::Resource.create(
+        "service.name" => "my-app",
+        "posthog.distinct_id" => "user_123", # optional: identifies the user in PostHog
+        "foo" => "bar" # custom properties are passed through
+      )
+      config.add_span_processor(
+        OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
+          OpenTelemetry::Exporter::OTLP::Exporter.new(
+            endpoint: "https://us.i.posthog.com/i/v0/ai/otel",
+            headers: {"Authorization" => "Bearer <ph_project_token>"}
+          )
+        )
+      )
+    end
+    
+    client = Anthropic::Client.new(open_telemetry: {traces: {content_mode: :content}})
+    
+    message = client.messages.create(
+      model: Anthropic::Model::CLAUDE_OPUS_5,
+      max_tokens: 1024,
+      messages: [{role: "user", content: "Tell me about hedgehogs"}]
+    )
+    
+    # Flush the batched spans before a script exits.
+    OpenTelemetry.tracer_provider.shutdown
+    ```
+
+    You can also set the content mode with the `ANTHROPIC_OPEN_TELEMETRY_TRACES_CONTENT_MODE=content` environment variable.
+
+    To group several calls into one session, set a conversation ID on the client or the request, as described in [Configure the SDK](https://platform.claude.com/docs/en/manage-claude/opentelemetry/sdk#configure-the-sdk). PostHog uses it as the session ID.
+
+    ## Console destination
+
+    API tracing does not yet support person identification or custom properties. Anthropic is exploring ways to support this in the future.
+
+    In the Claude Console, open the [OpenTelemetry settings](https://platform.claude.com/settings/telemetry-destinations) of your organization and click **Add destination**. You need an admin role.
+
+    1.  **Provider:** PostHog.
+    2.  **Region:** US if you log in at `us.posthog.com`, EU if you log in at `eu.posthog.com`.
+    3.  **Project token:** paste your `phc_` token.
+    4.  **Content mode:** pick **Full content** to see every prompt and response in PostHog. **Metadata only** sends tokens, costs, and timing without the messages.
+    5.  **Workspaces:** choose which workspaces send their traces to PostHog: **All**, **Selected**, or **All except**.
+
+    ![The Add destination form in the Claude Console with PostHog selected as the provider](/images/docs/ai-observability/claude-platform-add-destination.png)
+
+    Click **Add destination**. Your code doesn't change.
+
+    Anthropic's [OpenTelemetry guide](https://platform.claude.com/docs/en/manage-claude/opentelemetry) covers workspaces, delivery health, and every span and attribute.
+
+3.  3
+
+    ## Call Claude and see the trace
+
+    Required
+
+    Call Claude the way you already do, then open [AI Observability](https://app.posthog.com/ai-observability/traces). Each request shows up as an `anthropic.messages.create` trace, with its cost, tokens, and messages.
+
+    -   **SDK tracing:** if you use the tool runner, each tool it runs gets its own span.
+    -   **Console destination:** the trace holds an `anthropic.model_request` span for each model request. A request can have more than one, for example when the model uses web search.
+
+    **Using Managed Agents?** A Console destination also sends your sessions, with a span for each turn, model request, and tool use:
+
+    ![A Managed Agents trace in PostHog: session turns with model requests and bash tool uses on a timeline, and the turn input and output](/images/docs/ai-observability/claude-platform-managed-agents-trace.png)
+
+    The turn holds the agent's input and output, each model request holds its tokens and cost, and each tool use holds its arguments and result. A session can span several traces. To follow one session, filter by `anthropic.session.id`.
+
+4.  4
+
+    ## Keep an eye on your agent
+
+    Recommended
+
+    Your traces are in. Now put them to work.
+
+    Evaluations
+
+    Quickly monitor how your agent is doing. Score every response for helpfulness, hallucinations, or tone, and see when quality drops.
+
+    [Set up evaluations](/docs/ai-evals.md)
+
+    Dashboard
+
+    Follow cost, usage, and latency over time, broken down by model or workspace.
+
+    [Explore the dashboard](/docs/ai-observability/dashboard.md)
+
+    Clusters
+
+    Group similar conversations to see what people ask your agent most.
+
+    [Find patterns](/docs/ai-observability/clusters.md)
+
+    Sentiment
+
+    See how users feel while they talk to your agent.
+
+    [Track sentiment](/docs/ai-observability/sentiment.md)
+
+5.  5
+
+    ## Troubleshooting
+
+    Optional
+
+    -   **Delivery shows Failing with a 401:** the token in the Claude Console is a personal API key. Use your project token.
+    -   **Delivery shows Healthy, but PostHog is empty:** check that the token comes from this project and that the region matches your PostHog cloud.
+    -   **No traces from a Console destination:** check that the destination's **Workspaces** setting covers the workspace of your API key. Traces can take up to a minute to arrive.
+    -   **No traces from the Claude SDK:** register the tracer provider before the first Claude call. `ANTHROPIC_OPEN_TELEMETRY=false` turns the spans off.
+    -   **Traces stop at the end of a script:** shut down the tracer provider before the script exits, as the samples do, so the last batch is sent.
+    -   **No prompts or responses:** in the Claude Console, the destination uses **Metadata only**. Organizations with a data-handling restriction, such as HIPAA, always export metadata only. With the Claude SDK, set the content mode to `content` on the client.
+    -   **Each request appears twice:** a Claude Console destination and the Claude SDK both send this project the same requests. Remove one of the two.
+
+    For other questions, see [AI Observability troubleshooting](/docs/ai-observability/troubleshooting.md).
+
+## Tab
+
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
 
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
@@ -231,6 +625,16 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | [Traces](/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
     | [Spans](/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
     | [Anaylze LLM performance](/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
+
+Tourist info
+
+## If you just landed here, welcome
+
+PostHog is the context layer for your product. And since we're advertising anyway: 97% of companies use it for free.
+
+[Get started](https://app.posthog.com/signup)[Read the docs](/docs.md)
+
+A hedgehog tourist holding a map and a suitcase
 
 ### Still have questions?
 

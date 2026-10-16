@@ -83,7 +83,7 @@ The app tracks these events in PostHog:
 ## Code Structure
 
 ```
-basics/ruby/
+example-apps/ruby/
 ├── todo.rb              # Main CLI application
 ├── Gemfile              # Ruby dependencies
 ├── .env.example         # Environment variable template
