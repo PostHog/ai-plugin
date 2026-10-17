@@ -97,6 +97,16 @@ gemini extensions install https://github.com/PostHog/ai-plugin
 
 3. Authenticate via OAuth: on first use of a PostHog tool, follow the browser prompts to log into PostHog.
 
+### Neotask
+
+Install from [Neotask Construct](https://construct.neotask.ai/p/posthog) with the Neotask CLI, or from the Neotask desktop app under Agents > Skills > Add-ons:
+
+```bash
+neotask construct install posthog
+```
+
+The PostHog tools use your PostHog connection in Neotask.
+
 ## How to develop
 
 1. Clone and install the plugin:
