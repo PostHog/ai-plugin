@@ -64,9 +64,29 @@ def test_command_files_resolve(command_file):
         assert target.is_file(), f"{command_file}: points at missing {target}"
 
 
-def test_marketplace_sources_are_plugins():
+MARKETPLACE_ENTRY_KEYS_CLAUDE_CODE_2_1_75_ACCEPTS = {
+    "name",
+    "source",
+    "description",
+    "version",
+    "author",
+    "homepage",
+    "repository",
+    "license",
+    "category",
+    "keywords",
+}
+
+
+def test_marketplace_entries_load_on_old_clients_and_point_at_plugins():
     marketplace = json.loads((REPO_ROOT / ".claude-plugin" / "marketplace.json").read_text())
     for entry in marketplace["plugins"]:
+        rejected_keys = set(entry) - MARKETPLACE_ENTRY_KEYS_CLAUDE_CODE_2_1_75_ACCEPTS
+        assert not rejected_keys, (
+            f"{entry['name']}: {sorted(rejected_keys)} makes `claude plugin marketplace add` fail "
+            "on Claude Code 2.1.75 and older, which reject the whole marketplace with "
+            "`Invalid schema: Unrecognized key`"
+        )
         source = entry["source"]
         assert isinstance(source, str), f"{entry['name']}: only local sources are checked here"
         manifest = (REPO_ROOT / source) / ".claude-plugin" / "plugin.json"
