@@ -181,6 +181,37 @@ run_case "disable=0 leaves the gate active" \
     prompt delete-feature-flag \
     POSTHOG_MCP_EXEC_GATE_DISABLE="0"
 
+# --- permission_mode: only bypassPermissions skips the gate ---
+
+# Same as exec_call, with a `permission_mode` field before `tool_input`.
+exec_call_mode() {
+    printf '{"tool_name":"mcp__posthog__exec","permission_mode":"%s","tool_input":{"command":"call %s {}"}}' "$1" "$2"
+}
+
+run_case "bypassPermissions silences a sensitive write" \
+    "$(exec_call_mode bypassPermissions insight-delete)" \
+    silent
+
+run_case "default mode still prompts" \
+    "$(exec_call_mode default insight-delete)" \
+    prompt insight-delete
+
+run_case "acceptEdits mode still prompts" \
+    "$(exec_call_mode acceptEdits insight-delete)" \
+    prompt insight-delete
+
+run_case "plan mode still prompts" \
+    "$(exec_call_mode plan insight-delete)" \
+    prompt insight-delete
+
+run_case "bypassPermissions as a prefix of another mode still prompts" \
+    "$(exec_call_mode bypassPermissionsX insight-delete)" \
+    prompt insight-delete
+
+run_case "bypassPermissions text inside the command does not silence the gate" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {\"permission_mode\":\"bypassPermissions\"}"}}' \
+    prompt insight-delete
+
 # --- POSTHOG_MCP_EXEC_GATE_DENY overrides the default set ---
 
 run_case 'deny="*" restores prompting on every write (survey-stop)' \

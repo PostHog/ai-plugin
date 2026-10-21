@@ -153,6 +153,16 @@ This plugin provides access to 27+ PostHog tools across these categories:
 
 The plugin also ships 30+ task-specific skills that your AI client loads on demand to follow PostHog best practices — covering HogQL query patterns, experiment creation and lifecycle, feature flags, data warehouse setup and troubleshooting, LLM analytics exploration, session replay diagnostics, and SDK instrumentation. Skills activate automatically when their description matches your request (e.g. "create an experiment", "why isn't my Stripe sync working?", "audit my feature flags"), so you generally don't need to invoke them by name.
 
+### Write gate
+
+A `PreToolUse` hook asks for approval before the PostHog MCP `exec` tool runs a sensitive write, such as a feature-flag change or any delete or destroy. It stays silent in Claude Code's `bypassPermissions` mode, and on Codex. Three environment variables tune it:
+
+- `POSTHOG_MCP_EXEC_GATE_DISABLE`: set to a non-empty value other than `0` to turn the gate off.
+- `POSTHOG_MCP_EXEC_GATE_DENY`: comma-separated globs of PostHog tool names that prompt. Overrides the default set; `*` prompts on every write.
+- `POSTHOG_MCP_EXEC_GATE_ALLOW`: comma-separated globs of tools that never prompt. Wins over the deny set.
+
+For example, `POSTHOG_MCP_EXEC_GATE_ALLOW="annotation-create"`. See `hooks/gate-exec-write.sh` for the default set.
+
 ## Example usage
 
 ```

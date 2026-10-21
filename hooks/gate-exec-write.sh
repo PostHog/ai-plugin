@@ -42,6 +42,11 @@
 # `posthog-connection-forward` prompt regardless of DENY and ALLOW, as does any
 # input the hook can't read reliably.
 #
+# When Claude Code reports `permission_mode` as `bypassPermissions`, the gate
+# stays silent for the DENY-set writes: the user chose to run without prompts,
+# and a hook's `ask` would otherwise override that. The prompts above still fire
+# in that mode, and every other mode prompts as before.
+#
 # Pure bash; no jq or other third-party tools required. Relies on the fact
 # that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
 # the raw JSON payload is safe.
@@ -100,6 +105,8 @@ if [[ -n "${POSTHOG_MCP_EXEC_GATE_DISABLE:-}" && "${POSTHOG_MCP_EXEC_GATE_DISABL
     exit 0
 fi
 
+input="$(cat)"
+
 # Default set of write tools that prompt. Comma-separated bash globs, grounded in
 # the live PostHog MCP tool registry. Covers the genuinely sensitive surface:
 #
@@ -124,8 +131,6 @@ fi
 # POSTHOG_MCP_EXEC_GATE_DENY, which overrides this set wholesale; use
 # POSTHOG_MCP_EXEC_GATE_DENY="*" to restore prompting on every write.
 DEFAULT_DENY='*feature-flag*,*delete*,*destroy*,experiment-launch,experiment-ship-variant,experiment-reset,survey-launch,workflows-enable'
-
-input="$(cat)"
 
 # Extract `tool_name` — simple identifier, no escaping inside the value.
 tool_name=""
@@ -183,6 +188,13 @@ fi
 # Third-party tools reached through the MCP gateway are named `<server>__<tool>`
 # (PostHog tool names never contain `__`) and follow their server's own policy.
 [[ "$posthog_tool" == *__* ]] && not_a_known_read
+
+# Bypass mode: the user opted out of permission prompts, and Claude Code honours
+# a hook's `ask` over that choice. Match only the exact value. Placed after the
+# always-prompt cases above, so those still prompt in bypass mode.
+if [[ "$input" =~ \"permission_mode\"[[:space:]]*:[[:space:]]*\"bypassPermissions\" ]]; then
+    exit 0
+fi
 
 read_tools_file="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/read-tools.txt"
 if [[ -r "$read_tools_file" ]]; then
