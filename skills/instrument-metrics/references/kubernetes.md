@@ -2,6 +2,22 @@
 
 # Kubernetes metrics installation
 
+Canonical URL: https://posthog.com/docs/metrics/installation/kubernetes
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Prerequisites](#prerequisites)
+- [Get your project token](#get-your-project-token)
+- [Install the Helm chart](#install-the-helm-chart)
+- [Configure metric discovery](#configure-metric-discovery)
+- [Verify metrics are flowing](#verify-metrics-are-flowing)
+- [Keep data through restarts](#keep-data-through-restarts)
+- [Scale out with shards](#scale-out-with-shards)
+- [Next steps](#next-steps)
+- [Configuration reference](#configuration-reference)
+
 > **Note:** Metrics is in open alpha. Any team can turn it on — open [Metrics](https://app.posthog.com/metrics) and select **Enable metrics** in the onboarding view. Setup details, including the ingestion endpoint, may change before general availability.
 
 If your Kubernetes workloads already expose Prometheus-format `/metrics` endpoints, the PostHog metrics agent scrapes them and forwards everything to PostHog. One `helm install`, no application changes.
@@ -40,16 +56,12 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
     Required
 
-    Terminal
-
     ```bash
     helm install posthog-metrics-agent oci://ghcr.io/posthog/charts/posthog-metrics-agent \
       --set posthog.apiKey=<ph_project_token>
     ```
 
     For EU Cloud, set the host explicitly:
-
-    Terminal
 
     ```bash
     helm install posthog-metrics-agent oci://ghcr.io/posthog/charts/posthog-metrics-agent \
@@ -58,8 +70,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
     ```
 
     If you manage secrets separately, point the chart at an existing Kubernetes Secret containing a `posthog-api-key` key instead of passing the token directly:
-
-    Terminal
 
     ```bash
     helm install posthog-metrics-agent oci://ghcr.io/posthog/charts/posthog-metrics-agent \
@@ -86,8 +96,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
     Example pod annotation:
 
-    YAML
-
     ```yaml
     metadata:
       annotations:
@@ -99,8 +107,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
     ### Static targets
 
     For services that don't carry Prometheus annotations, add fixed `host:port` targets:
-
-    Terminal
 
     ```bash
     helm install posthog-metrics-agent oci://ghcr.io/posthog/charts/posthog-metrics-agent \
@@ -122,8 +128,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
     1.  Confirm the agent pod is running:
 
-    Terminal
-
     ```bash
     kubectl get pods -l app.kubernetes.io/name=posthog-metrics-agent
     ```
@@ -132,8 +136,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
     3.  Data points should appear within a minute of the agent starting
 
     If nothing shows up, check the agent logs for connection or authentication errors:
-
-    Terminal
 
     ```bash
     kubectl logs -l app.kubernetes.io/name=posthog-metrics-agent
@@ -151,8 +153,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
     By default, if PostHog is briefly unreachable the agent retries from memory, and a pod restart during that window drops whatever was buffered. To keep those samples, back the queue with a persistent volume:
 
-    Terminal
-
     ```bash
     --set persistence.enabled=true
     ```
@@ -166,8 +166,6 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
     Optional
 
     One agent scrapes every target itself, which is enough for most clusters. For a large target set, run a fleet:
-
-    Terminal
 
     ```bash
     --set shards=4
@@ -183,13 +181,13 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 
     | Action | Description |
     | --- | --- |
-    | **[Why you need metrics](/docs/metrics/basics.md)** | What metrics show you that events and logs don't |
-    | **[Getting started guide](/docs/metrics/start-here.md)** | Pick the right metric type, add attributes carefully, and chart what matters |
+    | **[Why you need metrics](https://posthog.com/docs/metrics/basics.md)** | What metrics show you that events and logs don't |
+    | **[Getting started guide](https://posthog.com/docs/metrics/start-here.md)** | Pick the right metric type, add attributes carefully, and chart what matters |
     | **Group and filter** | Group by an attribute for one line per value, or filter with `key=value` chips |
-    | **[How metrics works](/docs/metrics/architecture.md)** | How metrics are ingested, stored, and queried |
+    | **[How metrics works](https://posthog.com/docs/metrics/architecture.md)** | How metrics are ingested, stored, and queried |
     | **Query with SQL** | Every metric lands in the `posthog.metrics` table, queryable from the SQL tab |
 
-    [Continue with the getting started guide](/docs/metrics/start-here.md)
+    [Continue with the getting started guide](https://posthog.com/docs/metrics/start-here.md)
 
 ## Configuration reference
 
@@ -216,11 +214,3 @@ The agent runs as a single instance by default. To scale beyond one pod, use [sh
 | `nodeSelector` | `{}` | Kubernetes node selector |
 | `tolerations` | `[]` | Kubernetes tolerations |
 | `affinity` | `{}` | Kubernetes affinity rules |
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

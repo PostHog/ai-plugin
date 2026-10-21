@@ -2,6 +2,16 @@
 
 # Assign issues to teammates
 
+Canonical URL: https://posthog.com/docs/error-tracking/assigning-issues
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Assign issues](#assign-issues)
+- [Automatic issue assignment](#automatic-issue-assignment)
+- [Create external issues](#create-external-issues)
+
 Error tracking enables you to assign issues to specific PostHog [roles](https://app.posthog.com/settings/organization-roles) or teammates. This helps your team find relevant issues through **filtering**. You can also set up team-specific **alerting** to notify them when assigned issues are created or reopened.
 
 ## Assign issues
@@ -22,7 +32,7 @@ Want to assign issues to a **team** rather than an individual teammate? You can 
 
 ## Automatic issue assignment
 
-You can set up automatic issue assignment through a set of rules. Configure this in the [error tracking settings](https://app.posthog.com/error_tracking/configuration#selectedSetting=error-tracking-auto-assignment) using **Assignment rules**. You can also create assignment rules programmatically using the [PostHog MCP server](/docs/error-tracking/surfaces/mcp.md).
+You can set up automatic issue assignment through a set of rules. Configure this in the [error tracking settings](https://app.posthog.com/error_tracking/configuration#selectedSetting=error-tracking-auto-assignment) using **Assignment rules**. You can also create assignment rules programmatically using the [PostHog MCP server](https://posthog.com/docs/error-tracking/surfaces/mcp.md).
 
 The settings show a list of your existing assignment rules:
 
@@ -36,7 +46,7 @@ Assignment conditions are evaluated against the properties of the exception even
 
 Issues can be automatically assigned to a **role** or **user** by configuring a set of filters. These filters can be configured to match **any** or **all** of the criteria.
 
-You can configure automatic assignment to filter on any [event property](/docs/data/events.md) in PostHog. When there are multiple values for a property, the filters return true if it matches **any** of the values. For example, if you have multiple `exception_functions` values, the filters returns true if it matches **any** of the functions.
+You can configure automatic assignment to filter on any [event property](https://posthog.com/docs/data/events.md) in PostHog. When there are multiple values for a property, the filters return true if it matches **any** of the values. For example, if you have multiple `exception_functions` values, the filters returns true if it matches **any** of the functions.
 
 Here are some common properties you can filter on:
 
@@ -64,13 +74,13 @@ Assignment rules can become disabled if an error occurs during ingestion. When a
 
 ### Alerting based on assignment
 
-A common use case for automatic issue assignment is to alert assignees of new issues. Once the issues are automatically assigned, you can set up alerts to notify the assignee. See the [alerts](/docs/error-tracking/alerts.md) guide for more information.
+A common use case for automatic issue assignment is to alert assignees of new issues. Once the issues are automatically assigned, you can set up alerts to notify the assignee. See the [alerts](https://posthog.com/docs/error-tracking/alerts.md) guide for more information.
 
 ## Create external issues
 
 You can create issues in external tracking systems like GitHub Issues, Linear, GitLab, or Jira. This links PostHog error tracking issues to your existing issue tracking workflows.
 
-First, set up an [integration](/docs/error-tracking/integrations.md) with your tracking system.
+First, set up an [integration](https://posthog.com/docs/error-tracking/integrations.md) with your tracking system.
 
 ### From the UI
 
@@ -82,18 +92,10 @@ The new issue has a partial stack trace and a link to the issue in PostHog.
 
 ### Via the API
 
-You can also create external references programmatically using the [PostHog API](/docs/api.md) with a [personal API key](/docs/api.md#personal-api-keys) that has the `error_tracking:write` scope.
+You can also create external references programmatically using the [PostHog API](https://posthog.com/docs/api.md) with a [personal API key](https://posthog.com/docs/api.md#personal-api-keys) that has the `error_tracking:write` scope.
 
 ### Via MCP
 
-AI agents using the [PostHog MCP server](/docs/model-context-protocol.md) can create external references with the `error-tracking-external-references-create` tool. See the [MCP debugging guide](/docs/error-tracking/surfaces/mcp.md) for more.
+AI agents using the [PostHog MCP server](https://posthog.com/docs/model-context-protocol.md) can create external references with the `error-tracking-external-references-create` tool. See the [MCP debugging guide](https://posthog.com/docs/error-tracking/surfaces/mcp.md) for more.
 
 > If you use another issue tracking system and would like to request it, [let us know in-app](https://app.posthog.com#panel=support%3Afeedback%3Aerror_tracking%3Alow%3Atrue).
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

@@ -2,6 +2,23 @@
 
 # Python Error Tracking installation
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/python
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the package](#install-the-package)
+- [Initialize PostHog](#initialize-posthog)
+- [Send events](#send-events)
+- [Verify PostHog is initialized](#verify-posthog-is-initialized)
+- [Setting up exception autocapture](#setting-up-exception-autocapture)
+- [Manually capturing exceptions](#manually-capturing-exceptions)
+- [Framework-specific exception capture](#framework-specific-exception-capture)
+- [Verify error tracking](#verify-error-tracking)
+- [Link releases](#link-releases)
+- [Web framework integrations](#web-framework-integrations)
+
 1.  1
 
     ## Install the package
@@ -37,7 +54,7 @@
 
     **Django integration**
 
-    If you're using Django, check out our [Django integration](/docs/libraries/django.md) for automatic request tracking.
+    If you're using Django, check out our [Django integration](https://posthog.com/docs/libraries/django.md) for automatic request tracking.
 
 3.  3
 
@@ -77,9 +94,9 @@
     posthog = Posthog("<ph_project_token>", enable_exception_autocapture=True, ...)
     ```
 
-    We recommend setting up and using [contexts](/docs/libraries/python.md#contexts) so that exceptions automatically include distinct IDs, session IDs, and other properties you can set up with tags.
+    We recommend setting up and using [contexts](https://posthog.com/docs/libraries/python.md#contexts) so that exceptions automatically include distinct IDs, session IDs, and other properties you can set up with tags.
 
-    You can also enable [code variables capture](/docs/error-tracking/code-variables/python.md) to automatically capture the state of local variables when exceptions occur, giving you a debugger-like view of your application.
+    You can also enable [code variables capture](https://posthog.com/docs/error-tracking/code-variables/python.md) to automatically capture the state of local variables when exceptions occur, giving you a debugger-like view of your application.
 
 6.  5
 
@@ -95,7 +112,7 @@
     posthog.capture_exception(e, distinct_id="user_distinct_id", properties=additional_properties)
     ```
 
-    You can find a full example of all of this in our [Python (and Flask) error tracking tutorial](/tutorials/python-error-tracking.md).
+    You can find a full example of all of this in our [Python (and Flask) error tracking tutorial](https://posthog.com/tutorials/python-error-tracking.md).
 
 7.  6
 
@@ -107,7 +124,7 @@
 
     ## Django
 
-    The Python SDK provides a Django middleware that automatically wraps all requests with a [context](/docs/libraries/python.md#contexts). Add the middleware to your Django settings:
+    The Python SDK provides a Django middleware that automatically wraps all requests with a [context](https://posthog.com/docs/libraries/python.md#contexts). Add the middleware to your Django settings:
 
     Python
 
@@ -119,7 +136,7 @@
     ]
     ```
 
-    By default, the middleware captures exceptions and sends them to PostHog. Disable with `POSTHOG_MW_CAPTURE_EXCEPTIONS = False`. Use `POSTHOG_MW_EXTRA_TAGS`, `POSTHOG_MW_REQUEST_FILTER`, and `POSTHOG_MW_TAG_MAP` to customize. See the [Django integration docs](/docs/libraries/django.md) for full configuration.
+    By default, the middleware captures exceptions and sends them to PostHog. Disable with `POSTHOG_MW_CAPTURE_EXCEPTIONS = False`. Use `POSTHOG_MW_EXTRA_TAGS`, `POSTHOG_MW_REQUEST_FILTER`, and `POSTHOG_MW_TAG_MAP` to customize. See the [Django integration docs](https://posthog.com/docs/libraries/django.md) for full configuration.
 
     ## Flask
 
@@ -173,12 +190,12 @@
 
     Let's continue to the next section.
 
-    [Link releases](/docs/error-tracking/link-releases/python.md)
+    [Link releases](https://posthog.com/docs/error-tracking/link-releases/python.md)
 
-### Still have questions?
+## Web framework integrations
 
-Ask PostHog AI
+The Python SDK includes request context and error tracking integrations for common web frameworks:
 
-### Was this page useful?
-
-HelpfulCould be better
+-   [Django and Django REST Framework](https://posthog.com/docs/libraries/django.md#capture-django-rest-framework-exceptions)
+-   [Flask](https://posthog.com/docs/libraries/flask.md#request-contexts)
+-   [ASGI frameworks such as FastAPI, Starlette, and Litestar](https://posthog.com/docs/libraries/python.md#asgi-request-middleware)

@@ -2,11 +2,13 @@
 
 # Elixir Feature Flags installation
 
+Canonical URL: https://posthog.com/docs/feature-flags/installation/elixir
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host).
+
 > This library was built by the community but it's being maintained by the PostHog core team since v1.0.0. Thank you to [Nick Kezhaya](https://github.com/nkezhaya) for building it originally. Thank you to [Alex Martsinovich](https://github.com/martosaur) for contributing v2.0.0.
 
 The package can be installed by adding `posthog` to your list of dependencies in `mix.exs`:
-
-Elixir
 
 ```elixir
 def deps do
@@ -35,11 +37,3 @@ Optionally, you might want to enable the [Plug integration](https://hexdocs.pm/p
 #### Development/Test mode
 
 For a test environment, you can pass in `test_mode: true` value to the config. This causes events to be dropped instead of sent to PostHog.
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

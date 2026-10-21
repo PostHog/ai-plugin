@@ -2,6 +2,8 @@
 
 # Rust Feature Flags installation
 
+Canonical URL: https://posthog.com/docs/feature-flags/installation/rust
+
 Install the `posthog-rs` crate by adding it to your `Cargo.toml`.
 
 Cargo.toml
@@ -13,8 +15,6 @@ posthog-rs = "0.14"
 
 Next, set up the client with your PostHog project key.
 
-Rust
-
 ```rust
 let client = posthog_rs::client("<ph_project_token>").await;
 ```
@@ -24,8 +24,6 @@ let client = posthog_rs::client("<ph_project_token>").await;
 Our Rust SDK supports both blocking and async clients. The async client is the default and is recommended for most use cases.
 
 If you need to use a synchronous client instead – like we do in our [CLI](https://github.com/PostHog/posthog/tree/master/cli) –, you can opt into it by disabling the asynchronous feature on your `Cargo.toml` file.
-
-toml
 
 ```toml
 [dependencies]
@@ -44,8 +42,6 @@ Call `client.evaluate_flags()` once for the user, then read values from the retu
 
 #### Boolean feature flags
 
-Rust
-
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
 
@@ -62,8 +58,6 @@ if flags.is_enabled("flag-key") {
 ```
 
 #### Multivariate feature flags
-
-Rust
 
 ```rust
 use posthog_rs::{EvaluateFlagsOptions, FlagValue};
@@ -89,17 +83,15 @@ match flags.get_flag("flag-key") {
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to the event
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-Rust
 
 ```rust
 use posthog_rs::{EvaluateFlagsOptions, Event};
@@ -122,8 +114,6 @@ By default, this attaches every flag in the snapshot using `$feature/<flag-key>`
 
 To reduce event property bloat, pass a filtered snapshot:
 
-Rust
-
 ```rust
 // Attach only flags accessed with is_enabled() or get_flag() before this call
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
@@ -142,8 +132,6 @@ client.capture(event);
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-Rust
-
 ```rust
 use posthog_rs::Event;
 
@@ -155,8 +143,6 @@ client.capture(event);
 ### Evaluating only specific flags
 
 By default, `evaluate_flags()` evaluates every flag for the user. If you only need a few flags, pass `flag_keys` to request only those flags:
-
-Rust
 
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
@@ -172,7 +158,7 @@ let flags = client.evaluate_flags(
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `evaluate_flags()`, the SDK sends this event when you call `flags.is_enabled()` or `flags.get_flag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `evaluate_flags()`, the SDK sends this event when you call `flags.is_enabled()` or `flags.get_flag()` for a flag.
 
 The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -181,8 +167,6 @@ The SDK deduplicates these events per `(distinct_id, flag, value)` in a local ca
 ### Blocking client
 
 If you're using the blocking client (with `default-features = false`), the API is the same but without `.await`:
-
-Rust
 
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
@@ -201,16 +185,8 @@ Now that you're evaluating flags, continue with the resources below to learn wha
 
 | Resource | Description |
 | --- | --- |
-| [Creating a feature flag](/docs/feature-flags/creating-feature-flags.md) | How to create a feature flag in PostHog |
-| [Adding feature flag code](/docs/feature-flags/adding-feature-flag-code.md) | How to check flags in your code for all platforms |
-| [Framework-specific guides](/docs/feature-flags/tutorials.md#framework-guides) | Setup guides for React Native, Next.js, Flutter, and other frameworks |
-| [How to do a phased rollout](/tutorials/phased-rollout.md) | Gradually roll out features to minimize risk |
-| [More tutorials](/docs/feature-flags/tutorials.md) | Other real-world examples and use cases |
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+| [Creating a feature flag](https://posthog.com/docs/feature-flags/creating-feature-flags.md) | How to create a feature flag in PostHog |
+| [Adding feature flag code](https://posthog.com/docs/feature-flags/adding-feature-flag-code.md) | How to check flags in your code for all platforms |
+| [Framework-specific guides](https://posthog.com/docs/feature-flags/tutorials.md#framework-guides) | Setup guides for React Native, Next.js, Flutter, and other frameworks |
+| [How to do a phased rollout](https://posthog.com/tutorials/phased-rollout.md) | Gradually roll out features to minimize risk |
+| [More tutorials](https://posthog.com/docs/feature-flags/tutorials.md) | Other real-world examples and use cases |

@@ -2,13 +2,15 @@
 
 # Adding feature flag code
 
+Canonical URL: https://posthog.com/docs/feature-flags/adding-feature-flag-code
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://us.posthog.com` (app host for links).
+
 Once you've created your feature flag in PostHog, the next step is to add your code:
 
 ## Web
 
 ### Boolean feature flags
-
-Web
 
 ```javascript
 const result = posthog.getFeatureFlagResult('flag-key')
@@ -21,8 +23,6 @@ if (result?.enabled) {
 ```
 
 ### Multivariate feature flags
-
-Web
 
 ```javascript
 const result = posthog.getFeatureFlagResult('flag-key')
@@ -38,8 +38,6 @@ if (result?.variant == 'variant-key') { // replace 'variant-key' with the key of
 
 You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
 
-Web
-
 ```javascript
 for (const flag of posthog.getAllFeatureFlags()) {
     console.log(flag.key, flag.enabled, flag.variant, flag.payload)
@@ -53,8 +51,6 @@ Every time a user loads a page, we send a request in the background to fetch the
 This means that for most pages, the feature flags are available immediately — **except for the first time a user visits**.
 
 To handle this, you can use the `onFeatureFlags` callback to wait for the feature flag request to finish:
-
-Web
 
 ```javascript
 posthog.onFeatureFlags(function (flags, flagVariants, { errorsLoading }) {
@@ -81,8 +77,6 @@ You won't usually need to use these, but they are useful if you want to be extra
 
 By default, the JavaScript SDK requests that every eligible feature flag be evaluated for the current user. If you'd only like to evaluate and return a subset of flags, pass `flag_keys` when initializing PostHog:
 
-Web
-
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
@@ -97,8 +91,6 @@ PostHog scopes evaluation and the response to those keys for this SDK instance. 
 
 Feature flag values are cached. If something has changed with your user and you'd like to refetch their flag values, call:
 
-Web
-
 ```javascript
 posthog.reloadFeatureFlags()
 ```
@@ -106,8 +98,6 @@ posthog.reloadFeatureFlags()
 ### Overriding server properties
 
 Sometimes, you might want to evaluate feature flags using properties that haven't been ingested yet, or were set incorrectly earlier. You can do so by setting properties the flag depends on with these calls:
-
-Web
 
 ```javascript
 posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'})
@@ -117,23 +107,17 @@ posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'})
 
 Whenever you set these properties, we also trigger a reload of feature flags to ensure we have the latest values. You can disable this by passing in the optional parameter for reloading:
 
-Web
-
 ```javascript
 posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'}, false)
 ```
 
 At any point, you can reset these properties by calling `resetPersonPropertiesForFlags`:
 
-Web
-
 ```javascript
 posthog.resetPersonPropertiesForFlags()
 ```
 
-The same holds for [group](/manual/group-analytics.md) properties:
-
-Web
+The same holds for [group](https://posthog.com/manual/group-analytics.md) properties:
 
 ```javascript
 // set properties for a group
@@ -172,8 +156,6 @@ This enables any geolocation-based flags to work without manually setting these 
 
 You can configure the `feature_flag_request_timeout_ms` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked in the case when PostHog's servers are too slow to respond. By default, this is set at 3 seconds.
 
-JavaScript
-
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
@@ -185,8 +167,6 @@ posthog.init('<ph_project_token>', {
 ### Feature flag error handling
 
 When using the PostHog SDK, it's important to handle potential errors that may occur during feature flag operations. Here's an example of how to wrap PostHog SDK methods in an error handler:
-
-JavaScript
 
 ```javascript
 function handleFeatureFlag(client, flagKey, distinctId) {
@@ -237,8 +217,6 @@ PostHog provides several hooks to make it easy to use feature flags in your Reac
 
 #### Example 1: Using a boolean feature flag
 
-React
-
 ```jsx
 import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
 
@@ -270,15 +248,11 @@ export default App;
 
 To avoid handling `undefined` while flags are loading, pass a default value as the second argument:
 
-React
-
 ```jsx
 const showWelcomeMessage = useFeatureFlagEnabled('flag-key', false)
 ```
 
 #### Example 2: Using a multivariate feature flag
-
-React
 
 ```jsx
 import { useFeatureFlagVariantKey } from '@posthog/react'
@@ -320,8 +294,6 @@ export default App;
 
 The `useFeatureFlagPayload` hook does *not* send a [`$feature_flag_called`](https://posthog.com/docs/experiments/new-experimentation-engine#experiment-exposure) event, which is required for the experiment to be tracked. To ensure the exposure event is sent, you should **always** use the `useFeatureFlagPayload` hook with either the `useFeatureFlagEnabled` or `useFeatureFlagVariantKey` hook.
 
-React
-
 ```jsx
 import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
 
@@ -353,11 +325,9 @@ The `PostHogFeature` component simplifies code by handling feature flag related 
 
 It also automatically captures metrics, like how many times a user interacts with this feature.
 
-> **Note:** You still need the [`PostHogProvider`](/docs/libraries/react.md#installation) at the top level for this to work.
+> **Note:** You still need the [`PostHogProvider`](https://posthog.com/docs/libraries/react.md#installation) at the top level for this to work.
 
 Here is an example:
-
-React
 
 ```jsx
 import { PostHogFeature } from '@posthog/react'
@@ -385,8 +355,6 @@ If you wish to customise logic around when the component is considered visible, 
 
 If your flag has a payload, you can pass a function to children whose first argument is the payload. For example:
 
-React
-
 ```jsx
 import { PostHogFeature } from '@posthog/react'
 
@@ -411,8 +379,6 @@ function App() {
 
 You can configure the `feature_flag_request_timeout_ms` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked in the case when PostHog's servers are too slow to respond. By default, this is set at 3 seconds.
 
-JavaScript
-
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
@@ -425,8 +391,6 @@ posthog.init('<ph_project_token>', {
 ### Error handling
 
 When using the PostHog SDK, it's important to handle potential errors that may occur during feature flag operations. Here's an example of how to wrap PostHog SDK methods in an error handler:
-
-JavaScript
 
 ```javascript
 function handleFeatureFlag(client, flagKey, distinctId) {
@@ -467,8 +431,6 @@ Call `client.evaluateFlags()` once for the user, then read values from the retur
 
 #### Boolean feature flags
 
-Node.js
-
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user')
 
@@ -480,8 +442,6 @@ if (flags.isEnabled('flag-key')) {
 ```
 
 #### Multivariate feature flags
-
-Node.js
 
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user')
@@ -500,17 +460,15 @@ if (enabledVariant === 'variant-key') { // replace 'variant-key' with the key of
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to `capture()`
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-Node.js
 
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user')
@@ -529,8 +487,6 @@ client.capture({
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
 
 To reduce event property bloat, pass a filtered snapshot:
-
-Node.js
 
 ```javascript
 // Attach only flags accessed with isEnabled() or getFlag() before this call
@@ -554,8 +510,6 @@ client.capture({
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-Node.js
-
 ```javascript
 client.capture({
     distinctId: 'distinct_id_of_your_user',
@@ -571,8 +525,6 @@ client.capture({
 
 By default, `evaluateFlags()` evaluates every flag for the user. If you only need a few flags, pass `flagKeys` to request only those flags:
 
-Node.js
-
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user', {
     flagKeys: ['checkout-flow', 'new-dashboard'],
@@ -581,7 +533,7 @@ const flags = await client.evaluateFlags('distinct_id_of_your_user', {
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `evaluateFlags()`, the SDK sends this event when you call `flags.isEnabled()` or `flags.getFlag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `evaluateFlags()`, the SDK sends this event when you call `flags.isEnabled()` or `flags.getFlag()` for a flag.
 
 The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -589,13 +541,11 @@ The SDK deduplicates these events per `(distinct_id, flag, value)` in a local ca
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
 For example:
-
-Node.js
 
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_the_user', {
@@ -652,8 +602,6 @@ Simply include any of these properties in the `person_properties` parameter alon
 
 You can configure the `featureFlagsRequestTimeoutMs` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked if PostHog's servers are too slow to respond. By default, this is set to 3 seconds.
 
-JavaScript
-
 ```javascript
 const client = new PostHog('<ph_project_token>', {
     host: 'https://us.i.posthog.com',
@@ -671,8 +619,6 @@ Call `posthog.evaluate_flags()` once for the user, then read values from the ret
 
 #### Boolean feature flags
 
-Python
-
 ```python
 flags = posthog.evaluate_flags("distinct_id_of_your_user")
 
@@ -683,8 +629,6 @@ if flags.is_enabled("flag-key"):
 ```
 
 #### Multivariate feature flags
-
-Python
 
 ```python
 flags = posthog.evaluate_flags("distinct_id_of_your_user")
@@ -703,17 +647,15 @@ if enabled_variant == "variant-key":  # replace "variant-key" with the key of yo
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to `capture()`
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-Python
 
 ```python
 flags = posthog.evaluate_flags("distinct_id_of_your_user")
@@ -732,8 +674,6 @@ posthog.capture(
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
 
 To reduce event property bloat, pass a filtered snapshot:
-
-Python
 
 ```python
 # Attach only flags accessed with is_enabled() or get_flag() before this call
@@ -757,8 +697,6 @@ posthog.capture(
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-Python
-
 ```python
 posthog.capture(
     "event_name",
@@ -774,8 +712,6 @@ posthog.capture(
 
 By default, `posthog.evaluate_flags()` evaluates every flag for the user. If you only need a few flags, pass `flag_keys` to request only those flags:
 
-Python
-
 ```python
 flags = posthog.evaluate_flags(
     "distinct_id_of_your_user",
@@ -785,7 +721,7 @@ flags = posthog.evaluate_flags(
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `posthog.evaluate_flags()`, the SDK sends this event when you call `flags.is_enabled()` or `flags.get_flag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `posthog.evaluate_flags()`, the SDK sends this event when you call `flags.is_enabled()` or `flags.get_flag()` for a flag.
 
 The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -793,13 +729,11 @@ The SDK deduplicates these events per `(distinct_id, flag, value)` in a local ca
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
 For example:
-
-Python
 
 ```python
 flags = posthog.evaluate_flags(
@@ -850,8 +784,6 @@ Simply include any of these properties in the `person_properties` parameter alon
 
 You can configure the `feature_flags_request_timeout_seconds` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked if PostHog's servers are too slow to respond. By default, this is set to 3 seconds.
 
-Python
-
 ```python
 posthog = Posthog(
     "<ph_project_token>",
@@ -870,8 +802,6 @@ Call `PostHog::evaluateFlags()` once for the user, then read values from the ret
 
 #### Boolean feature flags
 
-PHP
-
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
 
@@ -883,8 +813,6 @@ if ($flags->isEnabled('flag-key')) {
 ```
 
 #### Multivariate feature flags
-
-PHP
 
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
@@ -906,17 +834,15 @@ You can also call `$flags->getKeys()` to list the evaluated flag keys, or `$flag
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to `capture()`
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-PHP
 
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
@@ -935,8 +861,6 @@ PostHog::capture([
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
 
 To reduce event property bloat, pass a filtered snapshot:
-
-PHP
 
 ```php
 // Attach only flags accessed with isEnabled() or getFlag() before this call
@@ -960,8 +884,6 @@ PostHog::capture([
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-PHP
-
 ```php
 PostHog::capture([
     'distinctId' => 'distinct_id_of_your_user',
@@ -977,8 +899,6 @@ PostHog::capture([
 
 By default, `evaluateFlags()` evaluates every flag for the user. If you only need a few flags, pass `flagKeys` to request only those flags:
 
-PHP
-
 ```php
 $flags = PostHog::evaluateFlags(
     distinctId: 'distinct_id_of_your_user',
@@ -989,8 +909,6 @@ $flags = PostHog::evaluateFlags(
 ### Optional evaluation parameters
 
 `evaluateFlags()` also accepts optional parameters for local evaluation and GeoIP behavior:
-
-PHP
 
 ```php
 $flags = PostHog::evaluateFlags(
@@ -1006,7 +924,7 @@ $flags = PostHog::evaluateFlags(
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `evaluateFlags()`, the SDK sends this event when you call `$flags->isEnabled()` or `$flags->getFlag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `evaluateFlags()`, the SDK sends this event when you call `$flags->isEnabled()` or `$flags->getFlag()` for a flag.
 
 The SDK deduplicates these events per `(flag key, distinct_id)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -1014,13 +932,11 @@ The SDK deduplicates these events per `(flag key, distinct_id)` in a local cache
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
 For example:
-
-PHP
 
 ```php
 $flags = PostHog::evaluateFlags(
@@ -1072,8 +988,6 @@ Simply include any of these properties in the `person_properties` parameter alon
 
 You can configure the `feature_flag_request_timeout_ms` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked if PostHog's servers are too slow to respond. By default, this is set to 3 seconds.
 
-PHP
-
 ```php
 PostHog::init("<ph_project_token>",
     [
@@ -1093,8 +1007,6 @@ Call `posthog.evaluate_flags()` once for the user, then read values from the ret
 
 #### Boolean feature flags
 
-Ruby
-
 ```ruby
 flags = posthog.evaluate_flags('distinct_id_of_your_user')
 
@@ -1106,8 +1018,6 @@ end
 ```
 
 #### Multivariate feature flags
-
-Ruby
 
 ```ruby
 flags = posthog.evaluate_flags('distinct_id_of_your_user')
@@ -1127,17 +1037,15 @@ end
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to `capture()`
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-Ruby
 
 ```ruby
 flags = posthog.evaluate_flags('distinct_id_of_your_user')
@@ -1156,8 +1064,6 @@ posthog.capture({
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
 
 To reduce event property bloat, pass a filtered snapshot:
-
-Ruby
 
 ```ruby
 # Attach only flags accessed with enabled?() or get_flag() before this call
@@ -1181,8 +1087,6 @@ posthog.capture({
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-Ruby
-
 ```ruby
 posthog.capture({
     distinct_id: 'distinct_id_of_your_user',
@@ -1198,8 +1102,6 @@ posthog.capture({
 
 By default, `evaluate_flags()` evaluates every flag for the user. If you only need a few flags, pass `flag_keys` to request only those flags:
 
-Ruby
-
 ```ruby
 flags = posthog.evaluate_flags(
     'distinct_id_of_your_user',
@@ -1210,8 +1112,6 @@ flags = posthog.evaluate_flags(
 ### Evaluating locally only
 
 If you want to skip the remote `/flags` request and only use locally cached definitions, pass `only_evaluate_locally: true`:
-
-Ruby
 
 ```ruby
 flags = posthog.evaluate_flags(
@@ -1224,8 +1124,6 @@ flags = posthog.evaluate_flags(
 
 Pass `disable_geoip: true` to disable GeoIP lookup for remote flag evaluation:
 
-Ruby
-
 ```ruby
 flags = posthog.evaluate_flags(
     'distinct_id_of_your_user',
@@ -1235,7 +1133,7 @@ flags = posthog.evaluate_flags(
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `evaluate_flags()`, the SDK sends this event when you call `flags.enabled?()` or `flags.get_flag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `evaluate_flags()`, the SDK sends this event when you call `flags.enabled?()` or `flags.get_flag()` for a flag.
 
 The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -1243,13 +1141,11 @@ The SDK deduplicates these events per `(distinct_id, flag, value)` in a local ca
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
 For example:
-
-Ruby
 
 ```ruby
 flags = posthog.evaluate_flags(
@@ -1307,8 +1203,6 @@ Simply include any of these properties in the `person_properties` parameter alon
 
 You can configure the `feature_flag_request_timeout_seconds` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked if PostHog's servers are too slow to respond. By default, this is set to 3 seconds.
 
-Ruby
-
 ```ruby
 posthog = PostHog::Client.new({
     # rest of your configuration...
@@ -1326,8 +1220,6 @@ Call `client.EvaluateFlags()` once for the user, then read values from the retur
 
 #### Boolean feature flags
 
-Go
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "distinct_id_of_your_user",
@@ -1344,8 +1236,6 @@ if flags.IsEnabled("flag-key") {
 ```
 
 #### Multivariate feature flags
-
-Go
 
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
@@ -1370,17 +1260,15 @@ if enabledVariant == "variant-key" { // replace "variant-key" with the key of yo
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to `Capture`
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-Go
 
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
@@ -1405,8 +1293,6 @@ By default, this attaches every flag in the snapshot using `$feature/<flag-key>`
 
 To reduce event property bloat, pass a filtered snapshot:
 
-Go
-
 ```go
 // Attach only flags accessed with IsEnabled() or GetFlag() before this call
 client.Enqueue(posthog.Capture{
@@ -1429,8 +1315,6 @@ client.Enqueue(posthog.Capture{
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-Go
-
 ```go
 client.Enqueue(posthog.Capture{
     DistinctId: "distinct_id_of_your_user",
@@ -1444,8 +1328,6 @@ client.Enqueue(posthog.Capture{
 
 By default, `EvaluateFlags()` evaluates every flag for the user. If you only need a few flags, pass `FlagKeys` to request only those flags:
 
-Go
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "distinct_id_of_your_user",
@@ -1455,7 +1337,7 @@ flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `EvaluateFlags()`, the SDK sends this event when you call `flags.IsEnabled()` or `flags.GetFlag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `EvaluateFlags()`, the SDK sends this event when you call `flags.IsEnabled()` or `flags.GetFlag()` for a flag.
 
 The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -1463,13 +1345,11 @@ The SDK deduplicates these events per `(distinct_id, flag, value)` in a local ca
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
 For example:
-
-Go
 
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
@@ -1526,8 +1406,6 @@ Simply include any of these properties in the `person_properties` parameter alon
 
 You can configure the `FeatureFlagRequestTimeout` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked if PostHog's servers are too slow to respond. By default, this is set to 3 seconds.
 
-Go
-
 ```go
 // import "time"
 
@@ -1552,8 +1430,6 @@ There are two ways to implement feature flags in React Native:
 
 #### Example 1: Boolean feature flags
 
-React Native
-
 ```jsx
 import { useFeatureFlag } from 'posthog-react-native'
 
@@ -1572,8 +1448,6 @@ const MyComponent = () => {
 ```
 
 #### Example 2: Multivariate feature flags
-
-React Native
 
 ```jsx
 import { useFeatureFlag } from 'posthog-react-native'
@@ -1596,8 +1470,6 @@ const MyComponent = () => {
 
 ### Method 2: Loading the flag directly
 
-React Native
-
 ```jsx
 // Defaults to undefined if not loaded yet or if there was a problem loading
 posthog.isFeatureEnabled('key-for-your-boolean-flag')
@@ -1616,8 +1488,6 @@ posthog.getFeatureFlagResult('key-for-your-multivariate-flag')?.payload
 
 You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
 
-React Native
-
 ```jsx
 for (const flag of posthog.getAllFeatureFlags()) {
     console.log(flag.key, flag.enabled, flag.variant, flag.payload)
@@ -1631,8 +1501,6 @@ Every time a user opens the app, we send a request in the background to fetch th
 This means that for most screens, the feature flags are available immediately — **except for the first time a user visits**.
 
 To handle this, you can use the `onFeatureFlags` callback to wait for the feature flag request to finish:
-
-React Native
 
 ```jsx
 posthog.onFeatureFlags((flags) => {
@@ -1649,15 +1517,11 @@ PostHog loads feature flags when instantiated and refreshes whenever methods are
 
 If want to manually trigger a refresh, you can call `reloadFeatureFlagsAsync()`:
 
-React Native
-
 ```jsx
 posthog.reloadFeatureFlagsAsync().then((refreshedFlags) => console.log(refreshedFlags))
 ```
 
 Or when you want to trigger the reload, but don't care about the result:
-
-React Native
 
 ```jsx
 posthog.reloadFeatureFlags()
@@ -1671,16 +1535,12 @@ For example, if a user last opened your app when a flag was `false`, that value 
 
 To ensure fresh flag values:
 
-React Native
-
 ```jsx
 // Force refresh on app start
 await posthog.reloadFeatureFlagsAsync()
 ```
 
 Or clear cached values for inactive users:
-
-React Native
 
 ```jsx
 if (lastActiveDate < migrationDate) {
@@ -1691,8 +1551,6 @@ if (lastActiveDate < migrationDate) {
 ### Request timeout
 
 You can configure the `featureFlagsRequestTimeoutMs` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked in the case when PostHog's servers are too slow to respond. By default, this is set at 10 seconds.
-
-React Native
 
 ```jsx
 export const posthog = new PostHog('<ph_project_token>', {
@@ -1705,8 +1563,6 @@ export const posthog = new PostHog('<ph_project_token>', {
 ### Error handling
 
 When using the PostHog SDK, it's important to handle potential errors that may occur during feature flag operations. Here's an example of how to wrap PostHog SDK methods in an error handler:
-
-React Native
 
 ```jsx
 function handleFeatureFlag(client, flagKey, distinctId) {
@@ -1741,8 +1597,6 @@ try {
 
 Sometimes, you might want to evaluate feature flags using properties that haven't been ingested yet, or were set incorrectly earlier. You can do so by setting properties the flag depends on with these calls:
 
-React Native
-
 ```jsx
 posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'})
 ```
@@ -1751,23 +1605,17 @@ Note that these are set for the entire session. Successive calls are additive: a
 
 Whenever you set these properties, we also trigger a reload of feature flags to ensure we have the latest values. You can disable this by passing in the optional parameter for reloading:
 
-React Native
-
 ```jsx
 posthog.setPersonPropertiesForFlags({'property1': 'value', property2: 'value2'}, false)
 ```
 
 At any point, you can reset these properties by calling `resetPersonPropertiesForFlags`:
 
-React Native
-
 ```jsx
 posthog.resetPersonPropertiesForFlags()
 ```
 
-The same holds for [group](/docs/product-analytics/group-analytics.md) properties:
-
-React Native
+The same holds for [group](https://posthog.com/docs/product-analytics/group-analytics.md) properties:
 
 ```jsx
 // set properties for a group
@@ -1803,8 +1651,6 @@ This enables any geolocation-based flags to work without manually setting these 
 
 ### Boolean feature flags
 
-Kotlin
-
 ```kotlin
 import com.posthog.PostHog
 
@@ -1818,8 +1664,6 @@ if (result?.enabled == true) {
 ```
 
 ### Multivariate feature flags
-
-Kotlin
 
 ```kotlin
 import com.posthog.PostHog
@@ -1837,8 +1681,6 @@ if (result?.variant == "variant-key") { // replace "variant-key" with the key of
 
 You can inspect all currently loaded feature flags with `PostHog.getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
 
-Kotlin
-
 ```kotlin
 import com.posthog.PostHog
 
@@ -1854,8 +1696,6 @@ Every time a user opens the app, we send a request in the background to fetch th
 This means that for most screens, the feature flags are available immediately – **except for the first time a user visits**.
 
 To handle this, you can use the `onFeatureFlags` callback to wait for the feature flag request to finish:
-
-Kotlin
 
 ```kotlin
 import com.posthog.PostHog
@@ -1883,8 +1723,6 @@ PostHog.reloadFeatureFlags {
 
 Feature flag values are cached. If something has changed with your user and you'd like to refetch their flag values, call:
 
-Kotlin
-
 ```kotlin
 import com.posthog.PostHog
 
@@ -1894,8 +1732,6 @@ PostHog.reloadFeatureFlags()
 ### Tracking feature usage
 
 To track when someone sees or interacts with a feature, use `captureFeatureView` and `captureFeatureInteraction`.
-
-Kotlin
 
 ```kotlin
 import com.posthog.PostHog
@@ -1908,8 +1744,6 @@ PostHog.captureFeatureInteraction("flag-key", flagVariant = "variant-key")
 
 ### Boolean feature flags
 
-Swift
-
 ```swift
 if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.enabled {
     // Do something differently for this user
@@ -1920,8 +1754,6 @@ if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.enabl
 ```
 
 ### Multivariate feature flags
-
-Swift
 
 ```swift
 if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.variant == "variant-key" { // replace "variant-key" with the key of your variant
@@ -1935,8 +1767,6 @@ if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.varia
 ### Typed payloads
 
 If your payload is a JSON object, you can decode it into a `Decodable` type:
-
-Swift
 
 ```swift
 struct FlagPayload: Decodable {
@@ -1953,8 +1783,6 @@ if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"),
 
 You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
 
-Swift
-
 ```swift
 for flag in PostHogSDK.shared.getAllFeatureFlags() ?? [] {
     print(flag.key, flag.enabled, flag.variant as Any, flag.payload as Any)
@@ -1964,8 +1792,6 @@ for flag in PostHogSDK.shared.getAllFeatureFlags() ?? [] {
 ### Reloading feature flags
 
 Feature flag values are cached. If something has changed with your user and you'd like to refetch their flag values, call:
-
-Swift
 
 ```swift
 PostHogSDK.shared.reloadFeatureFlags()
@@ -1978,8 +1804,6 @@ Every time a user opens the app, we send a request in the background to fetch th
 This means that for most screens, the feature flags are available immediately – **except for the first time a user visits**.
 
 To handle this, you can use the `onFeatureFlags` callback to be notified when flags are loaded or change. It's available in version 3.89.0+:
-
-Swift
 
 ```swift
 let subscription = PostHogSDK.shared.onFeatureFlags { loaded in
@@ -1997,7 +1821,7 @@ let subscription = PostHogSDK.shared.onFeatureFlags { loaded in
 subscription.unsubscribe()
 ```
 
-The callback runs on the main thread. It's called when flags load – including from [bootstrap values](/docs/feature-flags/bootstrapping.md) – and again each time they're reloaded, for example after `reloadFeatureFlags()`, `reset()`, or an `identify()` or `group()` call that changes the distinct ID or group. A reload doesn't have to change any values, so treat each call as "flags may have changed". If flags have already loaded when you register, it's called shortly afterwards with the current values. You can register before calling `setup()`.
+The callback runs on the main thread. It's called when flags load – including from [bootstrap values](https://posthog.com/docs/feature-flags/bootstrapping.md) – and again each time they're reloaded, for example after `reloadFeatureFlags()`, `reset()`, or an `identify()` or `group()` call that changes the distinct ID or group. A reload doesn't have to change any values, so treat each call as "flags may have changed". If flags have already loaded when you register, it's called shortly afterwards with the current values. You can register before calling `setup()`.
 
 #### Callback parameters
 
@@ -2007,11 +1831,9 @@ The callback receives a `PostHogFeatureFlagsLoaded` object with the following pr
 
 -   `variants: [String: Any]`: The values of the enabled feature flags, keyed by flag key. A value is `true` for an enabled boolean flag, or the variant key for a multivariate flag.
 
--   `errorsLoading: Bool`: `true` if the latest attempt to load feature flags failed, for example because the device is offline. The flags and variants then hold the last known values, which can be empty – for example, on a fresh install with no [bootstrap values](/docs/feature-flags/bootstrapping.md). In that case, `isFeatureEnabled` returns `false` because the flag is unknown, not because PostHog evaluated it as disabled.
+-   `errorsLoading: Bool`: `true` if the latest attempt to load feature flags failed, for example because the device is offline. The flags and variants then hold the last known values, which can be empty – for example, on a fresh install with no [bootstrap values](https://posthog.com/docs/feature-flags/bootstrapping.md). In that case, `isFeatureEnabled` returns `false` because the flag is unknown, not because PostHog evaluated it as disabled.
 
 On versions earlier than 3.89.0, observe the `PostHogSDK.didReceiveFeatureFlags` notification instead. Register the observer before calling `setup()`:
-
-Swift
 
 ```swift
 let observer = NotificationCenter.default.addObserver(
@@ -2030,8 +1852,6 @@ NotificationCenter.default.removeObserver(observer)
 
 Alternatively, you can use the completion block of the `reloadFeatureFlags(_:)` method. This allows you to execute logic immediately after the flags are reloaded:
 
-Swift
-
 ```swift
 // Reload feature flags and check if a specific feature is enabled
 PostHogSDK.shared.reloadFeatureFlags {
@@ -2045,8 +1865,6 @@ PostHogSDK.shared.reloadFeatureFlags {
 
 To track when someone sees or interacts with a feature, use `captureFeatureView` and `captureFeatureInteraction`.
 
-Swift
-
 ```swift
 PostHogSDK.shared.captureFeatureView(flag: "flag-key", flagVariant: "variant-key")
 PostHogSDK.shared.captureFeatureInteraction(flag: "flag-key", flagVariant: "variant-key")
@@ -2055,8 +1873,6 @@ PostHogSDK.shared.captureFeatureInteraction(flag: "flag-key", flagVariant: "vari
 ## Flutter
 
 ### Boolean feature flags
-
-Dart
 
 ```dart
 final result = await Posthog().getFeatureFlagResult('flag-key');
@@ -2069,8 +1885,6 @@ if (result != null && result.enabled) {
 ```
 
 ### Multivariate feature flags
-
-Dart
 
 ```dart
 final result = await Posthog().getFeatureFlagResult('flag-key');
@@ -2092,8 +1906,6 @@ This means that for most screens, the feature flags are available immediately �
 
 To handle this, you can use the `onFeatureFlags` callback in your config to be notified when flags are loaded:
 
-Dart
-
 ```dart
 final config = PostHogConfig('<ph_project_token>');
 config.host = 'https://us.i.posthog.com';
@@ -2109,8 +1921,6 @@ await Posthog().setup(config);
 
 Feature flag values are cached. If something has changed with your user and you'd like to refetch their flag values, call:
 
-Dart
-
 ```dart
 await Posthog().reloadFeatureFlags();
 ```
@@ -2125,8 +1935,6 @@ Call `posthog.evaluateFlags()` once for the user, then read values from the retu
 
 #### Boolean feature flags
 
-Java
-
 ```java
 PostHogFeatureFlagEvaluations flags = posthog.evaluateFlags("distinct_id_of_your_user");
 
@@ -2139,8 +1947,6 @@ if (flags.isEnabled("flag-key")) {
 ```
 
 #### Multivariate feature flags
-
-Java
 
 ```java
 PostHogFeatureFlagEvaluations flags = posthog.evaluateFlags("distinct_id_of_your_user");
@@ -2162,17 +1968,15 @@ if ("variant-key".equals(enabledVariant)) { // replace "variant-key" with the ke
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to `capture()`
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-Java
 
 ```java
 PostHogFeatureFlagEvaluations flags = posthog.evaluateFlags("distinct_id_of_your_user");
@@ -2193,8 +1997,6 @@ posthog.capture(
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
 
 To reduce event property bloat, pass a filtered snapshot:
-
-Java
 
 ```java
 // Attach only flags accessed with isEnabled() or getFlag() before this call
@@ -2222,8 +2024,6 @@ posthog.capture(
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-Java
-
 ```java
 posthog.capture(
     "distinct_id_of_your_user",
@@ -2238,8 +2038,6 @@ posthog.capture(
 
 By default, `evaluateFlags()` evaluates every flag for the user. If you only need a few flags, pass `flagKeys` to request only those flags:
 
-Java
-
 ```java
 import java.util.Arrays;
 
@@ -2253,7 +2051,7 @@ PostHogFeatureFlagEvaluations flags = posthog.evaluateFlags(
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `evaluateFlags()`, the SDK sends this event when you call `flags.isEnabled()` or `flags.getFlag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `evaluateFlags()`, the SDK sends this event when you call `flags.isEnabled()` or `flags.getFlag()` for a flag.
 
 The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -2261,13 +2059,11 @@ The SDK deduplicates these events per `(distinct_id, flag, value)` in a local ca
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
 For example:
-
-Java
 
 ```java
 import com.posthog.server.PostHogEvaluateFlagsOptions;
@@ -2325,8 +2121,6 @@ Call `client.evaluate_flags()` once for the user, then read values from the retu
 
 #### Boolean feature flags
 
-Rust
-
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
 
@@ -2343,8 +2137,6 @@ if flags.is_enabled("flag-key") {
 ```
 
 #### Multivariate feature flags
-
-Rust
 
 ```rust
 use posthog_rs::{EvaluateFlagsOptions, FlagValue};
@@ -2370,17 +2162,15 @@ match flags.get_flag("flag-key") {
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to the event
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-Rust
 
 ```rust
 use posthog_rs::{EvaluateFlagsOptions, Event};
@@ -2403,8 +2193,6 @@ By default, this attaches every flag in the snapshot using `$feature/<flag-key>`
 
 To reduce event property bloat, pass a filtered snapshot:
 
-Rust
-
 ```rust
 // Attach only flags accessed with is_enabled() or get_flag() before this call
 let mut event = Event::new("event_name", "distinct_id_of_your_user");
@@ -2423,8 +2211,6 @@ client.capture(event);
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-Rust
-
 ```rust
 use posthog_rs::Event;
 
@@ -2436,8 +2222,6 @@ client.capture(event);
 ### Evaluating only specific flags
 
 By default, `evaluate_flags()` evaluates every flag for the user. If you only need a few flags, pass `flag_keys` to request only those flags:
-
-Rust
 
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
@@ -2453,7 +2237,7 @@ let flags = client.evaluate_flags(
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `evaluate_flags()`, the SDK sends this event when you call `flags.is_enabled()` or `flags.get_flag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `evaluate_flags()`, the SDK sends this event when you call `flags.is_enabled()` or `flags.get_flag()` for a flag.
 
 The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -2462,8 +2246,6 @@ The SDK deduplicates these events per `(distinct_id, flag, value)` in a local ca
 ### Blocking client
 
 If you're using the blocking client (with `default-features = false`), the API is the same but without `.await`:
-
-Rust
 
 ```rust
 use posthog_rs::EvaluateFlagsOptions;
@@ -2488,8 +2270,6 @@ Call `PostHog.FeatureFlags.evaluate_flags/1` once for the user, then read values
 
 #### Boolean feature flags
 
-Elixir
-
 ```elixir
 {:ok, snapshot} = PostHog.FeatureFlags.evaluate_flags("distinct_id_of_your_user")
 
@@ -2501,8 +2281,6 @@ end
 ```
 
 #### Multivariate feature flags
-
-Elixir
 
 ```elixir
 {:ok, snapshot} = PostHog.FeatureFlags.evaluate_flags("distinct_id_of_your_user")
@@ -2522,17 +2300,15 @@ end
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Put the evaluated flags snapshot in context
 
 Put the same `snapshot` object that you used for branching into context. Subsequent captures from the same process attach the exact flag values from that evaluation and don't make another `/flags` request.
-
-Elixir
 
 ```elixir
 {:ok, snapshot} = PostHog.FeatureFlags.evaluate_flags("distinct_id_of_your_user")
@@ -2548,8 +2324,6 @@ PostHog.capture("event_name", %{distinct_id: "distinct_id_of_your_user"})
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
 
 To reduce event property bloat, put a filtered snapshot in context:
-
-Elixir
 
 ```elixir
 {:ok, snapshot} = PostHog.FeatureFlags.evaluate_flags("distinct_id_of_your_user")
@@ -2572,8 +2346,6 @@ PostHog.FeatureFlags.set_in_context(
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-Elixir
-
 ```elixir
 PostHog.capture("event_name", %{
   "$feature/feature-flag-key" => "variant-key",
@@ -2585,8 +2357,6 @@ PostHog.capture("event_name", %{
 
 By default, `evaluate_flags/1` evaluates every flag for the user. If you only need a few flags, pass `flag_keys` to request only those flags:
 
-Elixir
-
 ```elixir
 {:ok, snapshot} =
   PostHog.FeatureFlags.evaluate_flags(%{
@@ -2597,7 +2367,7 @@ Elixir
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `evaluate_flags/1`, the SDK sends this event when you call `PostHog.FeatureFlags.Evaluations.enabled?/2` or `PostHog.FeatureFlags.Evaluations.get_flag/2` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `evaluate_flags/1`, the SDK sends this event when you call `PostHog.FeatureFlags.Evaluations.enabled?/2` or `PostHog.FeatureFlags.Evaluations.get_flag/2` for a flag.
 
 `PostHog.FeatureFlags.Evaluations.get_flag_payload/2` doesn't send `$feature_flag_called` events.
 
@@ -2611,8 +2381,6 @@ Call `EvaluateFlagsAsync()` once for the user, then read values from the returne
 
 #### Boolean feature flags
 
-C#
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
 
@@ -2625,8 +2393,6 @@ if (flags.IsEnabled("flag-key"))
 ```
 
 #### Multivariate feature flags
-
-C#
 
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
@@ -2647,17 +2413,15 @@ if (enabledVariant == "variant-key") // replace "variant-key" with the key of yo
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to `Capture()`
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-C#
 
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
@@ -2679,8 +2443,6 @@ posthog.Capture(
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
 
 To reduce event property bloat, pass a filtered snapshot:
-
-C#
 
 ```csharp
 // Attach only flags accessed with IsEnabled() or GetFlag() before this call
@@ -2706,8 +2468,6 @@ posthog.Capture(
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-C#
-
 ```csharp
 posthog.Capture(
     "distinct_id_of_your_user",
@@ -2724,8 +2484,6 @@ posthog.Capture(
 
 By default, `EvaluateFlagsAsync()` evaluates every flag for the user. If you only need a few flags, pass `FlagKeysToEvaluate` to request only those flags:
 
-C#
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync(
     "distinct_id_of_your_user",
@@ -2738,7 +2496,7 @@ var flags = await posthog.EvaluateFlagsAsync(
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `EvaluateFlagsAsync()`, the SDK sends this event when you call `flags.IsEnabled()` or `flags.GetFlag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `EvaluateFlagsAsync()`, the SDK sends this event when you call `flags.IsEnabled()` or `flags.GetFlag()` for a flag.
 
 The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -2746,13 +2504,11 @@ The SDK deduplicates these events per `(distinct_id, flag, value)` in a local ca
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
 For example:
-
-C#
 
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync(
@@ -2995,8 +2751,6 @@ Evaluation runtime (server vs. client) is automatically detected based on your r
 
 **Examples of runtime detection:**
 
-JavaScript
-
 ```javascript
 // Browser fetch - Detected as CLIENT runtime
 // Will receive: client-only flags + "all" flags
@@ -3014,8 +2768,6 @@ const response = await fetch("https://us.i.posthog.com/flags?v=2", {
 });
 ```
 
-Python
-
 ```python
 # Python requests - Detected as SERVER runtime
 # Will receive: server-only flags + "all" flags
@@ -3032,8 +2784,6 @@ response = requests.post(
 )
 ```
 
-Terminal
-
 ```shell
 # curl - Detected as SERVER runtime
 # Will receive: server-only flags + "all" flags
@@ -3044,8 +2794,6 @@ curl -v -L --header "Content-Type: application/json" -d '{
 }' "https://us.i.posthog.com/flags?v=2"
 # curl/ in User-Agent indicates server-side
 ```
-
-JavaScript
 
 ```javascript
 // Node.js with custom User-Agent - Control runtime detection
@@ -3065,8 +2813,6 @@ const response = await fetch("https://us.i.posthog.com/flags?v=2", {
 ##### Combining evaluation context tags and runtime filtering
 
 Both features work together as sequential filters:
-
-JavaScript
 
 ```javascript
 // Example: Production web client
@@ -3100,9 +2846,7 @@ The response varies depending on whether you include the `config=true` query par
 
 Use this endpoint when you only need to evaluate feature flags. It returns a response with just the flag evaluation results.
 
-> **Note:** If a feature flag is associated with an experiment that has a [holdout group](/docs/experiments/holdouts.md), users in the holdout receive a variant value in the format `holdout-{holdout_id}` (e.g., `holdout-727`). You can detect holdout users by checking if the variant starts with `holdout-`.
-
-JSON
+> **Note:** If a feature flag is associated with an experiment that has a [holdout group](https://posthog.com/docs/experiments/holdouts.md), users in the holdout receive a variant value in the format `holdout-{holdout_id}` (e.g., `holdout-727`). You can detect holdout users by checking if the variant starts with `holdout-`.
 
 ```json
 {
@@ -3157,8 +2901,6 @@ JSON
 ##### Full response with configuration (`/flags?v=2&config=true`)
 
 Use this endpoint when you need both feature flag evaluation and PostHog configuration information (useful for client-side SDKs that need to initialize PostHog):
-
-JSON
 
 ```json
 {
@@ -3229,8 +2971,6 @@ If your organization exceeds its feature flag quota, the `/flags` endpoint will 
 
 For basic response (`/flags?v=2`):
 
-JSON
-
 ```json
 {
   "flags": {},
@@ -3241,8 +2981,6 @@ JSON
 ```
 
 For full response with configuration (`/flags?v=2&config=true`):
-
-JSON
 
 ```json
 {
@@ -3270,9 +3008,9 @@ When you receive a response with `quotaLimited` containing `"feature_flags"`, it
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 To do this, include the `$feature/feature_flag_name` property in your event:
 
@@ -3359,7 +3097,7 @@ print(response)
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
@@ -3448,11 +3186,3 @@ The list of properties that this overrides:
 5.  `$geoip_continent_code`
 6.  `$geoip_postal_code`
 7.  `$geoip_time_zone`
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

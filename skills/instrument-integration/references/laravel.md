@@ -2,11 +2,23 @@
 
 # Laravel
 
-PostHog integrates with Laravel through the [PostHog PHP SDK](/docs/libraries/php.md). This page covers Laravel-specific setup. For SDK features such as event capture, identifying users, feature flags, group analytics, and configuration options, see the [PHP SDK docs](/docs/libraries/php.md).
+Canonical URL: https://posthog.com/docs/libraries/laravel
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host).
+
+## On this page
+
+- [Installation](#installation)
+- [Request context middleware](#request-context-middleware)
+- [Error tracking in Laravel](#error-tracking-in-laravel)
+- [Long-running processes](#long-running-processes)
+- [Next steps](#next-steps)
+
+PostHog integrates with Laravel through the [PostHog PHP SDK](https://posthog.com/docs/libraries/php.md). This page covers Laravel-specific setup. For SDK features such as event capture, identifying users, feature flags, group analytics, and configuration options, see the [PHP SDK docs](https://posthog.com/docs/libraries/php.md).
 
 ## Installation
 
-Install the PHP SDK as described in the [PHP installation guide](/docs/libraries/php.md#installation), then add your project token and host to `.env`:
+Install the PHP SDK as described in the [PHP installation guide](https://posthog.com/docs/libraries/php.md#installation), then add your project token and host to `.env`:
 
 .env
 
@@ -58,9 +70,9 @@ class AppServiceProvider extends ServiceProvider
 
 ## Request context middleware
 
-Client SDKs such as [PostHog JS](/docs/libraries/js.md) can send tracing headers to your Laravel backend. Configure [`tracing_headers`](/docs/libraries/js/config.md#tracing-headers) for your Laravel backend hostname so browser requests include the session and distinct ID headers.
+Client SDKs such as [PostHog JS](https://posthog.com/docs/libraries/js.md) can send tracing headers to your Laravel backend. Configure [`tracing_headers`](https://posthog.com/docs/libraries/js/config.md#tracing-headers) for your Laravel backend hostname so browser requests include the session and distinct ID headers.
 
-The PHP SDK can read `X-PostHog-Distinct-Id` and `X-PostHog-Session-Id` headers and apply them to events captured during the request. Tracing headers are client-controlled analytics context, not authentication or authorization. For security-sensitive server-side events or decisions, pass an authenticated `distinctId` explicitly, such as `auth()->id()`. For the lower-level context APIs, see the [PHP request context docs](/docs/libraries/php.md#request-context).
+The PHP SDK can read `X-PostHog-Distinct-Id` and `X-PostHog-Session-Id` headers and apply them to events captured during the request. Tracing headers are client-controlled analytics context, not authentication or authorization. For security-sensitive server-side events or decisions, pass an authenticated `distinctId` explicitly, such as `auth()->id()`. For the lower-level context APIs, see the [PHP request context docs](https://posthog.com/docs/libraries/php.md#request-context).
 
 Add middleware like this:
 
@@ -110,7 +122,7 @@ Register this middleware using your Laravel version's normal middleware registra
 
 ## Error tracking in Laravel
 
-The PHP SDK supports [error tracking](/docs/libraries/php.md#error-tracking), but Laravel handles most request exceptions before they become uncaught PHP exceptions. Capture Laravel-reported exceptions explicitly.
+The PHP SDK supports [error tracking](https://posthog.com/docs/libraries/php.md#error-tracking), but Laravel handles most request exceptions before they become uncaught PHP exceptions. Capture Laravel-reported exceptions explicitly.
 
 In Laravel 11 and later, add a report callback in `bootstrap/app.php`:
 
@@ -147,8 +159,6 @@ In normal PHP request lifecycles, queued events flush when the client is destroy
 
 If you prefer immediate delivery in queue workers, configure the PHP SDK with `batch_size` set to `1` for those workers:
 
-PHP
-
 ```php
 PostHog::init(
     '<ph_project_token>',
@@ -161,12 +171,4 @@ PostHog::init(
 
 ## Next steps
 
-See the [PHP SDK docs](/docs/libraries/php.md) for usage examples and the full API reference.
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+See the [PHP SDK docs](https://posthog.com/docs/libraries/php.md) for usage examples and the full API reference.

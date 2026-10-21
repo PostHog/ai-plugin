@@ -2,17 +2,29 @@
 
 # Python metrics installation
 
+Canonical URL: https://posthog.com/docs/metrics/installation/python
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install posthog-python](#install-posthog-python)
+- [Initialize the client](#initialize-the-client)
+- [Record metrics](#record-metrics)
+- [Instrument alongside existing metrics](#instrument-alongside-existing-metrics)
+- [Flush before exit](#flush-before-exit)
+- [Test your setup](#test-your-setup)
+- [Next steps](#next-steps)
+
 > **Note:** Metrics is in open alpha. Any team can turn it on — open [Metrics](https://app.posthog.com/metrics) and select **Enable metrics** in the onboarding view. Setup details may change before general availability.
 
-The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metrics` API, so you can record metrics with the same client you use for events and feature flags.
+The [posthog-python](https://posthog.com/docs/libraries/python.md) SDK includes the `posthog.metrics` API, so you can record metrics with the same client you use for events and feature flags.
 
 1.  1
 
     ## Install posthog-python
 
     Required
-
-    Terminal
 
     ```bash
     pip install posthog
@@ -28,8 +40,6 @@ The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metric
 
     Set a service name so metrics from different systems stay easy to tell apart. It's attached to every series and used by the Metrics UI for filtering.
 
-    Python
-
     ```python
     from posthog import Posthog
     
@@ -40,7 +50,7 @@ The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metric
     )
     ```
 
-    Use your **project token** (the same one you use for capturing events), not a [personal API key](/docs/api.md#authentication).
+    Use your **project token** (the same one you use for capturing events), not a [personal API key](https://posthog.com/docs/api.md#authentication).
 
 3.  3
 
@@ -49,8 +59,6 @@ The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metric
     Required
 
     Use the metric type that matches what you're measuring:
-
-    Python
 
     ```python
     # Counters only go up: things you count
@@ -83,8 +91,6 @@ The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metric
 
     For short-lived processes (cron jobs, CLIs, serverless functions), flush before exiting so the last aggregation window isn't lost:
 
-    Python
-
     ```python
     posthog.metrics.flush()
     ```
@@ -109,18 +115,10 @@ The [posthog-python](/docs/libraries/python.md) SDK includes the `posthog.metric
 
     | Action | Description |
     | --- | --- |
-    | **[Why you need metrics](/docs/metrics/basics.md)** | What metrics show you that events and logs don't |
-    | **[Getting started guide](/docs/metrics/start-here.md)** | Pick the right metric type, add attributes carefully, and chart what matters |
+    | **[Why you need metrics](https://posthog.com/docs/metrics/basics.md)** | What metrics show you that events and logs don't |
+    | **[Getting started guide](https://posthog.com/docs/metrics/start-here.md)** | Pick the right metric type, add attributes carefully, and chart what matters |
     | **Group and filter** | Group by an attribute for one line per value, or filter with `key=value` chips |
-    | **[How metrics works](/docs/metrics/architecture.md)** | How metrics are ingested, stored, and queried |
+    | **[How metrics works](https://posthog.com/docs/metrics/architecture.md)** | How metrics are ingested, stored, and queried |
     | **Query with SQL** | Every metric lands in the `posthog.metrics` table, queryable from the SQL tab |
 
-    [Continue with the getting started guide](/docs/metrics/start-here.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Continue with the getting started guide](https://posthog.com/docs/metrics/start-here.md)

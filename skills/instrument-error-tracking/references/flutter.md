@@ -2,6 +2,21 @@
 
 # Flutter Error Tracking installation
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/flutter
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the package](#install-the-package)
+- [Platform setup](#platform-setup)
+- [Send events](#send-events)
+- [Set up exception autocapture](#set-up-exception-autocapture)
+- [Manually capture exceptions](#manually-capture-exceptions)
+- [Future features](#future-features)
+- [Verify error tracking](#verify-error-tracking)
+- [Upload source maps](#upload-source-maps)
+
 1.  1
 
     ## Install the package
@@ -231,11 +246,11 @@
     We currently don't support the following features:
 
     -   No de-obfuscating stacktraces from obfuscated builds ([\--obfuscate](https://docs.flutter.dev/deployment/obfuscate) and [\--split-debug-info](https://docs.flutter.dev/deployment/obfuscate)) for Dart code
-    -   No [Source code context](/docs/error-tracking/stack-traces.md) associated with an exception (native Android Java/Kotlin errors and Flutter web only)
+    -   No [Source code context](https://posthog.com/docs/error-tracking/stack-traces.md) associated with an exception (native Android Java/Kotlin errors and Flutter web only)
     -   No native C/C++ exception capture on Android (Java/Kotlin only)
     -   No background isolate error capture
 
-    For symbolicated stack traces on native platforms, see the [Flutter debug symbols guide](/docs/error-tracking/upload-source-maps/flutter.md).
+    For symbolicated stack traces on native platforms, see the [Flutter debug symbols guide](https://posthog.com/docs/error-tracking/upload-source-maps/flutter.md).
 
     These features will be added in future releases. We recommend you stay up to date with the latest version of the PostHog Flutter SDK.
 
@@ -261,12 +276,4 @@
 
     Let's continue to the next section.
 
-    [Upload source maps](/docs/error-tracking/upload-source-maps/flutter.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Upload source maps](https://posthog.com/docs/error-tracking/upload-source-maps/flutter.md)

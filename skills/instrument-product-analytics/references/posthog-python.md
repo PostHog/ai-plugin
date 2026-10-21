@@ -2,7 +2,7 @@
 
 # PostHog Python SDK
 
-**SDK Version:** 7.70.0
+**SDK Version:** 7.73.1
 
 Integrate PostHog into any python application.
 
@@ -716,11 +716,11 @@ posthog.load_feature_flags()
 
 **Release Tag:** public
 
-Force a flush from the internal queue to the server. Do not use directly, call `shutdown()` instead.
+Attempt immediate delivery of queued events and ended spans, keeping the client reusable.  For a client shared across requests or serverless invocations (including the module-level client), call ``flush()`` before a short-lived invocation returns. Use ``shutdown()`` instead only for final process cleanup or when disposing of a client that will not be reused. Flush does not stop the background workers or feature flag poller, and does not end open spans.  Returning does not guarantee server receipt: pending work can remain after a timeout or span export failure, and failed events may be dropped by the consumers. Calls made directly from SDK callbacks such as ``on_error`` are deferred rather than blocking the worker that invoked the callback.
 
 ### Parameters
 
-- **`timeout_seconds?`** (`float`) - Maximum seconds to wait for the queue to flush.         Defaults to 10 seconds. Pass ``None`` to wait indefinitely.         Queued spans are sent at the same time, within the same
+- **`timeout_seconds?`** (`float`) - Seconds to wait for event queues to drain, shared         across event lanes. Defaults to 10 seconds. Pass ``None`` to wait         without a time limit; this does not guarantee successful delivery.         Queued spans flush concurrently. The span exporter waits up to         this many seconds for an in-flight flush, then uses a fresh drain         budget once it acquires the lock. If the lock wait times out, the         in-flight flush is left to finish. At least one span request is         attempted after acquiring the lock, even with no budget left;         retriable failures are retried after backoff while budget remains,         with one last attempt at the deadline. Each span request is         bounded by the client's ``timeout`` in         seconds, and the last request is not cut short. This is therefore         not a strict wall-clock limit for the whole call. With ``None``,         a retriable span failure is left for a later flush rather than         retried within this call.
 
 ### Returns
 
@@ -729,8 +729,9 @@ Force a flush from the internal queue to the server. Do not use directly, call `
 ### Examples
 
 ```python
-posthog.capture('event_name')
-posthog.flush()  # Ensures the event is sent immediately
+posthog.capture('event_name', distinct_id='user_id')
+# Before a serverless invocation returns; keep the shared client open.
+posthog.flush(timeout_seconds=10)
 ```
 
 ---
@@ -791,7 +792,7 @@ posthog.join()
 
 **Release Tag:** public
 
-Flush all messages and cleanly shutdown the client. Call this before the process ends in serverless environments to avoid data loss.  Normally this method blocks until queued events have been attempted and cleanup finishes. Failed or undrainable events may be dropped and reported through logging or ``on_error``; returning does not guarantee server receipt. Queued spans get one final flush of up to 30 s (plus a request already in flight); any it cannot send are discarded with a warning, as are spans still open. Lifecycle cleanup is attempted once, and cleanup failures are logged without retry. When called directly from an SDK callback such as ``on_error``, shutdown is deferred to avoid blocking the worker that invoked the callback. If the callback must coordinate a blocking shutdown, have it signal an application-owned thread and return before that thread calls shutdown. Do not wait inside the callback for another thread or task that calls a lifecycle method.
+Attempt final delivery and permanently shut down the client.  Call this for final process cleanup or when disposing of a client that will not be reused. It closes capture lanes, stops background workers and the feature flag poller, and tears down integrations. Do not call it at the end of each request or serverless invocation when the client is shared; call ``flush()`` before returning instead. A shut-down client cannot be reused; create a new client if needed.  Normally this method blocks until queued events have been attempted and cleanup finishes. Failed or undrainable events may be dropped and reported through logging or ``on_error``; returning does not guarantee server receipt. Event draining has no timeout. Queued spans get one final flush with up to 30 seconds waiting for an in-flight flush, then a fresh 30-second drain budget; the last HTTP request is not cut short. Any spans it cannot send are discarded with a warning, as are spans still open. Lifecycle cleanup is attempted once, and cleanup failures are logged without retry. When called directly from an SDK callback such as ``on_error``, shutdown is deferred to avoid blocking the worker that invoked the callback. If the callback must coordinate a blocking shutdown, have it signal an application-owned thread and return before that thread calls shutdown. Do not wait inside the callback for another thread or task that calls a lifecycle method.
 
 ### Returns
 
@@ -1558,11 +1559,11 @@ load_feature_flags()
 
 **Release Tag:** public
 
-Tell the client to flush all queued events.
+Attempt immediate delivery of queued events and ended spans, keeping the global client reusable.  Call ``flush()`` before a short-lived request or serverless invocation returns when using the shared module-level client. Use ``shutdown()`` only for final process cleanup or a client that will not be reused. Flush does not stop the background workers or feature flag poller, and does not end open spans.  Returning does not guarantee server receipt: pending work can remain after a timeout or span export failure, and failed events may be dropped by consumers. Calls made directly from SDK callbacks such as ``on_error`` are deferred rather than blocking the worker that invoked the callback.
 
 ### Parameters
 
-- **`timeout_seconds?`** (`float`) - Maximum seconds to wait for the queue to flush.         Defaults to 10 seconds. Pass ``None`` to wait indefinitely.
+- **`timeout_seconds?`** (`float`) - Seconds to wait for event queues to drain, shared across         event lanes. Defaults to 10 seconds. Pass ``None`` to wait without a         time limit; this does not guarantee successful delivery. Queued spans         flush concurrently, waiting up to this many seconds for an in-flight         flush before starting a fresh drain budget. A lock wait timeout leaves         the in-flight flush to finish. At least one span request is attempted         after acquiring the lock, even with no budget left; retriable failures         are retried after backoff while budget remains, with one last attempt         at the deadline. The last span request is not cut short and is bounded         by the client's ``timeout`` in seconds,         so this is not a strict wall-clock limit for the whole call. With         ``None``, a retriable span failure is left for a later flush rather than         retried within this call.
 
 ### Returns
 
@@ -1571,8 +1572,10 @@ Tell the client to flush all queued events.
 ### Examples
 
 ```python
-from posthog import flush
-flush()
+import posthog
+posthog.capture('event_name', distinct_id='user_id')
+# Before a serverless invocation returns; keep the global client open.
+posthog.flush(timeout_seconds=10)
 ```
 
 ---
@@ -1600,7 +1603,7 @@ join()
 
 **Release Tag:** public
 
-Flush all messages and cleanly shutdown the client.  This normally blocks until queued events have been attempted and cleanup finishes. Failed or undrainable events may be dropped and reported through logging or ``on_error``; returning does not guarantee server receipt. Lifecycle cleanup is attempted once, and cleanup failures are logged without retry. Calls made directly from SDK callbacks such as ``on_error`` are deferred to avoid deadlocking the worker. If blocking completion is required, signal an application-owned thread, return from the callback, and call ``shutdown()`` from that thread. Do not wait inside a callback for another thread or task calling a lifecycle method.
+Attempt final delivery and permanently shut down the global client.  Call this for final process cleanup, not at the end of each request or serverless invocation that shares the module-level client. Use ``flush()`` before returning from those invocations instead. Shutdown closes capture lanes, stops background workers and the feature flag poller, and tears down integrations. The global client is not recreated automatically after shutdown.  This normally blocks until queued events have been attempted and cleanup finishes. Failed or undrainable events may be dropped and reported through logging or ``on_error``; returning does not guarantee server receipt. Event draining has no timeout. Queued spans get a final flush with up to 30 seconds waiting for an in-flight flush, then a fresh 30-second drain budget; the last HTTP request is not cut short. Unsent queued spans and still-open spans are discarded with a warning. Lifecycle cleanup is attempted once, and cleanup failures are logged without retry. Calls made directly from SDK callbacks such as ``on_error`` are deferred to avoid deadlocking the worker. If blocking completion is required, signal an application-owned thread, return from the callback, and call ``shutdown()`` from that thread. Do not wait inside a callback for another thread or task calling a lifecycle method.
 
 ### Returns
 

@@ -2,6 +2,26 @@
 
 # Anthropic AI Observability installation
 
+Canonical URL: https://posthog.com/docs/ai-observability/installation/anthropic
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host).
+
+## On this page
+
+- [Copy your project token](#copy-your-project-token)
+- [Choose how to send traces](#choose-how-to-send-traces)
+- [Call Claude and see the trace](#call-claude-and-see-the-trace)
+- [Users and sessions](#users-and-sessions)
+- [Keep an eye on your agent](#keep-an-eye-on-your-agent)
+- [Troubleshooting](#troubleshooting)
+- [Install dependencies](#install-dependencies)
+- [Configure PostHog](#configure-posthog)
+- [Call Anthropic](#call-anthropic)
+- [Capture tool calls as spans](#capture-tool-calls-as-spans)
+- [Verify traces and generations](#verify-traces-and-generations)
+- [Next steps](#next-steps)
+- [If you just landed here, welcome](#if-you-just-landed-here-welcome)
+
 ## Claude Platform Beta
 
 Claude Platform+PostHog
@@ -12,7 +32,7 @@ Send OpenTelemetry traces from Claude to PostHog with no extra code. Add PostHog
 
 100K free events, every month
 
-![Explorer hedgehog holding a folded map](/images/docs/ai-observability/explorer-hedgehog.png)
+![Explorer hedgehog holding a folded map](https://posthog.com/images/docs/ai-observability/explorer-hedgehog.png)
 
 Click the map
 
@@ -323,7 +343,7 @@ Click the map
     4.  **Content mode:** pick **Full content** to see every prompt and response in PostHog. **Metadata only** sends tokens, costs, and timing without the messages.
     5.  **Workspaces:** choose which workspaces send their traces to PostHog: **All**, **Selected**, or **All except**.
 
-    ![The Add destination form in the Claude Console with PostHog selected as the provider](/images/docs/ai-observability/claude-platform-add-destination.png)
+    ![The Add destination form in the Claude Console with PostHog selected as the provider](https://posthog.com/images/docs/ai-observability/claude-platform-add-destination.png)
 
     Click **Add destination**. Your code doesn't change.
 
@@ -342,11 +362,91 @@ Click the map
 
     **Using Managed Agents?** A Console destination also sends your sessions, with a span for each turn, model request, and tool use:
 
-    ![A Managed Agents trace in PostHog: session turns with model requests and bash tool uses on a timeline, and the turn input and output](/images/docs/ai-observability/claude-platform-managed-agents-trace.png)
+    ![A Managed Agents trace in PostHog: session turns with model requests and bash tool uses on a timeline, and the turn input and output](https://posthog.com/images/docs/ai-observability/claude-platform-managed-agents-trace.png)
 
     The turn holds the agent's input and output, each model request holds its tokens and cost, and each tool use holds its arguments and result. A session can span several traces. To follow one session, filter by `anthropic.session.id`.
 
 4.  4
+
+    ## Users and sessions
+
+    Recommended
+
+    This step applies to SDK tracing in Python, Node, and Go.
+
+    A server usually handles requests for many users, so a resource attribute can't say who each trace belongs to. Wrap each request in a PostHog context instead. The PostHog span processor adds the context's distinct ID and properties to every AI span started inside it. Other span processors and exporters on the same provider don't see them.
+
+    Set `$ai_session_id` if your product has multi-turn conversations, so the Sessions tab can group their traces. Workloads that finish in a single trace, like batch jobs or one-shot generation, don't need it.
+
+    ### Python
+
+    ```python
+    # Requires posthog 7.70.0 or later
+    import posthog
+    
+    with posthog.new_context():
+        posthog.identify_context(user_id)
+        posthog.tag("$ai_session_id", conversation_id)
+        posthog.tag("plan", "pro")  # custom properties work too
+    
+        reply = handle_turn(user_message)
+    ```
+
+    ### Node
+
+    ```typescript
+    // Requires @posthog/ai 8.14.0 and posthog-node 5.15.0 or later
+    import { PostHog } from 'posthog-node'
+    
+    const posthog = new PostHog('<ph_project_token>', { host: 'https://us.i.posthog.com' })
+    
+    const provider = new NodeTracerProvider({
+      // ...the rest of your setup from the earlier step
+      spanProcessors: [
+        new PostHogSpanProcessor({
+          projectToken: '<ph_project_token>',
+          host: 'https://us.i.posthog.com',
+          client: posthog,
+        }),
+      ],
+    })
+    
+    const reply = await posthog.withContext(
+      {
+        distinctId: userId,
+        properties: {
+          $ai_session_id: conversationId,
+          plan: 'pro', // custom properties work too
+        },
+      },
+      () => handleTurn(userMessage)
+    )
+    ```
+
+    ### Go
+
+    ```go
+    // Requires github.com/posthog/posthog-go/otel v1.35.0 or later
+    import "github.com/posthog/posthog-go"
+    
+    ctx = posthog.WithRequestContext(ctx, posthog.RequestContext{
+        DistinctId: userID,
+        Properties: posthog.Properties{
+            "$ai_session_id": conversationID,
+            "plan":           "pro", // custom properties work too
+        },
+    })
+    
+    reply := handleTurn(ctx, userMessage)
+    ```
+
+    On Node, install `posthog-node` and pass the client as the `client` option of your `PostHogSpanProcessor`. Without it, the processor doesn't read the context.
+
+    In Go, `posthog.NewRequestContextMiddleware` fills the context for each HTTP request from the `X-PostHog-Distinct-Id` and `X-PostHog-Session-Id` headers. The session header sets the web session ID (`$session_id`), not `$ai_session_id`, so set `$ai_session_id` in `Properties` to group traces in the Sessions tab.
+
+    A distinct ID set this way takes priority over a `posthog.distinct_id` resource attribute, so you can keep the resource attribute as the fallback for work outside a request. If your instrumentation already sets the `gen_ai.conversation.id` attribute, PostHog uses it as the session ID, and an explicit `$ai_session_id` takes priority over it.
+
+5.  5
 
     ## Keep an eye on your agent
 
@@ -358,27 +458,27 @@ Click the map
 
     Quickly monitor how your agent is doing. Score every response for helpfulness, hallucinations, or tone, and see when quality drops.
 
-    [Set up evaluations](/docs/ai-evals.md)
+    [Set up evaluations](https://posthog.com/docs/ai-evals.md)
 
     Dashboard
 
     Follow cost, usage, and latency over time, broken down by model or workspace.
 
-    [Explore the dashboard](/docs/ai-observability/dashboard.md)
+    [Explore the dashboard](https://posthog.com/docs/ai-observability/dashboard.md)
 
     Clusters
 
     Group similar conversations to see what people ask your agent most.
 
-    [Find patterns](/docs/ai-observability/clusters.md)
+    [Find patterns](https://posthog.com/docs/ai-observability/clusters.md)
 
     Sentiment
 
     See how users feel while they talk to your agent.
 
-    [Track sentiment](/docs/ai-observability/sentiment.md)
+    [Track sentiment](https://posthog.com/docs/ai-observability/sentiment.md)
 
-5.  5
+6.  6
 
     ## Troubleshooting
 
@@ -392,7 +492,7 @@ Click the map
     -   **No prompts or responses:** in the Claude Console, the destination uses **Metadata only**. Organizations with a data-handling restriction, such as HIPAA, always export metadata only. With the Claude SDK, set the content mode to `content` on the client.
     -   **Each request appears twice:** a Claude Console destination and the Claude SDK both send this project the same requests. Remove one of the two.
 
-    For other questions, see [AI Observability troubleshooting](/docs/ai-observability/troubleshooting.md).
+    For other questions, see [AI Observability troubleshooting](https://posthog.com/docs/ai-observability/troubleshooting.md).
 
 ## Tab
 
@@ -521,7 +621,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     })
     ```
 
-    > **Note:** If you want to capture LLM events anonymously, omit `posthog_distinct_id` from the call. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
+    > **Note:** If you want to capture LLM events anonymously, omit `posthog_distinct_id` from the call. See our docs on [anonymous vs identified events](https://posthog.com/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
@@ -536,7 +636,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | `$ai_output_choices` | List of response choices from the LLM |
     | `$ai_output_tokens` | The number of tokens in the output (often found in `response.usage`) |
     | `$ai_total_cost_usd` | The total cost in USD (input + output) |
-    | [\[...\]](/docs/ai-observability/generations.md#event-properties) | See [full list](/docs/ai-observability/generations.md#event-properties) of properties |
+    | [\[...\]](https://posthog.com/docs/ai-observability/generations.md#event-properties) | See [full list](https://posthog.com/docs/ai-observability/generations.md#event-properties) of properties |
 
 4.  4
 
@@ -596,7 +696,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     }
     ```
 
-    See [spans](/docs/ai-observability/spans.md) for the full list of span properties.
+    See [spans](https://posthog.com/docs/ai-observability/spans.md) for the full list of span properties.
 
 5.  ## Verify traces and generations
 
@@ -620,11 +720,11 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Resource | Description |
     | --- | --- |
-    | [Basics](/docs/ai-observability/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
-    | [Generations](/docs/ai-observability/generations.md) | Read about the `$ai_generation` event and its properties. |
-    | [Traces](/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
-    | [Spans](/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
-    | [Anaylze LLM performance](/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
+    | [Basics](https://posthog.com/docs/ai-observability/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
+    | [Generations](https://posthog.com/docs/ai-observability/generations.md) | Read about the `$ai_generation` event and its properties. |
+    | [Traces](https://posthog.com/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
+    | [Spans](https://posthog.com/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
+    | [Anaylze LLM performance](https://posthog.com/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
 
 Tourist info
 
@@ -632,14 +732,6 @@ Tourist info
 
 PostHog is the context layer for your product. And since we're advertising anyway: 97% of companies use it for free.
 
-[Get started](https://app.posthog.com/signup)[Read the docs](/docs.md)
+[Get started](https://app.posthog.com/signup)[Read the docs](https://posthog.com/docs.md)
 
 A hedgehog tourist holding a map and a suitcase
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

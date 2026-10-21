@@ -2,6 +2,17 @@
 
 # Send error tracking alerts
 
+Canonical URL: https://posthog.com/docs/error-tracking/alerts
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Issue created or reopened](#issue-created-or-reopened)
+- [Issue properties and assignments](#issue-properties-and-assignments)
+- [Spike alerts](#spike-alerts)
+- [Other alerting options](#other-alerting-options)
+
 To stay on top of issues, you can set up alerts. These enable you to post to Slack, Discord, Teams, or an HTTP Webhook when an issue is created or reopened.
 
 ## Issue created or reopened
@@ -16,7 +27,7 @@ This will then send alerts to your chosen destination when an issue is created o
 
 ## Issue properties and assignments
 
-You can filter an alert based on the properties of an issue. This is useful for notifying a specific team when they have been automatically assigned an issue using [assignment rules](/docs/error-tracking/assigning-issues.md#automatic-issue-assignment).
+You can filter an alert based on the properties of an issue. This is useful for notifying a specific team when they have been automatically assigned an issue using [assignment rules](https://posthog.com/docs/error-tracking/assigning-issues.md#automatic-issue-assignment).
 
 ![Error tracking alert assignee filtering](https://res.cloudinary.com/dmukukwp6/image/upload/assignee_filter_light_e575af6512.png)
 
@@ -24,7 +35,7 @@ You can filter an alert based on the properties of an issue. This is useful for 
 
 PostHog can also alert you when an existing issue suddenly spikes in volume - for example, after a bad deploy. This works differently from issue-created alerts. Instead of triggering when a new issue is first seen, spike alerts fire when an issue's error rate significantly exceeds its historical baseline.
 
-See the [spike detection guide](/docs/error-tracking/spikes.md) to learn how it works and how to configure it.
+See the [spike detection guide](https://posthog.com/docs/error-tracking/spikes.md) to learn how it works and how to configure it.
 
 ## Other alerting options
 
@@ -32,7 +43,7 @@ Since error tracking works by capturing `$exception` events, PostHog features th
 
 ### Real time destinations
 
-The first way is using [real time destinations](/docs/cdp/destinations.md). This enables you to send events (like `$exception`) to other tools as soon as they are ingested.
+The first way is using [real time destinations](https://posthog.com/docs/cdp/destinations.md). This enables you to send events (like `$exception`) to other tools as soon as they are ingested.
 
 To create a real time destination, go to the [data pipelines tab](https://app.posthog.com/data-management/destinations) in PostHog, click **\+ New**, and then select **Destination**. Choose your destination and press **\+ Create**.
 
@@ -40,26 +51,18 @@ On the destination creation screen, make sure to add an event matcher for the `$
 
 ![Real time destination](https://res.cloudinary.com/dmukukwp6/image/upload/http_error_alert_light_9898376c56.png)
 
-Check out our [real time destinations docs](/docs/cdp/destinations.md) for more information.
+Check out our [real time destinations docs](https://posthog.com/docs/cdp/destinations.md) for more information.
 
 ### Trend alerts
 
-You can also visualize your `$exception` events using [trends](/docs/product-analytics/trends/overview.md). Once you create a trend insight, click the **Alerts** button at the top of the insight and then **New alert**.
+You can also visualize your `$exception` events using [trends](https://posthog.com/docs/product-analytics/trends/overview.md). Once you create a trend insight, click the **Alerts** button at the top of the insight and then **New alert**.
 
 Here you can set alerts for event volume value, increase, or decrease.
 
 ![Insight alert](https://res.cloudinary.com/dmukukwp6/image/upload/Clean_Shot_2025_04_08_at_14_26_43_2x_4ef6402556.png)
 
-This sends an email notification to the user you choose. Check out our [alerts docs](/docs/alerts.md) for more information.
+This sends an email notification to the user you choose. Check out our [alerts docs](https://posthog.com/docs/alerts.md) for more information.
 
 **Can't find your alert?**
 
 If you'd like a destination to be added that we don't yet support, [let us know in-app](https://app.posthog.com/#panel=support%3Afeedback%3Aerror_tracking%3A%3Afalse).
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

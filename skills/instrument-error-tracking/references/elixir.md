@@ -2,15 +2,28 @@
 
 # Elixir Error Tracking installation
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/elixir
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the Elixir SDK](#install-the-elixir-sdk)
+- [Configure PostHog](#configure-posthog)
+- [Errors are captured automatically](#errors-are-captured-automatically)
+- [Add Phoenix/Plug integration (recommended)](#add-phoenixplug-integration-recommended)
+- [Identify users on errors (recommended)](#identify-users-on-errors-recommended)
+- [Configure error tracking options (optional)](#configure-error-tracking-options-optional)
+- [Enable source code context (optional)](#enable-source-code-context-optional)
+- [Verify error tracking](#verify-error-tracking)
+
 1.  1
 
     ## Install the Elixir SDK
 
     Required
 
-    Add the [PostHog Elixir SDK](/docs/libraries/elixir.md) to your list of dependencies in `mix.exs`:
-
-    Elixir
+    Add the [PostHog Elixir SDK](https://posthog.com/docs/libraries/elixir.md) to your list of dependencies in `mix.exs`:
 
     ```elixir
     def deps do
@@ -21,8 +34,6 @@
     ```
 
     Then run:
-
-    Terminal
 
     ```bash
     mix deps.get
@@ -98,8 +109,6 @@
 
     **For Plug apps**, add it to your router:
 
-    Elixir
-
     ```elixir
     defmodule MyRouter do
       use Plug.Router
@@ -114,7 +123,7 @@
 
     This automatically includes `$current_url`, `$host`, `$pathname`, and `$ip` on every error event that occurs during request processing. It also reads `X-PostHog-Distinct-Id` and `X-PostHog-Session-Id` tracing headers, so errors can link back to frontend users and sessions when your client SDK sends those headers.
 
-    If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](/docs/libraries/js/config.md#tracing-headers) for your Phoenix or Plug backend hostname. For more details, see the [Elixir request context docs](/docs/libraries/elixir.md#request-context).
+    If you're using [PostHog JS](https://posthog.com/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](https://posthog.com/docs/libraries/js/config.md#tracing-headers) for your Phoenix or Plug backend hostname. For more details, see the [Elixir request context docs](https://posthog.com/docs/libraries/elixir.md#request-context).
 
 5.  5
 
@@ -123,8 +132,6 @@
     Recommended
 
     By default, errors are attributed to `"unknown"`. To associate errors with specific users, set a context with a `distinct_id` early in your request lifecycle – for example, in a Plug pipeline after authentication:
-
-    Elixir
 
     ```elixir
     PostHog.set_context(%{distinct_id: current_user.id})
@@ -153,8 +160,6 @@
     ```
 
     Then add it to your router pipeline:
-
-    Elixir
 
     ```elixir
     pipeline :browser do
@@ -221,8 +226,6 @@
 
     **Step 2:** Package source code before building your release:
 
-    Terminal
-
     ```bash
     mix posthog.package_source_code
     mix release
@@ -247,8 +250,6 @@
 
     ### Mix task options
 
-    Terminal
-
     ```bash
     # Custom output path
     mix posthog.package_source_code --output path/to/output.map
@@ -263,8 +264,6 @@
 
     Trigger a test exception to confirm errors are being sent to PostHog. You should see them appear in the [Error Tracking](https://app.posthog.com/error_tracking) tab.
 
-    Elixir
-
     ```elixir
     # In an IEx session or a test route
     require Logger
@@ -274,19 +273,9 @@
 
     Or raise an exception in a controller or GenServer to test crash capture:
 
-    Elixir
-
     ```elixir
     # In a Phoenix controller
     def test_error(conn, _params) do
       raise "Test exception from Phoenix"
     end
     ```
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

@@ -2,6 +2,23 @@
 
 # React Native Error Tracking installation
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/react-native
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the package](#install-the-package)
+- [Configure PostHog](#configure-posthog)
+- [Send events](#send-events)
+- [Set up exception autocapture](#set-up-exception-autocapture)
+- [Set up error boundaries](#set-up-error-boundaries)
+- [Manually capture exceptions](#manually-capture-exceptions)
+- [Future features](#future-features)
+- [Verify error tracking](#verify-error-tracking)
+- [Upload source maps & native symbols](#upload-source-maps--native-symbols)
+- [iOS dependency resolution for native crash capture](#ios-dependency-resolution-for-native-crash-capture)
+
 1.  1
 
     ## Install the package
@@ -129,7 +146,7 @@
 
     1.  The optional native plugin installed — `npx expo install @posthog/react-native-plugin` (Expo) or `npm i @posthog/react-native-plugin` (bare React Native). If it's missing, native capture is a no-op and your JS-level autocapture is unaffected.
     2.  Your project's **Enable exception autocapture** setting enabled in [error tracking settings](https://app.posthog.com/settings/project-error-tracking#exception-autocapture) — the same server-side setting that gates JavaScript autocapture.
-    3.  Native debug symbols uploaded at build time, so crash stack traces are readable. See [native crash symbolication](/docs/error-tracking/upload-source-maps/react-native.md#native-crash-symbolication).
+    3.  Native debug symbols uploaded at build time, so crash stack traces are readable. See [native crash symbolication](https://posthog.com/docs/error-tracking/upload-source-maps/react-native.md#native-crash-symbolication).
 
 5.  5
 
@@ -231,18 +248,10 @@
 
     Let's continue to the next section.
 
-    [Upload source maps & native symbols](/docs/error-tracking/upload-source-maps/react-native.md)
+    [Upload source maps & native symbols](https://posthog.com/docs/error-tracking/upload-source-maps/react-native.md)
 
 ## iOS dependency resolution for native crash capture
 
 The `@posthog/react-native-plugin` package supports CocoaPods, the hybrid CocoaPods and Swift Package Manager path, and React Native's full Swift Package Manager integration. PostHog verifies the full path with an iOS-only React Native 0.87.1 app and React Native Community CLI 20.2.0. This path requires `@posthog/react-native-plugin` 2.4.0 or later, Xcode 16 or later, and an iOS 15.1 or later app deployment target.
 
-See [iOS dependency paths for the React Native native plugin](/docs/libraries/react-native.md#choose-an-ios-dependency-path-for-the-native-plugin) for the requirements and setup steps. This verification does not cover Expo or other React Native versions. Use CocoaPods or the hybrid path unless you validate full Swift Package Manager for your configuration.
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+See [iOS dependency paths for the React Native native plugin](https://posthog.com/docs/libraries/react-native.md#choose-an-ios-dependency-path-for-the-native-plugin) for the requirements and setup steps. This verification does not cover Expo or other React Native versions. Use CocoaPods or the hybrid path unless you validate full Swift Package Manager for your configuration.

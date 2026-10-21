@@ -2,7 +2,24 @@
 
 # React Router V7 declarative mode
 
-This guide walks you through setting up PostHog for React Router V7 in declarative mode. If you're using React Router in another mode, find the guide for that mode in the [React Router page](/docs/libraries/react-router.md). If you're using React with another framework, go to the [React integration guide](/docs/libraries/react.md).
+Canonical URL: https://posthog.com/docs/libraries/react-router/react-router-v7-declarative-mode
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://us.posthog.com` or `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install client-side SDKs](#install-client-side-sdks)
+- [Add your environment variables](#add-your-environment-variables)
+- [Add the PostHogProvider to your app](#add-the-posthogprovider-to-your-app)
+- [Verify client-side events are captured](#verify-client-side-events-are-captured)
+- [Access PostHog methods](#access-posthog-methods)
+- [Identify your user](#identify-your-user)
+- [Create an error boundary](#create-an-error-boundary)
+- [Tracking element visibility](#tracking-element-visibility)
+- [Set up server-side analytics](#set-up-server-side-analytics)
+- [Next steps](#next-steps)
+
+This guide walks you through setting up PostHog for React Router V7 in declarative mode. If you're using React Router in another mode, find the guide for that mode in the [React Router page](https://posthog.com/docs/libraries/react-router.md). If you're using React with another framework, go to the [React integration guide](https://posthog.com/docs/libraries/react.md).
 
 1.  1
 
@@ -44,7 +61,7 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
     > worker-src 'self' blob: data:;
     > ```
     >
-    > `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](/docs/advanced/content-security-policy.md), or use a [reverse proxy](/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
+    > `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](https://posthog.com/docs/advanced/content-security-policy.md), or use a [reverse proxy](https://posthog.com/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
 
 2.  2
 
@@ -105,13 +122,11 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
 
     This initializes PostHog and passes it to your app through the `PostHogProvider` context.
 
-    TypeError: Cannot read properties of undefined
+    **TypeError: Cannot read properties of undefined**
 
     If you see the error `TypeError: Cannot read properties of undefined (reading '...')` this is likely because you tried to call a posthog function when posthog was not initialized (such as during the initial render). On purpose, we still render the children even if PostHog is not initialized so that your app still loads even if PostHog can't load.
 
     To fix this error, add a check that posthog has been initialized such as:
-
-    React
 
     ```jsx
     useEffect(() => {
@@ -131,11 +146,9 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
 
     *Confirm that you can capture client-side events and see them in your PostHog project*
 
-    At this point, you should be able to capture client-side events and see them in your PostHog project. This includes basic events like page views and button clicks that are [autocaptured](/docs/product-analytics/autocapture.md).
+    At this point, you should be able to capture client-side events and see them in your PostHog project. This includes basic events like page views and button clicks that are [autocaptured](https://posthog.com/docs/product-analytics/autocapture.md).
 
     You can also try to capture a custom event to verify it's working. You can access PostHog in any component using the `usePostHog` hook.
-
-    TSX
 
     ```jsx
     import { usePostHog } from '@posthog/react'
@@ -156,8 +169,6 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
 
     On the client-side, you can access the PostHog client using the `usePostHog` hook. This hook returns the initialized PostHog client, which you can use to call PostHog methods. For example:
 
-    TSX
-
     ```jsx
     import { usePostHog } from '@posthog/react'
     
@@ -167,7 +178,7 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
     }
     ```
 
-    For a complete list of available methods, see the [posthog-js documentation](/docs/libraries/js.md).
+    For a complete list of available methods, see the [posthog-js documentation](https://posthog.com/docs/libraries/js.md).
 
 6.  5
 
@@ -178,8 +189,6 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
     Now that you can capture basic client-side events, you'll want to identify your user so you can associate users with captured events.
 
     Generally, you identify users when they log in or when they input some identifiable information (e.g. email, name, etc.). You can identify users by calling the `identify` method on the PostHog client:
-
-    TSX
 
     ```jsx
     export default function Login() {
@@ -218,8 +227,6 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
 
     PostHog can capture exceptions thrown in your app through an error boundary. PostHog provides a `PostHogErrorBoundary` component that you can use to capture exceptions. You can wrap your app with this component to capture exceptions.
 
-    TSX
-
     ```jsx
     ReactDOM.createRoot(root).render(
       <StrictMode>
@@ -252,8 +259,6 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
 
     **Basic usage:**
 
-    React
-
     ```jsx
     import { PostHogCaptureOnViewed } from '@posthog/react'
     
@@ -269,8 +274,6 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
     **With custom properties:**
 
     You can include additional properties with the event to provide more context:
-
-    React
 
     ```jsx
     <PostHogCaptureOnViewed
@@ -289,8 +292,6 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
 
     Use `trackAllChildren` to track each child element separately. This is useful for galleries or lists where you want to know which specific items were viewed:
 
-    React
-
     ```jsx
     <PostHogCaptureOnViewed
         name="product-gallery"
@@ -308,8 +309,6 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
     **Custom intersection observer options:**
 
     You can customize when elements are considered "viewed" by passing options to the `IntersectionObserver`:
-
-    React
 
     ```jsx
     <PostHogCaptureOnViewed
@@ -331,11 +330,9 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
 
     Recommended
 
-    Now that you've set up PostHog for React Router V7 in declarative mode, you can continue to set up server-side analytics. You can find our other SDKs in the [SDKs page](/docs/libraries.md).
+    Now that you've set up PostHog for React Router V7 in declarative mode, you can continue to set up server-side analytics. You can find our other SDKs in the [SDKs page](https://posthog.com/docs/libraries.md).
 
     To help PostHog track your user sessions across the client and server, you'll need to add the `tracing_headers: ['your-backend-hostname1.com', 'your-backend-hostname2.com', ...]` option to your PostHog initialization:
-
-    TSX
 
     ```jsx
     posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {
@@ -357,17 +354,9 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
 
      To get the most out of PostHog, you should familiarize yourself with the following:
 
-     -   [PostHog Web SDK docs](/docs/libraries/js.md): Learn more about the PostHog Web SDK and how to use it on the client-side.
-     -   [PostHog Node SDK docs](/docs/libraries/node.md): Learn more about the PostHog Node SDK and how to use it on the server-side.
-     -   [Identify users](/docs/product-analytics/identify.md): Learn more about how to identify users in your app.
-     -   [Group analytics](/docs/product-analytics/group-analytics.md): Learn more about how to use group analytics in your app.
-     -   [PostHog AI](/docs/posthog-ai.md): After capturing events, use PostHog AI to help you understand your data and build insights.
-     -   [Feature flags and experiments](/docs/libraries/react.md#feature-flags): Feature flag and experiment setup is the same as React. You can find more details in the React integration guide.
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+     -   [PostHog Web SDK docs](https://posthog.com/docs/libraries/js.md): Learn more about the PostHog Web SDK and how to use it on the client-side.
+     -   [PostHog Node SDK docs](https://posthog.com/docs/libraries/node.md): Learn more about the PostHog Node SDK and how to use it on the server-side.
+     -   [Identify users](https://posthog.com/docs/product-analytics/identify.md): Learn more about how to identify users in your app.
+     -   [Group analytics](https://posthog.com/docs/product-analytics/group-analytics.md): Learn more about how to use group analytics in your app.
+     -   [PostHog AI](https://posthog.com/docs/posthog-ai.md): After capturing events, use PostHog AI to help you understand your data and build insights.
+     -   [Feature flags and experiments](https://posthog.com/docs/libraries/react.md#feature-flags): Feature flag and experiment setup is the same as React. You can find more details in the React integration guide.

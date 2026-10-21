@@ -2,21 +2,36 @@
 
 # PHP
 
+Canonical URL: https://posthog.com/docs/libraries/php
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Installation](#installation)
+- [Identifying users](#identifying-users)
+- [Capturing events](#capturing-events)
+- [Person profiles and properties](#person-profiles-and-properties)
+- [Alias](#alias)
+- [Feature flags](#feature-flags)
+- [Request context](#request-context)
+- [Error tracking](#error-tracking)
+- [Config options](#config-options)
+- [Flushing and shutting down](#flushing-and-shutting-down)
+- [Debug mode](#debug-mode)
+- [Thank you](#thank-you)
+
 This is an optional library you can install if you're working with PHP. It uses an internal queue to batch requests, flushes at the end of the request, and optionally does so in an async manner.
 
 ## Installation
 
 Install the package with Composer:
 
-Terminal
-
 ```bash
 composer require posthog/posthog-php
 ```
 
 In your app, set your project token before making any calls.
-
-PHP
 
 ```php
 PostHog\PostHog::init("<ph_project_token>",
@@ -30,15 +45,13 @@ You can find your project token and instance address in the [project settings](h
 
 ## Identifying users
 
-> **Identifying users is required.** Backend events need a `distinct_id` that matches the ID your frontend uses when calling `posthog.identify()`. Without this, backend events are orphaned — they can't be linked to frontend event captures, [session replays](/docs/session-replay.md), [LLM traces](/docs/ai-engineering.md), or [error tracking](/docs/error-tracking.md).
+> **Identifying users is required.** Backend events need a `distinct_id` that matches the ID your frontend uses when calling `posthog.identify()`. Without this, backend events are orphaned — they can't be linked to frontend event captures, [session replays](https://posthog.com/docs/session-replay.md), [LLM traces](https://posthog.com/docs/ai-engineering.md), or [error tracking](https://posthog.com/docs/error-tracking.md).
 >
-> See our guide on [identifying users](/docs/getting-started/identify-users.md) for how to set this up.
+> See our guide on [identifying users](https://posthog.com/docs/getting-started/identify-users.md) for how to set this up.
 
 ## Capturing events
 
 You can send custom events using `capture`:
-
-PHP
 
 ```php
 PostHog::capture([
@@ -51,9 +64,7 @@ PostHog::capture([
 
 ### Setting event properties
 
-Optionally, you can include additional information with the event by including a [properties](/docs/data/events.md#event-properties) object:
-
-PHP
+Optionally, you can include additional information with the event by including a [properties](https://posthog.com/docs/data/events.md#event-properties) object:
 
 ```php
 PostHog::capture([
@@ -70,8 +81,6 @@ PostHog::capture([
 
 If you're aiming for a backend-only implementation of PostHog and won't be capturing events from your frontend, you can send `pageviews` from your backend like so:
 
-PHP
-
 ```php
 PostHog::capture([
   'distinctId' => 'distinct_id_of_the_user',
@@ -84,9 +93,7 @@ PostHog::capture([
 
 ## Person profiles and properties
 
-The PHP SDK captures identified events by default. These create [person profiles](/docs/data/persons.md). To set [person properties](/docs/product-analytics/person-properties.md), call `identify` with the user's distinct ID and properties:
-
-PHP
+The PHP SDK captures identified events by default. These create [person profiles](https://posthog.com/docs/data/persons.md). To set [person properties](https://posthog.com/docs/product-analytics/person-properties.md), call `identify` with the user's distinct ID and properties:
 
 ```php
 PostHog::identify([
@@ -99,8 +106,6 @@ PostHog::identify([
 ```
 
 You can also include person properties when capturing an event:
-
-PHP
 
 ```php
 PostHog::capture([
@@ -117,11 +122,9 @@ PostHog::capture([
 ]);
 ```
 
-For more details on the difference between `$set` and `$set_once`, see our [person properties docs](/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once).
+For more details on the difference between `$set` and `$set_once`, see our [person properties docs](https://posthog.com/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once).
 
-To capture [anonymous events](/docs/data/anonymous-vs-identified-events.md) without person profiles, set the event's `$process_person_profile` property to `false`:
-
-PHP
+To capture [anonymous events](https://posthog.com/docs/data/anonymous-vs-identified-events.md) without person profiles, set the event's `$process_person_profile` property to `false`:
 
 ```php
 PostHog::capture([
@@ -139,8 +142,6 @@ Sometimes, you want to assign multiple distinct IDs to a single user. This is he
 
 In this case, you can use `alias` to assign another distinct ID to the same user.
 
-PHP
-
 ```php
 PostHog::alias([
   'distinctId' => 'distinct_id',
@@ -148,11 +149,11 @@ PostHog::alias([
 ]);
 ```
 
-We strongly recommend reading our docs on [alias](/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
+We strongly recommend reading our docs on [alias](https://posthog.com/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
 
 ## Feature flags
 
-PostHog's [feature flags](/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
+PostHog's [feature flags](https://posthog.com/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
 
 There are two steps to implement feature flags in PHP:
 
@@ -161,8 +162,6 @@ There are two steps to implement feature flags in PHP:
 Call `PostHog::evaluateFlags()` once for the user, then read values from the returned snapshot.
 
 #### Boolean feature flags
-
-PHP
 
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
@@ -175,8 +174,6 @@ if ($flags->isEnabled('flag-key')) {
 ```
 
 #### Multivariate feature flags
-
-PHP
 
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
@@ -198,17 +195,15 @@ You can also call `$flags->getKeys()` to list the evaluated flag keys, or `$flag
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to `capture()`
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-PHP
 
 ```php
 $flags = PostHog::evaluateFlags('distinct_id_of_your_user');
@@ -227,8 +222,6 @@ PostHog::capture([
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
 
 To reduce event property bloat, pass a filtered snapshot:
-
-PHP
 
 ```php
 // Attach only flags accessed with isEnabled() or getFlag() before this call
@@ -252,8 +245,6 @@ PostHog::capture([
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-PHP
-
 ```php
 PostHog::capture([
     'distinctId' => 'distinct_id_of_your_user',
@@ -269,8 +260,6 @@ PostHog::capture([
 
 By default, `evaluateFlags()` evaluates every flag for the user. If you only need a few flags, pass `flagKeys` to request only those flags:
 
-PHP
-
 ```php
 $flags = PostHog::evaluateFlags(
     distinctId: 'distinct_id_of_your_user',
@@ -281,8 +270,6 @@ $flags = PostHog::evaluateFlags(
 ### Optional evaluation parameters
 
 `evaluateFlags()` also accepts optional parameters for local evaluation and GeoIP behavior:
-
-PHP
 
 ```php
 $flags = PostHog::evaluateFlags(
@@ -298,7 +285,7 @@ $flags = PostHog::evaluateFlags(
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `evaluateFlags()`, the SDK sends this event when you call `$flags->isEnabled()` or `$flags->getFlag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `evaluateFlags()`, the SDK sends this event when you call `$flags->isEnabled()` or `$flags->getFlag()` for a flag.
 
 The SDK deduplicates these events per `(flag key, distinct_id)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -306,13 +293,11 @@ The SDK deduplicates these events per `(flag key, distinct_id)` in a local cache
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
 For example:
-
-PHP
 
 ```php
 $flags = PostHog::evaluateFlags(
@@ -364,8 +349,6 @@ Simply include any of these properties in the `person_properties` parameter alon
 
 You can configure the `feature_flag_request_timeout_ms` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked if PostHog's servers are too slow to respond. By default, this is set to 3 seconds.
 
-PHP
-
 ```php
 PostHog::init("<ph_project_token>",
     [
@@ -383,8 +366,6 @@ It is best practice to use local evaluation flags when possible, since this enab
 
 To load feature flag definitions for local evaluation, initialize the SDK with your secret API key as `personalAPIKey`:
 
-PHP
-
 ```php
 PostHog::init(
     '<ph_project_token>',
@@ -393,13 +374,11 @@ PostHog::init(
 );
 ```
 
-For details on how to implement local evaluation, see our [local evaluation guide](/docs/feature-flags/local-evaluation.md). For distributed or stateless PHP applications, use `flag_definition_cache_provider` to share flag definitions across workers or requests. See [local evaluation in distributed environments](/docs/feature-flags/local-evaluation/distributed-environments?tab=PHP.md).
+For details on how to implement local evaluation, see our [local evaluation guide](https://posthog.com/docs/feature-flags/local-evaluation.md). For distributed or stateless PHP applications, use `flag_definition_cache_provider` to share flag definitions across workers or requests. See [local evaluation in distributed environments](https://posthog.com/docs/feature-flags/local-evaluation/distributed-environments?tab=PHP.md).
 
 ### Experiments (A/B tests)
 
-Since [experiments](/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
-
-PHP
+Since [experiments](https://posthog.com/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
 
 ```php
 $flags = PostHog::evaluateFlags('user_distinct_id');
@@ -410,17 +389,15 @@ if ($variant === 'variant-name') {
 }
 ```
 
-It's also possible to [run experiments without using feature flags](/docs/experiments/running-experiments-without-feature-flags.md).
+It's also possible to [run experiments without using feature flags](https://posthog.com/docs/experiments/running-experiments-without-feature-flags.md).
 
 ### Group analytics
 
-Group analytics allows you to associate an event with a group (e.g. teams, organizations, etc.). This feature requires version `2.1.0` or above of the PHP SDK. Read the [group analytics guide](/docs/product-analytics/group-analytics.md) for more information.
+Group analytics allows you to associate an event with a group (e.g. teams, organizations, etc.). This feature requires version `2.1.0` or above of the PHP SDK. Read the [group analytics guide](https://posthog.com/docs/product-analytics/group-analytics.md) for more information.
 
-> **Note:** This is a paid feature and is not available on the open-source or free cloud plan. Learn more on the [pricing page](/pricing.md).
+> **Note:** This is a paid feature and is not available on the open-source or free cloud plan. Learn more on the [pricing page](https://posthog.com/pricing.md).
 
 To create a group or update its properties, use `groupIdentify`:
-
-PHP
 
 ```php
 PostHog::groupIdentify([
@@ -442,8 +419,6 @@ If the optional `distinctId` parameter is not provided in the group identify cal
 
 Once a group is created, you can use the `capture` method and pass in the `groups` parameter to capture an event with group analytics.
 
-PHP
-
 ```php
 PostHog::capture([
     'distinctId' => 'user_distinct_id',
@@ -455,8 +430,6 @@ PostHog::capture([
 ## Request context
 
 Use request context to apply a distinct ID, session ID, and common properties to all captures inside a callback. This is useful when connecting frontend activity to backend events, session replay, and error tracking.
-
-PHP
 
 ```php
 PostHog::withContext([
@@ -472,11 +445,9 @@ PostHog::withContext([
 });
 ```
 
-You can extract PostHog context from frontend tracing headers with `contextFromHeaders()`. If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](/docs/libraries/js/config.md#tracing-headers) for your PHP backend hostname so browser requests include the session and distinct ID headers.
+You can extract PostHog context from frontend tracing headers with `contextFromHeaders()`. If you're using [PostHog JS](https://posthog.com/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](https://posthog.com/docs/libraries/js/config.md#tracing-headers) for your PHP backend hostname so browser requests include the session and distinct ID headers.
 
 Then read the incoming headers on the server:
-
-PHP
 
 ```php
 $context = PostHog::contextFromHeaders($_SERVER);
@@ -498,8 +469,6 @@ The PHP SDK supports both manual exception capture and opt-in automatic error tr
 
 To automatically capture uncaught exceptions, PHP errors, and fatal shutdown errors, enable `error_tracking` when initializing the client:
 
-PHP
-
 ```php
 PostHog::init(
     '<ph_project_token>',
@@ -514,13 +483,11 @@ PostHog::init(
 
 You can also call `PostHog::captureException()` directly for manual capture. When source files are readable at runtime, PostHog includes surrounding source lines for in-app stack frames automatically.
 
-For the full setup guide, including `context_provider`, excluded exceptions, and verification steps, see the [PHP error tracking installation docs](/docs/error-tracking/installation/php.md).
+For the full setup guide, including `context_provider`, excluded exceptions, and verification steps, see the [PHP error tracking installation docs](https://posthog.com/docs/error-tracking/installation/php.md).
 
 ## Config options
 
 When calling `PostHog::init`, there are various configuration options you can set apart from the host. Pass them into your client initialisation like so:
-
-PHP
 
 ```php
 PostHog::init(
@@ -543,7 +510,7 @@ All possible options below:
 | `timeout` **Type:** Integer **Default:** `10000` | Request timeout in milliseconds. |
 | `verify_batch_events_request` **Type:** Boolean **Default:** `true` | Whether to verify successful delivery of batch events (true, synchronous) or fire and forget (false, asynchronous) with the `lib_curl` consumer. |
 | `feature_flag_request_timeout_ms` **Type:** Integer **Default:** `3000` | Request timeout for feature flags in milliseconds. |
-| `flag_definition_cache_provider` **Type:** `PostHog\FlagDefinitionCacheProvider` **Default:** `null` | Provider for distributed local-evaluation flag definition caching. See [local evaluation in distributed environments](/docs/feature-flags/local-evaluation/distributed-environments?tab=PHP.md). |
+| `flag_definition_cache_provider` **Type:** `PostHog\FlagDefinitionCacheProvider` **Default:** `null` | Provider for distributed local-evaluation flag definition caching. See [local evaluation in distributed environments](https://posthog.com/docs/feature-flags/local-evaluation/distributed-environments?tab=PHP.md). |
 | `maximum_backoff_duration` **Type:** Integer **Default:** `10000` | Request retry backoff. Retries stop after this duration is hit. |
 | `consumer` **Type:** String **Default:** `lib_curl` | One of `socket`, `file`, `lib_curl`, `fork_curl`, and `noop`. Determines what transport option to use for analytics capture. |
 | `debug` **Type:** Boolean **Default:** `false` | Output debug logs or not. |
@@ -552,7 +519,7 @@ All possible options below:
 | `compress_request` **Type:** Boolean/String **Default:** `false` | Whether to gzip batch request payloads. |
 | `error_handler` **Type:** Callable **Default:** `null` | Callback invoked for SDK transport errors. |
 | `filename` **Type:** String **Default:** `sys_get_temp_dir() . '/posthog.log'` | File path used when `consumer` is set to `file`. |
-| `error_tracking` **Type:** Array **Default:** `[]` | Enables automatic error tracking. See the options below or the [PHP error tracking setup guide](/docs/error-tracking/installation/php.md). |
+| `error_tracking` **Type:** Array **Default:** `[]` | Enables automatic error tracking. See the options below or the [PHP error tracking setup guide](https://posthog.com/docs/error-tracking/installation/php.md). |
 
 ### Error tracking options
 
@@ -568,15 +535,11 @@ All possible options below:
 
 Call `PostHog::flush()` to send queued events without closing resources. When a script or long-running worker stops, call `PostHog::shutdown()` instead; it flushes queued events and releases resources held by providers such as `flag_definition_cache_provider`.
 
-PHP
-
 ```php
 PostHog::shutdown();
 ```
 
 ## Debug mode
-
-PHP
 
 ```php
 PostHog::init(
@@ -591,11 +554,3 @@ PostHog::init(
 ## Thank you
 
 This library is largely based on the `analytics-php` package.
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

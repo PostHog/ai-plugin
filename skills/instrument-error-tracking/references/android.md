@@ -2,6 +2,20 @@
 
 # Android Error Tracking installation
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/android
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the dependency](#install-the-dependency)
+- [Configure PostHog](#configure-posthog)
+- [Send events](#send-events)
+- [Set up exception autocapture](#set-up-exception-autocapture)
+- [Manually capture exceptions](#manually-capture-exceptions)
+- [Verify error tracking](#verify-error-tracking)
+- [Upload mapping files](#upload-mapping-files)
+
 1.  1
 
     ## Install the dependency
@@ -102,7 +116,7 @@
 
     **Planned features**
 
-    We currently don't support [source code context](/docs/error-tracking/stack-traces.md) associated with an exception.
+    We currently don't support [source code context](https://posthog.com/docs/error-tracking/stack-traces.md) associated with an exception.
 
     These features will be added in a future release.
 
@@ -147,12 +161,4 @@
 
     Let's continue to the next section.
 
-    [Upload mapping files](/docs/error-tracking/upload-mappings/android.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Upload mapping files](https://posthog.com/docs/error-tracking/upload-mappings/android.md)

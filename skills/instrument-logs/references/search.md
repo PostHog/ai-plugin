@@ -2,6 +2,21 @@
 
 # Search logs
 
+Canonical URL: https://posthog.com/docs/logs/search
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Facet rail](#facet-rail)
+- [Filter bar](#filter-bar)
+- [Filter on resource attributes and attributes](#filter-on-resource-attributes-and-attributes)
+- [Filter by severity, trace ID, and span ID](#filter-by-severity-trace-id-and-span-id)
+- [Full-text search on Message](#full-text-search-on-message)
+- [Filter from the facet rail](#filter-from-the-facet-rail)
+- [Pivot from patterns to matching logs](#pivot-from-patterns-to-matching-logs)
+- [Tips](#tips)
+
 There are two ways to filter logs on the [logs page](https://app.posthog.com/logs): the **facet rail** on the left sidebar and the **filter bar** at the top.
 
 ## Facet rail
@@ -39,7 +54,7 @@ There are four kinds of fields you can filter on in the filter bar:
 
 ## Filter on resource attributes and attributes
 
-Resource attributes identify the source of a log (the service, host, or container that emitted it). Attributes describe a specific log event. Both come from your OpenTelemetry instrumentation — the richer your [structured logging](/docs/logs/best-practices.md), the more you can filter on.
+Resource attributes identify the source of a log (the service, host, or container that emitted it). Attributes describe a specific log event. Both come from your OpenTelemetry instrumentation — the richer your [structured logging](https://posthog.com/docs/logs/best-practices.md), the more you can filter on.
 
 To filter:
 
@@ -116,12 +131,4 @@ When the pattern's sample is unambiguous (a single service or severity), the piv
 -   **Stack filters to narrow down.** Every filter you add is ANDed together — combine a `service.name` filter with a Message contains to scope full-text search to one service.
 -   **Start with contains, then tighten.** Contains is case-insensitive and forgiving. Switch to equals only when you need an exact match, or regex when you want OR-style matching in a single filter.
 -   **Use regex for alternatives.** Instead of adding three contains filters, use one regex like `(timeout|refused|reset)`.
--   **Structured logs make filtering more powerful.** Key-value context like `user_id`, `endpoint`, and `status_code` becomes an attribute you can filter on directly. See our [logging best practices](/docs/logs/best-practices.md) for patterns that make logs easier to query.
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+-   **Structured logs make filtering more powerful.** Key-value context like `user_id`, `endpoint`, and `status_code` becomes an attribute you can filter on directly. See our [logging best practices](https://posthog.com/docs/logs/best-practices.md) for patterns that make logs easier to query.

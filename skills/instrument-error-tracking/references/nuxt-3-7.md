@@ -2,6 +2,18 @@
 
 # Nuxt Error Tracking installation (v3.7 and above)
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/nuxt-3-7
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the PostHog Nuxt module](#install-the-posthog-nuxt-module)
+- [Manually capturing exceptions](#manually-capturing-exceptions)
+- [Build your project for production](#build-your-project-for-production)
+- [Verify error tracking](#verify-error-tracking)
+- [Upload source maps](#upload-source-maps)
+
 1.  1
 
     ## Install the PostHog Nuxt module
@@ -162,12 +174,4 @@
 
     Let's continue to the next section.
 
-    [Upload source maps](/docs/error-tracking/upload-source-maps/nuxt.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Upload source maps](https://posthog.com/docs/error-tracking/upload-source-maps/nuxt.md)

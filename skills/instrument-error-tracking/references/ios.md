@@ -2,6 +2,21 @@
 
 # iOS Error Tracking installation
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/ios
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install dependency](#install-dependency)
+- [Configure PostHog](#configure-posthog)
+- [Send events](#send-events)
+- [Set up exception autocapture](#set-up-exception-autocapture)
+- [Manually capture exceptions](#manually-capture-exceptions)
+- [Configure in-app frames](#configure-in-app-frames)
+- [Verify error tracking](#verify-error-tracking)
+- [Upload dSYMs](#upload-dsyms)
+
 1.  1
 
     ## Install dependency
@@ -238,17 +253,9 @@
 
     Let's continue to the next section.
 
-    [Upload dSYMs](/docs/error-tracking/upload-source-maps/ios.md)
+    [Upload dSYMs](https://posthog.com/docs/error-tracking/upload-source-maps/ios.md)
 
 ## Limitations:
 
 -   System symbols and frames are not symbolicated (UIKit, Foundation, etc.) ([issue](https://github.com/PostHog/posthog/issues/50614)).
 -   Swift crashes appear as `SIGTRAP` without the actual error message ([issue](https://github.com/PostHog/posthog-ios/issues/522)).
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

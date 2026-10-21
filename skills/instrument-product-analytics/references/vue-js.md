@@ -2,11 +2,23 @@
 
 # Vue.js
 
+Canonical URL: https://posthog.com/docs/libraries/vue-js
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://us.posthog.com` or `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Prerequisites](#prerequisites)
+- [Setting up PostHog](#setting-up-posthog)
+- [Identifying users](#identifying-users)
+- [Capturing custom events, using feature flags, and more](#capturing-custom-events-using-feature-flags-and-more)
+- [Next steps](#next-steps)
+
 PostHog makes it easy to get data about usage of your [Vue.js](https://vuejs.org/) app. Integrating PostHog into your app enables analytics about user behavior, custom events capture, session replays, feature flags, and more.
 
-This guide walks you through integrating PostHog into your app for both Vue 2 and Vue 3. We'll use the [JavaScript Web SDK](/docs/libraries/js.md) for this.
+This guide walks you through integrating PostHog into your app for both Vue 2 and Vue 3. We'll use the [JavaScript Web SDK](https://posthog.com/docs/libraries/js.md) for this.
 
-For integrating PostHog into a [Nuxt.js](https://nuxt.com/) app, see our [Nuxt guide](/docs/libraries/nuxt-js.md).
+For integrating PostHog into a [Nuxt.js](https://nuxt.com/) app, see our [Nuxt guide](https://posthog.com/docs/libraries/nuxt-js.md).
 
 ## Prerequisites
 
@@ -51,7 +63,7 @@ bun add posthog-js
 > worker-src 'self' blob: data:;
 > ```
 >
-> `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](/docs/advanced/content-security-policy.md), or use a [reverse proxy](/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
+> `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](https://posthog.com/docs/advanced/content-security-policy.md), or use a [reverse proxy](https://posthog.com/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
 
 Next, depending on your Vue version, we recommend initializing PostHog using the composition API or as a plugin.
 
@@ -91,8 +103,6 @@ app.mount('#app')
 
 Then, you can access PostHog throughout your app just by importing it from `posthog-js`.
 
-TypeScript
-
 ```typescript
 // src/App.vue
 <script setup>
@@ -104,13 +114,11 @@ const handleClick = () => {
 </script>
 ```
 
-Once done, PostHog will begin [autocapturing](/docs/product-analytics/autocapture.md) events and pageviews (if enabled) and is ready to use throughout your app.
+Once done, PostHog will begin [autocapturing](https://posthog.com/docs/product-analytics/autocapture.md) events and pageviews (if enabled) and is ready to use throughout your app.
 
 ## Vue 2: Plugins
 
 Start by creating a `plugins` folder and adding a `posthog.js` file to that folder. In `posthog.js`, initialize PostHog using the `install` method with your project token and host. You can find these in your [project settings](https://us.posthog.com/project/settings).
-
-JavaScript
 
 ```javascript
 // src/plugins/posthog.js
@@ -130,8 +138,6 @@ export default {
 
 Next, in `main.js`, import and use the plugin.
 
-JavaScript
-
 ```javascript
 // src/main.js
 import Vue from 'vue'
@@ -150,17 +156,15 @@ This makes PostHog available as `this.$posthog` in any Vue component.
 
 ## Identifying users
 
-> **Identifying users is required.** Call `posthog.identify('your-user-id')` after login to link events to a known user. This is what connects frontend event captures, [session replays](/docs/session-replay.md), [LLM traces](/docs/ai-engineering.md), and [error tracking](/docs/error-tracking.md) to the same person — and lets backend events link back too.
+> **Identifying users is required.** Call `posthog.identify('your-user-id')` after login to link events to a known user. This is what connects frontend event captures, [session replays](https://posthog.com/docs/session-replay.md), [LLM traces](https://posthog.com/docs/ai-engineering.md), and [error tracking](https://posthog.com/docs/error-tracking.md) to the same person — and lets backend events link back too.
 >
 > Use a stable ID from your auth system when possible, not an email or display name. Send those as person properties instead. If your app has no other stable key, email works as a fallback if they are unique. Never a shared literal like `"anonymous"` or `"user"`, which pools many people onto one person and corrupts their data. When no ID is available at all, skip the identify and retain the anonymous distinct ID that's automatically assigned.
 >
 > Call `posthog.reset()` on logout, so the next person to use the browser doesn't inherit the last one's identity.
 >
-> See our guide on [identifying users](/docs/getting-started/identify-users.md) for how to set this up.
+> See our guide on [identifying users](https://posthog.com/docs/getting-started/identify-users.md) for how to set this up.
 
 If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
-
-JavaScript
 
 ```javascript
 posthog.init('<ph_project_token>', {
@@ -176,13 +180,11 @@ Tracing headers help you attribute events across front and backend consistently.
 
 ## Capturing custom events, using feature flags, and more
 
-Once you have PostHog initialized, there is a lot more you can do with it beyond autocapture, pageviews, and pageleaves. You can find the full details in our [JavaScript SDK docs](/docs/libraries/js/usage.md), but we'll cover a few examples here.
+Once you have PostHog initialized, there is a lot more you can do with it beyond autocapture, pageviews, and pageleaves. You can find the full details in our [JavaScript SDK docs](https://posthog.com/docs/libraries/js/usage.md), but we'll cover a few examples here.
 
 ## Vue 3: Composition API
 
 To capture custom events, evaluate feature flags, and use any of the other PostHog features, you can use the `posthog` object returned from the `usePostHog` composable like this:
-
-JavaScript
 
 ```javascript
 // src/App.vue
@@ -210,8 +212,6 @@ const handleClick = () => {
 
 When using feature flags on pages that users navigate to directly, the flags may not be loaded when the component first renders. To ensure your UI updates reactively when flags load, create a composable that returns a reactive ref:
 
-JavaScript
-
 ```javascript
 // src/composables/usePostHogFeatureFlag.ts
 import { ref, type Ref } from 'vue'
@@ -232,8 +232,6 @@ export function usePostHogFeatureFlag(
 ```
 
 Then use it in your components:
-
-JavaScript
 
 ```javascript
 // src/App.vue
@@ -266,8 +264,6 @@ This ensures your component will automatically update when feature flags load, e
 
 To capture custom events, evaluate feature flags, and use any of the other PostHog features, you can use the `$posthog` object returned from the plugin like this:
 
-JavaScript
-
 ```javascript
 // src/components/AboutPage.vue
 <template>
@@ -299,23 +295,23 @@ export default {
 </script>
 ```
 
-Set up a reverse proxy (recommended)
+**Set up a reverse proxy (recommended)**
 
-We recommend [setting up a reverse proxy](/docs/advanced/proxy.md), so that events are less likely to be intercepted by tracking blockers.
+We recommend [setting up a reverse proxy](https://posthog.com/docs/advanced/proxy.md), so that events are less likely to be intercepted by tracking blockers.
 
-We have our [own managed reverse proxy service](/docs/advanced/proxy/managed-reverse-proxy.md), which is free for all PostHog Cloud users, routes through our infrastructure, and makes setting up your proxy easy.
+We have our [own managed reverse proxy service](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md), which is free for all PostHog Cloud users, routes through our infrastructure, and makes setting up your proxy easy.
 
-If you don't want to use our managed service then there are several other options for creating a reverse proxy, including using [Cloudflare](/docs/advanced/proxy/cloudflare.md), [AWS Cloudfront](/docs/advanced/proxy/cloudfront.md), and [Vercel](/docs/advanced/proxy/vercel.md).
+If you don't want to use our managed service then there are several other options for creating a reverse proxy, including using [Cloudflare](https://posthog.com/docs/advanced/proxy/cloudflare.md), [AWS Cloudfront](https://posthog.com/docs/advanced/proxy/cloudfront.md), and [Vercel](https://posthog.com/docs/advanced/proxy/vercel.md).
 
-Grouping products in one project (recommended)
+**Grouping products in one project (recommended)**
 
-If you have multiple customer-facing products (e.g. a marketing website + mobile app + web app), it's best to install PostHog on them all and [group them in one project](/docs/settings/projects.md).
+If you have multiple customer-facing products (e.g. a marketing website + mobile app + web app), it's best to install PostHog on them all and [group them in one project](https://posthog.com/docs/settings/projects.md).
 
 This makes it possible to track users across their entire journey (e.g. from visiting your marketing website to signing up for your product), or how they use your product across multiple platforms.
 
-Add IPs to Firewall/WAF allowlists (recommended)
+**Add IPs to Firewall/WAF allowlists (recommended)**
 
-For certain features like [heatmaps](/docs/toolbar/heatmaps.md), your Web Application Firewall (WAF) may be blocking PostHog's requests to your site. Add these IP addresses to your WAF allowlist or rules to let PostHog access your site.
+For certain features like [heatmaps](https://posthog.com/docs/toolbar/heatmaps.md), your Web Application Firewall (WAF) may be blocking PostHog's requests to your site. Add these IP addresses to your WAF allowlist or rules to let PostHog access your site.
 
 **EU**: `3.75.65.221`, `18.197.246.42`, `3.120.223.253`
 
@@ -325,23 +321,15 @@ These are public, stable IPs used by PostHog services.
 
 PostHog captures heatmap screenshots using [Browserless](https://www.browserless.io), which has its own IP addresses. Browserless [publishes the current list here](https://docs.browserless.io/baas/troubleshooting/whitelisting-ips).
 
-An allowlist does not help when your app has a private address. For apps on an internal network, see [internal and intranet applications](/docs/session-replay/troubleshooting.md#internal-and-intranet-applications).
+An allowlist does not help when your app has a private address. For apps on an internal network, see [internal and intranet applications](https://posthog.com/docs/session-replay/troubleshooting.md#internal-and-intranet-applications).
 
 ## Next steps
 
-For any technical questions for how to integrate specific PostHog features into Vue (such as analytics, feature flags, A/B testing, or surveys), have a look at our [JavaScript Web](/docs/libraries/js/usage.md) SDK docs.
+For any technical questions for how to integrate specific PostHog features into Vue (such as analytics, feature flags, A/B testing, or surveys), have a look at our [JavaScript Web](https://posthog.com/docs/libraries/js/usage.md) SDK docs.
 
 Alternatively, the following tutorials can help you get started:
 
--   [How to set up analytics in Vue](/tutorials/vue-analytics.md)
--   [How to set up feature flags in Vue](/tutorials/vue-feature-flags.md)
--   [How to set up A/B tests in Vue](/tutorials/vue-ab-tests.md)
--   [How to set up surveys in Vue](/tutorials/vue-surveys.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+-   [How to set up analytics in Vue](https://posthog.com/tutorials/vue-analytics.md)
+-   [How to set up feature flags in Vue](https://posthog.com/tutorials/vue-feature-flags.md)
+-   [How to set up A/B tests in Vue](https://posthog.com/tutorials/vue-ab-tests.md)
+-   [How to set up surveys in Vue](https://posthog.com/tutorials/vue-surveys.md)

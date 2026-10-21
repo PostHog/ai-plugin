@@ -2,6 +2,30 @@
 
 # .NET
 
+Canonical URL: https://posthog.com/docs/libraries/dotnet
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Installation](#installation)
+- [Working with .NET Feature Management](#working-with-net-feature-management)
+- [Using the core package without ASP.NET Core](#using-the-core-package-without-aspnet-core)
+- [Debug mode](#debug-mode)
+- [Identifying users](#identifying-users)
+- [Capturing events](#capturing-events)
+- [Request context](#request-context)
+- [Error tracking](#error-tracking)
+- [Logs](#logs)
+- [Person profiles and properties](#person-profiles-and-properties)
+- [Alias](#alias)
+- [Group analytics](#group-analytics)
+- [Feature flags](#feature-flags)
+- [Experiments (A/B tests)](#experiments-ab-tests)
+- [AI observability](#ai-observability)
+- [GeoIP properties](#geoip-properties)
+- [Serverless environments (Azure Functions/Render/Lambda/...)](#serverless-environments-azure-functionsrenderlambda)
+
 This is an optional library you can install if you're working with .NET Core. It uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server side application that needs performance.
 
 ## Installation
@@ -10,17 +34,13 @@ The `PostHog` package supports any .NET platform that targets .NET Standard 2.1 
 
 > **Note:** We actively test with ASP.NET Core. Other platforms should work but haven't been specifically tested. If you encounter issues, please [report them on GitHub](https://github.com/PostHog/posthog-dotnet/issues).
 
-> **Not supported:** Classic UWP (requires .NET Standard 2.0 only). Microsoft has [deprecated UWP](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/migrate-to-windows-app-sdk/migrate-to-windows-app-sdk-ovw) in favor of the Windows App SDK. For Unity projects, see our dedicated [Unity SDK](/docs/libraries/unity.md).
-
-Terminal
+> **Not supported:** Classic UWP (requires .NET Standard 2.0 only). Microsoft has [deprecated UWP](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/migrate-to-windows-app-sdk/migrate-to-windows-app-sdk-ovw) in favor of the Windows App SDK. For Unity projects, see our dedicated [Unity SDK](https://posthog.com/docs/libraries/unity.md).
 
 ```bash
 dotnet add package PostHog.AspNetCore
 ```
 
 In your `Program.cs` (or `Startup.cs` for ASP.NET Core 2.x) file, add the following code:
-
-C#
 
 ```csharp
 using PostHog;
@@ -32,8 +52,6 @@ builder.AddPostHog();
 ```
 
 Make sure to configure PostHog with your project token, instance address, and optional personal API key. For example, in `appsettings.json`:
-
-JSON
 
 ```json
 {
@@ -48,8 +66,6 @@ JSON
 
 Use a secrets manager to store your personal API key. For example, when developing locally you can use the `UserSecrets` feature of the `dotnet` CLI:
 
-Terminal
-
 ```bash
 dotnet user-secrets init
 dotnet user-secrets set "PostHog:PersonalApiKey" "phx_..."
@@ -62,8 +78,6 @@ You can find your project token and instance address in the [project settings](h
 `PostHog.AspNetCore` supports [.NET Feature Management](https://learn.microsoft.com/en-us/azure/azure-app-configuration/feature-management-dotnet-reference). This enables you to use the <feature /\> tag helper and the `FeatureGateAttribute` in your ASP.NET Core applications to gate access to certain features using PostHog feature flags.
 
 To use feature flags with the .NET Feature Management library, you'll need to implement the `IPostHogFeatureFlagContextProvider` interface. The quickest way to do that is to inherit from the `PostHogFeatureFlagContextProvider` class and override the `GetDistinctId` and `GetFeatureFlagOptionsAsync` methods.
-
-C#
 
 ```csharp
 public class MyFeatureFlagContextProvider(IHttpContextAccessor httpContextAccessor)
@@ -91,8 +105,6 @@ public class MyFeatureFlagContextProvider(IHttpContextAccessor httpContextAccess
 
 Then, register your implementation in `Program.cs` (or `Startup.cs`):
 
-C#
-
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 builder.AddPostHog(options => {
@@ -101,8 +113,6 @@ builder.AddPostHog(options => {
 ```
 
 With this in place, you can now use `feature` tag helpers in your Razor views:
-
-HTML
 
 ```html
 <feature name="awesome-new-feature">
@@ -115,8 +125,6 @@ HTML
 
 Multivariate feature flags are also supported:
 
-HTML
-
 ```html
 <feature name="awesome-new-feature" value="variant-a">
     <p>This is the new feature variant A!</p>
@@ -127,8 +135,6 @@ HTML
 ```
 
 You can also use the `FeatureGateAttribute` to gate access to controllers or actions:
-
-C#
 
 ```csharp
 [FeatureGate("awesome-new-feature")]
@@ -145,23 +151,17 @@ public class NewFeatureController : Controller
 
 If you're not using ASP.NET Core (for example, in a console application, MAUI app, or Blazor WebAssembly), install the `PostHog` package instead of `PostHog.AspNetCore`. This package has no ASP.NET Core dependencies and can be used in any .NET project targeting .NET Standard 2.1 or .NET 8+.
 
-Terminal
-
 ```bash
 dotnet add package PostHog
 ```
 
 The `PostHogClient` class must be implemented as a singleton in your project. For `PostHog.AspNetCore`, this is handled by the `builder.AddPostHog();` method. For the `PostHog` package, you can do the following if you're using dependency injection:
 
-C#
-
 ```csharp
 builder.Services.AddPostHog();
 ```
 
 If you're not using a `builder` (such as in a console application), you can do the following:
-
-C#
 
 ```csharp
 using PostHog;
@@ -175,8 +175,6 @@ var posthog = serviceProvider.GetRequiredService<IPostHogClient>();
 The `AddPostHog` methods accept an optional `Action<PostHogOptions>` parameter that you can use to configure the client.
 
 If you're not using dependency injection, you can create a static instance of the `PostHogClient` class and use that everywhere in your project:
-
-C#
 
 ```csharp
 using PostHog;
@@ -195,8 +193,6 @@ If you're not seeing the expected events being captured, the feature flags being
 
 To see detailed logging, set the log level to `Debug` or `Trace` in `appsettings.json`:
 
-JSON
-
 ```json
 {
   "DetailedErrors": true,
@@ -213,15 +209,13 @@ JSON
 
 ## Identifying users
 
-> **Identifying users is required.** Backend events need a `distinct_id` that matches the ID your frontend uses when calling `posthog.identify()`. Without this, backend events are orphaned — they can't be linked to frontend event captures, [session replays](/docs/session-replay.md), [LLM traces](/docs/ai-engineering.md), or [error tracking](/docs/error-tracking.md).
+> **Identifying users is required.** Backend events need a `distinct_id` that matches the ID your frontend uses when calling `posthog.identify()`. Without this, backend events are orphaned — they can't be linked to frontend event captures, [session replays](https://posthog.com/docs/session-replay.md), [LLM traces](https://posthog.com/docs/ai-engineering.md), or [error tracking](https://posthog.com/docs/error-tracking.md).
 >
-> See our guide on [identifying users](/docs/getting-started/identify-users.md) for how to set this up.
+> See our guide on [identifying users](https://posthog.com/docs/getting-started/identify-users.md) for how to set this up.
 
 ## Capturing events
 
 You can send custom events using `capture`:
-
-C#
 
 ```csharp
 posthog.Capture("distinct_id_of_the_user", "user_signed_up");
@@ -231,9 +225,7 @@ posthog.Capture("distinct_id_of_the_user", "user_signed_up");
 
 ### Setting event properties
 
-Optionally, you can include additional information with the event by including a [properties](/docs/data/events.md#event-properties) object:
-
-C#
+Optionally, you can include additional information with the event by including a [properties](https://posthog.com/docs/data/events.md#event-properties) object:
 
 ```csharp
 posthog.Capture(
@@ -249,8 +241,6 @@ posthog.Capture(
 ### Sending page views
 
 If you're aiming for a backend-only implementation of PostHog and won't be capturing events from your frontend, you can send `$pageview` events from your backend like so:
-
-C#
 
 ```csharp
 using PostHog;
@@ -279,13 +269,11 @@ var app = builder.Build();
 app.UsePostHogRequestContext();
 ```
 
-If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](/docs/libraries/js/config.md#tracing-headers) for your ASP.NET Core backend hostname so browser requests include the session and distinct ID headers.
+If you're using [PostHog JS](https://posthog.com/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](https://posthog.com/docs/libraries/js/config.md#tracing-headers) for your ASP.NET Core backend hostname so browser requests include the session and distinct ID headers.
 
 The middleware reads `X-PostHog-Distinct-Id` and `X-PostHog-Session-Id` as request-scoped analytics context. It also adds request metadata such as `$current_url`, `$request_method`, `$request_path`, `$user_agent`, and `$ip`. Explicit distinct IDs and event properties always override request context.
 
 Tracing headers are client-controlled analytics context, not authentication or authorization. For security-sensitive server-side decisions, pass an authenticated distinct ID explicitly. You can ignore tracing headers while still collecting request metadata:
-
-C#
 
 ```csharp
 app.UsePostHogRequestContext(options =>
@@ -302,8 +290,6 @@ You can manually capture exceptions using `CaptureException`. This sends a `$exc
 
 File names, line numbers, and source context depend on debug information already available from the captured .NET stack trace. PostHog doesn't support uploading .NET PDB files yet, so production builds without runtime-accessible debug information may show less detailed stack frames.
 
-C#
-
 ```csharp
 try
 {
@@ -317,8 +303,6 @@ catch (Exception exception)
 
 Add custom properties to include request, tenant, or domain context:
 
-C#
-
 ```csharp
 posthog.CaptureException(
     exception,
@@ -331,19 +315,17 @@ posthog.CaptureException(
 );
 ```
 
-For the full setup guide, see the [.NET error tracking installation docs](/docs/error-tracking/installation/dotnet.md).
+For the full setup guide, see the [.NET error tracking installation docs](https://posthog.com/docs/error-tracking/installation/dotnet.md).
 
 Automatic exception capture is not available in the .NET SDK yet.
 
 ## Logs
 
-[PostHog Logs](/docs/logs.md) doesn't use this SDK. Logs are ingested over OpenTelemetry, so you attach an OTLP exporter to the standard `ILogger` pipeline instead — see the [.NET logs installation guide](/docs/logs/installation/dotnet.md).
+[PostHog Logs](https://posthog.com/docs/logs.md) doesn't use this SDK. Logs are ingested over OpenTelemetry, so you attach an OTLP exporter to the standard `ILogger` pipeline instead — see the [.NET logs installation guide](https://posthog.com/docs/logs/installation/dotnet.md).
 
 ## Person profiles and properties
 
-The .NET SDK captures identified events by default. These create [person profiles](/docs/data/persons.md). To set [person properties](/docs/product-analytics/person-properties.md) in these profiles, include them when capturing an event:
-
-C#
+The .NET SDK captures identified events by default. These create [person profiles](https://posthog.com/docs/data/persons.md). To set [person properties](https://posthog.com/docs/product-analytics/person-properties.md) in these profiles, include them when capturing an event:
 
 ```csharp
 posthog.Capture(
@@ -354,11 +336,9 @@ posthog.Capture(
 );
 ```
 
-For more details on the difference between `$set` and `$set_once`, see our [person properties docs](/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once).
+For more details on the difference between `$set` and `$set_once`, see our [person properties docs](https://posthog.com/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once).
 
-To capture [anonymous events](/docs/data/anonymous-vs-identified-events.md) without person profiles, set the event's `$process_person_profile` property to `false`:
-
-C#
+To capture [anonymous events](https://posthog.com/docs/data/anonymous-vs-identified-events.md) without person profiles, set the event's `$process_person_profile` property to `false`:
 
 ```csharp
 posthog.Capture(
@@ -376,23 +356,19 @@ Sometimes, you want to assign multiple distinct IDs to a single user. This is he
 
 In this case, you can use `alias` to assign another distinct ID to the same user.
 
-C#
-
 ```csharp
 await posthog.AliasAsync("current_distinct_id", "new_distinct_id");
 ```
 
-We strongly recommend reading our docs on [alias](/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
+We strongly recommend reading our docs on [alias](https://posthog.com/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
 
 ## Group analytics
 
-Group analytics allows you to associate an event with a group (e.g. teams, organizations, etc.). Read the [group analytics](/docs/product-analytics/group-analytics.md) guide for more information.
+Group analytics allows you to associate an event with a group (e.g. teams, organizations, etc.). Read the [group analytics](https://posthog.com/docs/product-analytics/group-analytics.md) guide for more information.
 
-> **Note:** This is a paid feature and is not available on the open-source or free cloud plan. Learn more on our [pricing page](/pricing.md).
+> **Note:** This is a paid feature and is not available on the open-source or free cloud plan. Learn more on our [pricing page](https://posthog.com/pricing.md).
 
 To capture an event and associate it with a group, add the `groups` argument to your `Capture` call:
-
-C#
 
 ```csharp
 posthog.Capture(
@@ -402,8 +378,6 @@ posthog.Capture(
 ```
 
 Update properties on a group, use the `GroupIdentifyAsync` method:
-
-C#
 
 ```csharp
 await posthog.GroupIdentifyAsync(
@@ -421,7 +395,7 @@ The `name` is a special property which is used in the PostHog UI for the name of
 
 ## Feature flags
 
-PostHog's [feature flags](/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
+PostHog's [feature flags](https://posthog.com/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
 
 There are two steps to implement feature flags in .NET:
 
@@ -430,8 +404,6 @@ There are two steps to implement feature flags in .NET:
 Call `EvaluateFlagsAsync()` once for the user, then read values from the returned snapshot.
 
 #### Boolean feature flags
-
-C#
 
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
@@ -445,8 +417,6 @@ if (flags.IsEnabled("flag-key"))
 ```
 
 #### Multivariate feature flags
-
-C#
 
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
@@ -467,17 +437,15 @@ if (enabledVariant == "variant-key") // replace "variant-key" with the key of yo
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to `Capture()`
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-C#
 
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("distinct_id_of_your_user");
@@ -499,8 +467,6 @@ posthog.Capture(
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
 
 To reduce event property bloat, pass a filtered snapshot:
-
-C#
 
 ```csharp
 // Attach only flags accessed with IsEnabled() or GetFlag() before this call
@@ -526,8 +492,6 @@ posthog.Capture(
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-C#
-
 ```csharp
 posthog.Capture(
     "distinct_id_of_your_user",
@@ -544,8 +508,6 @@ posthog.Capture(
 
 By default, `EvaluateFlagsAsync()` evaluates every flag for the user. If you only need a few flags, pass `FlagKeysToEvaluate` to request only those flags:
 
-C#
-
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync(
     "distinct_id_of_your_user",
@@ -558,7 +520,7 @@ var flags = await posthog.EvaluateFlagsAsync(
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `EvaluateFlagsAsync()`, the SDK sends this event when you call `flags.IsEnabled()` or `flags.GetFlag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `EvaluateFlagsAsync()`, the SDK sends this event when you call `flags.IsEnabled()` or `flags.GetFlag()` for a flag.
 
 The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -566,13 +528,11 @@ The SDK deduplicates these events per `(distinct_id, flag, value)` in a local ca
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
 For example:
-
-C#
 
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync(
@@ -634,8 +594,6 @@ Simply include any of these properties in the `person_properties` parameter alon
 
 Configure evaluation contexts so this SDK only evaluates flags intended for the matching application, platform, or product area. For ASP.NET Core apps using `PostHog.AspNetCore`, add them to the `PostHog` configuration section:
 
-JSON
-
 ```json
 {
     "PostHog": {
@@ -648,8 +606,6 @@ JSON
 
 For code-based configuration, set `EvaluationContexts` on `PostHogOptions`:
 
-C#
-
 ```csharp
 var posthog = new PostHogClient(new PostHogOptions
 {
@@ -661,7 +617,7 @@ var posthog = new PostHogClient(new PostHogOptions
 
 Remote `/flags` requests from `EvaluateFlagsAsync()` include `evaluation_contexts` when configured.
 
-For more details, see the [evaluation contexts guide](/docs/feature-flags/evaluation-contexts.md).
+For more details, see the [evaluation contexts guide](https://posthog.com/docs/feature-flags/evaluation-contexts.md).
 
 ### Local evaluation
 
@@ -669,13 +625,11 @@ Evaluating feature flags requires making a request to PostHog for each flag. How
 
 It is best practice to use local evaluation flags when possible, since this enables you to resolve flags faster and with fewer API calls.
 
-For details on how to implement local evaluation, see our [local evaluation guide](/docs/feature-flags/local-evaluation.md).
+For details on how to implement local evaluation, see our [local evaluation guide](https://posthog.com/docs/feature-flags/local-evaluation.md).
 
 ## Experiments (A/B tests)
 
-Since [experiments](/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
-
-C#
+Since [experiments](https://posthog.com/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
 
 ```csharp
 var flags = await posthog.EvaluateFlagsAsync("user_distinct_id");
@@ -687,13 +641,13 @@ if (variant == "variant-name")
 }
 ```
 
-It's also possible to [run experiments without using feature flags](/docs/experiments/running-experiments-without-feature-flags.md).
+It's also possible to [run experiments without using feature flags](https://posthog.com/docs/experiments/running-experiments-without-feature-flags.md).
 
 ## AI observability
 
-`PostHog.AI` adds [AI observability](/docs/ai-observability.md) for .NET applications using OpenAI or Azure OpenAI. It is currently pre-release, so expect breaking changes before a stable release.
+`PostHog.AI` adds [AI observability](https://posthog.com/docs/ai-observability.md) for .NET applications using OpenAI or Azure OpenAI. It is currently pre-release, so expect breaking changes before a stable release.
 
-For installation instructions, see the [OpenAI guide for .NET](/docs/ai-observability/installation/openai.md#net-support) or the [Azure OpenAI guide for .NET](/docs/ai-observability/installation/azure-openai.md#net-support).
+For installation instructions, see the [OpenAI guide for .NET](https://posthog.com/docs/ai-observability/installation/openai.md#net-support) or the [Azure OpenAI guide for .NET](https://posthog.com/docs/ai-observability/installation/azure-openai.md#net-support).
 
 ## GeoIP properties
 
@@ -704,11 +658,3 @@ The `posthog-dotnet` library disregards the server IP, does not add the GeoIP pr
 By default, the library buffers events before sending them to the `/batch` endpoint for better performance. This can lead to lost events in serverless environments if the .NET process is terminated by the platform before the buffer is fully flushed.
 
 To avoid this, call `await posthog.FlushAsync()` after processing every request by adding it as a middleware to your server. This allows `posthog.Capture()` to remain asynchronous for better performance.
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

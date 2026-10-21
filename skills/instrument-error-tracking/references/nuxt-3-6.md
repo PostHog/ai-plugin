@@ -2,6 +2,22 @@
 
 # Nuxt Error Tracking installation (v3.6 and below)
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/nuxt-3-6
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the package](#install-the-package)
+- [Add environment variables](#add-environment-variables)
+- [Create a plugin](#create-a-plugin)
+- [Server-side setup](#server-side-setup)
+- [Send events](#send-events)
+- [Manually capturing exceptions](#manually-capturing-exceptions)
+- [Configuring exception autocapture](#configuring-exception-autocapture)
+- [Verify error tracking](#verify-error-tracking)
+- [Upload source maps](#upload-source-maps)
+
 1.  1
 
     ## Install the package
@@ -36,7 +52,7 @@
 
     **Nuxt version**
 
-    This guide is for Nuxt v3.0 and above. For Nuxt v2.16 and below, see our [Nuxt docs](/docs/libraries/nuxt-js.md#nuxt-v216-and-below).
+    This guide is for Nuxt v3.0 and above. For Nuxt v2.16 and below, see our [Nuxt docs](https://posthog.com/docs/libraries/nuxt-js.md#nuxt-v216-and-below).
 
 2.  2
 
@@ -242,12 +258,4 @@
 
     Let's continue to the next section.
 
-    [Upload source maps](/docs/error-tracking/upload-source-maps/nuxt.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Upload source maps](https://posthog.com/docs/error-tracking/upload-source-maps/nuxt.md)

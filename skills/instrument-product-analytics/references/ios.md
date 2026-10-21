@@ -2,9 +2,21 @@
 
 # iOS
 
+Canonical URL: https://posthog.com/docs/libraries/ios
+
+## On this page
+
+- [Installation](#installation)
+- [Identifying users](#identifying-users)
+- [Offline behavior](#offline-behavior)
+- [Using PostHog with application extensions](#using-posthog-with-application-extensions)
+- [Method swizzling](#method-swizzling)
+- [Push notifications](#push-notifications)
+- [Next steps](#next-steps)
+
 The PostHog iOS SDK is a library that you can use to track events, identify users, record session replays, evaluate feature flags, run experiments, build surveys, and more.
 
-This page shows you how to install the SDK and get started with it. If you've already installed the SDK, you can skip ahead to learn about [using the features](/docs/libraries/ios/usage.md) and [configuring the SDK](/docs/libraries/ios/configuration.md).
+This page shows you how to install the SDK and get started with it. If you've already installed the SDK, you can skip ahead to learn about [using the features](https://posthog.com/docs/libraries/ios/usage.md) and [configuring the SDK](https://posthog.com/docs/libraries/ios/configuration.md).
 
 ## Installation
 
@@ -46,11 +58,9 @@ Package.swift
 
 Configuration is done through the `PostHogConfig` object. Here's a basic configuration example to get you started.
 
-You can find more advanced configuration options in the [configuration page](/docs/libraries/ios/configuration.md).
+You can find more advanced configuration options in the [configuration page](https://posthog.com/docs/libraries/ios/configuration.md).
 
 ## UIKit
-
-Swift
 
 ```swift
 import Foundation
@@ -72,8 +82,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 ```
 
 ## SwiftUI
-
-Swift
 
 ```swift
 import SwiftUI
@@ -106,13 +114,13 @@ struct YourGreatApp: App {
 
 ## Identifying users
 
-> **Identifying users is required.** Call `posthog.identify('your-user-id')` after login to link events to a known user. This is what connects frontend event captures, [session replays](/docs/session-replay.md), [LLM traces](/docs/ai-engineering.md), and [error tracking](/docs/error-tracking.md) to the same person — and lets backend events link back too.
+> **Identifying users is required.** Call `posthog.identify('your-user-id')` after login to link events to a known user. This is what connects frontend event captures, [session replays](https://posthog.com/docs/session-replay.md), [LLM traces](https://posthog.com/docs/ai-engineering.md), and [error tracking](https://posthog.com/docs/error-tracking.md) to the same person — and lets backend events link back too.
 >
 > Use a stable ID from your auth system when possible, not an email or display name. Send those as person properties instead. If your app has no other stable key, email works as a fallback if they are unique. Never a shared literal like `"anonymous"` or `"user"`, which pools many people onto one person and corrupts their data. When no ID is available at all, skip the identify and retain the anonymous distinct ID that's automatically assigned.
 >
 > Call `posthog.reset()` on logout, so the next person to use the browser doesn't inherit the last one's identity.
 >
-> See our guide on [identifying users](/docs/getting-started/identify-users.md) for how to set this up.
+> See our guide on [identifying users](https://posthog.com/docs/getting-started/identify-users.md) for how to set this up.
 
 ## Offline behavior
 
@@ -122,7 +130,7 @@ The PostHog iOS SDK will continue to capture events when the device is offline. 
 -   When the queue is full, the oldest event is deleted first.
 -   The queue is flushed only when the device is online.
 
-You can find the options for configuring the offline behavior in the [configuration page](/docs/libraries/ios/configuration.md#all-configuration-options).
+You can find the options for configuring the offline behavior in the [configuration page](https://posthog.com/docs/libraries/ios/configuration.md#all-configuration-options).
 
 ## Using PostHog with application extensions
 
@@ -134,7 +142,7 @@ By default, each iOS app target stores its data in its own sandboxed directory. 
 -   Fragmented user journeys
 -   Difficulty tracking feature adoption across your app ecosystem
 
-[Learn more about setting up app groups](/docs/libraries/ios/configuration.md#setting-up-app-groups).
+[Learn more about setting up app groups](https://posthog.com/docs/libraries/ios/configuration.md#setting-up-app-groups).
 
 ## Method swizzling
 
@@ -142,23 +150,15 @@ The PostHog iOS SDK uses method swizzling to intercept and modify method calls a
 
 Method swizzling is particularly important for accurate session metrics tracking. When disabled, the SDK cannot capture optimal session metrics.
 
-You can learn more about configuring method swizzling in the [configuration page](/docs/libraries/ios/configuration.md#method-swizzling).
+You can learn more about configuring method swizzling in the [configuration page](https://posthog.com/docs/libraries/ios/configuration.md#method-swizzling).
 
 ## Push notifications
 
-The iOS SDK can register a device for [Workflows](/docs/workflows.md) push notifications and capture when a user opens one. For setup, including automatic and manual registration, capturing opens, and identity verification, see [Push notifications](/docs/workflows/push-notifications.md).
+The iOS SDK can register a device for [Workflows](https://posthog.com/docs/workflows.md) push notifications and capture when a user opens one. For setup, including automatic and manual registration, capturing opens, and identity verification, see [Push notifications](https://posthog.com/docs/workflows/push-notifications.md).
 
 ## Next steps
 
 Now that you've installed the SDK, explore the configuration and usage options:
 
--   [Learn about using all of the features of PostHog with iOS SDK](/docs/libraries/ios/usage.md)
--   [Learn about configuration options for the iOS SDK](/docs/libraries/ios/configuration.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+-   [Learn about using all of the features of PostHog with iOS SDK](https://posthog.com/docs/libraries/ios/usage.md)
+-   [Learn about configuration options for the iOS SDK](https://posthog.com/docs/libraries/ios/configuration.md)

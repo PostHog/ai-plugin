@@ -2,6 +2,20 @@
 
 # Flutter Logs installation
 
+Canonical URL: https://posthog.com/docs/logs/installation/flutter
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://us.posthog.com` or `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install posthog_flutter](#install-posthog_flutter)
+- [Configure logs in your PostHogConfig](#configure-logs-in-your-posthogconfig)
+- [Capture logs](#capture-logs)
+- [Test your setup](#test-your-setup)
+- [Tune buffering, rate cap, and resource attributes](#tune-buffering-rate-cap-and-resource-attributes)
+- [Filter or redact with beforeSend](#filter-or-redact-with-beforesend)
+- [Next steps](#next-steps)
+
 The PostHog Flutter SDK has built-in support for capturing structured Logs from your Flutter app across mobile and web. The SDK handles the OTLP encoding, batching, and flushing — and on mobile, on-disk persistence across app restarts and app-lifecycle integration (web buffers in memory via `posthog-js`). You just call `Posthog().captureLog(...)` or `Posthog().logger.{trace,debug,info,warn,error,fatal}(...)`.
 
 > **Manual capture only.** Logs are emitted by your code. The SDK does not autocapture system log streams (`print`, `debugPrint`, or `dart:developer`'s `log`).
@@ -14,7 +28,7 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     Required
 
-    If you haven't installed `posthog_flutter` yet, follow the steps below. For full details, see the [Flutter SDK guide](/docs/libraries/flutter.md).
+    If you haven't installed `posthog_flutter` yet, follow the steps below. For full details, see the [Flutter SDK guide](https://posthog.com/docs/libraries/flutter.md).
 
     PostHog is available for install via [Pub](https://pub.dev/packages/posthog_flutter).
 
@@ -155,8 +169,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     For Swift Package Manager projects without a `Podfile`, set the **Minimum Deployments** version to iOS 13.0 for the `Runner` target in Xcode (**Runner > General > Minimum Deployments**). After you change **Minimum Deployments**, regenerate the iOS project's configuration files:
 
-    Terminal
-
     ```bash
     flutter build ios --config-only
     ```
@@ -166,8 +178,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
     If you followed the automatic SDK setup, then there's no more configuration needed in Dart.
 
     If you followed the manual SDK setup:
-
-    Dart
 
     ```dart
     import 'package:flutter/material.dart';
@@ -274,8 +284,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     Configure Logs through `config.logsConfig` before calling `Posthog().setup(...)`. All fields are optional; unset fields fall back to the native defaults, which are tuned for mobile (cellular bandwidth, battery, app lifecycle).
 
-    Dart
-
     ```dart
     final config = PostHogConfig('<ph_project_token>');
     config.host = 'https://us.i.posthog.com';
@@ -287,11 +295,9 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     These resource attributes are captured at `setup(...)` and apply to every batch.
 
-    > **Web behavior.** On Flutter Web, the SDK attaches to an already-initialized [`posthog-js`](/docs/libraries/js.md) instance, so `config.logsConfig` is **not** applied on web. Configure your log options in the `posthog.init({...})` call in your `web/index.html` instead. `captureLog` and `logger` still work on web (they are forwarded to `posthog-js`), and `beforeSend` still runs (in Dart) on web. Web also requires a recent `posthog-js` build that exposes `captureLog`.
+    > **Web behavior.** On Flutter Web, the SDK attaches to an already-initialized [`posthog-js`](https://posthog.com/docs/libraries/js.md) instance, so `config.logsConfig` is **not** applied on web. Configure your log options in the `posthog.init({...})` call in your `web/index.html` instead. `captureLog` and `logger` still work on web (they are forwarded to `posthog-js`), and `beforeSend` still runs (in Dart) on web. Web also requires a recent `posthog-js` build that exposes `captureLog`.
 
     For example, set the same service identity on the `posthog-js` snippet in `web/index.html`:
-
-    HTML
 
     ```html
     <script>
@@ -306,7 +312,7 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
     </script>
     ```
 
-    See the [JavaScript Logs installation guide](/docs/logs/installation/javascript.md) for the full `posthog-js` logs config.
+    See the [JavaScript Logs installation guide](https://posthog.com/docs/logs/installation/javascript.md) for the full `posthog-js` logs config.
 
 3.  3
 
@@ -315,8 +321,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
     Required
 
     Use `Posthog().logger` for the per-level convenience API, or `Posthog().captureLog` for full control over level, attributes, and trace context.
-
-    Dart
 
     ```dart
     import 'package:posthog_flutter/posthog_flutter.dart';
@@ -353,8 +357,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     1.  Capture a test log from your app:
 
-        Dart
-
         ```dart
         Posthog().logger.info('hello from Flutter');
         Posthog().flush();
@@ -374,8 +376,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
     Optional
 
     The `logsConfig` has knobs for high-volume apps:
-
-    Dart
 
     ```dart
     final config = PostHogConfig('<ph_project_token>');
@@ -417,8 +417,6 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     Use `config.logsConfig.beforeSend` for redaction, sampling, or filtering by level. It is a `List<BeforeSendLogCallback>`, where each callback is a `FutureOr<PostHogLogRecord?> Function(PostHogLogRecord)`. Callbacks run **in Dart on all platforms (including web)**, evaluated left-to-right. Each callback receives a mutable `PostHogLogRecord` (with mutable `body`, `level`, and `attributes`) and returns either the (possibly mutated) record or `null` to drop it. Callbacks can be synchronous or asynchronous.
 
-    Dart
-
     ```dart
     config.logsConfig.beforeSend = [
       (record) {
@@ -444,19 +442,11 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     | Action | Description |
     | --- | --- |
-    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
-    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **[Why you need logs](https://posthog.com/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](https://posthog.com/docs/logs/search.md)** | Use the search interface to find specific log entries |
     | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
-    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
-    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Link session replay](https://posthog.com/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](https://posthog.com/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](https://posthog.com/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
-    [Troubleshoot common issues](/docs/logs/troubleshooting.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Troubleshoot common issues](https://posthog.com/docs/logs/troubleshooting.md)

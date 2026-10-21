@@ -2,6 +2,10 @@
 
 # Java Feature Flags installation
 
+Canonical URL: https://posthog.com/docs/feature-flags/installation/java
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host).
+
 The best way to install the PostHog Java SDK is with a build system like Gradle or Maven. This ensures you can easily upgrade to the latest versions.
 
 Look up the latest version of [`com.posthog.posthog-server`](https://central.sonatype.com/artifact/com.posthog/posthog-server).
@@ -38,8 +42,6 @@ See [`com.posthog.posthog-server`](https://central.sonatype.com/artifact/com.pos
 
 ### Setup
 
-Java
-
 ```java
 import com.posthog.server.PostHog;
 import com.posthog.server.PostHogConfig;
@@ -73,8 +75,6 @@ If you're not seeing the expected events being captured, or the feature flags be
 
 To see detailed logging, set the debug configuration option to true.
 
-Java
-
 ```java
 PostHogConfig config = PostHogConfig
           .builder(POSTHOG_API_KEY)
@@ -82,11 +82,3 @@ PostHogConfig config = PostHogConfig
           .debug(true)
           .build();
 ```
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

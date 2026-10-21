@@ -2,34 +2,44 @@
 
 # TanStack Start
 
+Canonical URL: https://posthog.com/docs/libraries/tanstack-start
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host).
+
+## On this page
+
+- [Installation](#installation)
+- [Identifying users](#identifying-users)
+- [Initialize PostHog on the client](#initialize-posthog-on-the-client)
+- [Capture events on the client](#capture-events-on-the-client)
+- [Initialize PostHog on the server](#initialize-posthog-on-the-server)
+- [Capture events on the server](#capture-events-on-the-server)
+- [Next steps](#next-steps)
+
 This tutorial shows how to integrate PostHog with a [TanStack Start](https://tanstack.com/start) app for both client-side and server-side analytics.
 
 ## Installation
 
 Install the required packages:
 
-Terminal
-
 ```bash
 npm install @posthog/react posthog-node
 ```
 
--   `@posthog/react` - React package for our [JS Web SDK](/docs/libraries/js.md) for client-side usage
--   `posthog-node` - PostHog [Node.js SDK](/docs/libraries/node.md) for server-side event capture
+-   `@posthog/react` - React package for our [JS Web SDK](https://posthog.com/docs/libraries/js.md) for client-side usage
+-   `posthog-node` - PostHog [Node.js SDK](https://posthog.com/docs/libraries/node.md) for server-side event capture
 
 ## Identifying users
 
-> **Identifying users is required.** Call `posthog.identify('your-user-id')` after login to link events to a known user. This is what connects frontend event captures, [session replays](/docs/session-replay.md), [LLM traces](/docs/ai-engineering.md), and [error tracking](/docs/error-tracking.md) to the same person — and lets backend events link back too.
+> **Identifying users is required.** Call `posthog.identify('your-user-id')` after login to link events to a known user. This is what connects frontend event captures, [session replays](https://posthog.com/docs/session-replay.md), [LLM traces](https://posthog.com/docs/ai-engineering.md), and [error tracking](https://posthog.com/docs/error-tracking.md) to the same person — and lets backend events link back too.
 >
 > Use a stable ID from your auth system when possible, not an email or display name. Send those as person properties instead. If your app has no other stable key, email works as a fallback if they are unique. Never a shared literal like `"anonymous"` or `"user"`, which pools many people onto one person and corrupts their data. When no ID is available at all, skip the identify and retain the anonymous distinct ID that's automatically assigned.
 >
 > Call `posthog.reset()` on logout, so the next person to use the browser doesn't inherit the last one's identity.
 >
-> See our guide on [identifying users](/docs/getting-started/identify-users.md) for how to set this up.
+> See our guide on [identifying users](https://posthog.com/docs/getting-started/identify-users.md) for how to set this up.
 
 If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
-
-JavaScript
 
 ```javascript
 posthog.init('<ph_project_token>', {
@@ -117,8 +127,6 @@ function CheckoutButton({ orderId, total }: { orderId: string; total: number }) 
 ### Identify users
 
 Call `posthog.identify()` when a user logs in to link their events to a user ID:
-
-TSX
 
 ```jsx
 import { usePostHog } from '@posthog/react'
@@ -208,12 +216,4 @@ The server-side `capture` call requires a `distinctId` (the user identifier), an
 
 ## Next steps
 
-Installing the JS Web SDK and Node SDK means all of their functionality is available in your TanStack Start project. To learn more about this, have a look at our [JS Web SDK docs](/docs/libraries/js/usage.md) and [Node SDK docs](/docs/libraries/node.md).
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+Installing the JS Web SDK and Node SDK means all of their functionality is available in your TanStack Start project. To learn more about this, have a look at our [JS Web SDK docs](https://posthog.com/docs/libraries/js/usage.md) and [Node SDK docs](https://posthog.com/docs/libraries/node.md).

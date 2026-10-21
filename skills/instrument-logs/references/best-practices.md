@@ -2,9 +2,29 @@
 
 # Logging best practices
 
+Canonical URL: https://posthog.com/docs/logs/best-practices
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://us.posthog.com` or `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Centralize your logs](#centralize-your-logs)
+- [Log what happened to requests, not what your code is doing](#log-what-happened-to-requests-not-what-your-code-is-doing)
+- [Use structured logging](#use-structured-logging)
+- [Think in cardinality and dimensionality](#think-in-cardinality-and-dimensionality)
+- [Include business context](#include-business-context)
+- [Build events throughout the request lifecycle](#build-events-throughout-the-request-lifecycle)
+- [Use log levels correctly](#use-log-levels-correctly)
+- [Sample strategically](#sample-strategically)
+- [Drop and rate-limit logs in PostHog](#drop-and-rate-limit-logs-in-posthog)
+- [Add trace and session context](#add-trace-and-session-context)
+- [Treat your log schema like an API contract](#treat-your-log-schema-like-an-api-contract)
+- [What not to log](#what-not-to-log)
+- [Logging checklist](#logging-checklist)
+
 Most logging is bad. Not because people don't log enough. They log too much of the wrong things and too little of the right things. The result is millions of lines that are expensive to store and useless to query.
 
-This guide covers what actually makes logs useful in production systems. PostHog ingests logs via [OpenTelemetry (OTLP)](/docs/logs/installation.md), so the patterns here are built around OTel's structured logging model: resource attributes, log attributes, and trace context.
+This guide covers what actually makes logs useful in production systems. PostHog ingests logs via [OpenTelemetry (OTLP)](https://posthog.com/docs/logs/installation.md), so the patterns here are built around OTel's structured logging model: resource attributes, log attributes, and trace context.
 
 This guide covers:
 
@@ -26,7 +46,7 @@ This guide covers:
 
 Centralizing your logs makes it possible to search across all your services in one place.
 
-With PostHog, your logs live alongside your [Product Analytics](/docs/product-analytics.md), [Session Replays](/docs/session-replay.md), and [Feature Flags](/docs/feature-flags.md), so you can go from a log line to a user's session to the flag variant they were on without switching tools.
+With PostHog, your logs live alongside your [Product Analytics](https://posthog.com/docs/product-analytics.md), [Session Replays](https://posthog.com/docs/session-replay.md), and [Feature Flags](https://posthog.com/docs/feature-flags.md), so you can go from a log line to a user's session to the flag variant they were on without switching tools.
 
 If you're already using `posthog.capture()`, you might wonder how logs differ from events. The key distinction is:
 
@@ -55,8 +75,6 @@ Step-level logs aren't universally wrong. They're valuable at `DEBUG` level for 
 Your `INFO`\-level logs should be wide events. Your `DEBUG`\-level logs can be as granular as you need, turned on selectively when you're actively investigating.
 
 Instead, emit one rich log per request per service:
-
-JSON
 
 ```json
 {
@@ -93,8 +111,6 @@ Payment failed for user abc123 - Stripe error: card_declined (amount: $49.99)
 
 **Good:**
 
-JSON
-
 ```json
 {
   "event": "payment.failed",
@@ -109,19 +125,19 @@ The structured version lets you query "all card\_declined errors for pro-tier us
 
 **Structured logs in PostHog**
 
-PostHog's log search works across all fields in structured logs, so the more context you include, the more useful your [search and filtering](/docs/logs/search.md) becomes. Every key-value pair is a field you can filter on.
+PostHog's log search works across all fields in structured logs, so the more context you include, the more useful your [search and filtering](https://posthog.com/docs/logs/search.md) becomes. Every key-value pair is a field you can filter on.
 
 ## Think in cardinality and dimensionality
 
 Two concepts that separate useful logs from noise. You want both high cardinality *and* high dimensionality. One wide event with 50 fields tells you more than 50 separate log lines with three fields each.
 
-What is cardinality?
+**What is cardinality?**
 
 Cardinality is the number of unique values a field has. `posthogDistinctId` has high cardinality (millions of unique values). `log_level` has low cardinality (5 values). High-cardinality fields are what enable you to debug specific requests and users.
 
 Some teams avoid high-cardinality fields because older logging tools can't handle them efficiently. Modern columnar databases (like ClickHouse, which PostHog uses under the hood) handle high cardinality just fine. Don't let outdated tooling concerns stop you from logging the fields that matter.
 
-What is dimensionality?
+**What is dimensionality?**
 
 Dimensionality is the number of fields per log event. A log with three fields (`timestamp`, `level`, `message`) has low dimensionality. A wide event with 30+ fields has high dimensionality.
 
@@ -146,19 +162,17 @@ In OpenTelemetry, this context splits into two layers.
 
 **Correlate with Product Analytics**
 
-If you're using PostHog for [Product Analytics](/docs/product-analytics.md), the business context in your logs can match the properties on your events. This means you can go from a log search result straight to seeing how that user behaves in your product, and vice versa.
+If you're using PostHog for [Product Analytics](https://posthog.com/docs/product-analytics.md), the business context in your logs can match the properties on your events. This means you can go from a log search result straight to seeing how that user behaves in your product, and vice versa.
 
 ## Build events throughout the request lifecycle
 
 Don't emit 15 separate logs as a request moves through your code. Instead, accumulate context onto a single event and emit it once when the request completes.
 
-The implementation details vary by language, but the pattern is always the same. These examples use the OpenTelemetry APIs from the [installation guide](/docs/logs/installation.md):
+The implementation details vary by language, but the pattern is always the same. These examples use the OpenTelemetry APIs from the [installation guide](https://posthog.com/docs/logs/installation.md):
 
 ## Python
 
-Python's standard `logging` module with the `extra` parameter. The OpenTelemetry SDK (configured in the [installation guide](/docs/logs/installation/python.md)) picks up these attributes automatically.
-
-Python
+Python's standard `logging` module with the `extra` parameter. The OpenTelemetry SDK (configured in the [installation guide](https://posthog.com/docs/logs/installation/python.md)) picks up these attributes automatically.
 
 ```python
 import logging
@@ -195,9 +209,7 @@ def handle_checkout(request):
 
 ## Node.js
 
-The OpenTelemetry Logs API with `logger.emit()`. Attributes are passed as a dictionary on each log record. See the [installation guide](/docs/logs/installation/nodejs.md) for SDK setup.
-
-JavaScript
+The OpenTelemetry Logs API with `logger.emit()`. Attributes are passed as a dictionary on each log record. See the [installation guide](https://posthog.com/docs/logs/installation/nodejs.md) for SDK setup.
 
 ```javascript
 import { logs } from "@opentelemetry/api-logs";
@@ -233,9 +245,7 @@ function handleCheckout(req, res) {
 
 ## Go
 
-Go's standard `slog` package, bridged to OpenTelemetry via `otelslog` (configured in the [installation guide](/docs/logs/installation/go.md)). Each `slog.With()` call returns a new logger with additional attributes.
-
-Go
+Go's standard `slog` package, bridged to OpenTelemetry via `otelslog` (configured in the [installation guide](https://posthog.com/docs/logs/installation/go.md)). Each `slog.With()` call returns a new logger with additional attributes.
 
 ```go
 func HandleCheckout(w http.ResponseWriter, r *http.Request) {
@@ -310,9 +320,9 @@ Tail sampling is the ideal, but it's genuinely hard to implement well. Your logg
 
 If your infrastructure doesn't support tail sampling yet, **head sampling** (randomly keeping a fixed percentage of requests up front) is a pragmatic starting point. It's less precise (you'll drop some errors and keep some boring requests), but it's better than logging everything or nothing. You can always move to tail sampling later.
 
-How much does log storage cost in PostHog?
+**How much does log storage cost in PostHog?**
 
-PostHog Logs is billed by GB ingested per month with volume-based pricing. Use the calculator on the [pricing page](/docs/logs/pricing.md) for a full breakdown.
+PostHog Logs is billed by GB ingested per month with volume-based pricing. Use the calculator on the [pricing page](https://posthog.com/docs/logs/pricing.md) for a full breakdown.
 
 ## Drop and rate-limit logs in PostHog
 
@@ -327,7 +337,7 @@ Match rules by service name, severity, or any log attribute. Rules run top to bo
 
 Because drop rules apply before storage, they're the fastest way to cut volume without shipping a code change. Pair them with the client-side practices above: sample at the source where you can, and use drop rules to catch the noise you can't.
 
-If you still want the trend from the lines you drop, add a [log-based metric](/docs/logs/metrics.md) first. Metric rules are evaluated before drop rules, so the count survives even though the logs don't.
+If you still want the trend from the lines you drop, add a [log-based metric](https://posthog.com/docs/logs/metrics.md) first. Metric rules are evaluated before drop rules, so the count survives even though the logs don't.
 
 ## Add trace and session context
 
@@ -337,11 +347,11 @@ Pick a library that supports structured output, async/buffered writes, and low p
 
 When in doubt, benchmark your logging path under realistic load before shipping to production.
 
-Since PostHog uses OpenTelemetry, trace context propagation is automatic. Your logs are already correlated by trace ID if you have the OTel SDK configured. If you're also using PostHog for Product Analytics or Session Replay, you can go further and [link your logs to Session Replays](/docs/logs/link-session-replay.md), giving you the user's full experience alongside your backend logs.
+Since PostHog uses OpenTelemetry, trace context propagation is automatic. Your logs are already correlated by trace ID if you have the OTel SDK configured. If you're also using PostHog for Product Analytics or Session Replay, you can go further and [link your logs to Session Replays](https://posthog.com/docs/logs/link-session-replay.md), giving you the user's full experience alongside your backend logs.
 
 **Link logs to Session Replays**
 
-By adding a PostHog session ID and distinct ID to your log attributes, you can jump directly from a log line to the user's Session Replay. See the [Session Replay linking guide](/docs/logs/link-session-replay.md) to set this up.
+By adding a PostHog session ID and distinct ID to your log attributes, you can jump directly from a log line to the user's Session Replay. See the [Session Replay linking guide](https://posthog.com/docs/logs/link-session-replay.md) to set this up.
 
 ## Treat your log schema like an API contract
 
@@ -405,7 +415,7 @@ Use this to audit your existing logging or as a starting point for a new service
 -   **The "What":** `order_id`, `transaction_id`, `feature_flag_variants`, or equivalent
 -   **The "Where":** `service.name`, `service.version`, `deployment.environment` set as OTel resource attributes
 -   **Trace IDs:** OpenTelemetry `trace_id` is attached so you can jump from logs to traces
--   **Session IDs:** PostHog `session_id` is included to enable [Session Replay linking](/docs/logs/link-session-replay.md)
+-   **Session IDs:** PostHog `session_id` is included to enable [Session Replay linking](https://posthog.com/docs/logs/link-session-replay.md)
 
 ### Levels and sampling
 
@@ -421,12 +431,4 @@ Use this to audit your existing logging or as a starting point for a new service
 -   Request/response bodies are not logged (to avoid capturing sensitive user data)
 -   Field names and value types are treated as a stable schema (changes are communicated)
 -   Consider enabling [automatic PII scrubbing](#automatic-pii-scrubbing) as a safety net for accidental leaks
--   [Link logs to Session Replays](/docs/logs/link-session-replay.md) for full user context
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+-   [Link logs to Session Replays](https://posthog.com/docs/logs/link-session-replay.md) for full user context
