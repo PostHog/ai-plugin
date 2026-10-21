@@ -2,6 +2,19 @@
 
 # Ruby Error Tracking installation
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/ruby
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the gem](#install-the-gem)
+- [Configure PostHog](#configure-posthog)
+- [Send events](#send-events)
+- [Manually capture exceptions](#manually-capture-exceptions)
+- [Verify error tracking](#verify-error-tracking)
+- [Link releases](#link-releases)
+
 1.  1
 
     ## Install the gem
@@ -113,12 +126,4 @@
 
     Let's continue to the next section.
 
-    [Link releases](/docs/error-tracking/link-releases/ruby.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Link releases](https://posthog.com/docs/error-tracking/link-releases/ruby.md)

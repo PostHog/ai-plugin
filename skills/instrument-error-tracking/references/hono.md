@@ -2,6 +2,19 @@
 
 # Hono Error Tracking installation
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/hono
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the package](#install-the-package)
+- [Initialize PostHog](#initialize-posthog)
+- [Send an event](#send-an-event)
+- [Exception handling example](#exception-handling-example)
+- [Verify error tracking](#verify-error-tracking)
+- [Upload source maps](#upload-source-maps)
+
 1.  1
 
     ## Install the package
@@ -127,12 +140,4 @@
 
     Let's continue to the next section.
 
-    [Upload source maps](/docs/error-tracking/upload-source-maps.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Upload source maps](https://posthog.com/docs/error-tracking/upload-source-maps.md)

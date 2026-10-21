@@ -2,6 +2,21 @@
 
 # LiteLLM AI Observability installation
 
+Canonical URL: https://posthog.com/docs/ai-observability/installation/litellm
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [LiteLLM Requirements](#litellm-requirements)
+- [Install LiteLLM](#install-litellm)
+- [Configure PostHog observability](#configure-posthog-observability)
+- [Call LLMs through LiteLLM](#call-llms-through-litellm)
+- [Capture tool calls as spans](#capture-tool-calls-as-spans)
+- [Capture embeddings](#capture-embeddings)
+- [Verify traces and generations](#verify-traces-and-generations)
+- [Next steps](#next-steps)
+
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
 
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
@@ -147,7 +162,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     > -   Pass `$ai_session_id` in metadata to group calls from the same conversation into one PostHog session.
     > -   If you want to capture LLM events anonymously, **do not** pass a `user_id` in metadata.
     >
-    > See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
+    > See our docs on [anonymous vs identified events](https://posthog.com/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
@@ -162,7 +177,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | `$ai_output_choices` | List of response choices from the LLM |
     | `$ai_output_tokens` | The number of tokens in the output (often found in `response.usage`) |
     | `$ai_total_cost_usd` | The total cost in USD (input + output) |
-    | [\[...\]](/docs/ai-observability/generations.md#event-properties) | See [full list](/docs/ai-observability/generations.md#event-properties) of properties |
+    | [\[...\]](https://posthog.com/docs/ai-observability/generations.md#event-properties) | See [full list](https://posthog.com/docs/ai-observability/generations.md#event-properties) of properties |
 
 5.  5
 
@@ -192,7 +207,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
         )
     ```
 
-    See [spans](/docs/ai-observability/spans.md) for the full list of span properties.
+    See [spans](https://posthog.com/docs/ai-observability/spans.md) for the full list of span properties.
 
 6.  6
 
@@ -251,16 +266,8 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Resource | Description |
     | --- | --- |
-    | [Basics](/docs/ai-observability/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
-    | [Generations](/docs/ai-observability/generations.md) | Read about the `$ai_generation` event and its properties. |
-    | [Traces](/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
-    | [Spans](/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
-    | [Anaylze LLM performance](/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    | [Basics](https://posthog.com/docs/ai-observability/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
+    | [Generations](https://posthog.com/docs/ai-observability/generations.md) | Read about the `$ai_generation` event and its properties. |
+    | [Traces](https://posthog.com/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
+    | [Spans](https://posthog.com/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
+    | [Anaylze LLM performance](https://posthog.com/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |

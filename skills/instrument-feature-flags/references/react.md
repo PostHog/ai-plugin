@@ -2,6 +2,21 @@
 
 # React Feature Flags installation
 
+Canonical URL: https://posthog.com/docs/feature-flags/installation/react
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host).
+
+## On this page
+
+- [Install the package](#install-the-package)
+- [Add environment variables](#add-environment-variables)
+- [Initialize PostHog](#initialize-posthog)
+- [Accessing PostHog in your code](#accessing-posthog-in-your-code)
+- [Send events](#send-events)
+- [Use feature flags](#use-feature-flags)
+- [Running experiments](#running-experiments)
+- [Next steps](#next-steps)
+
 1.  1
 
     ## Install the package
@@ -82,7 +97,7 @@
 
     **defaults option**
 
-    The `defaults` option automatically configures PostHog with recommended settings for new projects. See [SDK defaults](/docs/libraries/js.md#sdk-defaults) for details.
+    The `defaults` option automatically configures PostHog with recommended settings for new projects. See [SDK defaults](https://posthog.com/docs/libraries/js.md#sdk-defaults) for details.
 
 4.  4
 
@@ -289,16 +304,8 @@
 
     | Resource | Description |
     | --- | --- |
-    | [Creating a feature flag](/docs/feature-flags/creating-feature-flags.md) | How to create a feature flag in PostHog |
-    | [Adding feature flag code](/docs/feature-flags/adding-feature-flag-code.md) | How to check flags in your code for all platforms |
-    | [Framework-specific guides](/docs/feature-flags/tutorials.md#framework-guides) | Setup guides for React Native, Next.js, Flutter, and other frameworks |
-    | [How to do a phased rollout](/tutorials/phased-rollout.md) | Gradually roll out features to minimize risk |
-    | [More tutorials](/docs/feature-flags/tutorials.md) | Other real-world examples and use cases |
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    | [Creating a feature flag](https://posthog.com/docs/feature-flags/creating-feature-flags.md) | How to create a feature flag in PostHog |
+    | [Adding feature flag code](https://posthog.com/docs/feature-flags/adding-feature-flag-code.md) | How to check flags in your code for all platforms |
+    | [Framework-specific guides](https://posthog.com/docs/feature-flags/tutorials.md#framework-guides) | Setup guides for React Native, Next.js, Flutter, and other frameworks |
+    | [How to do a phased rollout](https://posthog.com/tutorials/phased-rollout.md) | Gradually roll out features to minimize risk |
+    | [More tutorials](https://posthog.com/docs/feature-flags/tutorials.md) | Other real-world examples and use cases |

@@ -2,6 +2,20 @@
 
 # iOS Logs installation
 
+Canonical URL: https://posthog.com/docs/logs/installation/ios
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install posthog-ios](#install-posthog-ios)
+- [Configure logs in your PostHogConfig](#configure-logs-in-your-posthogconfig)
+- [Capture logs](#capture-logs)
+- [Test your setup](#test-your-setup)
+- [Tune buffering, rate cap, and resource attributes](#tune-buffering-rate-cap-and-resource-attributes)
+- [Filter or redact with beforeSend](#filter-or-redact-with-beforesend)
+- [Next steps](#next-steps)
+
 The PostHog iOS SDK has built-in support for capturing structured Logs from iOS, macOS, tvOS, watchOS, and visionOS apps. The SDK handles OTLP encoding, batching, on-disk persistence across app restarts, and lifecycle integration. You just call `PostHogSDK.shared.captureLog(...)` or `PostHogSDK.shared.logger?.{trace,debug,info,warn,error,fatal}(...)`.
 
 > **Manual capture only.** Logs are emitted by your code. The SDK does not autocapture system log streams (`os_log`, `Logger`, `print`).
@@ -14,7 +28,7 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     Required
 
-    If you haven't installed `posthog-ios` yet, follow the steps below. For full details, see the [iOS SDK guide](/docs/libraries/ios.md).
+    If you haven't installed `posthog-ios` yet, follow the steps below. For full details, see the [iOS SDK guide](https://posthog.com/docs/libraries/ios.md).
 
     PostHog is available through [CocoaPods](http://cocoapods.org) or you can add it as a Swift Package Manager based dependency.
 
@@ -54,11 +68,9 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     Configuration is done through the `PostHogConfig` object. Here's a basic configuration example to get you started.
 
-    You can find more advanced configuration options in the [configuration page](/docs/libraries/ios/configuration.md).
+    You can find more advanced configuration options in the [configuration page](https://posthog.com/docs/libraries/ios/configuration.md).
 
     ## UIKit
-
-    Swift
 
     ```swift
     import Foundation
@@ -80,8 +92,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
     ```
 
     ## SwiftUI
-
-    Swift
 
     ```swift
     import SwiftUI
@@ -120,8 +130,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     Configure Logs through `config.logs` before calling `setup(_:)`. All fields are optional; defaults are tuned for mobile (cellular bandwidth, battery, OS lifecycle).
 
-    Swift
-
     ```swift
     import PostHog
     
@@ -142,8 +150,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
     Required
 
     Use `PostHogSDK.shared.logger` for the per-level convenience API, or `PostHogSDK.shared.captureLog` for full control over level, attributes, and trace context.
-
-    Swift
 
     ```swift
     // Per-level convenience methods – Optional, since logger is created at setup
@@ -175,8 +181,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     1.  Capture a test log from your app:
 
-        Swift
-
         ```swift
         PostHogSDK.shared.logger?.info("hello from iOS")
         PostHogSDK.shared.flush()
@@ -196,8 +200,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
     Optional
 
     The `logs` config has knobs for high-volume apps:
-
-    Swift
 
     ```swift
     let config = PostHogConfig(projectToken: "<ph_project_token>")
@@ -237,8 +239,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     `beforeSend` runs synchronously before the rate cap, so dropped records don't consume the per-window budget. Use it for redaction, sampling, or filtering by level. Each block receives a mutable `PostHogLogRecord` and returns either the (possibly mutated) record or `nil` to drop it.
 
-    Swift
-
     ```swift
     config.logs.setBeforeSend({ record in
         // Drop debug logs in production
@@ -258,8 +258,6 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     From Objective-C, wrap each closure in a `BoxedBeforeSendLogBlock`:
 
-    objc
-
     ```objc
     [posthogConfig.logs setBeforeSend:@[
         [[BoxedBeforeSendLogBlock alloc] initWithBlock:^PostHogLogRecord * _Nullable(PostHogLogRecord * record) {
@@ -276,19 +274,11 @@ The PostHog iOS SDK has built-in support for capturing structured Logs from iOS,
 
     | Action | Description |
     | --- | --- |
-    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
-    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **[Why you need logs](https://posthog.com/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](https://posthog.com/docs/logs/search.md)** | Use the search interface to find specific log entries |
     | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
-    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
-    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Link session replay](https://posthog.com/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](https://posthog.com/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](https://posthog.com/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
-    [Troubleshoot common issues](/docs/logs/troubleshooting.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Troubleshoot common issues](https://posthog.com/docs/logs/troubleshooting.md)

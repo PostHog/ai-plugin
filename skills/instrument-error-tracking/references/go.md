@@ -2,15 +2,24 @@
 
 # Go Error Tracking installation
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/go
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the Go SDK](#install-the-go-sdk)
+- [Initialize the client](#initialize-the-client)
+- [Capture exceptions](#capture-exceptions)
+- [Verify error tracking](#verify-error-tracking)
+
 1.  1
 
     ## Install the Go SDK
 
     Required
 
-    Install the [PostHog Go SDK](/docs/libraries/go.md):
-
-    Terminal
+    Install the [PostHog Go SDK](https://posthog.com/docs/libraries/go.md):
 
     ```bash
     go get github.com/posthog/posthog-go
@@ -18,15 +27,13 @@
 
     **Debug symbol uploads**
 
-    The Go SDK resolves stack traces in-process, so captured frames include file names, line numbers, function names, and inlined calls without any symbol uploads. To also see source context (the surrounding lines of code in the error tracking UI), [upload debug symbols](/docs/error-tracking/upload-source-maps/go.md). That needs posthog-go 1.22.0 or later.
+    The Go SDK resolves stack traces in-process, so captured frames include file names, line numbers, function names, and inlined calls without any symbol uploads. To also see source context (the surrounding lines of code in the error tracking UI), [upload debug symbols](https://posthog.com/docs/error-tracking/upload-source-maps/go.md). That needs posthog-go 1.22.0 or later.
 
 2.  2
 
     ## Initialize the client
 
     Required
-
-    Go
 
     ```go
     package main
@@ -58,8 +65,6 @@
 
     Use `NewDefaultException` to capture errors directly. This automatically generates a UUID and stack trace for you.
 
-    Go
-
     ```go
     import (
         "time"
@@ -76,8 +81,6 @@
     ```
 
     For more control, build the `Exception` struct manually:
-
-    Go
 
     ```go
     import (
@@ -105,15 +108,13 @@
     client.Enqueue(exception)
     ```
 
-    To see how `net/http` services can automatically associate backend exceptions with frontend users, view the [Go request context documentation](/docs/libraries/go.md#request-context).
+    To see how `net/http` services can automatically associate backend exceptions with frontend users, view the [Go request context documentation](https://posthog.com/docs/libraries/go.md#request-context).
 
     ### Option B: Automatic capture with slog
 
     The SDK provides a `SlogCaptureHandler` that wraps Go's standard `log/slog` logger and automatically captures log records as exceptions.
 
     By default, it captures logs at `Warning` level and above.
-
-    Go
 
     ```go
     import (
@@ -173,8 +174,6 @@
 
     Trigger a test exception to confirm events are being sent to PostHog. You should see them appear in the [activity feed](https://app.posthog.com/activity/explore).
 
-    Go
-
     ```go
     exception := posthog.NewDefaultException(
         time.Now(),
@@ -187,11 +186,3 @@
     // Flush the queue before exiting
     client.Close()
     ```
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

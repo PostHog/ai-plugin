@@ -2,6 +2,19 @@
 
 # Link session replay
 
+Canonical URL: https://posthog.com/docs/logs/link-session-replay
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Why link to session replay?](#why-link-to-session-replay)
+- [Prerequisites](#prerequisites)
+- [Implementation](#implementation)
+- [Viewing linked replays](#viewing-linked-replays)
+- [View related errors](#view-related-errors)
+- [See also](#see-also)
+
 Connecting your backend logs to frontend session replays provides complete visibility into the user journey, helping you understand the full context around issues in your application.
 
 ## Why link to session replay?
@@ -15,9 +28,9 @@ By including session IDs and user identity in your logs, you can:
 
 ## Prerequisites
 
--   A [logging client installed](/docs/logs/installation.md) on your backend
--   The [PostHog JavaScript SDK](/docs/libraries/js.md) on your web frontend, or the [React Native SDK](/docs/libraries/react-native.md) in your mobile app
--   [Session replay enabled](/docs/session-replay/installation.md) if you want to link to replays (you can still pass `posthogDistinctId` without session replay to link logs to a user profile)
+-   A [logging client installed](https://posthog.com/docs/logs/installation.md) on your backend
+-   The [PostHog JavaScript SDK](https://posthog.com/docs/libraries/js.md) on your web frontend, or the [React Native SDK](https://posthog.com/docs/libraries/react-native.md) in your mobile app
+-   [Session replay enabled](https://posthog.com/docs/session-replay/installation.md) if you want to link to replays (you can still pass `posthogDistinctId` without session replay to link logs to a user profile)
 
 > **Logs captured client-side:** When you call `posthog.captureLog` / `posthog.logger.*` directly from the JavaScript web SDK or React Native SDK, the current `distinct_id` and `session_id` are attached to every log record automatically. You only need the manual setup below when your backend emits the logs.
 
@@ -69,7 +82,7 @@ const response = await fetch('https://api.example.com/chat', {
 
 ### Backend: Include session ID and user identity in logs
 
-Once you have the session ID, include it along with the user's identity using the `sessionId` and `posthogDistinctId` attributes. These examples assume you've already [set up a logging client](/docs/logs/installation.md) for your language.
+Once you have the session ID, include it along with the user's identity using the `sessionId` and `posthogDistinctId` attributes. These examples assume you've already [set up a logging client](https://posthog.com/docs/logs/installation.md) for your language.
 
 ### JavaScript
 
@@ -154,16 +167,8 @@ If no session ID is found in the log entry, the tab displays a message prompting
 
 ## See also
 
--   [Link logs to a person](/docs/logs/link-person.md): same `posthogDistinctId` attribute, surfaced on the person profile's Logs tab.
--   [Session replay installation](/docs/session-replay/installation.md)
--   [Logs installation](/docs/logs/installation.md)
--   [Search logs](/docs/logs/search.md)
--   [Error Tracking](/docs/error-tracking.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+-   [Link logs to a person](https://posthog.com/docs/logs/link-person.md): same `posthogDistinctId` attribute, surfaced on the person profile's Logs tab.
+-   [Session replay installation](https://posthog.com/docs/session-replay/installation.md)
+-   [Logs installation](https://posthog.com/docs/logs/installation.md)
+-   [Search logs](https://posthog.com/docs/logs/search.md)
+-   [Error Tracking](https://posthog.com/docs/error-tracking.md)

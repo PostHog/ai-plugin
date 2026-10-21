@@ -2,6 +2,18 @@
 
 # Other languages metrics installation
 
+Canonical URL: https://posthog.com/docs/metrics/installation/other
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install OpenTelemetry packages](#install-opentelemetry-packages)
+- [Get your project token](#get-your-project-token)
+- [Configure the exporter](#configure-the-exporter)
+- [Test your setup](#test-your-setup)
+- [Next steps](#next-steps)
+
 > **Note:** Metrics is in open alpha. Any team can turn it on — open [Metrics](https://app.posthog.com/metrics) and select **Enable metrics** in the onboarding view. Setup details, including the ingestion endpoint, may change before general availability.
 
 PostHog's application metrics work with any OpenTelemetry-compatible client. If your app or infrastructure already exports OTLP metrics, point the exporter at PostHog. No PostHog packages required.
@@ -39,8 +51,6 @@ PostHog's application metrics work with any OpenTelemetry-compatible client. If 
     Required
 
     Most OpenTelemetry SDKs pick up standard environment variables, so configuration is often no more than:
-
-    Terminal
 
     ```bash
     OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="https://us.i.posthog.com/i/v1/metrics"
@@ -80,7 +90,7 @@ PostHog's application metrics work with any OpenTelemetry-compatible client. If 
     2.  Open **Metrics** in the PostHog sidebar and pick your metric from the name picker
     3.  Data points should appear within a minute of sending
 
-    If nothing shows up, check that the endpoint ends in `/i/v1/metrics`, that the token starts with `phc_`, and see the [troubleshooting section](/docs/metrics.md#troubleshooting).
+    If nothing shows up, check that the endpoint ends in `/i/v1/metrics`, that the token starts with `phc_`, and see the [troubleshooting section](https://posthog.com/docs/metrics.md#troubleshooting).
 
     [View your metrics in PostHog](https://app.posthog.com/metrics)
 
@@ -92,18 +102,10 @@ PostHog's application metrics work with any OpenTelemetry-compatible client. If 
 
     | Action | Description |
     | --- | --- |
-    | **[Why you need metrics](/docs/metrics/basics.md)** | What metrics show you that events and logs don't |
-    | **[Getting started guide](/docs/metrics/start-here.md)** | Pick the right metric type, add attributes carefully, and chart what matters |
+    | **[Why you need metrics](https://posthog.com/docs/metrics/basics.md)** | What metrics show you that events and logs don't |
+    | **[Getting started guide](https://posthog.com/docs/metrics/start-here.md)** | Pick the right metric type, add attributes carefully, and chart what matters |
     | **Group and filter** | Group by an attribute for one line per value, or filter with `key=value` chips |
-    | **[How metrics works](/docs/metrics/architecture.md)** | How metrics are ingested, stored, and queried |
+    | **[How metrics works](https://posthog.com/docs/metrics/architecture.md)** | How metrics are ingested, stored, and queried |
     | **Query with SQL** | Every metric lands in the `posthog.metrics` table, queryable from the SQL tab |
 
-    [Continue with the getting started guide](/docs/metrics/start-here.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Continue with the getting started guide](https://posthog.com/docs/metrics/start-here.md)

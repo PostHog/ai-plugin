@@ -2,17 +2,31 @@
 
 # Go
 
+Canonical URL: https://posthog.com/docs/libraries/go
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host).
+
+## On this page
+
+- [Installation](#installation)
+- [Identifying users](#identifying-users)
+- [Capturing events](#capturing-events)
+- [Person profiles and properties](#person-profiles-and-properties)
+- [Alias](#alias)
+- [Request context](#request-context)
+- [Feature flags](#feature-flags)
+- [Experiments (A/B tests)](#experiments-ab-tests)
+- [Error tracking](#error-tracking)
+- [Group analytics](#group-analytics)
+- [Thank you](#thank-you)
+
 This library uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server-side application that needs performance.
 
 ## Installation
 
-Terminal
-
 ```bash
 go get github.com/posthog/posthog-go
 ```
-
-Go
 
 ```go
 package main
@@ -37,15 +51,13 @@ func main() {
 
 ## Identifying users
 
-> **Identifying users is required.** Backend events need a `distinct_id` that matches the ID your frontend uses when calling `posthog.identify()`. Without this, backend events are orphaned — they can't be linked to frontend event captures, [session replays](/docs/session-replay.md), [LLM traces](/docs/ai-engineering.md), or [error tracking](/docs/error-tracking.md).
+> **Identifying users is required.** Backend events need a `distinct_id` that matches the ID your frontend uses when calling `posthog.identify()`. Without this, backend events are orphaned — they can't be linked to frontend event captures, [session replays](https://posthog.com/docs/session-replay.md), [LLM traces](https://posthog.com/docs/ai-engineering.md), or [error tracking](https://posthog.com/docs/error-tracking.md).
 >
-> See our guide on [identifying users](/docs/getting-started/identify-users.md) for how to set this up.
+> See our guide on [identifying users](https://posthog.com/docs/getting-started/identify-users.md) for how to set this up.
 
 ## Capturing events
 
 You can send custom events using `capture`:
-
-Go
 
 ```go
 client.Enqueue(posthog.Capture{
@@ -56,13 +68,11 @@ client.Enqueue(posthog.Capture{
 
 > **Tip:** We recommend using a `[object] [verb]` format for your event names, where `[object]` is the entity that the behavior relates to, and `[verb]` is the behavior itself. For example, `project created`, `user signed up`, or `invite sent`.
 
-> **Tip:** You can define event schemas with typed properties and generate type-safe code using [schema management](/docs/product-analytics/schema-management.md).
+> **Tip:** You can define event schemas with typed properties and generate type-safe code using [schema management](https://posthog.com/docs/product-analytics/schema-management.md).
 
 ### Setting event properties
 
-Optionally, you can include additional information with the event by including a [properties](/docs/data/events.md#event-properties) object:
-
-Go
+Optionally, you can include additional information with the event by including a [properties](https://posthog.com/docs/data/events.md#event-properties) object:
 
 ```go
 client.Enqueue(posthog.Capture{
@@ -78,8 +88,6 @@ client.Enqueue(posthog.Capture{
 
 If you're aiming for a backend-only implementation of PostHog and won't be capturing events from your frontend, you can send `pageviews` from your backend like so:
 
-Go
-
 ```go
 client.Enqueue(posthog.Capture{
   DistinctId: "distinct_id_of_the_user",
@@ -91,9 +99,7 @@ client.Enqueue(posthog.Capture{
 
 ## Person profiles and properties
 
-For backward compatibility, the Go SDK captures identified events by default. These create [person profiles](/docs/data/persons.md). To set [person properties](/docs/product-analytics/person-properties.md) in these profiles, include them when capturing an event:
-
-Go
+For backward compatibility, the Go SDK captures identified events by default. These create [person profiles](https://posthog.com/docs/data/persons.md). To set [person properties](https://posthog.com/docs/product-analytics/person-properties.md) in these profiles, include them when capturing an event:
 
 ```go
 client.Enqueue(posthog.Capture{
@@ -110,11 +116,9 @@ client.Enqueue(posthog.Capture{
 })
 ```
 
-For more details on the difference between `$set` and `$set_once`, see our [person properties docs](/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once).
+For more details on the difference between `$set` and `$set_once`, see our [person properties docs](https://posthog.com/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once).
 
-To capture [anonymous events](/docs/data/anonymous-vs-identified-events.md) without person profiles, set the event's `$process_person_profile` property to `false`:
-
-Go
+To capture [anonymous events](https://posthog.com/docs/data/anonymous-vs-identified-events.md) without person profiles, set the event's `$process_person_profile` property to `false`:
 
 ```go
 client.Enqueue(posthog.Capture{
@@ -132,8 +136,6 @@ Sometimes, you want to assign multiple distinct IDs to a single user. This is he
 
 In this case, you can use `alias` to assign another distinct ID to the same user.
 
-Go
-
 ```go
 client.Enqueue(posthog.Alias{
   DistinctId: "distinct_id",
@@ -141,15 +143,13 @@ client.Enqueue(posthog.Alias{
 })
 ```
 
-We strongly recommend reading our docs on [alias](/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
+We strongly recommend reading our docs on [alias](https://posthog.com/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
 
 ## Request context
 
 Use request context to apply a distinct ID, session ID, and common request properties to capture and exception events inside a `net/http` request. This is useful when connecting frontend activity to backend events, session replay, error tracking, and feature flag evaluation.
 
-If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](/docs/libraries/js/config.md#tracing-headers) for your Go backend hostname so browser requests include the session and distinct ID headers. Then wrap your handler with `NewRequestContextMiddleware` and use the context-aware helpers:
-
-Go
+If you're using [PostHog JS](https://posthog.com/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](https://posthog.com/docs/libraries/js/config.md#tracing-headers) for your Go backend hostname so browser requests include the session and distinct ID headers. Then wrap your handler with `NewRequestContextMiddleware` and use the context-aware helpers:
 
 ```go
 handler := posthog.NewRequestContextMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -168,11 +168,9 @@ handler := posthog.NewRequestContextMiddleware(http.HandlerFunc(func(w http.Resp
 
 The middleware adds `$current_url`, `$request_method`, `$request_path`, `$user_agent`, and `$ip` properties. By default, it also reads `X-PostHog-Distinct-Id` and `X-PostHog-Session-Id` as request-scoped defaults. Explicit `DistinctId` values and `$session_id` properties passed to captures take precedence over request context.
 
-If request context is attached but no distinct ID is available, capture and exception events are sent as [personless events](/docs/data/anonymous-vs-identified-events.md) with an auto-generated UUID and `$process_person_profile: false`. Calls to `Enqueue` without request context still require `DistinctId`. `EvaluateFlagsWithContext` uses the request-scoped distinct ID when `EvaluateFlagsPayload.DistinctId` is empty, but it never generates personless IDs and returns `ErrNoDistinctID` when no distinct ID is available.
+If request context is attached but no distinct ID is available, capture and exception events are sent as [personless events](https://posthog.com/docs/data/anonymous-vs-identified-events.md) with an auto-generated UUID and `$process_person_profile: false`. Calls to `Enqueue` without request context still require `DistinctId`. `EvaluateFlagsWithContext` uses the request-scoped distinct ID when `EvaluateFlagsPayload.DistinctId` is empty, but it never generates personless IDs and returns `ErrNoDistinctID` when no distinct ID is available.
 
 Tracing headers are client-controlled analytics context, not authentication or authorization. For security-sensitive server-side decisions, pass an authenticated `DistinctId` explicitly or attach one to the request context:
-
-Go
 
 ```go
 ctx := posthog.WithRequestContext(r.Context(), posthog.RequestContext{
@@ -181,8 +179,6 @@ ctx := posthog.WithRequestContext(r.Context(), posthog.RequestContext{
 ```
 
 To ignore tracing headers while keeping request metadata, disable tracing header capture:
-
-Go
 
 ```go
 handler := posthog.NewRequestContextMiddleware(
@@ -193,7 +189,7 @@ handler := posthog.NewRequestContextMiddleware(
 
 ## Feature flags
 
-PostHog's [feature flags](/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
+PostHog's [feature flags](https://posthog.com/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
 
 There are two steps to implement feature flags in Go:
 
@@ -202,8 +198,6 @@ There are two steps to implement feature flags in Go:
 Call `client.EvaluateFlags()` once for the user, then read values from the returned snapshot.
 
 #### Boolean feature flags
-
-Go
 
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
@@ -221,8 +215,6 @@ if flags.IsEnabled("flag-key") {
 ```
 
 #### Multivariate feature flags
-
-Go
 
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
@@ -247,17 +239,15 @@ if enabledVariant == "variant-key" { // replace "variant-key" with the key of yo
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to `Capture`
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-Go
 
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
@@ -282,8 +272,6 @@ By default, this attaches every flag in the snapshot using `$feature/<flag-key>`
 
 To reduce event property bloat, pass a filtered snapshot:
 
-Go
-
 ```go
 // Attach only flags accessed with IsEnabled() or GetFlag() before this call
 client.Enqueue(posthog.Capture{
@@ -306,8 +294,6 @@ client.Enqueue(posthog.Capture{
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-Go
-
 ```go
 client.Enqueue(posthog.Capture{
     DistinctId: "distinct_id_of_your_user",
@@ -321,8 +307,6 @@ client.Enqueue(posthog.Capture{
 
 By default, `EvaluateFlags()` evaluates every flag for the user. If you only need a few flags, pass `FlagKeys` to request only those flags:
 
-Go
-
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
     DistinctId: "distinct_id_of_your_user",
@@ -332,7 +316,7 @@ flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `EvaluateFlags()`, the SDK sends this event when you call `flags.IsEnabled()` or `flags.GetFlag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `EvaluateFlags()`, the SDK sends this event when you call `flags.IsEnabled()` or `flags.GetFlag()` for a flag.
 
 The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -340,13 +324,11 @@ The SDK deduplicates these events per `(distinct_id, flag, value)` in a local ca
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
 For example:
-
-Go
 
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
@@ -403,8 +385,6 @@ Simply include any of these properties in the `person_properties` parameter alon
 
 You can configure the `FeatureFlagRequestTimeout` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked if PostHog's servers are too slow to respond. By default, this is set to 3 seconds.
 
-Go
-
 ```go
 // import "time"
 
@@ -424,13 +404,11 @@ Evaluating feature flags requires making a request to PostHog for each flag. How
 
 It is best practice to use local evaluation flags when possible, since this enables you to resolve flags faster and with fewer API calls.
 
-For details on how to implement local evaluation, see our [local evaluation guide](/docs/feature-flags/local-evaluation.md).
+For details on how to implement local evaluation, see our [local evaluation guide](https://posthog.com/docs/feature-flags/local-evaluation.md).
 
 ## Experiments (A/B tests)
 
-Since [experiments](/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
-
-Go
+Since [experiments](https://posthog.com/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
 
 ```go
 flags, err := client.EvaluateFlags(posthog.EvaluateFlagsPayload{
@@ -446,15 +424,13 @@ if variant == "variant-name" {
 }
 ```
 
-It's also possible to [run experiments without using feature flags](/docs/experiments/running-experiments-without-feature-flags.md).
+It's also possible to [run experiments without using feature flags](https://posthog.com/docs/experiments/running-experiments-without-feature-flags.md).
 
 ## Error tracking
 
 You can capture exceptions and errors using the Go SDK. There are two approaches:
 
 **Direct capture** using `NewDefaultException`, which automatically generates a stack trace:
-
-Go
 
 ```go
 exception := posthog.NewDefaultException(
@@ -467,8 +443,6 @@ client.Enqueue(exception)
 ```
 
 **Automatic capture** using the `SlogCaptureHandler`, which wraps Go's `log/slog` and sends log records at warning level and above as exceptions:
-
-Go
 
 ```go
 baseHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -484,17 +458,15 @@ logger := slog.New(posthog.NewSlogCaptureHandler(baseHandler, client,
 logger.Warn("Something broke", "error", fmt.Errorf("connection refused"))
 ```
 
-For the full setup guide, see the [Go error tracking installation docs](/docs/error-tracking/installation/go.md).
+For the full setup guide, see the [Go error tracking installation docs](https://posthog.com/docs/error-tracking/installation/go.md).
 
 ## Group analytics
 
-Group analytics allows you to associate an event with a group (e.g. teams, organizations, etc.). Read the [Group Analytics](/docs/user-guides/group-analytics.md) guide for more information.
+Group analytics allows you to associate an event with a group (e.g. teams, organizations, etc.). Read the [Group Analytics](https://posthog.com/docs/user-guides/group-analytics.md) guide for more information.
 
-> **Note:** This is a paid feature and is not available on the open-source or free cloud plan. Learn more on the [pricing page](/pricing.md).
+> **Note:** This is a paid feature and is not available on the open-source or free cloud plan. Learn more on the [pricing page](https://posthog.com/pricing.md).
 
 -   Send an event associated with a group
-
-Go
 
 ```go
 client.Enqueue(posthog.Capture{
@@ -506,8 +478,6 @@ client.Enqueue(posthog.Capture{
 ```
 
 -   Update properties on a group
-
-Go
 
 ```go
 client.Enqueue(posthog.GroupIdentify{
@@ -524,11 +494,3 @@ The `name` is a special property which is used in the PostHog UI for the name of
 ## Thank you
 
 This library is largely based on the `analytics-go` package.
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

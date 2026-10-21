@@ -2,7 +2,18 @@
 
 # Why you need metrics
 
-Metrics are numbers about your system measured over time: how many requests you served, how long they took, how deep the job queue is, how much memory a process is using. Where [logs](/docs/logs.md) record individual events and [traces](/docs/distributed-tracing.md) follow individual requests, metrics summarize everything. They answer "how is the system doing?" at a glance, cheaply, all the time.
+Canonical URL: https://posthog.com/docs/metrics/basics
+
+## On this page
+
+- [What is a metric?](#what-is-a-metric)
+- [What metrics show you that nothing else does](#what-metrics-show-you-that-nothing-else-does)
+- [When metrics save you](#when-metrics-save-you)
+- [What good metrics look like](#what-good-metrics-look-like)
+- [How PostHog makes metrics useful](#how-posthog-makes-metrics-useful)
+- [Next steps](#next-steps)
+
+Metrics are numbers about your system measured over time: how many requests you served, how long they took, how deep the job queue is, how much memory a process is using. Where [logs](https://posthog.com/docs/logs.md) record individual events and [traces](https://posthog.com/docs/distributed-tracing.md) follow individual requests, metrics summarize everything. They answer "how is the system doing?" at a glance, cheaply, all the time.
 
 ## What is a metric?
 
@@ -40,20 +51,12 @@ The same goes for error budgets and latency. A `rate` on an error counter divide
 
 ## How PostHog makes metrics useful
 
-Most teams keep metrics in a separate system from everything else, so answering "did that latency spike affect signups?" means tab switching and timestamp matching. In PostHog, metrics live alongside your [logs](/docs/logs.md), [traces](/docs/distributed-tracing.md), product analytics, and session replays, in the same project with the same query language.
+Most teams keep metrics in a separate system from everything else, so answering "did that latency spike affect signups?" means tab switching and timestamp matching. In PostHog, metrics live alongside your [logs](https://posthog.com/docs/logs.md), [traces](https://posthog.com/docs/distributed-tracing.md), product analytics, and session replays, in the same project with the same query language.
 
-Everything is queryable as SQL through the `posthog.metrics` table, and the [PostHog MCP server](/docs/model-context-protocol.md) exposes metrics to AI agents, so your tools can chart, compare, and investigate metrics for you. When you chart a metric that has moved against its baseline, an anomaly badge surfaces the change and the label values behind it, and the raw samples stay linked to the logs and traces that explain them.
+Everything is queryable as SQL through the `posthog.metrics` table, and the [PostHog MCP server](https://posthog.com/docs/model-context-protocol.md) exposes metrics to AI agents, so your tools can chart, compare, and investigate metrics for you. When you chart a metric that has moved against its baseline, an anomaly badge surfaces the change and the label values behind it, and the raw samples stay linked to the logs and traces that explain them.
 
 ## Next steps
 
--   [Get started with metrics](/docs/metrics/start-here.md)
--   [Set up and send metrics](/docs/metrics.md)
--   [How metrics works under the hood](/docs/metrics/architecture.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+-   [Get started with metrics](https://posthog.com/docs/metrics/start-here.md)
+-   [Set up and send metrics](https://posthog.com/docs/metrics.md)
+-   [How metrics works under the hood](https://posthog.com/docs/metrics/architecture.md)

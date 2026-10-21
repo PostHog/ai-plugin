@@ -2,7 +2,24 @@
 
 # Logs troubleshooting
 
-This page covers troubleshooting for Logs. For setup, see the [installation guide](/docs/logs/installation.md).
+Canonical URL: https://posthog.com/docs/logs/troubleshooting
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Authentication errors](#authentication-errors)
+- [Connection issues](#connection-issues)
+- [Logs not appearing in PostHog](#logs-not-appearing-in-posthog)
+- [Early startup logs are missing](#early-startup-logs-are-missing)
+- [Performance issues](#performance-issues)
+- [Log format problems](#log-format-problems)
+- [Logs not appearing on a person's profile](#logs-not-appearing-on-a-persons-profile)
+- [Project token authentication issues](#project-token-authentication-issues)
+- [Self-hosted endpoint issues](#self-hosted-endpoint-issues)
+- [Still having issues?](#still-having-issues)
+
+This page covers troubleshooting for Logs. For setup, see the [installation guide](https://posthog.com/docs/logs/installation.md).
 
 ## Authentication errors
 
@@ -76,7 +93,7 @@ This page covers troubleshooting for Logs. For setup, see the [installation guid
 
 **Solutions**:
 
--   Confirm each log record carries the attribute `posthogDistinctId` (camelCase, lowercase `p`) — see [Link logs to a person](/docs/logs/link-person.md). `distinct_id`, `posthog_distinct_id`, and `user_id` are **not** equivalent unless you've explicitly configured one as the [custom attribute key](/docs/logs/link-person.md#customizing-the-attribute-key).
+-   Confirm each log record carries the attribute `posthogDistinctId` (camelCase, lowercase `p`) — see [Link logs to a person](https://posthog.com/docs/logs/link-person.md). `distinct_id`, `posthog_distinct_id`, and `user_id` are **not** equivalent unless you've explicitly configured one as the [custom attribute key](https://posthog.com/docs/logs/link-person.md#customizing-the-attribute-key).
 -   The value of the attribute must equal one of the person's `distinct_id`s exactly — partial or prefixed matches are not picked up.
 -   If your team has customized the attribute key (via the `logs_config` endpoint), the person profile's Logs tab shows a hint above the chart indicating which key is being used. Make sure your pipeline emits logs under that exact key.
 -   Date range: the person Logs tab respects the same date range picker as the main Logs view. Expand the range if the logs are older than the default window.
@@ -109,15 +126,7 @@ This page covers troubleshooting for Logs. For setup, see the [installation guid
 
 If you're still experiencing problems:
 
-1.  Verify your OpenTelemetry client configuration matches the examples in the [installation guide](/docs/logs/installation.md)
+1.  Verify your OpenTelemetry client configuration matches the examples in the [installation guide](https://posthog.com/docs/logs/installation.md)
 2.  Test with a simple log message first before sending complex logs
 3.  Check the network requests to see the actual HTTP status codes and error messages
 4.  Contact PostHog support with your specific error messages and configuration details
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

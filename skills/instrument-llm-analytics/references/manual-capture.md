@@ -2,6 +2,18 @@
 
 # Manual capture AI Observability installation
 
+Canonical URL: https://posthog.com/docs/ai-observability/installation/manual-capture
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Capture LLM events manually](#capture-llm-events-manually)
+- [Event properties](#event-properties)
+- [Verify traces and generations](#verify-traces-and-generations)
+- [Next steps](#next-steps)
+- [Large events](#large-events)
+
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
 
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
@@ -20,7 +32,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     ## Capture LLM events manually
 
-    If you use a different server-side SDK, or prefer to use the API, capture the data manually. Call the `capture` method, or use the [capture API](/docs/api/capture.md).
+    If you use a different server-side SDK, or prefer to use the API, capture the data manually. Call the `capture` method, or use the [capture API](https://posthog.com/docs/api/capture.md).
 
     `$ai_trace_id` groups the events of one LLM interaction into a trace. `$ai_session_id` is optional and groups related traces into a session, which is what the Sessions tab reads. Set it if your product has multi-turn conversations. Workloads that finish in a single trace, like batch jobs or one-shot generation, do not need it. Send it as `null` on those to say so explicitly, which tells the instrumentation checklist the workload is complete rather than missing a session id.
 
@@ -456,20 +468,12 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Resource | Description |
     | --- | --- |
-    | [Basics](/docs/ai-observability/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
-    | [Generations](/docs/ai-observability/generations.md) | Read about the `$ai_generation` event and its properties. |
-    | [Traces](/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
-    | [Spans](/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
-    | [Anaylze LLM performance](/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
+    | [Basics](https://posthog.com/docs/ai-observability/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
+    | [Generations](https://posthog.com/docs/ai-observability/generations.md) | Read about the `$ai_generation` event and its properties. |
+    | [Traces](https://posthog.com/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
+    | [Spans](https://posthog.com/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
+    | [Anaylze LLM performance](https://posthog.com/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
 
 ## Large events
 
-For large events, use the dedicated AI ingestion path – see [capturing large AI events](/docs/ai-observability/large-events.md).
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+For large events, use the dedicated AI ingestion path – see [capturing large AI events](https://posthog.com/docs/ai-observability/large-events.md).

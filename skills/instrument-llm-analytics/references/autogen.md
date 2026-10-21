@@ -2,6 +2,19 @@
 
 # AutoGen AI Observability installation
 
+Canonical URL: https://posthog.com/docs/ai-observability/installation/autogen
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install dependencies](#install-dependencies)
+- [Set up OpenTelemetry tracing](#set-up-opentelemetry-tracing)
+- [Run your agents](#run-your-agents)
+- [Users and sessions](#users-and-sessions)
+- [Verify traces and generations](#verify-traces-and-generations)
+- [Next steps](#next-steps)
+
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_9608fcca70)
 
 ![](https://res.cloudinary.com/dmukukwp6/image/upload/texture_tan_dark_a92b0e022d)
@@ -92,7 +105,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     asyncio.run(main())
     ```
 
-    > **Note:** If you want to capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute. See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
+    > **Note:** To capture LLM events anonymously, omit the `posthog.distinct_id` resource attribute and don't set a distinct ID in the PostHog context. See our docs on [anonymous vs identified events](https://posthog.com/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
@@ -107,61 +120,33 @@ Skip the manual setup — run this in your project and the wizard installs the S
     | `$ai_output_choices` | List of response choices from the LLM |
     | `$ai_output_tokens` | The number of tokens in the output (often found in `response.usage`) |
     | `$ai_total_cost_usd` | The total cost in USD (input + output) |
-    | [\[...\]](/docs/ai-observability/generations.md#event-properties) | See [full list](/docs/ai-observability/generations.md#event-properties) of properties |
+    | [\[...\]](https://posthog.com/docs/ai-observability/generations.md#event-properties) | See [full list](https://posthog.com/docs/ai-observability/generations.md#event-properties) of properties |
 
 4.  4
 
-    ## Group traces into sessions
+    ## Users and sessions
 
-    Optional
+    Recommended
 
-    PostHog groups traces into a session when they share an `$ai_session_id`. Set it if your product has multi-turn conversations, so the Sessions tab can reconstruct them. Workloads that finish in a single trace, like batch jobs or one-shot generation, do not need it.
+    A server usually handles requests for many users, so a resource attribute can't say who each trace belongs to. Wrap each request in a PostHog context instead. The PostHog span processor adds the context's distinct ID and properties to every AI span started inside it. Other span processors and exporters on the same provider don't see them.
 
-    The instrumentation creates the LLM span for you, so there is no call to pass the session ID to. Add a span processor that sets the `$ai_session_id` attribute as each span starts. PostHog forwards span attributes it does not recognize onto the event, so the value arrives as the `$ai_session_id` property.
-
-    If your instrumentation already sets the `gen_ai.conversation.id` attribute, PostHog uses it as the session ID and you can skip this step. An explicit `$ai_session_id` takes priority.
+    Set `$ai_session_id` if your product has multi-turn conversations, so the Sessions tab can group their traces. Workloads that finish in a single trace, like batch jobs or one-shot generation, don't need it.
 
     Python
 
     ```python
-    import contextvars
-    from collections.abc import Iterator
-    from contextlib import contextmanager
-    from typing import Optional
+    # Requires posthog 7.70.0 or later
+    import posthog
     
-    from opentelemetry.context import Context
-    from opentelemetry.sdk.trace import Span, SpanProcessor
+    with posthog.new_context():
+        posthog.identify_context(user_id)
+        posthog.tag("$ai_session_id", conversation_id)
+        posthog.tag("plan", "pro")  # custom properties work too
     
-    session_id_var: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
-        "ai_session_id", default=None
-    )
-    
-    
-    class SessionIdSpanProcessor(SpanProcessor):
-        def on_start(self, span: Span, parent_context: Optional[Context] = None) -> None:
-            session_id = session_id_var.get()
-            if session_id is not None:
-                span.set_attribute("$ai_session_id", session_id)
-    
-    
-    @contextmanager
-    def ai_session(session_id: str) -> Iterator[None]:
-        token = session_id_var.set(session_id)
-        try:
-            yield
-        finally:
-            session_id_var.reset(token)
-    
-    
-    # Register it on the same provider as PostHogSpanProcessor
-    provider.add_span_processor(SessionIdSpanProcessor())
-    
-    # Resetting on exit keeps the ID off the next request that reuses this thread
-    with ai_session("conversation-abc"):
         reply = handle_turn(user_message)
     ```
 
-    If a process only ever handles one session, set `$ai_session_id` as a resource attribute next to `service.name` instead. Resource attributes apply to every span the process emits, so that only works when the process and the session are the same thing.
+    A distinct ID set this way takes priority over a `posthog.distinct_id` resource attribute, so you can keep the resource attribute as the fallback for work outside a request. If your instrumentation already sets the `gen_ai.conversation.id` attribute, PostHog uses it as the session ID, and an explicit `$ai_session_id` takes priority over it.
 
 5.  ## Verify traces and generations
 
@@ -185,16 +170,8 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     | Resource | Description |
     | --- | --- |
-    | [Basics](/docs/ai-observability/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
-    | [Generations](/docs/ai-observability/generations.md) | Read about the `$ai_generation` event and its properties. |
-    | [Traces](/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
-    | [Spans](/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
-    | [Anaylze LLM performance](/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    | [Basics](https://posthog.com/docs/ai-observability/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
+    | [Generations](https://posthog.com/docs/ai-observability/generations.md) | Read about the `$ai_generation` event and its properties. |
+    | [Traces](https://posthog.com/docs/ai-observability/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
+    | [Spans](https://posthog.com/docs/ai-observability/spans.md) | Review spans and their role in representing individual operations. |
+    | [Anaylze LLM performance](https://posthog.com/docs/ai-observability/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |

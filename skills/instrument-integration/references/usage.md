@@ -2,11 +2,35 @@
 
 # iOS SDK usage
 
+Canonical URL: https://posthog.com/docs/libraries/ios/usage
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://us.posthog.com` (app host for links).
+
+## On this page
+
+- [Capturing events](#capturing-events)
+- [Autocapture](#autocapture)
+- [Preventing sensitive data capture](#preventing-sensitive-data-capture)
+- [Identifying users](#identifying-users)
+- [Get the current user's distinct ID](#get-the-current-users-distinct-id)
+- [Alias](#alias)
+- [Anonymous vs identified events](#anonymous-vs-identified-events)
+- [Setting person properties](#setting-person-properties)
+- [Super properties](#super-properties)
+- [Reset after logout](#reset-after-logout)
+- [Group analytics](#group-analytics)
+- [Opt out of data capture](#opt-out-of-data-capture)
+- [Feature flags](#feature-flags)
+- [Experiments (A/B tests)](#experiments-ab-tests)
+- [A note about IDFA (identifier for advertisers) collection in iOS 14](#a-note-about-idfa-identifier-for-advertisers-collection-in-ios-14)
+- [Session replay](#session-replay)
+- [Surveys](#surveys)
+- [Error tracking](#error-tracking)
+- [Debug mode](#debug-mode)
+
 ## Capturing events
 
 You can send custom events using `capture`:
-
-Swift
 
 ```swift
 PostHogSDK.shared.capture("user_signed_up")
@@ -16,9 +40,7 @@ PostHogSDK.shared.capture("user_signed_up")
 
 ### Setting event properties
 
-Optionally, you can include additional information with the event by including a [properties](/docs/data/events.md#event-properties) object:
-
-Swift
+Optionally, you can include additional information with the event by including a [properties](https://posthog.com/docs/data/events.md#event-properties) object:
 
 ```swift
 PostHogSDK.shared.capture("user_signed_up", properties: ["login_type": "email"], userProperties: ["is_free_trial": true])
@@ -40,11 +62,9 @@ PostHog autocapture automatically tracks the following events for you:
 
 ### Capturing screen views
 
-With [`configuration.captureScreenViews`](/docs/libraries/ios/configuration.md#all-configuration-options) set as `true`, PostHog will try to record all screen changes automatically.
+With [`configuration.captureScreenViews`](https://posthog.com/docs/libraries/ios/configuration.md#all-configuration-options) set as `true`, PostHog will try to record all screen changes automatically.
 
 If you want to manually send a new screen capture event, use the `screen` function.
-
-Swift
 
 ```swift
 PostHogSDK.shared.screen("Dashboard", properties: ["fromIcon": "bottom"])
@@ -52,7 +72,7 @@ PostHogSDK.shared.screen("Dashboard", properties: ["fromIcon": "bottom"])
 
 > **Important:** While `captureScreenViews` works with both `UIKit` and `SwiftUI`, the screen names captured in `SwiftUI` may not be very meaningful as they are based on internal SwiftUI view identifiers. For `SwiftUI` applications, we recommend turning this option off and instead using the `.postHogScreenView()` view modifier (see next section) to capture screen views with meaningful names.
 
-> **Note:** You can use the `BeforeSendBlock` to filter or drop any undesired screen events, giving you control over which screen views are sent to PostHog. See [Amending, dropping or sampling events](/docs/libraries/ios.md#amending-dropping-or-sampling-events) for implementation examples.
+> **Note:** You can use the `BeforeSendBlock` to filter or drop any undesired screen events, giving you control over which screen views are sent to PostHog. See [Amending, dropping or sampling events](https://posthog.com/docs/libraries/ios.md#amending-dropping-or-sampling-events) for implementation examples.
 
 ### Capturing screen views in SwiftUI
 
@@ -90,8 +110,6 @@ While this provides basic tracking, it can be challenging to pinpoint specific i
 
 To assign a custom label to a UIView, use the `postHogLabel` property:
 
-Swift
-
 ```swift
 let view = UIView()
 view.postHogLabel = "usernameTextField"
@@ -102,8 +120,6 @@ In this example, interactions with the UITextField will be captured with an addi
 **Adding a custom label in SwiftUI**
 
 In SwiftUI, use the `.postHogLabel(_:)` modifier instead:
-
-Swift
 
 ```swift
 var body: some View {
@@ -118,8 +134,6 @@ Since SwiftUI's `TextField` uses `UITextField` under the hood, interactions with
 **Example of generated analytics data**
 
 The generated analytics element in the examples above will have the following form:
-
-Swift
 
 ```swift
 <UITextField id="usernameTextField">text value</UITextField>
@@ -144,8 +158,6 @@ Interaction autocapture records when users interact with UI elements in your app
 
 Interaction autocapture is **not enabled by default**. You can enable it by setting `captureElementInteractions` to `true` in the config.
 
-Swift
-
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
 config.captureElementInteractions = true // Disabled by default
@@ -162,8 +174,6 @@ This is captured as a `$rageclick` event. You can use this event to identify opp
 
 It is enabled by default (`rageClickConfig.enabled = true`).
 
-Swift
-
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
 config.rageClickConfig.enabled = true // Enabled by default
@@ -175,15 +185,15 @@ PostHogSDK.shared.setup(config)
 
 ### Autocapture configuration
 
-You can enable or disable autocapture through the `PostHogConfig` object. Find more details about autocapture configuration in the [configuration page](/docs/libraries/ios/configuration.md#autocapture-configuration).
+You can enable or disable autocapture through the `PostHogConfig` object. Find more details about autocapture configuration in the [configuration page](https://posthog.com/docs/libraries/ios/configuration.md#autocapture-configuration).
 
 ## Preventing sensitive data capture
 
-To exclude specific UI elements from autocapture or Session Replay, add `ph-no-capture` as either an `accessibilityLabel` or `accessibilityIdentifier`. See [privacy controls](/docs/session-replay/privacy?tab=iOS.md) for masking behavior and iOS examples.
+To exclude specific UI elements from autocapture or Session Replay, add `ph-no-capture` as either an `accessibilityLabel` or `accessibilityIdentifier`. See [privacy controls](https://posthog.com/docs/session-replay/privacy?tab=iOS.md) for masking behavior and iOS examples.
 
 ## Identifying users
 
-> We highly recommend reading our section on [Identifying users](/docs/integrate/identifying-users.md) to better understand how to correctly use this method.
+> We highly recommend reading our section on [Identifying users](https://posthog.com/docs/integrate/identifying-users.md) to better understand how to correctly use this method.
 
 Using `identify`, you can associate events with specific users. This enables you to gain full insights as to how they're using your product across different sessions, devices, and platforms.
 
@@ -191,10 +201,8 @@ An `identify` call has the following arguments:
 
 -   `distinct_id` which uniquely identifies your user in your database
 
--   **userProperties:** Optional. A dictionary with key:value pairs to set the [person properties](/docs/product-analytics/person-properties.md)
--   **userPropertiesSetOnce:** Optional. Similar to `userProperties`. [See the difference between `userProperties` and `userPropertiesSetOnce`](/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once)
-
-Swift
+-   **userProperties:** Optional. A dictionary with key:value pairs to set the [person properties](https://posthog.com/docs/product-analytics/person-properties.md)
+-   **userPropertiesSetOnce:** Optional. Similar to `userProperties`. [See the difference between `userProperties` and `userPropertiesSetOnce`](https://posthog.com/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once)
 
 ```swift
 PostHogSDK.shared.identify("user_id_from_your_database",
@@ -218,19 +226,17 @@ Sometimes, you want to assign multiple distinct IDs to a single user. This is he
 
 In this case, you can use `alias` to assign another distinct ID to the same user.
 
-Swift
-
 ```swift
 PostHogSDK.shared.alias("alias_id")
 ```
 
-We strongly recommend reading our docs on [alias](/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
+We strongly recommend reading our docs on [alias](https://posthog.com/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
 
 ## Anonymous vs identified events
 
-PostHog captures two types of events: [**anonymous** and **identified**](/docs/data/anonymous-vs-identified-events.md)
+PostHog captures two types of events: [**anonymous** and **identified**](https://posthog.com/docs/data/anonymous-vs-identified-events.md)
 
-**Identified events** enable you to attribute events to specific users, and attach [person properties](/docs/product-analytics/person-properties.md). They're best suited for logged-in users.
+**Identified events** enable you to attribute events to specific users, and attach [person properties](https://posthog.com/docs/product-analytics/person-properties.md). They're best suited for logged-in users.
 
 Scenarios where you want to capture identified events are:
 
@@ -238,7 +244,7 @@ Scenarios where you want to capture identified events are:
 -   Doing user segmented product analysis
 -   Growth and marketing teams wanting to analyze the *complete* conversion lifecycle
 
-**Anonymous events** are events without individually identifiable data. They're best suited for [web analytics](/docs/web-analytics.md) or apps where users aren't logged in.
+**Anonymous events** are events without individually identifiable data. They're best suited for [web analytics](https://posthog.com/docs/web-analytics.md) or apps where users aren't logged in.
 
 Scenarios where you want to capture anonymous events are:
 
@@ -246,23 +252,21 @@ Scenarios where you want to capture anonymous events are:
 -   Content-focused sites
 -   B2C apps where users don't sign up or log in
 
-Under the hood, the key difference between identified and anonymous events is that for identified events we create a [person profile](/docs/data/persons.md) for the user, whereas for anonymous events we do not.
+Under the hood, the key difference between identified and anonymous events is that for identified events we create a [person profile](https://posthog.com/docs/data/persons.md) for the user, whereas for anonymous events we do not.
 
 > **Important:** Due to the reduced cost of processing them, anonymous events can be up to 4x cheaper than identified ones, so we recommended you only capture identified events when needed.
 
 ### How to capture anonymous events
 
-The iOS SDK captures anonymous events by default. However, this may change depending on your `personProfiles` [config](/docs/libraries/ios/configuration.md#all-configuration-options) when initializing PostHog:
+The iOS SDK captures anonymous events by default. However, this may change depending on your `personProfiles` [config](https://posthog.com/docs/libraries/ios/configuration.md#all-configuration-options) when initializing PostHog:
 
-1.  `personProfiles: .identifiedOnly` *(recommended)* *(default)* - Anonymous events are captured by default. PostHog only captures identified events for users where [person profiles](/docs/data/persons.md) have already been created.
+1.  `personProfiles: .identifiedOnly` *(recommended)* *(default)* - Anonymous events are captured by default. PostHog only captures identified events for users where [person profiles](https://posthog.com/docs/data/persons.md) have already been created.
 
 2.  `personProfiles: .always` - Capture identified events for all events.
 
 3.  `personProfiles: .never` - Capture anonymous events for all events.
 
 For example:
-
-iOS
 
 ```swift
 let config = PostHogConfig(
@@ -275,23 +279,21 @@ PostHogSDK.shared.setup(config)
 
 ### How to capture identified events
 
-If you've set the [`personProfiles` config](/docs/libraries/ios/configuration.md#all-configuration-options) to `.identifiedOnly` (the default option), anonymous events are captured by default. Then, to capture identified events, call any of the following functions:
+If you've set the [`personProfiles` config](https://posthog.com/docs/libraries/ios/configuration.md#all-configuration-options) to `.identifiedOnly` (the default option), anonymous events are captured by default. Then, to capture identified events, call any of the following functions:
 
--   [`identify()`](/docs/product-analytics/identify.md)
--   [`alias()`](/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user)
--   [`group()`](/docs/product-analytics/group-analytics.md)
+-   [`identify()`](https://posthog.com/docs/product-analytics/identify.md)
+-   [`alias()`](https://posthog.com/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user)
+-   [`group()`](https://posthog.com/docs/product-analytics/group-analytics.md)
 
-When you call any of these functions, it creates a [person profile](/docs/data/persons.md) for the user. Once this profile is created, all subsequent events for this user will be captured as identified events.
+When you call any of these functions, it creates a [person profile](https://posthog.com/docs/data/persons.md) for the user. Once this profile is created, all subsequent events for this user will be captured as identified events.
 
 Alternatively, you can set `personProfiles` to `.always` to capture identified events by default.
 
 ## Setting person properties
 
-To set [properties](/docs/product-analytics/person-properties.md) on your users via an event, you can leverage the event properties `userProperties` and `userPropertiesSetOnce`.
+To set [properties](https://posthog.com/docs/product-analytics/person-properties.md) on your users via an event, you can leverage the event properties `userProperties` and `userPropertiesSetOnce`.
 
 When capturing an event, you can pass a property called `$set` as an event property, and specify its value to be an object with properties to be set on the user that will be associated with the user who triggered the event.
-
-Swift
 
 ```swift
 PostHogSDK.shared.capture("signed_up", properties: ["plan": "Pro++"], userProperties: ["user_property_name": "your_value"])
@@ -299,15 +301,11 @@ PostHogSDK.shared.capture("signed_up", properties: ["plan": "Pro++"], userProper
 
 `userPropertiesSetOnce` works just like `userProperties`, except that it will **only set the property if the user doesn't already have that property set**.
 
-Swift
-
 ```swift
 PostHogSDK.shared.capture("signed_up", properties: ["plan": "Pro++"], userPropertiesSetOnce: ["user_property_name": "your_value"])
 ```
 
 Use `setPersonProperties` when you want to update the current person's profile without also capturing a custom event. This sends a `$set` event to PostHog.
-
-Swift
 
 ```swift
 PostHogSDK.shared.setPersonProperties(userPropertiesToSet: ["plan": "Pro++"])
@@ -326,8 +324,6 @@ They are set using `PostHogSDK.shared.register`, which takes a properties object
 
 For example, take a look at the following call:
 
-Swift
-
 ```swift
 PostHogSDK.shared.register(["team_id": 22])
 ```
@@ -340,8 +336,6 @@ However, please note that this does not store properties against the User, only 
 
 Super properties persist across sessions so you have to explicitly remove them if they are no longer relevant. To stop sending a super property with events, you can use `PostHogSDK.shared.unregister`, like so:
 
-Swift
-
 ```swift
 PostHogSDK.shared.unregister("team_id")
 ```
@@ -352,25 +346,23 @@ If you are doing this as part of a user logging out, you can instead simply use 
 
 ## Reset after logout
 
-To reset the user's ID and anonymous ID after logout, call `reset`. See [Identifying users](/docs/product-analytics/identify.md#reset) for the shared reset guidance and iOS example.
+To reset the user's ID and anonymous ID after logout, call `reset`. See [Identifying users](https://posthog.com/docs/product-analytics/identify.md#reset) for the shared reset guidance and iOS example.
 
 ## Group analytics
 
-Group analytics allows you to associate the events for that person's session with a group (e.g. teams, organizations, etc.). See [Group Analytics](/docs/product-analytics/group-analytics.md) for iOS examples and implementation details.
+Group analytics allows you to associate the events for that person's session with a group (e.g. teams, organizations, etc.). See [Group Analytics](https://posthog.com/docs/product-analytics/group-analytics.md) for iOS examples and implementation details.
 
-> **Note:** This is a paid feature and is not available on the open-source or free cloud plan. Learn more on the [pricing page](/pricing.md).
+> **Note:** This is a paid feature and is not available on the open-source or free cloud plan. Learn more on the [pricing page](https://posthog.com/pricing.md).
 
 ## Opt out of data capture
 
-You can completely opt users out from data capture by default or on a per-person basis. See [Complete opt-out](/docs/product-analytics/privacy.md#complete-opt-out) for iOS examples.
+You can completely opt users out from data capture by default or on a per-person basis. See [Complete opt-out](https://posthog.com/docs/product-analytics/privacy.md#complete-opt-out) for iOS examples.
 
 ## Feature flags
 
-PostHog's [feature flags](/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
+PostHog's [feature flags](https://posthog.com/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
 
 ### Boolean feature flags
-
-Swift
 
 ```swift
 if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.enabled {
@@ -382,8 +374,6 @@ if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.enabl
 ```
 
 ### Multivariate feature flags
-
-Swift
 
 ```swift
 if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.variant == "variant-key" { // replace "variant-key" with the key of your variant
@@ -397,8 +387,6 @@ if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"), result.varia
 ### Typed payloads
 
 If your payload is a JSON object, you can decode it into a `Decodable` type:
-
-Swift
 
 ```swift
 struct FlagPayload: Decodable {
@@ -415,8 +403,6 @@ if let result = PostHogSDK.shared.getFeatureFlagResult("flag-key"),
 
 You can inspect all currently loaded feature flags with `getAllFeatureFlags()`. It returns each flag's `key`, `enabled` state, `variant`, and `payload`, and does not send a `$feature_flag_called` event, so calling it won't affect your experiment results or flag usage analytics:
 
-Swift
-
 ```swift
 for flag in PostHogSDK.shared.getAllFeatureFlags() ?? [] {
     print(flag.key, flag.enabled, flag.variant as Any, flag.payload as Any)
@@ -426,8 +412,6 @@ for flag in PostHogSDK.shared.getAllFeatureFlags() ?? [] {
 ### Reloading feature flags
 
 Feature flag values are cached. If something has changed with your user and you'd like to refetch their flag values, call:
-
-Swift
 
 ```swift
 PostHogSDK.shared.reloadFeatureFlags()
@@ -440,8 +424,6 @@ Every time a user opens the app, we send a request in the background to fetch th
 This means that for most screens, the feature flags are available immediately – **except for the first time a user visits**.
 
 To handle this, you can use the `onFeatureFlags` callback to be notified when flags are loaded or change. It's available in version 3.89.0+:
-
-Swift
 
 ```swift
 let subscription = PostHogSDK.shared.onFeatureFlags { loaded in
@@ -459,7 +441,7 @@ let subscription = PostHogSDK.shared.onFeatureFlags { loaded in
 subscription.unsubscribe()
 ```
 
-The callback runs on the main thread. It's called when flags load – including from [bootstrap values](/docs/feature-flags/bootstrapping.md) – and again each time they're reloaded, for example after `reloadFeatureFlags()`, `reset()`, or an `identify()` or `group()` call that changes the distinct ID or group. A reload doesn't have to change any values, so treat each call as "flags may have changed". If flags have already loaded when you register, it's called shortly afterwards with the current values. You can register before calling `setup()`.
+The callback runs on the main thread. It's called when flags load – including from [bootstrap values](https://posthog.com/docs/feature-flags/bootstrapping.md) – and again each time they're reloaded, for example after `reloadFeatureFlags()`, `reset()`, or an `identify()` or `group()` call that changes the distinct ID or group. A reload doesn't have to change any values, so treat each call as "flags may have changed". If flags have already loaded when you register, it's called shortly afterwards with the current values. You can register before calling `setup()`.
 
 #### Callback parameters
 
@@ -469,11 +451,9 @@ The callback receives a `PostHogFeatureFlagsLoaded` object with the following pr
 
 -   `variants: [String: Any]`: The values of the enabled feature flags, keyed by flag key. A value is `true` for an enabled boolean flag, or the variant key for a multivariate flag.
 
--   `errorsLoading: Bool`: `true` if the latest attempt to load feature flags failed, for example because the device is offline. The flags and variants then hold the last known values, which can be empty – for example, on a fresh install with no [bootstrap values](/docs/feature-flags/bootstrapping.md). In that case, `isFeatureEnabled` returns `false` because the flag is unknown, not because PostHog evaluated it as disabled.
+-   `errorsLoading: Bool`: `true` if the latest attempt to load feature flags failed, for example because the device is offline. The flags and variants then hold the last known values, which can be empty – for example, on a fresh install with no [bootstrap values](https://posthog.com/docs/feature-flags/bootstrapping.md). In that case, `isFeatureEnabled` returns `false` because the flag is unknown, not because PostHog evaluated it as disabled.
 
 On versions earlier than 3.89.0, observe the `PostHogSDK.didReceiveFeatureFlags` notification instead. Register the observer before calling `setup()`:
-
-Swift
 
 ```swift
 let observer = NotificationCenter.default.addObserver(
@@ -492,8 +472,6 @@ NotificationCenter.default.removeObserver(observer)
 
 Alternatively, you can use the completion block of the `reloadFeatureFlags(_:)` method. This allows you to execute logic immediately after the flags are reloaded:
 
-Swift
-
 ```swift
 // Reload feature flags and check if a specific feature is enabled
 PostHogSDK.shared.reloadFeatureFlags {
@@ -507,8 +485,6 @@ PostHogSDK.shared.reloadFeatureFlags {
 
 To track when someone sees or interacts with a feature, use `captureFeatureView` and `captureFeatureInteraction`.
 
-Swift
-
 ```swift
 PostHogSDK.shared.captureFeatureView(flag: "flag-key", flagVariant: "variant-key")
 PostHogSDK.shared.captureFeatureInteraction(flag: "flag-key", flagVariant: "variant-key")
@@ -521,8 +497,6 @@ Since there is a delay between initializing PostHog and fetching feature flags, 
 To have your feature flags available immediately, you can initialize PostHog with precomputed values until it has had a chance to fetch them. This is called bootstrapping. After the SDK fetches feature flags from PostHog, it will use those flag values instead of bootstrapped ones.
 
 Set `config.bootstrap` before calling `setup()` to seed identity and flag values before the first `/flags` response (requires iOS SDK `3.66.0`+):
-
-Swift
 
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
@@ -545,13 +519,13 @@ PostHogSDK.shared.setup(config)
 
 The feature-flags-loaded signal fires as soon as bootstrapped flags are applied, so startup logic can read them immediately. These SDKs don't support the `sessionID` bootstrap option. When person profiles are set to `never`, the SDK preserves a different anonymous identity instead of merging it into an identified bootstrap.
 
-See the [SDK bootstrapping guide](/docs/libraries/bootstrapping.md) for the cross-SDK overview.
+See the [SDK bootstrapping guide](https://posthog.com/docs/libraries/bootstrapping.md) for the cross-SDK overview.
 
 ## Experiments (A/B tests)
 
-Since [experiments](/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code. See [adding experiment code](/docs/experiments/adding-experiment-code.md) for iOS examples.
+Since [experiments](https://posthog.com/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code. See [adding experiment code](https://posthog.com/docs/experiments/adding-experiment-code.md) for iOS examples.
 
-It's also possible to [run experiments without using feature flags](/docs/experiments/running-experiments-without-feature-flags.md).
+It's also possible to [run experiments without using feature flags](https://posthog.com/docs/experiments/running-experiments-without-feature-flags.md).
 
 ## A note about IDFA (identifier for advertisers) collection in iOS 14
 
@@ -563,23 +537,21 @@ Hence **starting with posthog-ios version 1.2.0** we have removed all references
 
 > **Note:** Session replay is currently only available on iOS. For future macOS support, please follow and upvote [this GitHub issue](https://github.com/PostHog/posthog-ios/issues/200).
 
-To set up [session replay](/docs/session-replay/mobile.md) in your project, all you need to do is install the iOS SDK, enable "Record user sessions" in [your project settings](https://us.posthog.com/settings/project-replay) and enable the `sessionReplay` option.
+To set up [session replay](https://posthog.com/docs/session-replay/mobile.md) in your project, all you need to do is install the iOS SDK, enable "Record user sessions" in [your project settings](https://us.posthog.com/settings/project-replay) and enable the `sessionReplay` option.
 
 ## Surveys
 
-[Surveys](/docs/surveys.md) launched with [popover presentation](/docs/surveys/creating-surveys.md#presentation) are automatically shown to users matching the [display conditions](/docs/surveys/creating-surveys.md#display-conditions) you set up.
+[Surveys](https://posthog.com/docs/surveys.md) launched with [popover presentation](https://posthog.com/docs/surveys/creating-surveys.md#presentation) are automatically shown to users matching the [display conditions](https://posthog.com/docs/surveys/creating-surveys.md#display-conditions) you set up.
 
 ## Error tracking
 
-To set up error tracking in your project, see the [error tracking docs](/docs/error-tracking.md).
+To set up error tracking in your project, see the [error tracking docs](https://posthog.com/docs/error-tracking.md).
 
 ## Debug mode
 
 If you're not seeing the expected events being captured, the feature flags being evaluated, or the surveys being shown, you can enable debug mode to see what's happening.
 
 You can enable debug mode by setting the `debug` option to `true` in the `PostHogConfig` object. A common pattern is to set this to `true` in development environments only for local development.
-
-Swift
 
 ```swift
 let config = PostHogConfig(projectToken: "<ph_project_token>", host: "https://us.i.posthog.com")
@@ -591,8 +563,6 @@ This will enable verbose logs about the inner workings of the SDK.
 
 You can also toggle debug by calling the `PostHogSDK.shared.debug()` method in your code.
 
-Swift
-
 ```swift
 // Enable debug mode
 PostHogSDK.shared.debug(true)
@@ -600,11 +570,3 @@ PostHogSDK.shared.debug(true)
 // Disable debug mode
 PostHogSDK.shared.debug(false)
 ```
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

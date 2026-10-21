@@ -2,13 +2,23 @@
 
 # Use Logs over PostHog MCP
 
-The [PostHog MCP server](/docs/model-context-protocol.md) gives coding agents direct access to your logs. Ask your agent to search, filter, and analyze log data without leaving your editor, then fix the bug in the same session.
+Canonical URL: https://posthog.com/docs/logs/surfaces/mcp
+
+## On this page
+
+- [Before you start](#before-you-start)
+- [What you can do here](#what-you-can-do-here)
+- [Example prompts](#example-prompts)
+- [Set up](#set-up)
+- [Related](#related)
+
+The [PostHog MCP server](https://posthog.com/docs/model-context-protocol.md) gives coding agents direct access to your logs. Ask your agent to search, filter, and analyze log data without leaving your editor, then fix the bug in the same session.
 
 This works in any MCP client – Cursor, Codex, Claude Code, Windsurf, VS Code, and others.
 
 ## Before you start
 
-1.  **Set up Logs** – [send them to PostHog with an OpenTelemetry client](/docs/logs/installation.md) so there's something to read.
+1.  **Set up Logs** – [send them to PostHog with an OpenTelemetry client](https://posthog.com/docs/logs/installation.md) so there's something to read.
 2.  **Connect the MCP server** – [install it in your AI tool](#set-up) and give it access to your project.
 
 ## What you can do here
@@ -19,11 +29,11 @@ Through MCP tools, your agent can:
 -   **Discover what's available** – list log attributes and their values, and list the services sending logs with their volume and error rate, so it can build a targeted query instead of guessing.
 -   **Break counts down by facet** – group matching logs by any attribute to see where a spike is concentrated.
 -   **Mine and diff patterns** – group similar log lines into templates, and compare two time ranges to see which patterns are new or spiking.
--   **Manage alerts** – create, read, update, and delete [log alerts](/docs/logs/alerts.md), attach or remove Slack, webhook, and Teams destinations, read an alert's event history, and simulate a threshold against historical logs before committing to it.
+-   **Manage alerts** – create, read, update, and delete [log alerts](https://posthog.com/docs/logs/alerts.md), attach or remove Slack, webhook, and Teams destinations, read an alert's event history, and simulate a threshold against historical logs before committing to it.
 
-Saved views, sampling rules, and metric rules aren't exposed over MCP – manage those in the [web app](/docs/logs/surfaces/web-app.md) or with the [Logs API](/docs/logs/surfaces/api.md).
+Saved views, sampling rules, and metric rules aren't exposed over MCP – manage those in the [web app](https://posthog.com/docs/logs/surfaces/web-app.md) or with the [Logs API](https://posthog.com/docs/logs/surfaces/api.md).
 
-For the full list of tools and how to scope a session to a subset, see the [MCP tools reference](/docs/model-context-protocol/tools.md).
+For the full list of tools and how to scope a session to a subset, see the [MCP tools reference](https://posthog.com/docs/model-context-protocol/tools.md).
 
 ## Example prompts
 
@@ -42,21 +52,13 @@ A useful order of operations: list attributes and their values to learn the sche
 
 ## Set up
 
-Connect the PostHog MCP server to your AI tool of choice, then grant it access to your project. The [MCP overview](/docs/model-context-protocol.md) covers install and authentication for each client.
+Connect the PostHog MCP server to your AI tool of choice, then grant it access to your project. The [MCP overview](https://posthog.com/docs/model-context-protocol.md) covers install and authentication for each client.
 
-To browse logs visually, mine patterns interactively, or watch the session replay behind a log line, use the [web app](/docs/logs/surfaces/web-app.md).
+To browse logs visually, mine patterns interactively, or watch the session replay behind a log line, use the [web app](https://posthog.com/docs/logs/surfaces/web-app.md).
 
 ## Related
 
--   Browse and pivot through logs in the [web app](/docs/logs/surfaces/web-app.md).
--   Script the same operations with the [Logs API](/docs/logs/surfaces/api.md).
--   Learn what your agent is creating in [Set up log alerts](/docs/logs/alerts.md).
--   See how templates are built in [Log patterns](/docs/logs/patterns.md).
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+-   Browse and pivot through logs in the [web app](https://posthog.com/docs/logs/surfaces/web-app.md).
+-   Script the same operations with the [Logs API](https://posthog.com/docs/logs/surfaces/api.md).
+-   Learn what your agent is creating in [Set up log alerts](https://posthog.com/docs/logs/alerts.md).
+-   See how templates are built in [Log patterns](https://posthog.com/docs/logs/patterns.md).

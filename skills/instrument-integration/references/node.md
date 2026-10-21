@@ -2,7 +2,35 @@
 
 # Node.js
 
-If you're working with Node.js (versions 20+), the official `posthog-node` library is the simplest way to integrate your software with PostHog. This library uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server-side application that needs performance. And in addition to event capture, [feature flags](/docs/feature-flags.md) are supported as well.
+Canonical URL: https://posthog.com/docs/libraries/node
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Installation](#installation)
+- [Identifying users](#identifying-users)
+- [Capturing events](#capturing-events)
+- [Person profiles and properties](#person-profiles-and-properties)
+- [Alias](#alias)
+- [Super properties](#super-properties)
+- [Contexts](#contexts)
+- [Add request context to Express](#add-request-context-to-express)
+- [Add request context and error capture to Fastify](#add-request-context-and-error-capture-to-fastify)
+- [Distributed tracing](#distributed-tracing)
+- [Feature flags](#feature-flags)
+- [Experiments (A/B tests)](#experiments-ab-tests)
+- [Group analytics](#group-analytics)
+- [GeoIP properties](#geoip-properties)
+- [Shutdown](#shutdown)
+- [Debug mode](#debug-mode)
+- [Handling errors thrown by the SDK](#handling-errors-thrown-by-the-sdk)
+- [Short-lived processes like serverless environments](#short-lived-processes-like-serverless-environments)
+- [AI Observability](#ai-observability)
+- [Error tracking](#error-tracking)
+- [Upgrading from V1 to V2](#upgrading-from-v1-to-v2)
+
+If you're working with Node.js (versions 20+), the official `posthog-node` library is the simplest way to integrate your software with PostHog. This library uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server-side application that needs performance. And in addition to event capture, [feature flags](https://posthog.com/docs/feature-flags.md) are supported as well.
 
 ## Installation
 
@@ -34,8 +62,6 @@ bun add posthog-node
 
 In your app, set your project token **before** making any calls.
 
-Node.js
-
 ```javascript
 import { PostHog } from 'posthog-node'
 
@@ -53,9 +79,9 @@ You can find your project token and instance address in the [project settings](h
 
 ## Identifying users
 
-> **Identifying users is required.** Backend events need a `distinct_id` that matches the ID your frontend uses when calling `posthog.identify()`. Without this, backend events are orphaned — they can't be linked to frontend event captures, [session replays](/docs/session-replay.md), [LLM traces](/docs/ai-engineering.md), or [error tracking](/docs/error-tracking.md).
+> **Identifying users is required.** Backend events need a `distinct_id` that matches the ID your frontend uses when calling `posthog.identify()`. Without this, backend events are orphaned — they can't be linked to frontend event captures, [session replays](https://posthog.com/docs/session-replay.md), [LLM traces](https://posthog.com/docs/ai-engineering.md), or [error tracking](https://posthog.com/docs/error-tracking.md).
 >
-> See our guide on [identifying users](/docs/getting-started/identify-users.md) for how to set this up.
+> See our guide on [identifying users](https://posthog.com/docs/getting-started/identify-users.md) for how to set this up.
 
 ### Options
 
@@ -66,9 +92,10 @@ You can find your project token and instance address in the [project settings](h
 | `flushInterval` | After how many ms we should flush the queue | `5000` |
 | `maxBatchSize` | Maximum number of queued events sent in one batch. Cannot be lower than `flushAt` | `100` |
 | `maxQueueSize` | Maximum number of events held in the queue. When the queue is full, the oldest events are dropped | `10000` |
-| `personalApiKey` | An optional [personal API key](/docs/api/overview.md#personal-api-keys-recommended) for evaluating feature flags locally. Note: Providing this will trigger periodic calls to the feature flags service, even if you're not using feature flags. | `null` |
+| `secretKey` | A server-side [secret API key](https://posthog.com/docs/feature-flags/local-evaluation.md#step-1-get-a-secret-api-key) for local evaluation and remote config. Use a project secret API key with the `feature_flag:read` scope. Available in version 5.40.0+. Providing it starts polling for flag definitions unless `enableLocalEvaluation` is `false`, even if you don't evaluate flags. | `null` |
+| `personalApiKey` | Deprecated alias for `secretKey`. Use this option in versions before 5.40.0. The option name does not change the key's permissions. | `null` |
 | `featureFlagsPollingInterval` | How often, in milliseconds, feature flag definitions are fetched for local evaluation. Minimum `100` | `30000` |
-| `enableLocalEvaluation` | When `false`, the SDK does not poll for feature flag definitions, even if `personalApiKey` is set | `true` |
+| `enableLocalEvaluation` | When `false`, the SDK does not poll for feature flag definitions, even if `secretKey` or its legacy alias `personalApiKey` is set | `true` |
 | `requestTimeout` | Timeout in milliseconds for any calls | `10000` |
 | `fetchRetryCount` | Number of times the SDK retries a failed request | `3` |
 | `fetchRetryDelay` | Delay in milliseconds between request retries | `3000` |
@@ -76,15 +103,13 @@ You can find your project token and instance address in the [project settings](h
 | `disableGeoip` | When true, disables automatic GeoIP resolution for events and feature flags. | `true` |
 | `disabled` | When true, the SDK does not send any data. Useful for local environments | `false` |
 | `isServer` | Controls the `$is_server` event property. Keep the default for server-side events. Set to `false` when using `posthog-node` from a client-like runtime, CLI, or desktop app so device OS attribution is handled normally. | `true` |
-| `evaluationContexts` | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. This helps reduce unnecessary flag evaluations and improves performance. See [evaluation contexts documentation](/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 5.23.0+. The legacy parameter `evaluationEnvironments` (version 5.10.0+) is also supported for backward compatibility. | `undefined` |
+| `evaluationContexts` | Evaluation context tags that constrain which feature flags are evaluated. When set, only flags with matching evaluation context tags (or no evaluation context tags) will be returned. This helps reduce unnecessary flag evaluations and improves performance. See [evaluation contexts documentation](https://posthog.com/docs/feature-flags/evaluation-contexts.md) for more details. Available in version 5.23.0+. The legacy parameter `evaluationEnvironments` (version 5.10.0+) is also supported for backward compatibility. | `undefined` |
 
-> **Note:** When using PostHog in an AWS Lambda function or a similar serverless function environment, make sure you set `flushAt` to `1` and `flushInterval` to `0`. Also, remember to always call `await posthog.shutdown()` at the end to flush and send all pending events.
+> **Note:** In AWS Lambda or a similar serverless environment, await `client.flush()` before returning if you reuse the client across invocations. Call `shutdown()` only when you finish using that client or before your program exits. See [serverless environments](#short-lived-processes-like-serverless-environments) for an example.
 
 ## Capturing events
 
 You can send custom events using `capture`:
-
-Node.js
 
 ```javascript
 client.capture({
@@ -97,9 +122,7 @@ client.capture({
 
 ### Setting event properties
 
-Optionally, you can include additional information with the event by including a [properties](/docs/data/events.md#event-properties) object:
-
-Node.js
+Optionally, you can include additional information with the event by including a [properties](https://posthog.com/docs/data/events.md#event-properties) object:
 
 ```javascript
 client.capture({
@@ -116,8 +139,6 @@ client.capture({
 
 If you're aiming for a backend-only implementation of PostHog and won't be capturing events from your frontend, you can send `$pageview` events from your backend like so:
 
-Node.js
-
 ```javascript
 client.capture({
   distinctId: 'distinct_id_of_the_user',
@@ -130,9 +151,7 @@ client.capture({
 
 ## Person profiles and properties
 
-The Node SDK captures identified events by default. These create [person profiles](/docs/data/persons.md). To set [person properties](/docs/product-analytics/person-properties.md) in these profiles, include them when capturing an event using `$set` and `$set_once`:
-
-Node.js
+The Node SDK captures identified events by default. These create [person profiles](https://posthog.com/docs/data/persons.md). To set [person properties](https://posthog.com/docs/product-analytics/person-properties.md) in these profiles, include them when capturing an event using `$set` and `$set_once`:
 
 ```javascript
 client.capture({
@@ -145,13 +164,11 @@ client.capture({
 })
 ```
 
-For more details on the difference between `$set` and `$set_once`, see our [person properties docs](/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once).
+For more details on the difference between `$set` and `$set_once`, see our [person properties docs](https://posthog.com/docs/product-analytics/person-properties.md#what-is-the-difference-between-set-and-set_once).
 
-You can also use helper methods to set or remove person properties without hand-building `$set`, `$set_once`, or `$unset` payloads. See [person properties](/docs/product-analytics/person-properties.md) for examples.
+You can also use helper methods to set or remove person properties without hand-building `$set`, `$set_once`, or `$unset` payloads. See [person properties](https://posthog.com/docs/product-analytics/person-properties.md) for examples.
 
-To capture [anonymous events](/docs/data/anonymous-vs-identified-events.md) without person profiles, set the event's `$process_person_profile` property to `false`:
-
-Node.js
+To capture [anonymous events](https://posthog.com/docs/data/anonymous-vs-identified-events.md) without person profiles, set the event's `$process_person_profile` property to `false`:
 
 ```javascript
 client.capture({
@@ -169,8 +186,6 @@ Sometimes, you want to assign multiple distinct IDs to a single user. This is he
 
 In this case, you can use `alias` to assign another distinct ID to the same user.
 
-Node.js
-
 ```javascript
 client.alias({
   distinctId: 'distinct_id',
@@ -178,15 +193,13 @@ client.alias({
 })
 ```
 
-We strongly recommend reading our docs on [alias](/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
+We strongly recommend reading our docs on [alias](https://posthog.com/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user) to best understand how to correctly use this method.
 
 ## Super properties
 
 > Requires `posthog-node` version >= 5.25.0.
 
 Super properties are properties that are automatically included with every event captured by the client. Use `register` to set them:
-
-Node.js
 
 ```javascript
 client.register({
@@ -207,8 +220,6 @@ client.capture({
 
 If an event sets a property with the same key as a super property, the event's property takes precedence:
 
-Node.js
-
 ```javascript
 client.register({ environment: 'production' })
 
@@ -221,8 +232,6 @@ client.capture({
 ```
 
 To remove a super property, use `unregister`:
-
-Node.js
 
 ```javascript
 client.unregister('environment')
@@ -238,8 +247,6 @@ The Node SDK uses nested contexts for managing state that's shared across events
 
 You can enter a context using `withContext`:
 
-Node.js
-
 ```javascript
 posthog.withContext(
   {
@@ -254,8 +261,6 @@ posthog.withContext(
 ```
 
 Contexts are persisted across function calls. If you enter one and then call a function and capture an event in the called function, it uses the context properties set in the parent context:
-
-Node.js
 
 ```javascript
 function someFunction() {
@@ -275,8 +280,6 @@ function outerFunction() {
 ```
 
 By default, each context inherits from parent contexts. To disable nesting (where child contexts is fresh and has no properties), pass `{ fresh: true }`:
-
-Node.js
 
 ```javascript
 posthog.withContext(
@@ -307,8 +310,6 @@ posthog.withContext(
 
 Contexts can be associated with a distinct ID:
 
-Node.js
-
 ```javascript
 posthog.withContext(
   { distinctId: 'user-123' },
@@ -327,8 +328,6 @@ posthog.withContext(
 
 ### Session context
 
-Node.js
-
 ```javascript
 posthog.withContext(
   { sessionId: 'some-session' },
@@ -346,8 +345,6 @@ posthog.withContext(
 ```
 
 ### Custom context parameters
-
-Node.js
 
 ```javascript
 posthog.withContext(
@@ -413,11 +410,11 @@ Properties and `distinctId` passed directly to `capture` take precedence over re
 
 ### Send headers from the client
 
-If you're using [PostHog JS](/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](/docs/libraries/js/config.md#tracing-headers) for your Express backend hostname so browser requests include `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID`, which the Express middleware reads automatically.
+If you're using [PostHog JS](https://posthog.com/docs/libraries/js.md) on the frontend, configure [`tracing_headers`](https://posthog.com/docs/libraries/js/config.md#tracing-headers) for your Express backend hostname so browser requests include `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID`, which the Express middleware reads automatically.
 
 ## Add request context and error capture to Fastify
 
-See the [Fastify guide](/docs/libraries/fastify.md) for installation, request context, event capture, error handling, and shutdown.
+See the [Fastify guide](https://posthog.com/docs/libraries/fastify.md) for installation, request context, event capture, error handling, and shutdown.
 
 ## Distributed tracing
 
@@ -429,7 +426,7 @@ Tracing is new in `posthog-node` and its API can still change in a minor release
 
 Tracing records **spans** – timed units of work – so you can see where time went in a request and how work fans out across your services. Spans created inside a request context automatically carry the person and session they belong to, so a slow trace links back to the person who experienced it.
 
-Tracing is off until you set the `traces` option. No OpenTelemetry dependency is required. For what you can do with spans once they arrive, see [Distributed tracing](/docs/distributed-tracing/start-here.md).
+Tracing is off until you set the `traces` option. No OpenTelemetry dependency is required. For what you can do with spans once they arrive, see [Distributed tracing](https://posthog.com/docs/distributed-tracing/start-here.md).
 
 server.ts
 
@@ -450,8 +447,6 @@ Set `serviceName` – PostHog groups operations by service and span name.
 
 `withSpan` runs a callback with a span active for its duration and ends the span for you: at return for a synchronous callback, when the promise settles for an async one. Spans created inside the callback nest underneath it automatically.
 
-TypeScript
-
 ```typescript
 await posthog.withSpan('POST /checkout', async (span) => {
   span.setAttribute('plan', user.plan)
@@ -469,8 +464,6 @@ The recorded exception includes the stack trace, which contains file paths from 
 
 Use `startSpan` for work that can't wrap a callback. **`startSpan` does not make the span active**, so spans created afterwards are not its children unless you pass `parent` explicitly – and you must call `end()` yourself.
 
-TypeScript
-
 ```typescript
 const span = posthog.startSpan('background-sync', { attributes: { queue: 'emails' } })
 
@@ -486,8 +479,6 @@ span.end()
 ### Span names and attributes
 
 Span names should be low-cardinality operation names – `GET /users/:id`, not `GET /users/123`. Variable values belong in attributes, which accept strings, numbers, booleans, BigInt values, and arrays of those.
-
-TypeScript
 
 ```typescript
 await posthog.withSpan('GET /users/:id', { kind: 'server' }, async (span) => {
@@ -551,8 +542,6 @@ A continued trace propagates the sampled flag it was handed, so a downstream sam
 
 Spans created inside a PostHog request context automatically carry `posthogDistinctId` and `sessionId` attributes, which is what makes a trace reachable from a person or a Session Replay recording. Use the [Express middleware](#add-request-context-to-express) or [`withContext`](#contexts):
 
-TypeScript
-
 ```typescript
 posthog.withContext({ distinctId: user.id, sessionId }, async () => {
   await posthog.withSpan('POST /checkout', () => processOrder())
@@ -564,8 +553,6 @@ Spans created outside a request context omit those attributes.
 ### Scrubbing and dropping spans
 
 `beforeSpanSend` runs on every finished span before it's queued for export. Edit the span in place to strip attributes you don't want leaving your process, or return `null` to drop the span entirely.
-
-TypeScript
 
 ```typescript
 const posthog = new PostHog('<ph_project_token>', {
@@ -620,22 +607,38 @@ The length bound reaches inside a value, including strings nested in arrays and 
 
 Both `flush()` and `shutdown()` export spans that have already ended. A span still open at `flush()` is exported once it ends; a span still open at `shutdown()` is discarded, so end your spans before shutting down – `withSpan` does this for you.
 
-In a serverless handler, call `flush()`: the container is reused across invocations, so `shutdown()` would throw away the connection pool and the flag cache. Events and spans are flushed concurrently, so it costs one round trip, not two.
+If your serverless handler reuses a client across invocations, await `flush()` before returning. It flushes events and ended spans concurrently without stopping flag polling or cleaning up cache-provider resources. Reserve `shutdown()` for a disposable client or program exit. Catch and log flush failures so telemetry errors don't fail the invocation or replace an application error.
 
-TypeScript
+For AWS Lambda, bound the wait to `context.getRemainingTimeInMillis()` with a 100 ms safety margin:
 
 ```typescript
-export const handler = async () => {
-  await posthog.withSpan('handler', () => doWork())
-  await posthog.flush()
+export const handler = async (_event, context) => {
+  try {
+    await posthog.withSpan("handler", () => doWork())
+  } finally {
+    let flushTimeout: ReturnType<typeof setTimeout> | undefined
+    try {
+      const remainingMs = Math.max(0, context.getRemainingTimeInMillis() - 100)
+      await Promise.race([
+        posthog.flush(),
+        new Promise((_, reject) => {
+          flushTimeout = setTimeout(() => reject(new Error("PostHog flush timed out")), remainingMs)
+        }),
+      ])
+    } catch (err) {
+      console.error("PostHog flush failed", err)
+    } finally {
+      clearTimeout(flushTimeout)
+    }
+  }
 }
 ```
+
+This timeout limits the wait, not the delivery attempt. See [serverless environments](#short-lived-processes-like-serverless-environments) for timeout behavior and other platforms.
 
 **Edge runtimes**
 
 On edge runtimes, spans nest across `await` only when you pass `parent` explicitly. The Node runtime tracks the active span with `AsyncLocalStorage`; the edge build cannot, so after an `await`, `getActiveSpan()` returns `null` and a new span starts a new trace. Pass the span your callback receives instead:
-
-TypeScript
 
 ```typescript
 await posthog.withSpan('handler', async (span) => {
@@ -646,7 +649,7 @@ await posthog.withSpan('handler', async (span) => {
 
 ## Feature flags
 
-PostHog's [feature flags](/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
+PostHog's [feature flags](https://posthog.com/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
 
 There are two steps to implement feature flags in Node:
 
@@ -655,8 +658,6 @@ There are two steps to implement feature flags in Node:
 Call `client.evaluateFlags()` once for the user, then read values from the returned snapshot.
 
 #### Boolean feature flags
-
-Node.js
 
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user')
@@ -669,8 +670,6 @@ if (flags.isEnabled('flag-key')) {
 ```
 
 #### Multivariate feature flags
-
-Node.js
 
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user')
@@ -689,17 +688,15 @@ if (enabledVariant === 'variant-key') { // replace 'variant-key' with the key of
 
 ### Step 2: Include feature flag information when capturing events
 
-If you want use your feature flag to breakdown or filter events in your [insights](/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
+If you want use your feature flag to breakdown or filter events in your [insights](https://posthog.com/docs/product-analytics/insights.md), you'll need to include feature flag information in those events. This ensures that the feature flag value is attributed correctly to the event.
 
-> **Note:** This step is only required for events captured using our server-side SDKs or [API](/docs/api.md).
+> **Note:** This step is only required for events captured using our server-side SDKs or [API](https://posthog.com/docs/api.md).
 
 There are two methods you can use to include feature flag information in your events:
 
 #### Method 1: Pass the evaluated flags snapshot to `capture()`
 
 Pass the same `flags` object that you used for branching. This attaches the exact flag values from that evaluation and doesn't make another `/flags` request.
-
-Node.js
 
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user')
@@ -718,8 +715,6 @@ client.capture({
 By default, this attaches every flag in the snapshot using `$feature/<flag-key>` properties and `$active_feature_flags`.
 
 To reduce event property bloat, pass a filtered snapshot:
-
-Node.js
 
 ```javascript
 // Attach only flags accessed with isEnabled() or getFlag() before this call
@@ -743,8 +738,6 @@ client.capture({
 
 In the event properties, include `$feature/feature_flag_name: variant_key`:
 
-Node.js
-
 ```javascript
 client.capture({
     distinctId: 'distinct_id_of_your_user',
@@ -760,8 +753,6 @@ client.capture({
 
 By default, `evaluateFlags()` evaluates every flag for the user. If you only need a few flags, pass `flagKeys` to request only those flags:
 
-Node.js
-
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_your_user', {
     flagKeys: ['checkout-flow', 'new-dashboard'],
@@ -770,7 +761,7 @@ const flags = await client.evaluateFlags('distinct_id_of_your_user', {
 
 ### Sending `$feature_flag_called` events
 
-Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](/docs/product-analytics/insights.md) on the flag. With `evaluateFlags()`, the SDK sends this event when you call `flags.isEnabled()` or `flags.getFlag()` for a flag.
+Capturing `$feature_flag_called` events enables PostHog to know when a flag was accessed by a user and provide [analytics and insights](https://posthog.com/docs/product-analytics/insights.md) on the flag. With `evaluateFlags()`, the SDK sends this event when you call `flags.isEnabled()` or `flags.getFlag()` for a flag.
 
 The SDK deduplicates these events per `(distinct_id, flag, value)` in a local cache. If you reinitialize the PostHog client, the cache resets and `$feature_flag_called` events may be sent again. PostHog handles duplicates, so duplicate `$feature_flag_called` events don't affect your analytics.
 
@@ -778,13 +769,11 @@ The SDK deduplicates these events per `(distinct_id, flag, value)` in a local ca
 
 ### Advanced: Overriding server properties
 
-Sometimes, you may want to evaluate feature flags using [person properties](/docs/product-analytics/person-properties.md), [groups](/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
+Sometimes, you may want to evaluate feature flags using [person properties](https://posthog.com/docs/product-analytics/person-properties.md), [groups](https://posthog.com/docs/product-analytics/group-analytics.md), or group properties that haven't been ingested yet, or were set incorrectly earlier.
 
 You can provide properties to evaluate the flag with by using the `person properties`, `groups`, and `group properties` arguments. PostHog will then use these values to evaluate the flag, instead of any properties currently stored on your PostHog server.
 
 For example:
-
-Node.js
 
 ```javascript
 const flags = await client.evaluateFlags('distinct_id_of_the_user', {
@@ -841,8 +830,6 @@ Simply include any of these properties in the `person_properties` parameter alon
 
 You can configure the `featureFlagsRequestTimeoutMs` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked if PostHog's servers are too slow to respond. By default, this is set to 3 seconds.
 
-JavaScript
-
 ```javascript
 const client = new PostHog('<ph_project_token>', {
     host: 'https://us.i.posthog.com',
@@ -850,7 +837,7 @@ const client = new PostHog('<ph_project_token>', {
 })
 ```
 
-> **Note:** For remote config flags, see the [remote config documentation](/docs/feature-flags/remote-config.md). Remote config requires the [secret API key](/docs/feature-flags/remote-config.md#step-1-get-a-secret-api-key) passed as the `personalApiKey` option.
+> **Note:** For remote config flags, see the [remote config documentation](https://posthog.com/docs/feature-flags/remote-config.md). Remote config requires the [secret API key](https://posthog.com/docs/feature-flags/remote-config.md#step-1-get-a-secret-api-key) passed as the `secretKey` option in version 5.40.0+, or `personalApiKey` in older versions.
 
 ### Local evaluation
 
@@ -858,9 +845,7 @@ Evaluating feature flags requires making a request to PostHog for each flag. How
 
 It is best practice to use local evaluation flags when possible, since this enables you to resolve flags faster and with fewer API calls.
 
-For details on how to implement local evaluation, see our [local evaluation guide](/docs/feature-flags/local-evaluation.md).
-
-Node.js
+For details on how to implement local evaluation, see our [local evaluation guide](https://posthog.com/docs/feature-flags/local-evaluation.md).
 
 ```javascript
 const flags = await client.evaluateFlags('user distinct id', {
@@ -875,8 +860,6 @@ const flagValue = flags.getFlag('flag-key')
 
 When initializing PostHog, you can configure the interval at which feature flags are polled (fetched from the server). However, if you need to force a reload, you can use `reloadFeatureFlags`:
 
-Node.js
-
 ```javascript
 await client.reloadFeatureFlags()
 
@@ -885,13 +868,11 @@ await client.reloadFeatureFlags()
 
 #### Distributed environments
 
-In multi-worker or edge environments, you can implement custom caching for flag definitions using Redis, Cloudflare KV, or other storage backends. This enables sharing definitions across workers and coordinating fetches. See our guide for [local evaluation in distributed environments](/docs/feature-flags/local-evaluation/distributed-environments?tab=Node.js.md) for details.
+In multi-worker or edge environments, you can implement custom caching for flag definitions using Redis, Cloudflare KV, or other storage backends. This enables sharing definitions across workers and coordinating fetches. See our guide for [local evaluation in distributed environments](https://posthog.com/docs/feature-flags/local-evaluation/distributed-environments?tab=Node.js.md) for details.
 
 ## Experiments (A/B tests)
 
-Since [experiments](/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
-
-Node.js
+Since [experiments](https://posthog.com/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
 
 ```javascript
 const flags = await client.evaluateFlags('user_distinct_id')
@@ -902,15 +883,13 @@ if (variant === 'variant-name') {
 }
 ```
 
-It's also possible to [run experiments without using feature flags](/docs/experiments/running-experiments-without-feature-flags.md).
+It's also possible to [run experiments without using feature flags](https://posthog.com/docs/experiments/running-experiments-without-feature-flags.md).
 
 ## Group analytics
 
-Group analytics enable you to associate an event with a group (e.g. teams, organizations, etc.). Read the [group analytics guide](/docs/product-analytics/group-analytics.md) for more information.
+Group analytics enable you to associate an event with a group (e.g. teams, organizations, etc.). Read the [group analytics guide](https://posthog.com/docs/product-analytics/group-analytics.md) for more information.
 
 To create a group or update its properties, use `groupIdentify`:
-
-Node.js
 
 ```javascript
 client.groupIdentify({
@@ -931,8 +910,6 @@ If the optional `distinctId` parameter is not provided in the group identify cal
 
 Once a group is created, you can use the `capture` method and pass in the `groups` parameter to capture an event with group analytics.
 
-Node.js
-
 ```javascript
 client.capture({
   event: 'some_event',
@@ -948,8 +925,6 @@ Before `posthog-node` v3.0, we added GeoIP properties to all incoming events by 
 As of `posthog-node` v3.0, the default now is to disregard the server IP, not add the GeoIP properties, and not use the values for feature flag evaluations.
 
 You can go back to previous behavior by setting `disableGeoip` to false in your initialization:
-
-Node.js
 
 ```javascript
 const posthog = new PostHog('<ph_project_token>', {
@@ -970,8 +945,6 @@ The list of properties that this overrides:
 
 You can also explicitly chose to enable or disable GeoIP for a single capture request like so:
 
-Node.js
-
 ```javascript
 client.capture({
   distinctId: distinctId,
@@ -982,22 +955,19 @@ client.capture({
 
 ## Shutdown
 
-You should call `shutdown` on your program's exit to exit cleanly:
-
-Node.js
+Await `shutdown()` when you finish using a disposable client or before your program exits. It stops flag polling, cleans up cache-provider resources, and attempts to flush remaining events. Don't call it after each request if you intend to reuse the client – use `flush()` instead.
 
 ```javascript
-// Stop pending pollers and flush any remaining events
 await client.shutdown()
 ```
+
+The optional shutdown timeout is in milliseconds and defaults to `30000` (30 seconds). Completion does not guarantee that PostHog received every event.
 
 ## Debug mode
 
 If you're not seeing the expected events being captured, the feature flags being evaluated, or the surveys being shown, you can enable debug mode to see what's happening.
 
 You can enable debug mode by calling the `debug()` method in your code. This will enable verbose logs about the inner workings of the SDK.
-
-Node.js
 
 ```javascript
 client.debug()
@@ -1009,8 +979,6 @@ If you are experiencing issues with the SDK it could be a number of things from 
 
 The SDK does not throw errors for things happening in the background to ensure it doesn't affect your process. You can however hook into the errors to get more information:
 
-Node.js
-
 ```javascript
 client.on("error", (err) => {
   // Whatever handling you want
@@ -1020,44 +988,65 @@ client.on("error", (err) => {
 
 ## Short-lived processes like serverless environments
 
-The Node SDK is designed to queue and batch requests in the background to optimize API calls and network time. As serverless environments like AWS Lambda or [Vercel Functions](/docs/libraries/vercel.md) are short-lived, we provide a few options to ensure all events are captured.
+The Node SDK queues and batches events in the background. AWS Lambda or [Vercel Functions](https://posthog.com/docs/libraries/vercel.md) can freeze the runtime after a handler returns, before background requests finish.
 
-First, we recommend using the `captureImmediate` method instead of `capture` to ensure the event is captured before the function shuts down. It guarantees the HTTP request finishes before your function continues (or shuts down).
+Keep a shared client outside the handler to reuse it across invocations in the same runtime. Await `flush()` before returning, including when application code throws. Catch and log flush failures so telemetry errors don't fail the invocation or replace an application error.
 
-Second, we recommend setting `flushAt` to `1` and `flushInterval` to `0` to ensure the events are sent immediately. These set the queue to flush immediately, both in terms of events and time.
-
-Third, we provide a method `shutdown()` which can be awaited to ensure all queued events are sent to the API. For example:
-
-Node.js
+An explicit `flush()` has no overall timeout. This AWS Lambda example uses `context.getRemainingTimeInMillis()` and reserves 100 ms for returning from the handler:
 
 ```javascript
-export const handler() {
-  client.capture({
-    distinctId: 'distinct_id_of_the_user',
-    event: 'thing_happened'
-  })
+import { PostHog } from "posthog-node"
 
-  client.capture({
-    distinctId: 'distinct_id_of_the_user',
-    event: 'other_thing_happened'
-  })
+const client = new PostHog("<ph_project_token>", {
+  host: "https://us.i.posthog.com",
+  flushInterval: 0,
+})
 
-  // So far 2 events are queued but not sent
+export const handler = async (_event, context) => {
+  try {
+    client.capture({
+      distinctId: "distinct_id_of_the_user",
+      event: "thing_happened",
+    })
 
-  // Calling shutdown, flushed the queue but batched into 1 API call for maximum efficiency
-  await client.shutdown()
+    client.capture({
+      distinctId: "distinct_id_of_the_user",
+      event: "other_thing_happened",
+    })
+  } finally {
+    let flushTimeout
+    try {
+      const remainingMs = Math.max(0, context.getRemainingTimeInMillis() - 100)
+      await Promise.race([
+        client.flush(),
+        new Promise((_, reject) => {
+          flushTimeout = setTimeout(() => reject(new Error("PostHog flush timed out")), remainingMs)
+        }),
+      ])
+    } catch (err) {
+      console.error("PostHog flush failed", err)
+    } finally {
+      clearTimeout(flushTimeout)
+    }
+  }
 }
 ```
 
-This is also useful for shutting down a standard Node.js app.
+The timeout only limits the wait. It does not cancel the in-flight flush, which can continue if the runtime remains active. The platform can freeze or terminate the runtime before delivery completes. On other platforms, calculate the timeout from the request deadline.
+
+`flushInterval: 0` disables timer-driven flushing. Setting `flushAt: 1` starts a background flush after each queued event, but neither setting waits for delivery. You still need to await `flush()` before returning.
+
+To wait for one event's delivery attempt instead of queuing it, use `await client.captureImmediate({ distinctId: "distinct_id_of_the_user", event: "thing_happened" })`.
+
+If you create a disposable client for one invocation, await `shutdown()` after its final work instead of `flush()`. Don't reuse that client afterward. Use awaited `shutdown()` for program exit, too. Flush and shutdown can fail or time out – neither guarantees ingestion.
 
 ## AI Observability
 
-You can capture LLM usage and performance data by combining the `posthog-node` and `@posthog/ai` libraries. These work with LLM providers like OpenAI and Vercel's AI SDKs. Learn more in our [AI Observability docs](/docs/ai-observability.md).
+You can capture LLM usage and performance data by combining the `posthog-node` and `@posthog/ai` libraries. These work with LLM providers like OpenAI and Vercel's AI SDKs. Learn more in our [AI Observability docs](https://posthog.com/docs/ai-observability.md).
 
 ## Error tracking
 
-You can capture errors using the `posthog-node` library. This enables you to see stack traces, source code, and watch associated session recordings to improve your application stability. Learn more in our [error tracking docs](/docs/error-tracking/installation/node.md).
+You can capture errors using the `posthog-node` library. This enables you to see stack traces, source code, and watch associated session recordings to improve your application stability. Learn more in our [error tracking docs](https://posthog.com/docs/error-tracking/installation/node.md).
 
 ## Upgrading from V1 to V2
 
@@ -1069,11 +1058,3 @@ With the release of V2, the API was kept mostly the same but with some small cha
 2.  The `callback` parameter passed as an optional last argument to most of the methods is no longer supported
 3.  The method signature for `isFeatureEnabled` and `getFeatureFlag` is slightly modified. See the above documentation for each method for more details.
 4.  For specific changes, [see the CHANGELOG](https://github.com/PostHog/posthog-js/blob/main/packages/node/CHANGELOG.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better

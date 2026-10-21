@@ -2,6 +2,16 @@
 
 # Nuxt.js (v3.0 to v3.6)
 
+Canonical URL: https://posthog.com/docs/libraries/nuxt-js-3-6
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://us.posthog.com` (app host for links).
+
+## On this page
+
+- [Setting up PostHog on the client side](#setting-up-posthog-on-the-client-side)
+- [Setting up PostHog on the server side](#setting-up-posthog-on-the-server-side)
+- [Next steps](#next-steps)
+
 PostHog makes it easy to get data about usage of your [Nuxt.js](https://nuxt.com/) app. Integrating PostHog into your app enables analytics about user behavior, custom events capture, session replays, feature flags, and more.
 
 These docs are for Nuxt v3.0 to v3.6. You can see a working example of the Nuxt v3.0 integration in our [Nuxt.js demo app](https://github.com/PostHog/posthog-js/tree/master/playground/nuxtjs)
@@ -42,7 +52,7 @@ bun add posthog-js
 > worker-src 'self' blob: data:;
 > ```
 >
-> `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](/docs/advanced/content-security-policy.md), or use a [reverse proxy](/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
+> `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](https://posthog.com/docs/advanced/content-security-policy.md), or use a [reverse proxy](https://posthog.com/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
 
 2.  Store your PostHog key and host in environment variables rather than hard-coding them. Add them to a `.env` file (and to your hosting provider). You can find these in [your project settings](https://us.posthog.com/settings/project).
 
@@ -73,7 +83,7 @@ export default defineNuxtConfig({
 
 Anything shipped to the browser – the token you pass to `posthog.init()`, anything under Nuxt's `runtimeConfig.public`, or the `@posthog/nuxt` module's `posthogConfig` – ends up in your client-side JavaScript and is visible to anyone who visits your site. This is fine for your **project token** (`<ph_project_token>`), which is designed to be public.
 
-Your **[personal API key](/docs/api.md#authentication)** is different. It can grant full access to your PostHog account, so it must never reach the browser. If you need it – for example, for [source map uploads](/docs/error-tracking/upload-source-maps/nuxt.md) or [server-side local evaluation](/docs/feature-flags/local-evaluation.md) – read it from a server-only environment variable (or top-level `runtimeConfig`, never `runtimeConfig.public`) and only use it in server code.
+Your **[personal API key](https://posthog.com/docs/api.md#authentication)** is different. It can grant full access to your PostHog account, so it must never reach the browser. If you need it – for example, for [source map uploads](https://posthog.com/docs/error-tracking/upload-source-maps/nuxt.md) or [server-side local evaluation](https://posthog.com/docs/feature-flags/local-evaluation.md) – read it from a server-only environment variable (or top-level `runtimeConfig`, never `runtimeConfig.public`) and only use it in server code.
 
 Either way, prefer reading keys from environment variables rather than hard-coding them in `nuxt.config`, so you can keep them out of source control and use different values per environment.
 
@@ -106,8 +116,6 @@ export default defineNuxtPlugin(() => {
 
 PostHog can then be accessed throughout your Nuxt.js using the provider accessor, for example:
 
-Vue
-
 ```html
 <script setup>
    const { $posthog } = useNuxtApp()
@@ -118,14 +126,12 @@ Vue
 </script>
 ```
 
-See the [JavaScript SDK docs](/docs/libraries/js/usage.md) for all usable functions, such as:
+See the [JavaScript SDK docs](https://posthog.com/docs/libraries/js/usage.md) for all usable functions, such as:
 
--   [Capture custom event capture, identify users, and more.](/docs/libraries/js/usage.md#capturing-events)
--   [Feature flags including variants and payloads.](/docs/libraries/js/usage.md#feature-flags)
+-   [Capture custom event capture, identify users, and more.](https://posthog.com/docs/libraries/js/usage.md#capturing-events)
+-   [Feature flags including variants and payloads.](https://posthog.com/docs/libraries/js/usage.md#feature-flags)
 
 If your app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
-
-JavaScript
 
 ```javascript
 posthog.init('<ph_project_token>', {
@@ -139,23 +145,23 @@ This works in local development too, but match on the hostname alone: use `'loca
 
 Tracing headers help you attribute events across front and backend consistently. When this isn't available, use your server-side stable IDs to deduce the matching `distinctId`, and pass it in when capturing the event.
 
-Set up a reverse proxy (recommended)
+**Set up a reverse proxy (recommended)**
 
-We recommend [setting up a reverse proxy](/docs/advanced/proxy.md), so that events are less likely to be intercepted by tracking blockers.
+We recommend [setting up a reverse proxy](https://posthog.com/docs/advanced/proxy.md), so that events are less likely to be intercepted by tracking blockers.
 
-We have our [own managed reverse proxy service](/docs/advanced/proxy/managed-reverse-proxy.md), which is free for all PostHog Cloud users, routes through our infrastructure, and makes setting up your proxy easy.
+We have our [own managed reverse proxy service](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md), which is free for all PostHog Cloud users, routes through our infrastructure, and makes setting up your proxy easy.
 
-If you don't want to use our managed service then there are several other options for creating a reverse proxy, including using [Cloudflare](/docs/advanced/proxy/cloudflare.md), [AWS Cloudfront](/docs/advanced/proxy/cloudfront.md), and [Vercel](/docs/advanced/proxy/vercel.md).
+If you don't want to use our managed service then there are several other options for creating a reverse proxy, including using [Cloudflare](https://posthog.com/docs/advanced/proxy/cloudflare.md), [AWS Cloudfront](https://posthog.com/docs/advanced/proxy/cloudfront.md), and [Vercel](https://posthog.com/docs/advanced/proxy/vercel.md).
 
-Grouping products in one project (recommended)
+**Grouping products in one project (recommended)**
 
-If you have multiple customer-facing products (e.g. a marketing website + mobile app + web app), it's best to install PostHog on them all and [group them in one project](/docs/settings/projects.md).
+If you have multiple customer-facing products (e.g. a marketing website + mobile app + web app), it's best to install PostHog on them all and [group them in one project](https://posthog.com/docs/settings/projects.md).
 
 This makes it possible to track users across their entire journey (e.g. from visiting your marketing website to signing up for your product), or how they use your product across multiple platforms.
 
-Add IPs to Firewall/WAF allowlists (recommended)
+**Add IPs to Firewall/WAF allowlists (recommended)**
 
-For certain features like [heatmaps](/docs/toolbar/heatmaps.md), your Web Application Firewall (WAF) may be blocking PostHog's requests to your site. Add these IP addresses to your WAF allowlist or rules to let PostHog access your site.
+For certain features like [heatmaps](https://posthog.com/docs/toolbar/heatmaps.md), your Web Application Firewall (WAF) may be blocking PostHog's requests to your site. Add these IP addresses to your WAF allowlist or rules to let PostHog access your site.
 
 **EU**: `3.75.65.221`, `18.197.246.42`, `3.120.223.253`
 
@@ -165,7 +171,7 @@ These are public, stable IPs used by PostHog services.
 
 PostHog captures heatmap screenshots using [Browserless](https://www.browserless.io), which has its own IP addresses. Browserless [publishes the current list here](https://docs.browserless.io/baas/troubleshooting/whitelisting-ips).
 
-An allowlist does not help when your app has a private address. For apps on an internal network, see [internal and intranet applications](/docs/session-replay/troubleshooting.md#internal-and-intranet-applications).
+An allowlist does not help when your app has a private address. For apps on an internal network, see [internal and intranet applications](https://posthog.com/docs/session-replay/troubleshooting.md#internal-and-intranet-applications).
 
 ## Setting up PostHog on the server side
 
@@ -241,26 +247,18 @@ server/api/example.js
 
 > **Note**: Make sure to *always* call `posthog.shutdown()` after capturing events from the server-side. PostHog queues events into larger batches, and this call forces all batched events to be flushed immediately.
 
-See the [Node SDK docs](/docs/libraries/node.md) for all usable functions, such as:
+See the [Node SDK docs](https://posthog.com/docs/libraries/node.md) for all usable functions, such as:
 
--   [Capture custom event capture, identify users, and more.](/docs/libraries/node.md#capturing-events)
--   [Feature flags including variants and payloads.](/docs/libraries/node.md#feature-flags)
+-   [Capture custom event capture, identify users, and more.](https://posthog.com/docs/libraries/node.md#capturing-events)
+-   [Feature flags including variants and payloads.](https://posthog.com/docs/libraries/node.md#feature-flags)
 
 ## Next steps
 
-For any technical questions for how to integrate specific PostHog features into Nuxt (such as analytics, feature flags, A/B testing, surveys, etc.), have a look at our [JavaScript Web](/docs/libraries/js.md) and [Node](/docs/libraries/node.md) SDK docs.
+For any technical questions for how to integrate specific PostHog features into Nuxt (such as analytics, feature flags, A/B testing, surveys, etc.), have a look at our [JavaScript Web](https://posthog.com/docs/libraries/js.md) and [Node](https://posthog.com/docs/libraries/node.md) SDK docs.
 
 Alternatively, the following tutorials can help you get started:
 
--   [How to set up analytics in Nuxt](/tutorials/nuxt-analytics.md)
--   [How to set up feature flags in Nuxt](/tutorials/nuxt-feature-flags.md)
--   [How to set up A/B tests in Nuxt](/tutorials/nuxtjs-ab-tests.md)
--   [How to set up surveys in Nuxt](/tutorials/nuxt-surveys.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+-   [How to set up analytics in Nuxt](https://posthog.com/tutorials/nuxt-analytics.md)
+-   [How to set up feature flags in Nuxt](https://posthog.com/tutorials/nuxt-feature-flags.md)
+-   [How to set up A/B tests in Nuxt](https://posthog.com/tutorials/nuxtjs-ab-tests.md)
+-   [How to set up surveys in Nuxt](https://posthog.com/tutorials/nuxt-surveys.md)

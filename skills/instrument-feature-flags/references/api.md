@@ -2,6 +2,18 @@
 
 # API Feature Flags installation
 
+Canonical URL: https://posthog.com/docs/feature-flags/installation/api
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host).
+
+## On this page
+
+- [Evaluate the feature flag value using flags](#evaluate-the-feature-flag-value-using-flags)
+- [Include feature flag information when capturing events](#include-feature-flag-information-when-capturing-events)
+- [Send a $feature_flag_called event](#send-a-feature_flag_called-event)
+- [Running experiments](#running-experiments)
+- [Next steps](#next-steps)
+
 1.  1
 
     ## Evaluate the feature flag value using flags
@@ -178,16 +190,8 @@
 
     | Resource | Description |
     | --- | --- |
-    | [Creating a feature flag](/docs/feature-flags/creating-feature-flags.md) | How to create a feature flag in PostHog |
-    | [Adding feature flag code](/docs/feature-flags/adding-feature-flag-code.md) | How to check flags in your code for all platforms |
-    | [Framework-specific guides](/docs/feature-flags/tutorials.md#framework-guides) | Setup guides for React Native, Next.js, Flutter, and other frameworks |
-    | [How to do a phased rollout](/tutorials/phased-rollout.md) | Gradually roll out features to minimize risk |
-    | [More tutorials](/docs/feature-flags/tutorials.md) | Other real-world examples and use cases |
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    | [Creating a feature flag](https://posthog.com/docs/feature-flags/creating-feature-flags.md) | How to create a feature flag in PostHog |
+    | [Adding feature flag code](https://posthog.com/docs/feature-flags/adding-feature-flag-code.md) | How to check flags in your code for all platforms |
+    | [Framework-specific guides](https://posthog.com/docs/feature-flags/tutorials.md#framework-guides) | Setup guides for React Native, Next.js, Flutter, and other frameworks |
+    | [How to do a phased rollout](https://posthog.com/tutorials/phased-rollout.md) | Gradually roll out features to minimize risk |
+    | [More tutorials](https://posthog.com/docs/feature-flags/tutorials.md) | Other real-world examples and use cases |

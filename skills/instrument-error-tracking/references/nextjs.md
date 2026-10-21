@@ -2,6 +2,23 @@
 
 # Next.js Error Tracking installation
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/nextjs
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://us.posthog.com` or `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the package](#install-the-package)
+- [Add environment variables](#add-environment-variables)
+- [Initialize PostHog](#initialize-posthog)
+- [Accessing PostHog on the client](#accessing-posthog-on-the-client)
+- [Capture client-side exceptions](#capture-client-side-exceptions)
+- [Installing PostHog SDK for server-side](#installing-posthog-sdk-for-server-side)
+- [Verify server-side exceptions](#verify-server-side-exceptions)
+- [Capturing server-side exceptions](#capturing-server-side-exceptions)
+- [Verify error tracking](#verify-error-tracking)
+- [Upload source maps](#upload-source-maps)
+
 1.  1
 
     ## Install the package
@@ -159,7 +176,7 @@
 
     **Defaults option**
 
-    The `defaults` option automatically configures PostHog with recommended settings for new projects. See [SDK defaults](/docs/libraries/js.md#sdk-defaults) for details.
+    The `defaults` option automatically configures PostHog with recommended settings for new projects. See [SDK defaults](https://posthog.com/docs/libraries/js.md#sdk-defaults) for details.
 
 4.  4
 
@@ -323,7 +340,7 @@
 
     Required
 
-    Next.js enables you to both server-side render pages and add server-side functionality. To integrate PostHog into your Next.js app on the server-side, you can use the [Node SDK](/docs/libraries/node.md).
+    Next.js enables you to both server-side render pages and add server-side functionality. To integrate PostHog into your Next.js app on the server-side, you can use the [Node SDK](https://posthog.com/docs/libraries/node.md).
 
     First, install the `posthog-node` library:
 
@@ -409,7 +426,7 @@
 
     Importantly, you need to:
 
-    1.  Set up a `posthog-node` client in your server-side code. See our doc on [setting up Next.js server-side analytics](/docs/libraries/next-js.md#server-side-analytics) for more.
+    1.  Set up a `posthog-node` client in your server-side code. See our doc on [setting up Next.js server-side analytics](https://posthog.com/docs/libraries/next-js.md#server-side-analytics) for more.
     2.  Check the request is running in the `nodejs` runtime to ensure PostHog works. You can call `posthog.debug()` to get verbose logging.
     3.  Get the `distinct_id` from the cookie to connect the error to a specific user.
 
@@ -448,7 +465,7 @@
     }
     ```
 
-    You can find a full example of both this and client-side error tracking in our [Next.js error monitoring tutorial](/tutorials/nextjs-error-monitoring.md).
+    You can find a full example of both this and client-side error tracking in our [Next.js error monitoring tutorial](https://posthog.com/tutorials/nextjs-error-monitoring.md).
 
 9.  ## Verify error tracking
 
@@ -472,12 +489,4 @@
 
      Let's continue to the next section.
 
-     [Upload source maps](/docs/error-tracking/upload-source-maps/nextjs.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+     [Upload source maps](https://posthog.com/docs/error-tracking/upload-source-maps/nextjs.md)

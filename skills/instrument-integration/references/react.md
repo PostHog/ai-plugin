@@ -2,23 +2,37 @@
 
 # React
 
+Canonical URL: https://posthog.com/docs/libraries/react
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://us.posthog.com` (app host for links).
+
+## On this page
+
+- [Using a framework?](#using-a-framework)
+- [Beta: integration via LLM](#beta-integration-via-llm)
+- [Installation](#installation)
+- [Identifying users](#identifying-users)
+- [Usage](#usage)
+- [Feature flags](#feature-flags)
+- [Experiments (A/B tests)](#experiments-ab-tests)
+
 PostHog makes it easy to get data about traffic and usage of your React app. Integrating PostHog into your site enables analytics about user behavior, custom events capture, session recordings, feature flags, and more.
 
-This guide walks you through an example integration of PostHog using vanilla React and the [posthog-js library](/docs/libraries/js.md).
+This guide walks you through an example integration of PostHog using vanilla React and the [posthog-js library](https://posthog.com/docs/libraries/js.md).
 
 ## Using a framework?
 
 Using React with a framework like Next.js, Remix, or React Router requires additional setup. Follow their respective guides instead:
 
--   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/frameworks/nextjs.svg)Next.js](/docs/libraries/next-js.md)
+-   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/frameworks/nextjs.svg)Next.js](https://posthog.com/docs/libraries/next-js.md)
 
--   [![](https://res.cloudinary.com/dmukukwp6/image/upload/remix_letter_glowing_49183adce2.svg)Remix](/docs/libraries/remix.md)
+-   [![](https://res.cloudinary.com/dmukukwp6/image/upload/remix_letter_glowing_49183adce2.svg)Remix](https://posthog.com/docs/libraries/remix.md)
 
--   [![](https://res.cloudinary.com/dmukukwp6/image/upload/rr_logo_light_970950178e.svg)React Router](/docs/libraries/react-router.md)
+-   [![](https://res.cloudinary.com/dmukukwp6/image/upload/rr_logo_light_970950178e.svg)React Router](https://posthog.com/docs/libraries/react-router.md)
 
 ## Beta: integration via LLM
 
-Install PostHog for React in seconds with our wizard by running this prompt with [LLM coding agents](/blog/envoy-wizard-llm-agent.md) like Cursor and Bolt, or by running it in your terminal.
+Install PostHog for React in seconds with our wizard by running this prompt with [LLM coding agents](https://posthog.com/blog/envoy-wizard-llm-agent.md) like Cursor and Bolt, or by running it in your terminal.
 
 `npx @posthog/wizard`
 
@@ -26,7 +40,7 @@ Or, to integrate manually, continue with the rest of this guide.
 
 ## Installation
 
-> For React-based frameworks, we recommend the [Next.js integration guide](/docs/libraries/next-js.md) and [Remix integration guide](/docs/libraries/remix.md) instead.
+> For React-based frameworks, we recommend the [Next.js integration guide](https://posthog.com/docs/libraries/next-js.md) and [Remix integration guide](https://posthog.com/docs/libraries/remix.md) instead.
 
 1.  Install [`posthog-js`](https://github.com/posthog/posthog-js) and `@posthog/react` using your package manager:
 
@@ -62,7 +76,7 @@ bun add posthog-js @posthog/react
 > worker-src 'self' blob: data:;
 > ```
 >
-> `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](/docs/advanced/content-security-policy.md), or use a [reverse proxy](/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
+> `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](https://posthog.com/docs/advanced/content-security-policy.md), or use a [reverse proxy](https://posthog.com/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
 
 2.  Add your environment variables to your `.env.local` file and to your hosting provider (e.g. Vercel, Netlify, AWS). You can find your project token and host in [your project settings](https://us.posthog.com/settings/project). If you're using Vite, prefixing variable names with `VITE_` ensures they are accessible in the frontend.
 
@@ -74,8 +88,6 @@ VITE_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
 3.  Integrate PostHog at the root of your app (such as `main.jsx` for Vite apps and `root.tsx` for React Router V7).
-
-React
 
 ```jsx
 // src/main.jsx
@@ -106,13 +118,13 @@ Inside React components, use the `usePostHog` hook to access PostHog. Outside co
 
 ## Identifying users
 
-> **Identifying users is required.** Call `posthog.identify('your-user-id')` after login to link events to a known user. This is what connects frontend event captures, [session replays](/docs/session-replay.md), [LLM traces](/docs/ai-engineering.md), and [error tracking](/docs/error-tracking.md) to the same person — and lets backend events link back too.
+> **Identifying users is required.** Call `posthog.identify('your-user-id')` after login to link events to a known user. This is what connects frontend event captures, [session replays](https://posthog.com/docs/session-replay.md), [LLM traces](https://posthog.com/docs/ai-engineering.md), and [error tracking](https://posthog.com/docs/error-tracking.md) to the same person — and lets backend events link back too.
 >
 > Use a stable ID from your auth system when possible, not an email or display name. Send those as person properties instead. If your app has no other stable key, email works as a fallback if they are unique. Never a shared literal like `"anonymous"` or `"user"`, which pools many people onto one person and corrupts their data. When no ID is available at all, skip the identify and retain the anonymous distinct ID that's automatically assigned.
 >
 > Call `posthog.reset()` on logout, so the next person to use the browser doesn't inherit the last one's identity.
 >
-> See our guide on [identifying users](/docs/getting-started/identify-users.md) for how to set this up.
+> See our guide on [identifying users](https://posthog.com/docs/getting-started/identify-users.md) for how to set this up.
 
 ## Usage
 
@@ -121,8 +133,6 @@ Inside React components, use the `usePostHog` hook to access PostHog. Outside co
 The React context provider makes it easy to access the `posthog-js` library in your app.
 
 The provider takes an initialized and configured client instance like this:
-
-React
 
 ```jsx
 // src/index.js
@@ -148,7 +158,7 @@ root.render(
 
 ### Calling PostHog methods
 
-By default, the `posthog-js` library automatically captures pageviews, element clicks, inputs, and more. Autocapture can be tuned in with [the configuration options](/docs/product-analytics/autocapture.md#configuring-autocapture).
+By default, the `posthog-js` library automatically captures pageviews, element clicks, inputs, and more. Autocapture can be tuned in with [the configuration options](https://posthog.com/docs/product-analytics/autocapture.md#configuring-autocapture).
 
 To call PostHog methods for actions like identifying users, capturing events, using feature flags, or using other features, you can access the initialized `posthog-js` library using the `usePostHog` hook.
 
@@ -158,11 +168,9 @@ Inside React components, use the `usePostHog` hook. It returns the client from t
 
 Outside React components, such as in utility modules or API clients, you can import `posthog` from `posthog-js` directly, as long as it's the same instance you initialized and passed to `PostHogProvider` as shown above. Events captured before `posthog.init()` runs are dropped, so make sure initialization happens first. If you pass the provider a different client instance, import that instance instead.
 
-All the methods of the library are available and can be used as described in the [posthog-js documentation](/docs/libraries/js.md).
+All the methods of the library are available and can be used as described in the [posthog-js documentation](https://posthog.com/docs/libraries/js.md).
 
 If your React app calls your own backend, `tracing_headers` adds `X-POSTHOG-DISTINCT-ID` and `X-POSTHOG-SESSION-ID` to matching `fetch` and `XMLHttpRequest` requests. This lets server-side SDKs link backend events, errors, and LLM traces back to frontend sessions and replays. Use hostnames only, without protocols or paths.
-
-React
 
 ```jsx
 import { usePostHog } from '@posthog/react'
@@ -212,8 +220,6 @@ If you see the error `TypeError: Cannot read properties of undefined (reading '.
 
 To fix this error, add a check that posthog has been initialized such as:
 
-React
-
 ```jsx
 useEffect(() => {
   posthog?.capture('test') // using optional chaining (recommended)
@@ -234,8 +240,6 @@ The component wraps your content and sends a `$element_viewed` event to PostHog 
 
 **Basic usage:**
 
-React
-
 ```jsx
 import { PostHogCaptureOnViewed } from '@posthog/react'
 
@@ -251,8 +255,6 @@ function App() {
 **With custom properties:**
 
 You can include additional properties with the event to provide more context:
-
-React
 
 ```jsx
 <PostHogCaptureOnViewed
@@ -270,8 +272,6 @@ React
 **Tracking multiple children:**
 
 Use `trackAllChildren` to track each child element separately. This is useful for galleries or lists where you want to know which specific items were viewed:
-
-React
 
 ```jsx
 <PostHogCaptureOnViewed
@@ -291,8 +291,6 @@ When `trackAllChildren` is enabled, each child element sends its own event with 
 
 You can customize when elements are considered "viewed" by passing options to the `IntersectionObserver`:
 
-React
-
 ```jsx
 <PostHogCaptureOnViewed
     name="footer"
@@ -309,7 +307,7 @@ The component passes all other props to the wrapper `div`, so you can add stylin
 
 ## Feature flags
 
-PostHog's [feature flags](/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
+PostHog's [feature flags](https://posthog.com/docs/feature-flags.md) enable you to safely deploy and roll back new features as well as target specific users and groups with them.
 
 There are two ways to implement feature flags in React:
 
@@ -328,8 +326,6 @@ PostHog provides several hooks to make it easy to use feature flags in your Reac
 | `useFeatureFlagPayload` | Returns the payload of the feature flag. This does *not* send a `$feature_flag_called` event. Always use this with `useFeatureFlagEnabled` or `useFeatureFlagVariantKey`. |
 
 #### Example 1: Using a boolean feature flag
-
-React
 
 ```jsx
 import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
@@ -362,15 +358,11 @@ export default App;
 
 To avoid handling `undefined` while flags are loading, pass a default value as the second argument:
 
-React
-
 ```jsx
 const showWelcomeMessage = useFeatureFlagEnabled('flag-key', false)
 ```
 
 #### Example 2: Using a multivariate feature flag
-
-React
 
 ```jsx
 import { useFeatureFlagVariantKey } from '@posthog/react'
@@ -412,8 +404,6 @@ export default App;
 
 The `useFeatureFlagPayload` hook does *not* send a [`$feature_flag_called`](https://posthog.com/docs/experiments/new-experimentation-engine#experiment-exposure) event, which is required for the experiment to be tracked. To ensure the exposure event is sent, you should **always** use the `useFeatureFlagPayload` hook with either the `useFeatureFlagEnabled` or `useFeatureFlagVariantKey` hook.
 
-React
-
 ```jsx
 import { useFeatureFlagEnabled, useFeatureFlagPayload } from '@posthog/react'
 
@@ -445,11 +435,9 @@ The `PostHogFeature` component simplifies code by handling feature flag related 
 
 It also automatically captures metrics, like how many times a user interacts with this feature.
 
-> **Note:** You still need the [`PostHogProvider`](/docs/libraries/react.md#installation) at the top level for this to work.
+> **Note:** You still need the [`PostHogProvider`](https://posthog.com/docs/libraries/react.md#installation) at the top level for this to work.
 
 Here is an example:
-
-React
 
 ```jsx
 import { PostHogFeature } from '@posthog/react'
@@ -477,8 +465,6 @@ If you wish to customise logic around when the component is considered visible, 
 
 If your flag has a payload, you can pass a function to children whose first argument is the payload. For example:
 
-React
-
 ```jsx
 import { PostHogFeature } from '@posthog/react'
 
@@ -503,8 +489,6 @@ function App() {
 
 You can configure the `feature_flag_request_timeout_ms` parameter when initializing your PostHog client to set a flag request timeout. This helps prevent your code from being blocked in the case when PostHog's servers are too slow to respond. By default, this is set at 3 seconds.
 
-JavaScript
-
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
@@ -517,8 +501,6 @@ posthog.init('<ph_project_token>', {
 ### Error handling
 
 When using the PostHog SDK, it's important to handle potential errors that may occur during feature flag operations. Here's an example of how to wrap PostHog SDK methods in an error handler:
-
-JavaScript
 
 ```javascript
 function handleFeatureFlag(client, flagKey, distinctId) {
@@ -555,13 +537,11 @@ Since there is a delay between initializing PostHog and fetching feature flags, 
 
 To have your feature flags available immediately, you can initialize PostHog with precomputed values until it has had a chance to fetch them. This is called bootstrapping. After the SDK fetches feature flags from PostHog, it will use those flag values instead of bootstrapped ones.
 
-For details on how to implement bootstrapping, see our [bootstrapping guide](/docs/feature-flags/bootstrapping.md).
+For details on how to implement bootstrapping, see our [bootstrapping guide](https://posthog.com/docs/feature-flags/bootstrapping.md).
 
 ## Experiments (A/B tests)
 
-Since [experiments](/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
-
-React
+Since [experiments](https://posthog.com/docs/experiments/start-here.md) use feature flags, the code for running an experiment is very similar to the feature flags code:
 
 ```jsx
 // You can either use the `useFeatureFlagVariantKey` hook,
@@ -592,12 +572,4 @@ function App() {
 // e.g., posthog.featureFlags.overrideFeatureFlags({ flags: {'experiment-feature-flag-key': 'test'}})
 ```
 
-It's also possible to [run experiments without using feature flags](/docs/experiments/running-experiments-without-feature-flags.md).
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+It's also possible to [run experiments without using feature flags](https://posthog.com/docs/experiments/running-experiments-without-feature-flags.md).

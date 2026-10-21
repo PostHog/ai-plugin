@@ -2,13 +2,25 @@
 
 # Next.js Logs installation
 
+Canonical URL: https://posthog.com/docs/logs/installation/nextjs
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install OpenTelemetry packages](#install-opentelemetry-packages)
+- [Get your project token](#get-your-project-token)
+- [Enable instrumentation in Next.js](#enable-instrumentation-in-nextjs)
+- [Create the instrumentation file](#create-the-instrumentation-file)
+- [Use OpenTelemetry logging](#use-opentelemetry-logging)
+- [Test your setup](#test-your-setup)
+- [Next steps](#next-steps)
+
 1.  1
 
     ## Install OpenTelemetry packages
 
     Required
-
-    Terminal
 
     ```bash
     npm install @opentelemetry/sdk-logs @opentelemetry/exporter-logs-otlp-http @opentelemetry/api-logs @opentelemetry/resources
@@ -36,8 +48,6 @@
 
     On Next.js 14 and earlier, add the following to your `next.config.js` (or `next.config.mjs`) to enable the instrumentation hook:
 
-    JavaScript
-
     ```javascript
     /** @type {import('next').NextConfig} */
     const nextConfig = {
@@ -56,8 +66,6 @@
     Required
 
     Create an `instrumentation.ts` (or `instrumentation.js`) file in the root of your project (or inside `src/` if you use that folder).
-
-    typescript
 
     ```typescript
     import { BatchLogRecordProcessor, LoggerProvider } from '@opentelemetry/sdk-logs'
@@ -94,8 +102,6 @@
 
     Alternatively, you can pass the API key as a query parameter:
 
-    typescript
-
     ```typescript
     new OTLPLogExporter({
       url: 'https://us.i.posthog.com/i/v1/logs?token=<ph_project_token>',
@@ -112,8 +118,6 @@
     Required
 
     Now you can use OpenTelemetry logging in your server-side code (API routes, Server Components, etc.):
-
-    typescript
 
     ```typescript
     import { SeverityNumber } from '@opentelemetry/api-logs'
@@ -145,8 +149,6 @@
 
     > **Note:** `after()` is stable in Next.js 15.1+ (available as `unstable_after` in 15.0). On Next.js 14 and earlier, it doesn't exist — flush before returning instead:
     >
-    > typescript
-    >
     > ```typescript
     > await loggerProvider.forceFlush()
     > return Response.json({ success: true })
@@ -174,19 +176,11 @@
 
     | Action | Description |
     | --- | --- |
-    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
-    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **[Why you need logs](https://posthog.com/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](https://posthog.com/docs/logs/search.md)** | Use the search interface to find specific log entries |
     | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
-    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
-    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Link session replay](https://posthog.com/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](https://posthog.com/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](https://posthog.com/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
-    [Troubleshoot common issues](/docs/logs/troubleshooting.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Troubleshoot common issues](https://posthog.com/docs/logs/troubleshooting.md)

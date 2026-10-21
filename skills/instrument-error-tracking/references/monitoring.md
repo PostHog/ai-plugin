@@ -2,6 +2,18 @@
 
 # Monitor and search issues
 
+Canonical URL: https://posthog.com/docs/error-tracking/monitoring
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Monitoring issues](#monitoring-issues)
+- [Finding specific issues](#finding-specific-issues)
+- [Issue details](#issue-details)
+- [Improving search performance](#improving-search-performance)
+- [Suppressing issues](#suppressing-issues)
+
 This guide covers how to find the most relevant, urgent, and impactful issues in your error tracking using the [issues page](https://app.posthog.com/error_tracking).
 
 ## Monitoring issues
@@ -27,13 +39,13 @@ Sorting by **last seen** and **occurrences** are great ways to get a general sen
 
 ### Monitoring issues assigned to you
 
-You can filter issues by the **Assigned to** property to find issues assigned to you. This is especially useful if you configure [automatic issue assignment](/docs/error-tracking/assigning-issues.md) and configure [alerts](/docs/error-tracking/alerts.md) to notify you when new issues are created.
+You can filter issues by the **Assigned to** property to find issues assigned to you. This is especially useful if you configure [automatic issue assignment](https://posthog.com/docs/error-tracking/assigning-issues.md) and configure [alerts](https://posthog.com/docs/error-tracking/alerts.md) to notify you when new issues are created.
 
 ## Finding specific issues
 
 You can use the search bar at the top of the [issue page](https://app.posthog.com/error_tracking) to filter issues based on the properties of the exceptions in that issue.
 
-Search results are matched based on [properties of exception events](/docs/error-tracking/issues-and-exceptions.md) grouped into the issues. For example, if you search for "TypeError", we show you all issues where *any* exception grouped into the issue has a type of "TypeError".
+Search results are matched based on [properties of exception events](https://posthog.com/docs/error-tracking/issues-and-exceptions.md) grouped into the issues. For example, if you search for "TypeError", we show you all issues where *any* exception grouped into the issue has a type of "TypeError".
 
 **Unrelated results**
 
@@ -115,7 +127,7 @@ For example, you can add a property filter on `http_referer` that shows all exce
 
 **Alerts**
 
-If you have a set of filters that you use often, you can create alerts for them. This way you can be notified when new issues match your filters. Learn more about [alerts](/docs/error-tracking/alerts.md).
+If you have a set of filters that you use often, you can create alerts for them. This way you can be notified when new issues match your filters. Learn more about [alerts](https://posthog.com/docs/error-tracking/alerts.md).
 
 ## Improving search performance
 
@@ -129,12 +141,4 @@ If you find your queries timing out or taking more than 30 seconds, please [let 
 
 ## Suppressing issues
 
-If you find issues that are not useful to you, you can suppress them by changing the status to **Suppressed**. We recommend that you also implement [client-side suppression](/docs/error-tracking/capture.md#suppressing-exceptions) to not capture these exceptions in the first place, for cost and performance reasons.
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+If you find issues that are not useful to you, you can suppress them by changing the status to **Suppressed**. We recommend that you also implement [client-side suppression](https://posthog.com/docs/error-tracking/capture.md#suppressing-exceptions) to not capture these exceptions in the first place, for cost and performance reasons.

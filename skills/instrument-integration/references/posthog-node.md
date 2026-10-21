@@ -1531,7 +1531,7 @@ client.overrideFeatureFlags({
 
 **Release Tag:** public
 
-Reload feature flag definitions from the server for local evaluation.
+Reload feature flag definitions from the configured cache provider or PostHog for local evaluation.
 
 ### Returns
 

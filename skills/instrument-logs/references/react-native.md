@@ -2,6 +2,20 @@
 
 # React Native Logs installation
 
+Canonical URL: https://posthog.com/docs/logs/installation/react-native
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install posthog-react-native](#install-posthog-react-native)
+- [Configure logs in your PostHog options](#configure-logs-in-your-posthog-options)
+- [Capture logs](#capture-logs)
+- [Test your setup](#test-your-setup)
+- [Tune buffering, rate cap, and filtering](#tune-buffering-rate-cap-and-filtering)
+- [Filtering with beforeSend](#filtering-with-beforesend)
+- [Next steps](#next-steps)
+
 PostHog's React Native SDK has built-in support for capturing structured logs. Unlike other languages where you wire OpenTelemetry directly, the SDK handles the OTLP encoding, batching, persistence, and lifecycle for you. You just call `posthog.captureLog(...)` or `posthog.logger.{trace,debug,info,warn,error,fatal}(...)`.
 
 > **JavaScript layer only.** Logs are captured from the JavaScript side of your app. Native logs from your iOS or Android code (e.g. `os_log`, `Log.d`) are not collected.
@@ -14,7 +28,7 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     Required
 
-    If you haven't already, install and initialize `posthog-react-native` using the steps below. For full details, see the [React Native SDK guide](/docs/libraries/react-native.md).
+    If you haven't already, install and initialize `posthog-react-native` using the steps below. For full details, see the [React Native SDK guide](https://posthog.com/docs/libraries/react-native.md).
 
     Our React Native enables you to integrate PostHog with your React Native project. For React Native projects built with Expo, there are no mobile native dependencies outside of supported Expo packages.
 
@@ -22,15 +36,11 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     #### Expo apps
 
-    Terminal
-
     ```bash
     npx expo install posthog-react-native expo-file-system expo-application expo-device expo-localization
     ```
 
     #### React Native apps
-
-    Terminal
 
     ```bash
     yarn add posthog-react-native @react-native-async-storage/async-storage react-native-device-info react-native-localize
@@ -46,7 +56,7 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     #### With the PosthogProvider
 
-    The recommended way to set up PostHog for React Native is to use the `PostHogProvider`. This utilizes the Context API to pass the PostHog client around, and enables [autocapture](/docs/product-analytics/autocapture.md).
+    The recommended way to set up PostHog for React Native is to use the `PostHogProvider`. This utilizes the Context API to pass the PostHog client around, and enables [autocapture](https://posthog.com/docs/product-analytics/autocapture.md).
 
     To set up `PostHogProvider`, add it to your `App.js` or `App.ts` file:
 
@@ -70,8 +80,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
     ```
 
     Then you can access PostHog using the `usePostHog()` hook:
-
-    React Native
 
     ```jsx
     const MyComponent = () => {
@@ -100,8 +108,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     Then you can access PostHog by importing your instance:
 
-    React Native
-
     ```jsx
     import { posthog } from './posthog'
     
@@ -115,8 +121,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
     ```
 
     You can even use this instance with the PostHogProvider:
-
-    React Native
 
     ```jsx
     import { posthog } from './posthog'
@@ -133,8 +137,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
     Required
 
     Add a `logs` block to your PostHog initialization. All fields are optional; defaults are tuned for mobile (cellular bandwidth, battery, OS lifecycle).
-
-    React Native
 
     ```jsx
     import PostHog from 'posthog-react-native'
@@ -156,8 +158,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
     Required
 
     Use `posthog.logger` for the per-level convenience API, or `posthog.captureLog` for full control over level, attributes, and trace context.
-
-    React Native
 
     ```jsx
     // Per-level convenience methods
@@ -187,8 +187,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     1.  Capture a test log from your app:
 
-        React Native
-
         ```jsx
         posthog.logger.info('hello from RN')
         await posthog.flushLogs()
@@ -208,8 +206,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
     Optional
 
     The `logs` config has knobs for high-volume apps:
-
-    React Native
 
     ```jsx
     const posthog = new PostHog('<ph_project_token>', {
@@ -249,8 +245,6 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     The `beforeSend` hook runs synchronously before the rate cap, so dropped records don't consume the per-interval budget. Use it for redaction, sampling, or filtering by level:
 
-    React Native
-
     ```jsx
     const posthog = new PostHog('<ph_project_token>', {
       host: 'https://us.i.posthog.com',
@@ -280,19 +274,11 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
     | Action | Description |
     | --- | --- |
-    | **[Why you need logs](/docs/logs/basics.md)** | What logs show you that nothing else does |
-    | **[Search logs](/docs/logs/search.md)** | Use the search interface to find specific log entries |
+    | **[Why you need logs](https://posthog.com/docs/logs/basics.md)** | What logs show you that nothing else does |
+    | **[Search logs](https://posthog.com/docs/logs/search.md)** | Use the search interface to find specific log entries |
     | **Filter by level** | Filter by `INFO`, `WARN`, `ERROR`, etc. |
-    | **[Link session replay](/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
-    | **[Link logs to a person](/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
-    | **[Logging best practices](/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
+    | **[Link session replay](https://posthog.com/docs/logs/link-session-replay.md)** | Connect logs to users and session replays by passing `posthogDistinctId` and `sessionId` |
+    | **[Link logs to a person](https://posthog.com/docs/logs/link-person.md)** | Surface every log emitted on behalf of a user on their PostHog person profile |
+    | **[Logging best practices](https://posthog.com/docs/logs/best-practices.md)** | Learn what to log, how to structure logs, and patterns that make logs useful in production |
 
-    [Troubleshoot common issues](/docs/logs/troubleshooting.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Troubleshoot common issues](https://posthog.com/docs/logs/troubleshooting.md)

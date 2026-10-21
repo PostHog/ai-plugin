@@ -2,15 +2,28 @@
 
 # PHP Error Tracking installation
 
+Canonical URL: https://posthog.com/docs/error-tracking/installation/php
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Install the PHP SDK](#install-the-php-sdk)
+- [Initialize the client](#initialize-the-client)
+- [Capture exceptions](#capture-exceptions)
+- [Enable automatic capture](#enable-automatic-capture)
+- [Identify users and attach request context](#identify-users-and-attach-request-context)
+- [Configure error tracking options](#configure-error-tracking-options)
+- [Verify error tracking](#verify-error-tracking)
+- [Link releases](#link-releases)
+
 1.  1
 
     ## Install the PHP SDK
 
     Required
 
-    Install the [PostHog PHP SDK](/docs/libraries/php.md) via Composer:
-
-    Terminal
+    Install the [PostHog PHP SDK](https://posthog.com/docs/libraries/php.md) via Composer:
 
     ```bash
     composer require posthog/posthog-php
@@ -23,8 +36,6 @@
     Required
 
     Set your project token and instance address before making any calls:
-
-    PHP
 
     ```php
     PostHog\PostHog::init(
@@ -45,8 +56,6 @@
 
     ### Basic usage
 
-    PHP
-
     ```php
     try {
         // Your code that might throw
@@ -59,8 +68,6 @@
     ### With additional properties
 
     You can pass extra properties to include with the exception event:
-
-    PHP
 
     ```php
     try {
@@ -82,8 +89,6 @@
     Recommended
 
     Automatic capture is opt-in for PHP. When enabled, the SDK installs handlers for uncaught exceptions. With the default `capture_errors: true`, it also captures PHP errors and fatal shutdown errors.
-
-    PHP
 
     ```php
     PostHog\PostHog::init(
@@ -108,8 +113,6 @@
     Recommended
 
     By default, automatically captured errors are anonymous. Use `context_provider` to attach a `distinctId` and request metadata to every automatically captured error event.
-
-    PHP
 
     ```php
     PostHog\PostHog::init(
@@ -140,8 +143,6 @@
     ## Configure error tracking options
 
     Optional
-
-    PHP
 
     ```php
     PostHog\PostHog::init(
@@ -180,8 +181,6 @@
 
     Trigger a test exception to confirm events are being sent to PostHog. You should see them appear in the [Error Tracking](https://app.posthog.com/error_tracking) tab.
 
-    PHP
-
     ```php
     PostHog\PostHog::init(
         '<ph_project_token>',
@@ -208,12 +207,4 @@
 
     Great, you're capturing exceptions! To see which release each exception comes from, give your app the release ID when you deploy.
 
-    [Link releases](/docs/error-tracking/link-releases/php.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+    [Link releases](https://posthog.com/docs/error-tracking/link-releases/php.md)

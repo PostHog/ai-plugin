@@ -2,6 +2,21 @@
 
 # How metrics works
 
+Canonical URL: https://posthog.com/docs/metrics/architecture
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
+
+## On this page
+
+- [Ingestion](#ingestion)
+- [The series model](#the-series-model)
+- [Metric types and temporality](#metric-types-and-temporality)
+- [Querying](#querying)
+- [Anomaly detection and samples](#anomaly-detection-and-samples)
+- [Storage and SQL access](#storage-and-sql-access)
+- [What the alpha means here](#what-the-alpha-means-here)
+- [Next steps](#next-steps)
+
 > **Note:** Metrics is in open alpha. Any team can turn it on — open [Metrics](https://app.posthog.com/metrics) and select **Enable metrics** in the onboarding view. The details on this page describe current behavior and may change before general availability.
 
 This page explains what happens to a metric between your application and a chart: how ingestion works, what a series is, how aggregations are computed, and where the data lives. You don't need any of this to use metrics, but it helps when you're deciding what to instrument or debugging why a chart looks the way it does.
@@ -12,7 +27,7 @@ Metrics arrive over the OpenTelemetry Protocol (OTLP) via HTTP at `/i/v1/metrics
 
 Each incoming data point carries a metric name, a metric type, a value (or histogram buckets), a timestamp, resource attributes describing the sender (service name, host), and data point attributes describing the measurement (route, status). Ingestion validates the payload, applies your project's quota, and writes data points to a columnar time series store.
 
-Not every metric arrives over OTLP. A [log-based metric](/docs/logs/metrics.md) is generated at ingestion from your logs: log lines matching a rule are tallied as they arrive and emitted as a metric into the same store, so it shows up in the metrics viewer like any instrumented metric.
+Not every metric arrives over OTLP. A [log-based metric](https://posthog.com/docs/logs/metrics.md) is generated at ingestion from your logs: log lines matching a rule are tallied as they arrive and emitted as a metric into the same store, so it shows up in the metrics viewer like any instrumented metric.
 
 ## The series model
 
@@ -25,7 +40,7 @@ A **series** is one stream of values identified by the combination of:
 
 Record `http.requests.total` with `route=/api/checkout` and `status=200`, then again with `status=500`, and you have two series. Group a chart by `status` and each series becomes its own line.
 
-This is why attribute cardinality matters. Ten routes times five status codes is fifty series: cheap, useful, chartable. A user ID attribute with a million values is a million series: expensive, and no chart with a million lines answers a question. Keep attributes to dimensions with a bounded set of values, and reach for [logs](/docs/logs.md) or [traces](/docs/distributed-tracing.md) when you need per user or per request detail.
+This is why attribute cardinality matters. Ten routes times five status codes is fifty series: cheap, useful, chartable. A user ID attribute with a million values is a million series: expensive, and no chart with a million lines answers a question. Keep attributes to dimensions with a bounded set of values, and reach for [logs](https://posthog.com/docs/logs.md) or [traces](https://posthog.com/docs/distributed-tracing.md) when you need per user or per request detail.
 
 ## Metric types and temporality
 
@@ -51,7 +66,7 @@ Through the query API you can also combine multiple metrics with a formula, for 
 
 Two more things sit between storage and the chart:
 
--   **Anomaly detection.** When you chart a metric, PostHog compares the most recent slice of the window against a baseline and, if they differ statistically, finds the onset and ranks which label values drove the move. That powers the anomaly badge and biggest-movers panel in the [viewer](/docs/metrics/explore.md).
+-   **Anomaly detection.** When you chart a metric, PostHog compares the most recent slice of the window against a baseline and, if they differ statistically, finds the onset and ranks which label values drove the move. That powers the anomaly badge and biggest-movers panel in the [viewer](https://posthog.com/docs/metrics/explore.md).
 -   **Raw samples.** Alongside the aggregated series, PostHog keeps the individual emissions. The Samples view in the viewer reads these to show the exact data points behind a chart, and to link each one to the trace it was recorded in when trace context is present.
 
 ## Storage and SQL access
@@ -64,14 +79,6 @@ While metrics is in open alpha, ingestion details and limits may still change, a
 
 ## Next steps
 
--   [Get started with metrics](/docs/metrics/start-here.md)
--   [Why you need metrics](/docs/metrics/basics.md)
--   [Set up and send metrics](/docs/metrics.md)
-
-### Still have questions?
-
-Ask PostHog AI
-
-### Was this page useful?
-
-HelpfulCould be better
+-   [Get started with metrics](https://posthog.com/docs/metrics/start-here.md)
+-   [Why you need metrics](https://posthog.com/docs/metrics/basics.md)
+-   [Set up and send metrics](https://posthog.com/docs/metrics.md)
