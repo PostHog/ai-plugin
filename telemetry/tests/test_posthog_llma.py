@@ -144,6 +144,24 @@ class TestBuildAiSpan:
         assert ev["properties"]["$ai_input_state"] is None
         assert ev["properties"]["$ai_output_state"] is None
 
+    def test_privacy_mode_redacts_error(self):
+        ev = build_ai_span(
+            span_name="Bash", trace_id="t", session_id="s",
+            is_error=True,
+            error_message="SECRET=abc",
+            privacy_mode=True,
+        )
+        assert ev["properties"]["$ai_error"] is None
+        assert ev["properties"]["$ai_is_error"] is True
+
+    def test_error_message_kept_without_privacy_mode(self):
+        ev = build_ai_span(
+            span_name="Bash", trace_id="t", session_id="s",
+            is_error=True,
+            error_message="SECRET=abc",
+        )
+        assert ev["properties"]["$ai_error"] == "SECRET=abc"
+
     def test_truncation(self):
         ev = build_ai_span(
             span_name="Bash", trace_id="t", session_id="s",
