@@ -883,6 +883,32 @@ The schema is authoritative; the prose and examples below are guidance.
     "CohortPropertyFilter": {
       "additionalProperties": false,
       "properties": {
+        "cohort_deleted": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set by the feature flag API when the cohort is deleted or does not exist.",
+          "title": "Cohort Deleted"
+        },
+        "cohort_missing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set by the feature flag API when the cohort does not exist, so it cannot be restored.",
+          "title": "Cohort Missing"
+        },
         "cohort_name": {
           "anyOf": [
             {
