@@ -158,6 +158,20 @@ The output type cannot change after creation.
       "default": false,
       "title": "True Is Failure",
       "type": "boolean"
+    },
+    "decision_threshold": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Decision Threshold"
     }
   },
   "title": "BooleanOutputConfig",
