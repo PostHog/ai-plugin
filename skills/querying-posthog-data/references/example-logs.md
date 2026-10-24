@@ -31,7 +31,7 @@ SELECT
 FROM
     logs
 WHERE
-    and(and(greaterOrEquals(toStartOfDay(time_bucket), toStartOfDay(assumeNotNull(toDateTime('2025-12-09 00:00:00')))), lessOrEquals(toStartOfDay(time_bucket), toStartOfDay(assumeNotNull(toDateTime('2025-12-10 00:00:00'))))), 1, greaterOrEquals(timestamp, toDateTime('2026-10-22 12:05:45.796233')), indexHint(like(lower(body), '%timeout%')), ilike(toString(body), '%timeout%'), in(severity_text, tuple('warn', 'error', 'fatal')))
+    and(and(greaterOrEquals(toStartOfDay(time_bucket), toStartOfDay(assumeNotNull(toDateTime('2025-12-09 00:00:00')))), lessOrEquals(toStartOfDay(time_bucket), toStartOfDay(assumeNotNull(toDateTime('2025-12-10 00:00:00'))))), 1, greaterOrEquals(timestamp, toDateTime('2026-10-23 11:30:44.299546')), indexHint(like(lower(body), '%timeout%')), ilike(toString(body), '%timeout%'), in(severity_text, tuple('warn', 'error', 'fatal')))
 ORDER BY
     timestamp DESC,
     uuid DESC
