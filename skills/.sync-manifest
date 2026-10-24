@@ -79,6 +79,7 @@ grouping-noisy-errors
 implementing-api-surveys
 inbox-exploration
 installing-posthog-from-chat
+installing-posthog-in-a-codebase
 instrument-error-tracking
 instrument-feature-flags
 instrument-integration
