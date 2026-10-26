@@ -9,9 +9,11 @@
 # Privacy & consent:
 #   - Anonymous: distinct_id is a random per-install UUID (no email, no PII),
 #     and events set `$process_person_profile: false` so no person is created.
-#   - Opt-out (on by default). Disable with either:
+#   - Opt-out (on by default). Disable with any of:
 #         export DO_NOT_TRACK=1
 #         export POSTHOG_PLUGIN_TELEMETRY_DISABLED=1
+#         export DISABLE_TELEMETRY=1
+#         export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 #   - Endpoint/key are overridable for testing via POSTHOG_PLUGIN_TELEMETRY_KEY
 #     and POSTHOG_PLUGIN_TELEMETRY_HOST.
 #
@@ -39,6 +41,8 @@ case "${POSTHOG_PLUGIN_TELEMETRY_DISABLED:-}" in
     ""|0|false|FALSE|False) ;;
     *) exit 0 ;;
 esac
+# Claude Code's opt-outs: any non-empty value, even 0 or false, opts out.
+[[ -z "${DISABLE_TELEMETRY:-}" && -z "${CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC:-}" ]] || exit 0
 # No key configured (e.g. placeholder build) → no-op.
 [[ -n "$API_KEY" && "$API_KEY" != "phc_REPLACE_ME" ]] || exit 0
 

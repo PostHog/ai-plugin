@@ -57,7 +57,7 @@ run_hook() {
         CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
         CURL_CAPTURE="$CAP" \
         POSTHOG_PLUGIN_TELEMETRY_HOST="http://localhost:0" \
-        "$@" bash "$HOOK" <<<"$payload"
+        "$@" "$BASH" "$HOOK" <<<"$payload"
 }
 
 # Wait (bounded) for the backgrounded fake curl to record a request.
@@ -136,6 +136,14 @@ if assert_silent; then ok "POSTHOG_PLUGIN_TELEMETRY_DISABLED=true disables captu
 
 run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 DO_NOT_TRACK=0
 if wait_sent; then ok "DO_NOT_TRACK=0 does not disable capture"; else bad "DO_NOT_TRACK=0 does not disable capture" "no send"; fi
+
+# Claude Code's own opt-outs treat any non-empty value, including 0 and false, as opting out.
+for opt_out in DISABLE_TELEMETRY CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC; do
+    for value in 1 0 false; do
+        run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 "$opt_out=$value"
+        if assert_silent; then ok "$opt_out=$value disables capture"; else bad "$opt_out=$value disables capture" "body=$(body)"; fi
+    done
+done
 
 # --- anonymous id is stable across runs ----------------------------------
 
