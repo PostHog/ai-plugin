@@ -10,9 +10,9 @@ on:
         required: false
         default: ''
 
-# Default-deny on the implicit GITHUB_TOKEN. The actual writes (commit + PR
-# create + auto-merge) flow through the GH App token plumbed in below, so the
-# implicit token does not need any scopes.
+# Default-deny on the implicit GITHUB_TOKEN. Commits, PR creation, and
+# auto-merge use the GH App token; the job grants the implicit token only
+# pull-requests: write so a different identity can approve the App's PR.
 permissions: {}
 
 jobs:
@@ -60,16 +60,14 @@ jobs:
             done < "$MANIFEST"
           fi
 
-          # Zip-slip-safe extractor. Plain `unzip -o` does not validate
-          # entries — a malicious archive with `../` traversal could write
-          # outside the destination and tamper with workflow files,
-          # `.git/`, or other ai-plugin source. We validate every entry's
-          # resolved path is contained within $dest before extracting any
-          # member.
+          # Zip-slip-safe extractor: refuses traversal, absolute, and symlink
+          # entries before extracting anything, so an archive cannot write
+          # outside $dest or commit a link into skills/.
           safe_unzip() {
             local archive="$1" dest="$2"
             python3 - "$archive" "$dest" <<'PY'
           import os
+          import stat
           import sys
           import zipfile
 
@@ -82,6 +80,8 @@ jobs:
                   name = member.filename
                   if name.startswith("/") or os.path.isabs(name) or ".." in name.split("/"):
                       sys.exit(f"refusing entry {name!r} in {archive!r}: traversal or absolute path")
+                  if stat.S_ISLNK(member.external_attr >> 16):
+                      sys.exit(f"refusing entry {name!r} in {archive!r}: symlink")
                   target = os.path.realpath(os.path.join(dest_abs, name))
                   if target != dest_abs and not target.startswith(dest_abs + os.sep):
                       sys.exit(f"refusing entry {name!r} in {archive!r}: escapes {dest!r}")
