@@ -104,8 +104,8 @@ def test_marketplace_versions_match_manifests():
         )
 
 
-# hooks/hooks.json is written for Claude Code: its paths expand ${CLAUDE_PLUGIN_ROOT} and the gate
-# answers in Claude's permissionDecision format, so another client must be pointed at a file it can run.
+# Cursor runs hooks/hooks.json, but the gate never matches its `MCP:exec` tool name, Cursor does not
+# enforce the gate's "ask", and the session hook parses Claude Code transcripts, so other clients get none.
 @pytest.mark.parametrize("manifest_dir", [".codex-plugin", ".cursor-plugin"])
 def test_other_clients_get_no_claude_code_hooks(manifest_dir):
     manifest = json.loads((REPO_ROOT / manifest_dir / "plugin.json").read_text())

@@ -21,7 +21,6 @@
   "logo": "assets/logo.svg",
   "skills": "./skills/",
   "agents": "./agents/",
-  "commands": [],
   "hooks": "./hooks/cursor-hooks.json",
   "mcpServers": "./mcp.json"
 }
