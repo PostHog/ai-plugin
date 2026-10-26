@@ -224,6 +224,30 @@ run_case "escaped whitespace after a flag still extracts tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm \r\ndelete-feature-flag {}"}}' \
     prompt delete-feature-flag
 
+# JavaScript's trim() also strips Unicode whitespace, which reaches the hook as
+# raw UTF-8 (JSON.stringify leaves it unescaped) or, for vertical tab, `\u000b`.
+nbsp=$'\xc2\xa0' ideographic_space=$'\xe3\x80\x80' bom=$'\xef\xbb\xbf'
+
+run_case "leading no-break space before call still extracts tool" \
+    "{\"tool_name\":\"mcp__posthog__exec\",\"tool_input\":{\"command\":\"${nbsp}call delete-feature-flag {}\"}}" \
+    prompt delete-feature-flag
+
+run_case "leading no-break space under a UTF-8 locale still extracts tool" \
+    "{\"tool_name\":\"mcp__posthog__exec\",\"tool_input\":{\"command\":\"${nbsp}call delete-feature-flag {}\"}}" \
+    prompt delete-feature-flag LC_ALL=en_US.UTF-8
+
+run_case "leading byte order mark before call still extracts tool" \
+    "{\"tool_name\":\"mcp__posthog__exec\",\"tool_input\":{\"command\":\"${bom}call delete-feature-flag {}\"}}" \
+    prompt delete-feature-flag
+
+run_case "ideographic space after call still extracts tool" \
+    "{\"tool_name\":\"mcp__posthog__exec\",\"tool_input\":{\"command\":\"call ${ideographic_space}delete-feature-flag {}\"}}" \
+    prompt delete-feature-flag
+
+run_case "leading escaped vertical tab before call still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"\u000bcall delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
 run_case "--confirm on a non-sensitive write is silent" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm experiment-update {}"}}' \
     silent
