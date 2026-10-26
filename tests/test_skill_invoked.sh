@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
 # Tests for hooks/skill-invoked.sh.
 #
-# Plain bash, no dependencies. Run from anywhere:
+# Bash plus python3 to parse the sent body. Run from anywhere, under the bash
+# the hook should be tested with:
 #
 #     ./tests/test_skill_invoked.sh
+#     /bin/bash ./tests/test_skill_invoked.sh
 #
 # Each case feeds a PostToolUse JSON payload (the shape Claude Code passes on
 # stdin) to the hook with a controlled environment, then asserts whether the
 # hook sent an event and what the payload contained. The network call is
 # intercepted by a fake `curl` on PATH that records the request to a file, so
 # nothing leaves the machine.
+
+# PostHog property names start with `$`, so single-quoted `$` is literal on purpose.
+# shellcheck disable=SC2016
 
 set -u
 
@@ -61,7 +66,7 @@ run_hook() {
 }
 
 # Wait (bounded) for the backgrounded fake curl to record a request.
-wait_sent() { local i; for i in $(seq 1 60); do [[ -s "$CAP" ]] && return 0; sleep 0.05; done; return 1; }
+wait_sent() { local _; for _ in $(seq 1 60); do [[ -s "$CAP" ]] && return 0; sleep 0.05; done; return 1; }
 # Give a no-op case a moment, then confirm nothing was recorded.
 assert_silent() { sleep 0.3; [[ ! -s "$CAP" ]]; }
 
@@ -86,32 +91,31 @@ echo "Running skill-invoked.sh tests..."
 
 # --- captured: this plugin's skills --------------------------------------
 
+# Top-level and property keys of the sent body, sorted and space-separated.
+keys() { body | python3 -I -c 'import json, sys; e = json.load(sys.stdin); print(" ".join(sorted(e)), "|", " ".join(sorted(e["properties"])))'; }
+
 run_hook "$(skill_payload "posthog:querying-posthog-data")" 1
-if wait_sent && [[ "$(body)" == *'"skill":"posthog:querying-posthog-data"'* \
-        && "$(body)" == *'"skill_name":"querying-posthog-data"'* \
-        && "$(body)" == *'"skill_namespace":"posthog"'* \
-        && "$(body)" == *'"event":"plugin skill invoked"'* \
-        && "$(body)" == *'"$process_person_profile":false'* \
-        && "$(body)" == *'"args_present":false'* ]]; then
-    ok "posthog: namespaced skill is captured"
+wait_sent
+if [[ "$(keys)" == 'api_key distinct_id event properties | $geoip_disable $ip $lib $process_person_profile args_present os permission_mode plugin_version skill' ]]; then
+    ok "payload carries only the disclosed fields"
 else
-    bad "posthog: namespaced skill is captured" "body=$(body)"
+    bad "payload carries only the disclosed fields" "keys=$(keys)"
+fi
+if [[ "$(prop skill)" == '"querying-posthog-data"' ]]; then ok "skill slug sent without namespace"; else bad "skill slug sent without namespace" "body=$(body)"; fi
+if [[ "$(prop args_present)" == "false" ]]; then ok "args_present false without args"; else bad "args_present false without args" "body=$(body)"; fi
+if [[ "$(prop plugin_version)" == "\"$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "$REPO_ROOT/.claude-plugin/plugin.json")\"" ]]; then
+    ok "plugin version read from the manifest"
+else
+    bad "plugin version read from the manifest" "body=$(body)"
 fi
 
-# A bundled skill invoked by bare name (matches a dir under skills/).
-BARE_SKILL=""
-for d in "$REPO_ROOT"/skills/*/; do BARE_SKILL="$(basename "$d")"; break; done
-run_hook "$(skill_payload "$BARE_SKILL")" 1
-if wait_sent && [[ "$(body)" == *"\"skill\":\"$BARE_SKILL\""* \
-        && "$(body)" == *'"skill_namespace":""'* ]]; then
-    ok "bundled bare-name skill ($BARE_SKILL) is captured"
-else
-    bad "bundled bare-name skill is captured" "body=$(body)"
-fi
+# Codex sets PLUGIN_ROOT, but no longer ships this hook; nothing should depend on it.
+run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 PLUGIN_ROOT="$REPO_ROOT"
+if wait_sent && [[ "$(body)" != *codex* ]]; then ok "no Codex client label"; else bad "no Codex client label" "body=$(body)"; fi
 
 # args present → boolean true, but the content must never appear.
 run_hook "$(skill_payload "posthog:exploring-llm-traces" "SECRET_ARG_PAYLOAD path/to/file")" 1
-if wait_sent && [[ "$(body)" == *'"args_present":true'* && "$(body)" != *"SECRET_ARG_PAYLOAD"* ]]; then
+if wait_sent && [[ "$(prop args_present)" == "true" && "$(body)" != *"SECRET_ARG_PAYLOAD"* ]]; then
     ok "args presence captured as boolean, content never sent"
 else
     bad "args presence captured as boolean, content never sent" "body=$(body)"
@@ -127,14 +131,65 @@ if [[ "$(prop '$process_person_profile')" == "false" ]]; then ok "no person prof
 
 # --- ignored: not this plugin's skills -----------------------------------
 
-run_hook "$(skill_payload "some-other-plugin:do-thing")" 1
-if assert_silent; then ok "other-plugin skill is ignored"; else bad "other-plugin skill is ignored" "body=$(body)"; fi
-
-run_hook "$(skill_payload "definitely-not-a-bundled-skill")" 1
-if assert_silent; then ok "unknown project skill is ignored"; else bad "unknown project skill is ignored" "body=$(body)"; fi
+# A bundled skill's bare name can also be a project or user skill, so only the plugin namespace counts.
+BARE_SKILL="querying-posthog-data"
+[[ -d "$REPO_ROOT/skills/$BARE_SKILL" ]] || bad "fixture skill $BARE_SKILL exists"
+for skill in \
+    some-other-plugin:do-thing \
+    other:querying-posthog-data \
+    posthog-telemetry:querying-posthog-data \
+    "$BARE_SKILL" \
+    posthog:definitely-not-a-bundled-skill \
+    posthog: \
+    posthog:other:querying-posthog-data; do
+    run_hook "$(skill_payload "$skill")" 1
+    if assert_silent; then ok "skill '$skill' is ignored"; else bad "skill '$skill' is ignored" "body=$(body)"; fi
+done
 
 run_hook '{"tool_name":"Bash","tool_input":{"command":"ls"}}' 1
 if assert_silent; then ok "non-Skill tool is ignored"; else bad "non-Skill tool is ignored" "body=$(body)"; fi
+
+# A plugin skill named only in the tool response, not the input, is not an invocation of it.
+run_hook '{"tool_name":"Skill","tool_input":{"skill":"other:thing"},"tool_response":{"skill":"posthog:querying-posthog-data"}}' 1
+if assert_silent; then ok "skill named only in tool_response is ignored"; else bad "skill named only in tool_response is ignored" "body=$(body)"; fi
+
+# --- hostile input never reaches the shell or the JSON body ---------------
+
+PWNED="$TMP/pwned"
+run_hook '{"permission_mode":"default\",\"x\":\"y","tool_name":"Skill","tool_input":{"args":"\",\"skill\":\"posthog:evil\"} $(touch '"$PWNED"') `touch '"$PWNED"'` SECRET_ARG_PAYLOAD","skill":"posthog:querying-posthog-data"}}' 1
+wait_sent
+if [[ "$(prop skill)" == '"querying-posthog-data"' && "$(prop args_present)" == "true" && "$(prop permission_mode)" == '""' ]]; then
+    ok "quotes in args and permission_mode don't change the body"
+else
+    bad "quotes in args and permission_mode don't change the body" "body=$(body)"
+fi
+if [[ "$(body)" != *SECRET_ARG_PAYLOAD* && "$(body)" != *evil* ]]; then ok "args content never sent"; else bad "args content never sent" "body=$(body)"; fi
+if [[ ! -e "$PWNED" ]]; then ok "command substitution in args never runs"; else bad "command substitution in args never runs"; fi
+
+run_hook '{"tool_name":"Skill","tool_input":{"skill":"posthog:querying-posthog-data\",\"x\":\"y"}}' 1
+if assert_silent; then ok "skill name with JSON metacharacters is ignored"; else bad "skill name with JSON metacharacters is ignored" "body=$(body)"; fi
+
+# A tampered id file, plugin manifest, and uname output can't inject into the body.
+FAKE_ROOT="$TMP/fake-root"
+mkdir -p "$FAKE_ROOT/.claude-plugin" "$FAKE_ROOT/skills/$BARE_SKILL" "$TMP/fakeuname"
+printf '{"version": "1.0\\",\\"event\\":\\"x"}' > "$FAKE_ROOT/.claude-plugin/plugin.json"
+printf '#!/bin/sh\necho %s\n' "'Linux\",\"event\":\"x'" > "$TMP/fakeuname/uname"
+chmod +x "$TMP/fakeuname/uname"
+mkdir -p "$TMP/home/.claude"
+printf '%s\n' 'abc","event":"x' > "$TMP/home/.claude/posthog-plugin-telemetry-id"
+run_hook "$(skill_payload "posthog:$BARE_SKILL")" 0 CLAUDE_PLUGIN_ROOT="$FAKE_ROOT" PATH="$TMP/fakeuname:$FAKEBIN:$PATH"
+wait_sent
+event="$(body | python3 -I -c 'import json, sys; e = json.load(sys.stdin); print(e["event"], e["distinct_id"])')"
+if [[ "$event" =~ ^plugin\ skill\ invoked\ [A-Za-z0-9-]+$ && "$event" != *abc* ]]; then
+    ok "tampered id file is replaced"
+else
+    bad "tampered id file is replaced" "body=$(body)"
+fi
+if [[ "$(prop plugin_version)" == '"1.0"' && "$(prop os)" == '"Linuxeventx"' ]]; then
+    ok "manifest version and uname output are sanitised"
+else
+    bad "manifest version and uname output are sanitised" "body=$(body)"
+fi
 
 # --- consent guards ------------------------------------------------------
 
