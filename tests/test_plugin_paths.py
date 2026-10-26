@@ -102,3 +102,10 @@ def test_marketplace_versions_match_manifests():
             f"{entry['name']}: marketplace says {entry['version']}, manifest says {manifest['version']}. "
             "An install pins the version, so a stale entry never reaches existing users."
         )
+
+
+def test_antigravity_mcp_server_matches_claude_code():
+    # Antigravity reads mcp_config.json and names the URL field serverUrl, so it is a second copy of .mcp.json.
+    claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
+    antigravity = json.loads((REPO_ROOT / "mcp_config.json").read_text())["mcpServers"]["posthog"]
+    assert (antigravity["serverUrl"], antigravity["headers"]) == (claude_code["url"], claude_code["headers"])

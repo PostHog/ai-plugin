@@ -72,6 +72,17 @@ Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add man
     /plugins
     ```
 
+### Antigravity
+
+1. Install the plugin:
+    ```bash
+    agy plugin install https://github.com/PostHog/ai-plugin
+    ```
+
+2. Authenticate via OAuth: on first use of a PostHog tool, Antigravity prompts you to authorize in your browser. Log into PostHog to connect.
+
+The plugin installs the PostHog skills and the MCP server. Claude Code's session capture and the write-command gate don't run in Antigravity.
+
 ### Gemini CLI
 
 ```bash

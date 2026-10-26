@@ -23,3 +23,28 @@ jobs:
 
       - name: Run Python tests
         run: python3 -m pytest tests/test_plugin_paths.py telemetry/tests/test_session_parser.py telemetry/tests/test_posthog_llma.py
+
+  antigravity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AGY_URL: https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.7-5900205422411776/linux-x64/cli_linux_x64.tar.gz
+      AGY_SHA512: beda760587589f5827b0b516c3ec2c5bd5cd2e91eb0e2533807ba1e990a27dcd63aef0191e0b76fb60feab0d16eaa8210fb79842c34dd4809e257e1712edd152
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Antigravity CLI
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/agy.tar.gz" "$AGY_URL"
+          echo "$AGY_SHA512  $RUNNER_TEMP/agy.tar.gz" | sha512sum -c -
+          mkdir -p "$RUNNER_TEMP/bin"
+          tar -xzf "$RUNNER_TEMP/agy.tar.gz" -C "$RUNNER_TEMP/bin" antigravity
+          mv "$RUNNER_TEMP/bin/antigravity" "$RUNNER_TEMP/bin/agy"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Install pytest
+        run: python3 -m pip install --user pytest
+
+      - name: Load the plugin with Antigravity
+        run: agy --version && python3 -m pytest -rs tests/test_antigravity_plugin.py
