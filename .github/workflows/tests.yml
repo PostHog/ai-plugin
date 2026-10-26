@@ -23,3 +23,6 @@ jobs:
 
       - name: Run Python tests
         run: python3 -m pytest tests/test_plugin_paths.py telemetry/tests/test_session_parser.py telemetry/tests/test_posthog_llma.py
+
+      - name: Validate the Cursor manifest against Cursor's plugin schema
+        run: pipx run check-jsonschema==0.38.2 --schemafile https://raw.githubusercontent.com/cursor/plugins/5229aad76c37451561c5b81a9b5072ae1c549a5b/schemas/plugin.schema.json .cursor-plugin/plugin.json

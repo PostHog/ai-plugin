@@ -58,6 +58,8 @@ Install it instead of the `posthog` plugin, not alongside it. Both register the 
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add manually in Cursor Settings > Plugins.
 
+The plugin installs the PostHog skills and the MCP server. Claude Code's session capture and the write-command gate don't run in Cursor.
+
 ### Codex
 
 1. Add the marketplace:
