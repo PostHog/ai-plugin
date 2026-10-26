@@ -373,6 +373,31 @@ run_case "read list matches whole names only (persons-list-x is unlisted)" \
     prompt persons-list-x \
     POSTHOG_MCP_EXEC_GATE_DENY="*"
 
+# Gateway tools (`<server>__<tool>`) belong to connected third-party servers,
+# which apply their own policy; PostHog tool names never contain `__`.
+run_case "default: gateway read tool (linear__list_issues) is silent" \
+    "$(exec_call linear__list_issues)" \
+    silent
+
+run_case "default: gateway write tool (github__delete_branch) is silent" \
+    "$(exec_call github__delete_branch)" \
+    silent
+
+run_case 'deny="*": gateway read tool (linear__list_issues) is silent' \
+    "$(exec_call linear__list_issues)" \
+    silent "" \
+    POSTHOG_MCP_EXEC_GATE_DENY="*"
+
+run_case 'deny="*": gateway write tool (github__delete_branch) is silent' \
+    "$(exec_call github__delete_branch)" \
+    silent "" \
+    POSTHOG_MCP_EXEC_GATE_DENY="*"
+
+run_case 'deny="*": unlisted PostHog tool beside gateway tools prompts (delete-branch)' \
+    "$(exec_call delete-branch)" \
+    prompt delete-branch \
+    POSTHOG_MCP_EXEC_GATE_DENY="*"
+
 # Without the read list every call counts as a write, so the gate still prompts.
 _no_list_dir="$(mktemp -d)"
 cp "$HOOK" "$_no_list_dir/"
