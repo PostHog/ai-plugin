@@ -273,6 +273,20 @@ run_case "command key inside the call body is not a decoy" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call experiment-get {\"command\":\"call delete-feature-flag\"}"}}' \
     silent
 
+# posthog-connection-call and -forward run any tool in another project.
+run_case "posthog-connection-call prompts by default" \
+    "$(exec_call posthog-connection-call)" \
+    prompt posthog-connection-call
+
+run_case "posthog-connection-forward prompts by default" \
+    "$(exec_call posthog-connection-forward)" \
+    prompt posthog-connection-forward
+
+run_case "posthog-connection-call prompts even when allowlisted" \
+    "$(exec_call posthog-connection-call)" \
+    prompt posthog-connection-call \
+    POSTHOG_MCP_EXEC_GATE_ALLOW="*"
+
 # --- allowlist wins over the deny set (silent on match) ---
 
 run_case "allowlist glob matches (feature-flag-*) over default deny" \
