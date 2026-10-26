@@ -18,5 +18,9 @@
     "dashboards",
     "llm-analytics"
   ],
-  "logo": "assets/logo.svg"
+  "logo": "assets/logo.svg",
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "hooks": "./hooks/cursor-hooks.json",
+  "mcpServers": "./mcp.json"
 }

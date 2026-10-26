@@ -109,3 +109,18 @@ def test_antigravity_mcp_server_matches_claude_code():
     claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
     antigravity = json.loads((REPO_ROOT / "mcp_config.json").read_text())["mcpServers"]["posthog"]
     assert (antigravity["serverUrl"], antigravity["headers"]) == (claude_code["url"], claude_code["headers"])
+
+
+# Cursor runs hooks/hooks.json, but the gate never matches its `MCP:exec` tool name, Cursor does not
+# enforce the gate's "ask", and the session hook parses Claude Code transcripts, so other clients get none.
+@pytest.mark.parametrize("manifest_dir", [".codex-plugin", ".cursor-plugin"])
+def test_other_clients_get_no_claude_code_hooks(manifest_dir):
+    manifest = json.loads((REPO_ROOT / manifest_dir / "plugin.json").read_text())
+    assert json.loads((REPO_ROOT / manifest["hooks"]).read_text())["hooks"] == {}
+
+
+def test_cursor_manifest_paths_exist():
+    manifest = json.loads((REPO_ROOT / ".cursor-plugin" / "plugin.json").read_text())
+    paths = [manifest[key] for key in ("skills", "agents", "hooks", "mcpServers")]
+    missing = [path for path in paths if not (REPO_ROOT / path).exists()]
+    assert missing == []
