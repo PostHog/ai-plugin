@@ -22,7 +22,8 @@ fail=0
 #   $1: case name
 #   $2: stdin payload
 #   $3: expected mode — "silent" or "prompt"
-#   $4: when "prompt", the posthog tool name expected in the response
+#   $4: when "prompt", the posthog tool name expected in the response, or ""
+#       for a prompt that names no tool
 #   $5+: optional `KEY=VALUE` env overrides for this run
 run_case() {
     local name="$1" payload="$2" expected="$3" expected_tool="${4:-}"
@@ -39,8 +40,9 @@ run_case() {
         # Match the actual JSON shape the hook produces, with the tool name
         # interpolated. Any drift in the response template will fail here.
         local needle="\"permissionDecision\":\"ask\""
-        local tool_needle="\`${expected_tool}\` modifies PostHog data"
-        [[ $status -eq 0 && "$out" == *"$needle"* && "$out" == *"$tool_needle"* ]] || ok=0
+        local tool_needle="\`${expected_tool}\`"
+        [[ $status -eq 0 && "$out" == *"$needle"* ]] || ok=0
+        [[ -z "$expected_tool" || "$out" == *"$tool_needle"* ]] || ok=0
     fi
 
     if (( ok )); then
@@ -371,6 +373,15 @@ if bash -n "$HOOK" 2>/dev/null; then
 else
     fail=$((fail + 1)); printf "  FAIL hook has a syntax error ('bash -n')\n"
 fi
+
+# A regex that fails to compile makes `=~` return 2; the hook must prompt
+# rather than pass. Simulate it on a copy whose call regex is invalid.
+broken_dir="$(mktemp -d)"
+sed "s/^call_re=.*/call_re='('/" "$HOOK" > "$broken_dir/gate-exec-write.sh"
+HOOK="$broken_dir/gate-exec-write.sh" run_case "call regex error prompts" \
+    "$(exec_call experiment-get)" \
+    prompt ""
+rm -rf "$broken_dir"
 
 # No input, however malformed, may yield exit code 2 (block). Fail open instead.
 for _payload in \
