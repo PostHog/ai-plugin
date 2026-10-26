@@ -74,6 +74,17 @@ The plugin installs the PostHog skills and the MCP server. Claude Code's session
     /plugins
     ```
 
+### Antigravity
+
+1. Install the plugin:
+    ```bash
+    agy plugin install https://github.com/PostHog/ai-plugin
+    ```
+
+2. Authenticate via OAuth: run `/mcp`, select `posthog_posthog`, and choose **Authenticate**. Open the link it shows, log into PostHog, and paste the authorization code back into Antigravity.
+
+The plugin installs the PostHog skills and the MCP server. Claude Code's session capture and the write-command gate don't run in Antigravity.
+
 ### Gemini CLI
 
 ```bash

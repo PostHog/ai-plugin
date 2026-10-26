@@ -104,6 +104,13 @@ def test_marketplace_versions_match_manifests():
         )
 
 
+def test_antigravity_mcp_server_matches_claude_code():
+    # Antigravity reads mcp_config.json and names the URL field serverUrl, so it is a second copy of .mcp.json.
+    claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
+    antigravity = json.loads((REPO_ROOT / "mcp_config.json").read_text())["mcpServers"]["posthog"]
+    assert (antigravity["serverUrl"], antigravity["headers"]) == (claude_code["url"], claude_code["headers"])
+
+
 # Cursor runs hooks/hooks.json, but the gate never matches its `MCP:exec` tool name, Cursor does not
 # enforce the gate's "ask", and the session hook parses Claude Code transcripts, so other clients get none.
 @pytest.mark.parametrize("manifest_dir", [".codex-plugin", ".cursor-plugin"])
