@@ -52,6 +52,13 @@ trap 'exit 0' EXIT
 
 set -u
 
+# Prompts with reason $1 and exits. The reason is interpolated into JSON
+# unescaped, so callers pass fixed text or a [a-zA-Z0-9_-]+ tool name.
+ask() {
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"%s"}}' "$1"
+    exit 0
+}
+
 # Codex compatibility: Codex's PreToolUse protocol does not support
 # `permissionDecision: "ask"` (it is parsed then rejected as unsupported), and
 # Codex already gates tool calls through its own approval flow. Detect Codex via
@@ -114,13 +121,20 @@ fi
 # which is matched as any non-ASCII byte under the C locale (extra prompts only).
 # Tool names are kebab-case [a-zA-Z0-9_-]+ so the regex stops cleanly at the
 # first space or escaped quote without needing to parse the trailing JSON.
+#
+# The regex only compiles under LC_ALL=C: raw bytes \x80-\xff are invalid in a
+# UTF-8 locale, where `=~` returns 2 and nothing would ever match. A match
+# status of 2 therefore prompts instead of passing.
 LC_ALL=C
 ws='([[:space:]]|\\[nrtf]|\\u000[bB]|['$'\x80''-'$'\xff'']'')'
 call_re="\"command\"[[:space:]]*:[[:space:]]*\"${ws}*call${ws}+((--[a-zA-Z-]+${ws}+)*)([a-zA-Z0-9_-]+)"
+
 posthog_tool=""
-if [[ "$input" =~ $call_re ]]; then
-    posthog_tool="${BASH_REMATCH[${#BASH_REMATCH[@]}-1]}"
-fi
+[[ "$input" =~ $call_re ]]
+case $? in
+    0) posthog_tool="${BASH_REMATCH[${#BASH_REMATCH[@]}-1]}" ;;
+    2) ask "The PostHog exec command could not be checked — approve to run." ;;
+esac
 [[ -n "$posthog_tool" ]] || exit 0
 
 # Match write-verb fragments as whole hyphen-separated words within the tool
@@ -159,7 +173,7 @@ if [[ "$posthog_tool" =~ $write_re ]]; then
     # `posthog_tool` is restricted to [a-zA-Z0-9_-]+ by the regex above, so
     # interpolating it into the JSON response is safe — no characters that
     # would need escaping for JSON or printf.
-    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"`%s` modifies PostHog data — approve to run."}}' "$posthog_tool"
+    ask "\`$posthog_tool\` modifies PostHog data — approve to run."
 fi
 
 exit 0
