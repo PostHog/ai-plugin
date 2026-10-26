@@ -102,3 +102,18 @@ def test_marketplace_versions_match_manifests():
             f"{entry['name']}: marketplace says {entry['version']}, manifest says {manifest['version']}. "
             "An install pins the version, so a stale entry never reaches existing users."
         )
+
+
+# hooks/hooks.json is written for Claude Code: its paths expand ${CLAUDE_PLUGIN_ROOT} and the gate
+# answers in Claude's permissionDecision format, so another client must be pointed at a file it can run.
+@pytest.mark.parametrize("manifest_dir", [".codex-plugin", ".cursor-plugin"])
+def test_other_clients_get_no_claude_code_hooks(manifest_dir):
+    manifest = json.loads((REPO_ROOT / manifest_dir / "plugin.json").read_text())
+    assert json.loads((REPO_ROOT / manifest["hooks"]).read_text())["hooks"] == {}
+
+
+def test_cursor_manifest_paths_exist():
+    manifest = json.loads((REPO_ROOT / ".cursor-plugin" / "plugin.json").read_text())
+    paths = [manifest[key] for key in ("skills", "agents", "hooks", "mcpServers")]
+    missing = [path for path in paths if not (REPO_ROOT / path).exists()]
+    assert missing == []
