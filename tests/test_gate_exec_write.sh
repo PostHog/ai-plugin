@@ -248,9 +248,10 @@ run_case "leading escaped vertical tab before call still extracts tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"\u000bcall delete-feature-flag {}"}}' \
     prompt delete-feature-flag
 
-run_case "--confirm on a non-sensitive write is silent" \
+run_case "--confirm before a write selected by deny still extracts tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm experiment-update {}"}}' \
-    silent
+    prompt experiment-update \
+    POSTHOG_MCP_EXEC_GATE_DENY="experiment-update"
 
 run_case "info on a sensitive tool is silent" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"info --json delete-feature-flag"}}' \
