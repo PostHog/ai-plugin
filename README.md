@@ -170,6 +170,31 @@ The plugin also ships 30+ task-specific skills that your AI client loads on dema
 > Show me the top 10 pages by pageviews
 ```
 
+## Plugin usage telemetry
+
+In Claude Code, the plugin sends one anonymous `plugin skill invoked` event to PostHog Cloud each time one of this plugin's skills runs, whether Claude invokes it or you type `/posthog:<skill>`. Skills from other plugins and your own skills aren't counted. Each event contains only:
+
+- `skill`: the skill's name, such as `querying-posthog-data`
+- `invocation`: `model` when Claude invoked the skill, `user` when you typed it as a slash command
+- `args_present`: whether the skill was invoked with arguments, never the arguments themselves
+- `plugin_version`: the installed plugin version
+- `permission_mode`: Claude Code's permission mode, such as `default` or `plan`
+- `os`: the operating system name from `uname -s`, such as `Darwin` or `Linux`
+- `distinct_id`: a random UUID generated once per install and stored in the plugin's data directory
+- `$lib`: always `posthog-ai-plugin`
+- `$process_person_profile`, `$geoip_disable`, and `$ip`: fixed values (`false`, `true`, and `127.0.0.1`) so PostHog creates no person profile and runs no GeoIP lookup, and the stored event carries no client IP address. The request still reaches PostHog's capture endpoint from your IP, as any HTTPS request does
+
+No event is sent when `POSTHOG_MCP_URL` or `POSTHOG_HOST` points anywhere other than `posthog.com`, so self-hosted users don't report to PostHog Cloud. Like Claude Code's own telemetry, it's also off when Claude Code runs on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or Claude Platform on AWS (`CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`, or `CLAUDE_CODE_USE_ANTHROPIC_AWS` set to `1`, `true`, `yes`, or `on`). To turn it off, set any of these in your shell or the `env` block of `~/.claude/settings.json`:
+
+```bash
+export DO_NOT_TRACK=1
+export POSTHOG_PLUGIN_TELEMETRY_DISABLED=1
+export DISABLE_TELEMETRY=1
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+```
+
+`DO_NOT_TRACK` and `DISABLE_TELEMETRY` turn off Claude Code's own telemetry too, and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` turns off all of Claude Code's nonessential traffic. `POSTHOG_PLUGIN_TELEMETRY_DISABLED` turns off only this plugin's telemetry.
+
 ## Self-hosted
 
 For self-hosted PostHog instances, set the `POSTHOG_MCP_URL` environment variable to point to your instance:
