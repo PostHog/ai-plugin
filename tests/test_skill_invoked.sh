@@ -166,6 +166,9 @@ fi
 if [[ "$(body)" != *SECRET_ARG_PAYLOAD* && "$(body)" != *evil* ]]; then ok "args content never sent"; else bad "args content never sent" "body=$(body)"; fi
 if [[ ! -e "$PWNED" ]]; then ok "command substitution in args never runs"; else bad "command substitution in args never runs"; fi
 
+run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 'POSTHOG_PLUGIN_TELEMETRY_KEY=k","event":"x'
+if assert_silent; then ok "malformed key override is ignored"; else bad "malformed key override is ignored" "body=$(body)"; fi
+
 run_hook '{"tool_name":"Skill","tool_input":{"skill":"posthog:querying-posthog-data\",\"x\":\"y"}}' 1
 if assert_silent; then ok "skill name with JSON metacharacters is ignored"; else bad "skill name with JSON metacharacters is ignored" "body=$(body)"; fi
 
