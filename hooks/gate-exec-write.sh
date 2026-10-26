@@ -201,5 +201,3 @@ matches_any_glob "$posthog_tool" "$deny_patterns" || exit 0
 # interpolating it into the JSON response is safe — no characters that
 # would need escaping for JSON or printf.
 ask "\`$posthog_tool\` modifies PostHog data — approve to run."
-
-exit 0
