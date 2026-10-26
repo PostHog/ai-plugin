@@ -18,11 +18,21 @@ trap 'rm -f "$tmp"' EXIT
         | LC_ALL=C sort -u
 } > "$tmp"
 
-count="$(grep -c -v '^#' "$tmp")"
-if (( count < 100 )); then
-    echo "refusing to write $OUT: only $count tools parsed from $REGISTRY_URL" >&2
-    exit 1
+# The sync PR auto-merges, so cap the daily change at 10% of the committed
+# list. Additions are the dangerous direction, since each one stops gating a
+# tool; removals only add prompts but are capped too, because accepting a
+# collapsed list would make the addition cap refuse its recovery. To accept a
+# larger change on purpose, delete the committed list and rerun.
+if [[ -f "$OUT" ]]; then
+    committed="$(grep -c -v '^#' "$OUT" || true)"
+    added="$(LC_ALL=C comm -13 <(grep -v '^#' "$OUT") <(grep -v '^#' "$tmp") | wc -l)"
+    removed="$(LC_ALL=C comm -23 <(grep -v '^#' "$OUT") <(grep -v '^#' "$tmp") | wc -l)"
+    if (( added * 10 > committed || removed * 10 > committed )); then
+        echo "refusing to write $OUT: +$added/-$removed read-only tools vs $committed committed is over 10%" >&2
+        exit 1
+    fi
 fi
+count="$(grep -c -v '^#' "$tmp" || true)"
 mv "$tmp" "$OUT"
 trap - EXIT
 echo "wrote $count read-only tools to $OUT"
