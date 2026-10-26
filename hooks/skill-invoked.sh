@@ -18,6 +18,8 @@
 #         export POSTHOG_PLUGIN_TELEMETRY_DISABLED=1
 #         export DISABLE_TELEMETRY=1
 #         export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+#     It is also off on Bedrock, Vertex, Foundry, and Claude Platform on AWS,
+#     like Claude Code's own telemetry.
 #   - Endpoint/key are overridable for testing via POSTHOG_PLUGIN_TELEMETRY_KEY
 #     and POSTHOG_PLUGIN_TELEMETRY_HOST.
 #
@@ -47,6 +49,12 @@ case "${POSTHOG_PLUGIN_TELEMETRY_DISABLED:-}" in
 esac
 # Claude Code's opt-outs: any non-empty value, even 0 or false, opts out.
 [[ -z "${DISABLE_TELEMETRY:-}" && -z "${CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC:-}" ]] || exit 0
+# Claude Code's telemetry is off by default on third-party providers.
+for provider in "${CLAUDE_CODE_USE_BEDROCK:-}" "${CLAUDE_CODE_USE_VERTEX:-}" "${CLAUDE_CODE_USE_FOUNDRY:-}" "${CLAUDE_CODE_USE_ANTHROPIC_AWS:-}"; do
+    case "$(printf '%s' "$provider" | tr '[:upper:]' '[:lower:]')" in
+        1|true|yes|on) exit 0 ;;
+    esac
+done
 # Self-hosted users point the MCP server or LLM analytics at their own
 # instance; keep their usage off PostHog Cloud. Unparseable hosts fail closed.
 for url in "${POSTHOG_MCP_URL:-}" "${POSTHOG_HOST:-}"; do

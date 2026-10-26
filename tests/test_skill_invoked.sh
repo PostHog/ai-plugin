@@ -258,6 +258,18 @@ if assert_silent; then ok "POSTHOG_PLUGIN_TELEMETRY_DISABLED=true disables captu
 run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 DO_NOT_TRACK=0
 if wait_sent; then ok "DO_NOT_TRACK=0 does not disable capture"; else bad "DO_NOT_TRACK=0 does not disable capture" "no send"; fi
 
+# Claude Code turns its own telemetry off by default on these providers; any truthy value selects one.
+for provider in CLAUDE_CODE_USE_BEDROCK CLAUDE_CODE_USE_VERTEX CLAUDE_CODE_USE_FOUNDRY CLAUDE_CODE_USE_ANTHROPIC_AWS; do
+    for value in 1 true YES On; do
+        run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 "$provider=$value"
+        if assert_silent; then ok "$provider=$value disables capture"; else bad "$provider=$value disables capture" "body=$(body)"; fi
+    done
+    for value in 0 false ""; do
+        run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 "$provider=$value"
+        if wait_sent; then ok "$provider='$value' keeps capture"; else bad "$provider='$value' keeps capture" "no send"; fi
+    done
+done
+
 # Claude Code's own opt-outs treat any non-empty value, including 0 and false, as opting out.
 for opt_out in DISABLE_TELEMETRY CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC; do
     for value in 1 0 false; do
