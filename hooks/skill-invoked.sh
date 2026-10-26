@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# PostToolUse telemetry for the `Skill` tool — anonymous plugin usage analytics.
+# Skill telemetry — anonymous plugin usage analytics.
 #
-# Fires after a skill is invoked and, *only for this plugin's own skills*,
-# sends a single "plugin skill invoked" event to a PostHog-owned project so the
-# team can see which skills get used in the field. Captures the skill name plus
-# safe metadata only — never the skill arguments or any free-text content.
+# Fires on PostToolUse(Skill), when Claude invokes a skill, and on
+# UserPromptExpansion, when the user types `/posthog:<skill>`. *Only for this
+# plugin's own skills*, it sends a single "plugin skill invoked" event to a
+# PostHog-owned project so the team can see which skills get used in the field.
+# Captures the skill name plus safe metadata only — never the skill arguments or
+# any free-text content.
 #
 # Privacy & consent:
 #   - Anonymous: distinct_id is a random per-install UUID (no email, no PII),
@@ -20,8 +22,9 @@
 #     and POSTHOG_PLUGIN_TELEMETRY_HOST.
 #
 # Pure bash + curl; no jq or other third-party tools. Reads the hook JSON on
-# stdin, sends in the background, and always exits 0 — losing a telemetry event
-# is fine, interfering with the user's session is not.
+# stdin, sends in the background, and always exits 0 with no output — losing a
+# telemetry event is fine, interfering with the user's session is not, and
+# UserPromptExpansion stdout would reach Claude's context.
 #
 # Every value interpolated into the JSON body is matched against or stripped to
 # a quote-free charset first, so no JSON escaping is needed.
@@ -63,26 +66,38 @@ ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." 2>/de
 
 input="$(cat)"
 
-# Only act on the Skill tool (the matcher should already guarantee this).
-[[ "$input" =~ \"tool_name\"[[:space:]]*:[[:space:]]*\"Skill\" ]] || exit 0
-
-# Walk tool_input's top level one whole JSON string or non-brace byte at a time,
-# so a key match can't start inside a string (args) or leave the object
-# (tool_response). Group 3 is the skill value.
-tool_input='"tool_input"[[:space:]]*:[[:space:]]*\{([^"{}]|"([^"\\]|\\.)*")*'
-[[ "$input" =~ ${tool_input}\"skill\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]] || exit 0
+# Whether arguments were passed is kept as presence only, never the content.
+args_present=false
+if [[ "$input" =~ \"hook_event_name\"[[:space:]]*:[[:space:]]*\"UserPromptExpansion\" ]]; then
+    invocation=user
+    # The input is flat, and a `"` inside a JSON string is always escaped, so
+    # these key matches can't start inside the user's prompt or args.
+    [[ "$input" =~ \"expansion_type\"[[:space:]]*:[[:space:]]*\"slash_command\" ]] || exit 0
+    [[ "$input" =~ \"command_source\"[[:space:]]*:[[:space:]]*\"plugin\" ]] || exit 0
+    [[ "$input" =~ \"command_name\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]] || exit 0
+    name="${BASH_REMATCH[1]}"
+    if [[ "$input" =~ \"command_args\"[[:space:]]*:[[:space:]]*\"[^\"] ]]; then
+        args_present=true
+    fi
+else
+    invocation=model
+    [[ "$input" =~ \"tool_name\"[[:space:]]*:[[:space:]]*\"Skill\" ]] || exit 0
+    # Walk tool_input's top level one whole JSON string or non-brace byte at a
+    # time, so a key match can't start inside a string (args) or leave the
+    # object (tool_response). Group 3 is the value.
+    tool_input='"tool_input"[[:space:]]*:[[:space:]]*\{([^"{}]|"([^"\\]|\\.)*")*'
+    [[ "$input" =~ ${tool_input}\"skill\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]] || exit 0
+    name="${BASH_REMATCH[3]}"
+    if [[ "$input" =~ ${tool_input}\"args\"[[:space:]]*:[[:space:]]*\"[^\"] ]]; then
+        args_present=true
+    fi
+fi
 
 # Claude Code namespaces plugin skills, so a bare name may be the user's own
 # skill; count only `posthog:<bundled skill>`.
-[[ "${BASH_REMATCH[3]}" =~ ^posthog:([a-zA-Z0-9_-]+)$ ]] || exit 0
+[[ "$name" =~ ^posthog:([a-zA-Z0-9_-]+)$ ]] || exit 0
 skill="${BASH_REMATCH[1]}"
 [[ -d "$ROOT/skills/$skill" ]] || exit 0
-
-# Whether arguments were passed — presence only, never the content.
-args_present=false
-if [[ "$input" =~ ${tool_input}\"args\"[[:space:]]*:[[:space:]]*\"[^\"] ]]; then
-    args_present=true
-fi
 
 # permission_mode is a short enum (default/acceptEdits/plan/...).
 permission_mode=""
@@ -110,8 +125,8 @@ if [[ ! "$distinct_id" =~ ^[A-Za-z0-9-]+$ ]]; then
 fi
 
 # shellcheck disable=SC2016 # `$`-prefixed PostHog property names, not expansions.
-payload="$(printf '{"api_key":"%s","event":"plugin skill invoked","distinct_id":"%s","properties":{"skill":"%s","args_present":%s,"plugin_version":"%s","permission_mode":"%s","os":"%s","$lib":"posthog-ai-plugin","$process_person_profile":false,"$geoip_disable":true,"$ip":"127.0.0.1"}}' \
-    "$API_KEY" "$distinct_id" "$skill" "$args_present" "$plugin_version" "$permission_mode" "$os")"
+payload="$(printf '{"api_key":"%s","event":"plugin skill invoked","distinct_id":"%s","properties":{"skill":"%s","invocation":"%s","args_present":%s,"plugin_version":"%s","permission_mode":"%s","os":"%s","$lib":"posthog-ai-plugin","$process_person_profile":false,"$geoip_disable":true,"$ip":"127.0.0.1"}}' \
+    "$API_KEY" "$distinct_id" "$skill" "$invocation" "$args_present" "$plugin_version" "$permission_mode" "$os")"
 
 # Fire-and-forget: background, detached fds, 3s cap → ~0 user-facing latency.
 curl -sf -m 3 -X POST "$HOST/i/v0/e/" \

@@ -10,6 +10,7 @@
   "homepage": "https://posthog.com/docs/model-context-protocol",
   "repository": "https://github.com/PostHog/ai-plugin",
   "license": "MIT",
+  "hooks": "./hooks/user-prompt-expansion.json",
   "keywords": [
     "analytics",
     "feature-flags",

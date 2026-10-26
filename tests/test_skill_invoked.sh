@@ -7,9 +7,10 @@
 #     ./tests/test_skill_invoked.sh
 #     /bin/bash ./tests/test_skill_invoked.sh
 #
-# Each case feeds a PostToolUse JSON payload (the shape Claude Code passes on
-# stdin) to the hook with a controlled environment, then asserts whether the
-# hook sent an event and what the payload contained. The network call is
+# Each case feeds a PostToolUse or UserPromptExpansion JSON payload (the
+# shapes Claude Code passes on stdin) to the hook with a controlled
+# environment, then asserts whether the hook sent an event and what the
+# payload contained. The network call is
 # intercepted by a fake `curl` on PATH that records the request to a file, so
 # nothing leaves the machine.
 
@@ -47,10 +48,14 @@ pass=0
 fail=0
 
 # Run the hook with an isolated env. Globals set per call:
-#   CAP  — capture file for this run (reset)
+#   CAP     — capture file for this run (reset)
+#   OUT     — the hook's stdout
+#   STATUS  — the hook's exit status
 # Args:
 #   $1 payload   $2 fresh-home? (1 to wipe the telemetry-id) $3+ env overrides
 CAP=""
+OUT=""
+STATUS=0
 run_hook() {
     local payload="$1" fresh="$2"; shift 2
     CAP="$TMP/capture.$RANDOM"
@@ -58,11 +63,12 @@ run_hook() {
     local home="$TMP/home"
     (( fresh )) && rm -rf "$home"
     mkdir -p "$home"
-    env -i PATH="$FAKEBIN:$PATH" HOME="$home" \
+    OUT="$(env -i PATH="$FAKEBIN:$PATH" HOME="$home" \
         CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
         CURL_CAPTURE="$CAP" \
         POSTHOG_PLUGIN_TELEMETRY_HOST="http://localhost:0" \
-        "$@" "$BASH" "$HOOK" <<<"$payload"
+        "$@" "$BASH" "$HOOK" <<<"$payload")"
+    STATUS=$?
 }
 
 # Wait (bounded) for the backgrounded fake curl to record a request.
@@ -87,6 +93,13 @@ skill_payload() {
     fi
 }
 
+# UserPromptExpansion payload for a user-typed slash command.
+expansion_payload() {
+    local name="$1" args="${2:-}" type="${3:-slash_command}" source="${4:-plugin}"
+    printf '{"hook_event_name":"UserPromptExpansion","permission_mode":"default","expansion_type":"%s","command_name":"%s","command_args":"%s","command_source":"%s","prompt":"/%s %s"}' \
+        "$type" "$name" "$args" "$source" "$name" "$args"
+}
+
 echo "Running skill-invoked.sh tests..."
 
 # --- captured: this plugin's skills --------------------------------------
@@ -96,7 +109,7 @@ keys() { body | python3 -I -c 'import json, sys; e = json.load(sys.stdin); print
 
 run_hook "$(skill_payload "posthog:querying-posthog-data")" 1
 wait_sent
-if [[ "$(keys)" == 'api_key distinct_id event properties | $geoip_disable $ip $lib $process_person_profile args_present os permission_mode plugin_version skill' ]]; then
+if [[ "$(keys)" == 'api_key distinct_id event properties | $geoip_disable $ip $lib $process_person_profile args_present invocation os permission_mode plugin_version skill' ]]; then
     ok "payload carries only the disclosed fields"
 else
     bad "payload carries only the disclosed fields" "keys=$(keys)"
@@ -109,6 +122,9 @@ else
     bad "plugin version read from the manifest" "body=$(body)"
 fi
 
+if [[ "$(prop invocation)" == '"model"' ]]; then ok "Skill tool call counted as a model invocation"; else bad "Skill tool call counted as a model invocation" "body=$(body)"; fi
+if [[ "$STATUS" == 0 && -z "$OUT" ]]; then ok "PostToolUse exits 0 with no output"; else bad "PostToolUse exits 0 with no output" "status=$STATUS out=$OUT"; fi
+
 # Codex sets PLUGIN_ROOT, but no longer ships this hook; nothing should depend on it.
 run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 PLUGIN_ROOT="$REPO_ROOT"
 if wait_sent && [[ "$(body)" != *codex* ]]; then ok "no Codex client label"; else bad "no Codex client label" "body=$(body)"; fi
@@ -120,6 +136,43 @@ if wait_sent && [[ "$(prop args_present)" == "true" && "$(body)" != *"SECRET_ARG
 else
     bad "args presence captured as boolean, content never sent" "body=$(body)"
 fi
+
+# --- user-typed slash commands --------------------------------------------
+
+run_hook "$(expansion_payload "posthog:querying-posthog-data")" 1
+wait_sent
+if [[ "$(prop invocation)" == '"user"' && "$(prop skill)" == '"querying-posthog-data"' ]]; then
+    ok "slash command counted as a user invocation"
+else
+    bad "slash command counted as a user invocation" "body=$(body)"
+fi
+if [[ "$(keys)" == *'| $geoip_disable $ip $lib $process_person_profile args_present invocation os permission_mode plugin_version skill' ]]; then
+    ok "slash command payload carries the same fields"
+else
+    bad "slash command payload carries the same fields" "keys=$(keys)"
+fi
+if [[ "$(prop args_present)" == "false" ]]; then ok "slash command without args"; else bad "slash command without args" "body=$(body)"; fi
+# Claude Code adds UserPromptExpansion stdout to Claude's context.
+if [[ "$STATUS" == 0 && -z "$OUT" ]]; then ok "UserPromptExpansion exits 0 with no output"; else bad "UserPromptExpansion exits 0 with no output" "status=$STATUS out=$OUT"; fi
+
+run_hook "$(expansion_payload "posthog:exploring-llm-traces" "SECRET_ARG_PAYLOAD path/to/file")" 1
+if wait_sent && [[ "$(prop args_present)" == "true" && "$(body)" != *"SECRET_ARG_PAYLOAD"* ]]; then
+    ok "slash command args presence captured, content never sent"
+else
+    bad "slash command args presence captured, content never sent" "body=$(body)"
+fi
+
+for case in \
+    "posthog:querying-posthog-data||mcp_prompt|plugin" \
+    "posthog:querying-posthog-data||slash_command|userSettings" \
+    "some-other-plugin:do-thing||slash_command|plugin" \
+    "querying-posthog-data||slash_command|plugin" \
+    "posthog:definitely-not-a-bundled-skill||slash_command|plugin" \
+    'other:thing|\"command_name\":\"posthog:querying-posthog-data\"|slash_command|plugin'; do
+    IFS='|' read -r name args type source <<<"$case"
+    run_hook "$(expansion_payload "$name" "$args" "$type" "$source")" 1
+    if assert_silent && [[ -z "$OUT" ]]; then ok "expansion $case is ignored"; else bad "expansion $case is ignored" "body=$(body) out=$OUT"; fi
+done
 
 # --- anonymous: no GeoIP lookup, client IP replaced before ingestion ------
 
