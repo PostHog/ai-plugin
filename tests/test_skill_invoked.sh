@@ -145,6 +145,26 @@ for opt_out in DISABLE_TELEMETRY CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC; do
     done
 done
 
+# --- self-hosted users: never send to PostHog Cloud ----------------------
+
+for setting in \
+    POSTHOG_MCP_URL=https://mcp.example.com/mcp \
+    POSTHOG_MCP_URL=https://mcp.posthog.com.example.com/mcp \
+    POSTHOG_MCP_URL=http://localhost:8010/mcp \
+    POSTHOG_HOST=https://posthog.internal \
+    POSTHOG_HOST=https://user@posthog.com.example.com; do
+    run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 "$setting"
+    if assert_silent; then ok "$setting disables capture"; else bad "$setting disables capture" "body=$(body)"; fi
+done
+
+for setting in \
+    POSTHOG_MCP_URL=https://mcp.posthog.com/mcp \
+    POSTHOG_MCP_URL=https://MCP-EU.POSTHOG.COM/mcp \
+    POSTHOG_HOST=https://eu.i.posthog.com; do
+    run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 "$setting"
+    if wait_sent; then ok "$setting keeps capture"; else bad "$setting keeps capture" "no send"; fi
+done
+
 # --- anonymous id is stable across runs ----------------------------------
 
 run_hook "$(skill_payload "posthog:querying-posthog-data")" 1   # fresh home → new id

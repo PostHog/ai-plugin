@@ -43,6 +43,15 @@ case "${POSTHOG_PLUGIN_TELEMETRY_DISABLED:-}" in
 esac
 # Claude Code's opt-outs: any non-empty value, even 0 or false, opts out.
 [[ -z "${DISABLE_TELEMETRY:-}" && -z "${CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC:-}" ]] || exit 0
+# Self-hosted users point the MCP server or LLM analytics at their own
+# instance; keep their usage off PostHog Cloud. Unparseable hosts fail closed.
+for url in "${POSTHOG_MCP_URL:-}" "${POSTHOG_HOST:-}"; do
+    [[ -n "$url" ]] || continue
+    host="${url#*://}"
+    host="${host%%[/?#]*}"
+    host="$(printf '%s' "${host%%:*}" | tr '[:upper:]' '[:lower:]')"
+    [[ "$host" == posthog.com || "$host" == *.posthog.com ]] || exit 0
+done
 # No key configured (e.g. placeholder build) → no-op.
 [[ -n "$API_KEY" && "$API_KEY" != "phc_REPLACE_ME" ]] || exit 0
 
