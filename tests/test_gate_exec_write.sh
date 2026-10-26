@@ -223,6 +223,10 @@ run_case "--confirm --json flags still extract tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm --json delete-feature-flag {}"}}' \
     prompt delete-feature-flag
 
+run_case "--no-skills before the tool name still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --no-skills insight-delete {}"}}' \
+    prompt insight-delete
+
 run_case "leading spaces before call still extract tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"  call delete-feature-flag {}"}}' \
     prompt delete-feature-flag
@@ -279,10 +283,6 @@ run_case "info on a sensitive tool is silent" \
 run_case "sensitive write via plugin-prefixed exec name prompts" \
     "$(exec_call delete-feature-flag mcp__posthog_posthog__exec)" \
     prompt delete-feature-flag
-
-run_case "--no-skills before the tool name still extracts tool" \
-    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --no-skills insight-delete {}"}}' \
-    prompt insight-delete
 
 # A second `command` key could put a decoy before the real command; a `command`
 # key inside the call's JSON body is escaped and does not count.
