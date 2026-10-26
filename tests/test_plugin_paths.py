@@ -111,6 +111,18 @@ def test_antigravity_mcp_server_matches_claude_code():
     assert (antigravity["serverUrl"], antigravity["headers"]) == (claude_code["url"], claude_code["headers"])
 
 
+def test_cursor_mcp_server_matches_claude_code():
+    claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
+    cursor = json.loads((REPO_ROOT / "mcp.json").read_text())["mcpServers"]["posthog"]
+    assert (cursor["url"], cursor["headers"]) == (claude_code["url"], claude_code["headers"])
+
+
+def test_cursor_mcp_server_is_hosted():
+    # Grok Bot only connects to MCP servers placed on Cursor's hosted side; without it the plugin installs but never offers sign-in.
+    cursor = json.loads((REPO_ROOT / "mcp.json").read_text())["mcpServers"]["posthog"]
+    assert cursor.get("placement") == "server"
+
+
 # Cursor runs hooks/hooks.json, but the gate never matches its `MCP:exec` tool name, Cursor does not
 # enforce the gate's "ask", and the session hook parses Claude Code transcripts, so other clients get none.
 @pytest.mark.parametrize("manifest_dir", [".codex-plugin", ".cursor-plugin"])
