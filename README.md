@@ -74,6 +74,8 @@ The plugin installs the PostHog skills and the MCP server. Claude Code's session
     /plugins
     ```
 
+3. Trust the plugin's hook when Codex asks you to review it at startup, or later from `/hooks`. The hook is the write-command gate: PostHog reads run without a prompt, and sensitive writes such as feature flag changes and deletions ask for approval, as in Claude Code. The `POSTHOG_MCP_EXEC_GATE_*` variables described in `hooks/gate-exec-write.sh` work the same way. Codex asks before every PostHog call until you trust the hook, and again after each plugin update until you re-trust it.
+
 ### Antigravity
 
 1. Install the plugin:

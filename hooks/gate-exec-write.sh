@@ -46,7 +46,21 @@
 # that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
 # the raw JSON payload is safe.
 
-# Fail open — this gate must never break a Claude Code tool call.
+# `--fail-closed` is for hooks/codex-gate-exec-write.sh, which approves every
+# call this script passes silently. In that mode the script asks for anything it
+# cannot classify and lets runtime failures exit non-zero, so the caller can tell
+# a pass from a crash.
+fail_closed=0
+[[ "${1:-}" == --fail-closed ]] && fail_closed=1
+
+# Pass in normal mode; ask in fail-closed mode.
+unclassified() {
+    (( fail_closed )) || exit 0
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"The PostHog exec command could not be classified — approve to run."}}'
+    exit 0
+}
+
+# Otherwise fail open — this gate must never break a Claude Code tool call.
 #
 # The "ask" decision is delivered entirely through the stdout JSON below; the
 # exit code is never used to signal it. So we force every exit path to 0 via an
@@ -57,7 +71,7 @@
 #
 # The one failure a trap can't catch is a parse-time syntax error (the trap
 # isn't installed yet); `tests/test_gate_exec_write.sh` guards that with `bash -n`.
-trap 'exit 0' EXIT
+(( fail_closed )) || trap 'exit 0' EXIT
 
 set -u
 
@@ -69,12 +83,12 @@ ask() {
 }
 
 # Codex compatibility: Codex's PreToolUse protocol does not support
-# `permissionDecision: "ask"` (it is parsed then rejected as unsupported), and
-# Codex already gates tool calls through its own approval flow. Detect Codex via
-# its native PLUGIN_ROOT env var — Claude Code only ever sets CLAUDE_PLUGIN_ROOT,
-# never PLUGIN_ROOT — and skip the gate so the hook neither errors nor fights
-# Codex's prompt. See https://developers.openai.com/codex/hooks
-if [[ -n "${PLUGIN_ROOT:-}" ]]; then
+# `permissionDecision: "ask"` (it is parsed then rejected as unsupported), so
+# Codex runs this script through hooks/codex-gate-exec-write.sh instead. Skip the
+# gate if a Codex build loads it from hooks/hooks.json directly, detected via its
+# native PLUGIN_ROOT env var — Claude Code only ever sets CLAUDE_PLUGIN_ROOT,
+# never PLUGIN_ROOT. See https://developers.openai.com/codex/hooks
+if [[ -n "${PLUGIN_ROOT:-}" ]] && (( ! fail_closed )); then
     exit 0
 fi
 
@@ -121,7 +135,7 @@ fi
 # Match any MCP tool whose name ends in `__exec` regardless of plugin/server
 # namespacing (bare `mcp__posthog__exec` or plugin-prefixed variants like
 # `mcp__posthog_posthog__exec`).
-[[ "$tool_name" =~ __exec$ ]] || exit 0
+[[ "$tool_name" =~ __exec$ ]] || unclassified
 
 # Extract the PostHog tool name from `"command":"call [--flag ...] <tool>..."`.
 # The server trims the command with JavaScript's trim() and skips any number of
@@ -151,6 +165,13 @@ case $? in
     0) posthog_tool="${BASH_REMATCH[${#BASH_REMATCH[@]}-1]}" ;;
     2) ask "The PostHog exec command could not be checked — approve to run." ;;
 esac
+
+# In fail-closed mode, only a parsed `call` or one of exec's read-only verbs is
+# classified.
+if (( fail_closed )); then
+    read_verb_re='\"command\"[[:space:]]*:[[:space:]]*\"[[:space:]]*(help|learn|tools|search|info|schema)([[:space:]]|\")'
+    [[ -n "$posthog_tool" || "$input" =~ $read_verb_re ]] || unclassified
+fi
 [[ -n "$posthog_tool" ]] || exit 0
 
 # These run any tool, deletes included, in another project, so they always prompt.

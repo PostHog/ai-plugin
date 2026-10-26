@@ -111,12 +111,26 @@ def test_antigravity_mcp_server_matches_claude_code():
     assert (antigravity["serverUrl"], antigravity["headers"]) == (claude_code["url"], claude_code["headers"])
 
 
+def test_codex_mcp_server_matches_claude_code():
+    # Codex reads codex-mcp.json, a copy of .mcp.json plus the approval mode its exec gate relies on.
+    claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
+    codex = json.loads((REPO_ROOT / "codex-mcp.json").read_text())["mcpServers"]["posthog"]
+    assert codex == {**claude_code, "default_tools_approval_mode": "prompt"}
+
+
 # Cursor runs hooks/hooks.json, but the gate never matches its `MCP:exec` tool name, Cursor does not
-# enforce the gate's "ask", and the session hook parses Claude Code transcripts, so other clients get none.
-@pytest.mark.parametrize("manifest_dir", [".codex-plugin", ".cursor-plugin"])
-def test_other_clients_get_no_claude_code_hooks(manifest_dir):
-    manifest = json.loads((REPO_ROOT / manifest_dir / "plugin.json").read_text())
+# enforce the gate's "ask", and the session hook parses Claude Code transcripts, so Cursor gets none.
+def test_cursor_gets_no_claude_code_hooks():
+    manifest = json.loads((REPO_ROOT / ".cursor-plugin" / "plugin.json").read_text())
     assert json.loads((REPO_ROOT / manifest["hooks"]).read_text())["hooks"] == {}
+
+
+def test_codex_gets_only_its_exec_gate():
+    manifest = json.loads((REPO_ROOT / ".codex-plugin" / "plugin.json").read_text())
+    hooks_file = REPO_ROOT / manifest["hooks"]
+    assert list(json.loads(hooks_file.read_text())["hooks"]) == ["PermissionRequest"]
+    assert list(_hook_commands(hooks_file)) == ['"${PLUGIN_ROOT}/hooks/codex-gate-exec-write.sh"']
+    assert (REPO_ROOT / "hooks" / "codex-gate-exec-write.sh").is_file()
 
 
 def test_cursor_manifest_paths_exist():

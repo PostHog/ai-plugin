@@ -1,3 +1,16 @@
 {
-  "hooks": {}
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "matcher": "^mcp__posthog__exec$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${PLUGIN_ROOT}/hooks/codex-gate-exec-write.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
 }
