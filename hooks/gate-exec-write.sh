@@ -147,6 +147,11 @@ case $? in
 esac
 [[ -n "$posthog_tool" ]] || exit 0
 
+# These run any tool, deletes included, in another project, so they always prompt.
+if [[ "$posthog_tool" == posthog-connection-call || "$posthog_tool" == posthog-connection-forward ]]; then
+    ask "\`$posthog_tool\` runs a tool in another PostHog project — approve to run."
+fi
+
 read_tools_file="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/read-tools.txt"
 if [[ -r "$read_tools_file" ]]; then
     read_tools=$'\n'"$(<"$read_tools_file")"$'\n'
