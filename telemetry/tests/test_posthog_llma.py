@@ -110,6 +110,28 @@ class TestBuildAiGeneration:
         assert "cache_read_input_tokens" not in props
         assert "cache_creation_input_tokens" not in props
 
+    def test_cache_creation_ttl_split(self):
+        ev = build_ai_generation(
+            model="m", trace_id="t", session_id="s",
+            cache_creation_tokens=30,
+            cache_creation_5m_tokens=10, cache_creation_1h_tokens=20,
+        )
+        props = ev["properties"]
+        assert (
+            props["$ai_cache_creation_input_tokens"],
+            props["$ai_cache_creation_5m_input_tokens"],
+            props["$ai_cache_creation_1h_input_tokens"],
+        ) == (30, 10, 20)
+
+    def test_cache_creation_ttl_split_omitted_when_unknown(self):
+        """PostHog prices the aggregate at the 5m rate when the split is absent."""
+        ev = build_ai_generation(
+            model="m", trace_id="t", session_id="s", cache_creation_tokens=30,
+        )
+        props = ev["properties"]
+        assert "$ai_cache_creation_5m_input_tokens" not in props
+        assert "$ai_cache_creation_1h_input_tokens" not in props
+
     def test_no_cost_properties(self):
         """Cost is calculated by PostHog ingestion, we should not send it."""
         ev = build_ai_generation(

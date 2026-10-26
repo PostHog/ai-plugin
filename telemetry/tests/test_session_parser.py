@@ -562,6 +562,70 @@ class TestParseSession:
         finally:
             os.unlink(path)
 
+    @staticmethod
+    def _usage_session(*usages):
+        entries = [
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "go"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        for i, usage in enumerate(usages):
+            entries.append({
+                "type": "assistant", "uuid": f"a-{i}", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
+                    "usage": usage,
+                    "content": [{"type": "text", "text": f"chunk {i}"}],
+                },
+                "timestamp": f"2026-04-12T10:00:0{i + 1}.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            })
+        return entries
+
+    def _parse_generation(self, *usages):
+        path = _write_jsonl(self._usage_session(*usages))
+        try:
+            return parse_session(path, DEFAULT_CONFIG)
+        finally:
+            os.unlink(path)
+
+    def test_cache_creation_ttl_split_reaches_generation_event(self):
+        parsed = self._parse_generation({
+            "input_tokens": 2, "output_tokens": 9,
+            "cache_creation_input_tokens": 300,
+            "cache_creation": {"ephemeral_5m_input_tokens": 100, "ephemeral_1h_input_tokens": 200},
+        })
+        gen_ev = next(e for e in build_events(parsed, DEFAULT_CONFIG) if e["event"] == "$ai_generation")
+        props = gen_ev["properties"]
+        assert (
+            props["$ai_cache_creation_input_tokens"],
+            props["$ai_cache_creation_5m_input_tokens"],
+            props["$ai_cache_creation_1h_input_tokens"],
+        ) == (300, 100, 200)
+
+    def test_cache_creation_ttl_split_absent_without_breakdown(self):
+        parsed = self._parse_generation({
+            "input_tokens": 2, "output_tokens": 9, "cache_creation_input_tokens": 300,
+        })
+        gen_ev = next(e for e in build_events(parsed, DEFAULT_CONFIG) if e["event"] == "$ai_generation")
+        assert "$ai_cache_creation_1h_input_tokens" not in gen_ev["properties"]
+
+    def test_cache_creation_ttl_split_taken_from_latest_chunk_not_summed(self):
+        parsed = self._parse_generation(
+            {"cache_creation_input_tokens": 300,
+             "cache_creation": {"ephemeral_5m_input_tokens": 0, "ephemeral_1h_input_tokens": 300}},
+            {"cache_creation_input_tokens": 300,
+             "cache_creation": {"ephemeral_5m_input_tokens": 0, "ephemeral_1h_input_tokens": 300}},
+        )
+        gen = parsed["generations"][0]
+        assert (gen["cache_creation_5m_tokens"], gen["cache_creation_1h_tokens"]) == (0, 300)
+
     def test_three_chunk_merge_preserves_all_block_types(self):
         """Thinking, text, and tool_use arriving in three separate chunks
         all survive the merge."""

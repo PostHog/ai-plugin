@@ -18,6 +18,8 @@ def build_ai_generation(
     output_tokens: int = 0,
     cache_read_tokens: int = 0,
     cache_creation_tokens: int = 0,
+    cache_creation_5m_tokens: Optional[int] = None,
+    cache_creation_1h_tokens: Optional[int] = None,
     latency_seconds: Optional[float] = None,
     stop_reason: Optional[str] = None,
     is_error: bool = False,
@@ -72,6 +74,11 @@ def build_ai_generation(
         "$ai_cache_read_input_tokens": cache_read_tokens,
         "$ai_cache_creation_input_tokens": cache_creation_tokens,
     }
+
+    # PostHog only prices writes by TTL when both are present.
+    if cache_creation_5m_tokens is not None and cache_creation_1h_tokens is not None:
+        properties["$ai_cache_creation_5m_input_tokens"] = cache_creation_5m_tokens
+        properties["$ai_cache_creation_1h_input_tokens"] = cache_creation_1h_tokens
 
     if user_prompt and not privacy_mode:
         properties["$ai_user_prompt"] = user_prompt
