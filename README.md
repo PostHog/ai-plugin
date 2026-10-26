@@ -79,7 +79,7 @@ Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add man
     agy plugin install https://github.com/PostHog/ai-plugin
     ```
 
-2. Authenticate via OAuth: on first use of a PostHog tool, Antigravity prompts you to authorize in your browser. Log into PostHog to connect.
+2. Authenticate via OAuth: run `/mcp`, select `posthog_posthog`, and choose **Authenticate**. Open the link it shows, log into PostHog, and paste the authorization code back into Antigravity.
 
 The plugin installs the PostHog skills and the MCP server. Claude Code's session capture and the write-command gate don't run in Antigravity.
 
