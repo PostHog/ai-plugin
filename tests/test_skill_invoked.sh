@@ -125,10 +125,6 @@ fi
 if [[ "$(prop invocation)" == '"model"' ]]; then ok "Skill tool call counted as a model invocation"; else bad "Skill tool call counted as a model invocation" "body=$(body)"; fi
 if [[ "$STATUS" == 0 && -z "$OUT" ]]; then ok "PostToolUse exits 0 with no output"; else bad "PostToolUse exits 0 with no output" "status=$STATUS out=$OUT"; fi
 
-# Codex sets PLUGIN_ROOT, but no longer ships this hook; nothing should depend on it.
-run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 PLUGIN_ROOT="$REPO_ROOT"
-if wait_sent && [[ "$(body)" != *codex* ]]; then ok "no Codex client label"; else bad "no Codex client label" "body=$(body)"; fi
-
 # args present → boolean true, but the content must never appear.
 run_hook "$(skill_payload "posthog:exploring-llm-traces" "SECRET_ARG_PAYLOAD path/to/file")" 1
 if wait_sent && [[ "$(prop args_present)" == "true" && "$(body)" != *"SECRET_ARG_PAYLOAD"* ]]; then
@@ -231,15 +227,17 @@ mkdir -p "$FAKE_ROOT/.claude-plugin" "$FAKE_ROOT/skills/$BARE_SKILL" "$TMP/fakeu
 printf '{"version": "1.0\\",\\"event\\":\\"x"}' > "$FAKE_ROOT/.claude-plugin/plugin.json"
 printf '#!/bin/sh\necho %s\n' "'Linux\",\"event\":\"x'" > "$TMP/fakeuname/uname"
 chmod +x "$TMP/fakeuname/uname"
-mkdir -p "$TMP/home/.claude"
-printf '%s\n' 'abc","event":"x' > "$TMP/home/.claude/posthog-plugin-telemetry-id"
-run_hook "$(skill_payload "posthog:$BARE_SKILL")" 0 CLAUDE_PLUGIN_ROOT="$FAKE_ROOT" PATH="$TMP/fakeuname:$FAKEBIN:$PATH"
+DATA="$TMP/data"
+rm -rf "$DATA"
+mkdir -p "$DATA"
+printf '%s\n' 'abc","event":"x' > "$DATA/posthog-plugin-telemetry-id"
+run_hook "$(skill_payload "posthog:$BARE_SKILL")" 1 CLAUDE_PLUGIN_ROOT="$FAKE_ROOT" PATH="$TMP/fakeuname:$FAKEBIN:$PATH" CLAUDE_PLUGIN_DATA="$DATA"
 wait_sent
 event="$(body | python3 -I -c 'import json, sys; e = json.load(sys.stdin); print(e["event"], e["distinct_id"])')"
-if [[ "$event" =~ ^plugin\ skill\ invoked\ [A-Za-z0-9-]+$ && "$event" != *abc* ]]; then
+if [[ "$event" =~ ^plugin\ skill\ invoked\ [A-Za-z0-9-]+$ && "$event" == *" $(cat "$DATA/posthog-plugin-telemetry-id")" ]]; then
     ok "tampered id file is replaced"
 else
-    bad "tampered id file is replaced" "body=$(body)"
+    bad "tampered id file is replaced" "body=$(body) file=$(cat "$DATA/posthog-plugin-telemetry-id")"
 fi
 if [[ "$(prop plugin_version)" == '"1.0"' && "$(prop os)" == '"Linuxeventx"' ]]; then
     ok "manifest version and uname output are sanitised"
@@ -300,14 +298,20 @@ done
 
 # --- anonymous id is stable across runs ----------------------------------
 
-run_hook "$(skill_payload "posthog:querying-posthog-data")" 1   # fresh home → new id
+rm -rf "$DATA"
+run_hook "$(skill_payload "posthog:querying-posthog-data")" 1 CLAUDE_PLUGIN_DATA="$DATA"
 wait_sent; id1="$(body | sed -n 's/.*"distinct_id":"\([^"]*\)".*/\1/p')"
-run_hook "$(skill_payload "posthog:querying-posthog-data")" 0   # reuse home → same id
+run_hook "$(expansion_payload "posthog:querying-posthog-data")" 0 CLAUDE_PLUGIN_DATA="$DATA"
 wait_sent; id2="$(body | sed -n 's/.*"distinct_id":"\([^"]*\)".*/\1/p')"
 if [[ -n "$id1" && "$id1" == "$id2" ]]; then
     ok "anonymous distinct_id persists across runs ($id1)"
 else
     bad "anonymous distinct_id persists across runs" "id1=$id1 id2=$id2"
+fi
+if [[ "$(cat "$DATA/posthog-plugin-telemetry-id" 2>/dev/null)" == "$id1" && ! -e "$TMP/home/.claude/posthog-plugin-telemetry-id" ]]; then
+    ok "id stored in CLAUDE_PLUGIN_DATA"
+else
+    bad "id stored in CLAUDE_PLUGIN_DATA" "data=$(ls "$DATA" 2>&1) home=$(ls "$TMP/home/.claude" 2>&1)"
 fi
 
 # --- summary -------------------------------------------------------------
