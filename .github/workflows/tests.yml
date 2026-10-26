@@ -21,6 +21,9 @@ jobs:
       - name: Run read-tool list generator tests
         run: ./tests/test_generate_read_tools.sh
 
+      - name: Run Codex exec gate hook tests
+        run: ./tests/test_codex_gate_exec_write.sh
+
       - name: Run skill telemetry hook tests
         run: ./tests/test_skill_invoked.sh
 
