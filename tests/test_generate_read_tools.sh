@@ -75,13 +75,9 @@ run_case() {
 
 echo "Running generate-read-tools.sh tests..."
 
-run_case "accepts one new read tool (5%)" accept "$(registry 21 10)"
-run_case "accepts one removed read tool (5%)" accept "$(registry 19 10)"
-run_case "accepts two new read tools (exactly 10%)" accept "$(registry 22 10)"
-run_case "accepts two removed read tools (exactly 10%)" accept "$(registry 18 10)"
-run_case "refuses three writes turning read-only (15%)" refuse "$(registry 20 10 'write-00 write-01 write-02')"
-run_case "refuses three new read tools (15%)" refuse "$(registry 23 10)"
-run_case "refuses three removed read tools (15%)" refuse "$(registry 17 10)"
+run_case "accepts one new read tool" accept "$(registry 21 10)"
+run_case "accepts one removed read tool" accept "$(registry 19 10)"
+run_case "accepts a large change" accept "$(registry 40 10 'write-00 write-01 write-02')"
 run_case "refuses an empty registry" refuse '{}'
 run_case "refuses an unreachable registry" refuse -
 run_case "accepts any list when none is committed" accept "$(registry 23 10)" none

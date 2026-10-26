@@ -83,6 +83,15 @@ class TestBuildAiGeneration:
         )
         assert ev["timestamp"] == "2026-04-12T21:00:00Z"
 
+    def test_cache_tokens_emitted_even_when_zero(self):
+        """Matches posthog-python, which always sends both for Anthropic."""
+        ev = build_ai_generation(
+            model="m", trace_id="t", session_id="s",
+        )
+        props = ev["properties"]
+        assert props["$ai_cache_read_input_tokens"] == 0
+        assert props["$ai_cache_creation_input_tokens"] == 0
+
     def test_no_timestamp_means_no_key(self):
         ev = build_ai_generation(
             model="m", trace_id="t", session_id="s",
@@ -96,8 +105,32 @@ class TestBuildAiGeneration:
             cache_read_tokens=5, cache_creation_tokens=3,
         )
         props = ev["properties"]
-        assert props["cache_read_input_tokens"] == 5
-        assert props["cache_creation_input_tokens"] == 3
+        assert props["$ai_cache_read_input_tokens"] == 5
+        assert props["$ai_cache_creation_input_tokens"] == 3
+        assert "cache_read_input_tokens" not in props
+        assert "cache_creation_input_tokens" not in props
+
+    def test_cache_creation_ttl_split(self):
+        ev = build_ai_generation(
+            model="m", trace_id="t", session_id="s",
+            cache_creation_tokens=30,
+            cache_creation_5m_tokens=10, cache_creation_1h_tokens=20,
+        )
+        props = ev["properties"]
+        assert (
+            props["$ai_cache_creation_input_tokens"],
+            props["$ai_cache_creation_5m_input_tokens"],
+            props["$ai_cache_creation_1h_input_tokens"],
+        ) == (30, 10, 20)
+
+    def test_cache_creation_ttl_split_omitted_when_unknown(self):
+        """PostHog prices the aggregate at the 5m rate when the split is absent."""
+        ev = build_ai_generation(
+            model="m", trace_id="t", session_id="s", cache_creation_tokens=30,
+        )
+        props = ev["properties"]
+        assert "$ai_cache_creation_5m_input_tokens" not in props
+        assert "$ai_cache_creation_1h_input_tokens" not in props
 
     def test_no_cost_properties(self):
         """Cost is calculated by PostHog ingestion, we should not send it."""

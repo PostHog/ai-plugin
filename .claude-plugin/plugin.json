@@ -1,7 +1,7 @@
 {
   "name": "posthog",
   "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from your AI coding tool. Optionally capture Claude Code sessions to PostHog LLM Analytics.",
-  "version": "1.1.78",
+  "version": "1.1.79",
   "author": {
     "name": "PostHog",
     "email": "hey@posthog.com",
@@ -10,6 +10,7 @@
   "homepage": "https://posthog.com/docs/model-context-protocol",
   "repository": "https://github.com/PostHog/ai-plugin",
   "license": "MIT",
+  "hooks": "./hooks/user-prompt-expansion.json",
   "keywords": [
     "analytics",
     "feature-flags",

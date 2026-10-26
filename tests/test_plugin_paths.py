@@ -19,6 +19,14 @@ PLUGIN_ROOT_REF = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT(?::-\$PLUGIN_ROOT)?\}(/[^\
 PLUGIN_ROOTS = [("posthog", REPO_ROOT), ("posthog-telemetry", REPO_ROOT / "telemetry")]
 
 
+def _hooks_files(plugin_root):
+    # Claude Code loads hooks/hooks.json and merges in whatever the manifest's `hooks` names.
+    declared = json.loads((plugin_root / ".claude-plugin" / "plugin.json").read_text()).get("hooks", [])
+    paths = [declared] if isinstance(declared, str) else declared
+    candidates = [plugin_root / "hooks" / "hooks.json"] + [plugin_root / path for path in paths]
+    return [path for path in candidates if path.is_file()]
+
+
 def _hook_commands(hooks_file):
     for entries in json.loads(hooks_file.read_text())["hooks"].values():
         for entry in entries:
@@ -36,20 +44,73 @@ def test_plugin_manifest_is_present(name, plugin_root):
 
 @pytest.mark.parametrize("name,plugin_root", PLUGIN_ROOTS, ids=[n for n, _ in PLUGIN_ROOTS])
 def test_hook_commands_resolve(name, plugin_root):
+    hooks_files = _hooks_files(plugin_root)
+    if not hooks_files:
+        pytest.skip(f"{name} ships no hooks")
+
+    for hooks_file in hooks_files:
+        referenced = [
+            (command, match)
+            for command in _hook_commands(hooks_file)
+            for match in PLUGIN_ROOT_REF.findall(command)
+        ]
+        assert referenced, f"{hooks_file} references no script"
+
+        for command, relative in referenced:
+            target = plugin_root / relative.lstrip("/")
+            assert target.is_file(), f"{hooks_file}: {command} points at missing {target}"
+
+
+@pytest.mark.parametrize("name,plugin_root", PLUGIN_ROOTS, ids=[n for n, _ in PLUGIN_ROOTS])
+def test_hook_commands_quote_plugin_root(name, plugin_root):
+    # Claude Code runs hook commands through a shell, so an unquoted path splits on a space in the plugin root.
+    hooks_files = _hooks_files(plugin_root)
+    if not hooks_files:
+        pytest.skip(f"{name} ships no hooks")
+
+    for hooks_file in hooks_files:
+        for command in _hook_commands(hooks_file):
+            for match in PLUGIN_ROOT_REF.finditer(command):
+                quoted = command[match.start() - 1 : match.start()] == '"' and command[match.end() : match.end() + 1] == '"'
+                assert quoted, f"{hooks_file}: {command} leaves {match.group(0)} unquoted"
+
+
+HOOK_EVENTS_CLAUDE_CODE_2_1_75_ACCEPTS = {
+    "PreToolUse",
+    "PostToolUse",
+    "PostToolUseFailure",
+    "Notification",
+    "UserPromptSubmit",
+    "SessionStart",
+    "SessionEnd",
+    "Stop",
+    "SubagentStart",
+    "SubagentStop",
+    "PreCompact",
+    "PermissionRequest",
+    "Setup",
+    "TeammateIdle",
+    "TaskCompleted",
+    "Elicitation",
+    "ElicitationResult",
+    "ConfigChange",
+    "WorktreeCreate",
+    "WorktreeRemove",
+    "InstructionsLoaded",
+}
+
+
+@pytest.mark.parametrize("name,plugin_root", PLUGIN_ROOTS, ids=[n for n, _ in PLUGIN_ROOTS])
+def test_default_hooks_load_on_old_clients(name, plugin_root):
     hooks_file = plugin_root / "hooks" / "hooks.json"
     if not hooks_file.is_file():
         pytest.skip(f"{name} ships no hooks.json")
 
-    referenced = [
-        (command, match)
-        for command in _hook_commands(hooks_file)
-        for match in PLUGIN_ROOT_REF.findall(command)
-    ]
-    assert referenced, f"{hooks_file} references no script"
-
-    for command, relative in referenced:
-        target = plugin_root / relative.lstrip("/")
-        assert target.is_file(), f"{hooks_file}: {command} points at missing {target}"
+    rejected = set(json.loads(hooks_file.read_text())["hooks"]) - HOOK_EVENTS_CLAUDE_CODE_2_1_75_ACCEPTS
+    assert not rejected, (
+        f"{hooks_file}: {sorted(rejected)} makes Claude Code 2.1.75 drop every hook in the file, "
+        "including the exec write gate. Declare newer events in a separate file named by the manifest's `hooks`."
+    )
 
 
 @pytest.mark.parametrize(
@@ -109,6 +170,18 @@ def test_antigravity_mcp_server_matches_claude_code():
     claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
     antigravity = json.loads((REPO_ROOT / "mcp_config.json").read_text())["mcpServers"]["posthog"]
     assert (antigravity["serverUrl"], antigravity["headers"]) == (claude_code["url"], claude_code["headers"])
+
+
+def test_cursor_mcp_server_matches_claude_code():
+    claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
+    cursor = json.loads((REPO_ROOT / "mcp.json").read_text())["mcpServers"]["posthog"]
+    assert (cursor["url"], cursor["headers"]) == (claude_code["url"], claude_code["headers"])
+
+
+def test_cursor_mcp_server_is_hosted():
+    # Grok Bot only connects to MCP servers placed on Cursor's hosted side; without it the plugin installs but never offers sign-in.
+    cursor = json.loads((REPO_ROOT / "mcp.json").read_text())["mcpServers"]["posthog"]
+    assert cursor.get("placement") == "server"
 
 
 def test_codex_mcp_server_matches_claude_code():
