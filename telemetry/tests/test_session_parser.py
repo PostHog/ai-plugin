@@ -524,11 +524,6 @@ class TestParseSession:
             os.unlink(path)
 
     def test_thinking_and_text_stay_separate_blocks(self):
-        """Extended thinking must not be ingested as assistant text.
-
-        $ai_output_choices needs them typed separately or thinking content
-        renders as ordinary assistant output and cannot be filtered on.
-        """
         entries = [
             {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
             {
@@ -556,7 +551,6 @@ class TestParseSession:
         path = _write_jsonl(entries)
         try:
             parsed = parse_session(path, DEFAULT_CONFIG)
-            gen = parsed["generations"][0]
             events = build_events(parsed, DEFAULT_CONFIG)
             gen_ev = next(e for e in events if e["event"] == "$ai_generation")
             content = gen_ev["properties"]["$ai_output_choices"][0]["content"]
@@ -565,8 +559,6 @@ class TestParseSession:
             text = [b for b in content if b.get("type") == "text"]
             assert len(thinking) == 1 and thinking[0]["thinking"] == "weighing the options"
             assert len(text) == 1 and text[0]["text"] == "Here is the answer."
-            # And the reasoning must not leak into the visible answer text.
-            assert "weighing the options" not in text[0]["text"]
         finally:
             os.unlink(path)
 
