@@ -301,7 +301,7 @@ class TestParseSession:
             gen = parsed["generations"][0]
 
             # Both the thinking text and the tool_use survived
-            assert gen["output_text"] == "deep thoughts"
+            assert gen["output_blocks"] == [{"type": "thinking", "thinking": "deep thoughts"}]
             assert len(gen["tool_use_blocks"]) == 1
             assert gen["tool_use_blocks"][0]["name"] == "Bash"
 
@@ -314,12 +314,14 @@ class TestParseSession:
             assert len(parsed["tool_uses"]) == 1
             assert parsed["tool_uses"][0]["name"] == "Bash"
 
-            # Downstream events include thinking in output_choices
+            # Downstream events include thinking in output_choices, typed as a
+            # thinking block rather than flattened into assistant text.
             events = build_events(parsed, DEFAULT_CONFIG)
             gen_ev = next(e for e in events if e["event"] == "$ai_generation")
             content_blocks = gen_ev["properties"]["$ai_output_choices"][0]["content"]
-            text_blocks = [b for b in content_blocks if b.get("type") == "text"]
-            assert text_blocks and "deep thoughts" in text_blocks[0]["text"]
+            thinking_blocks = [b for b in content_blocks if b.get("type") == "thinking"]
+            assert thinking_blocks and thinking_blocks[0]["thinking"] == "deep thoughts"
+            assert not [b for b in content_blocks if b.get("type") == "text"]
         finally:
             os.unlink(path)
 
@@ -511,11 +513,118 @@ class TestParseSession:
         try:
             parsed = parse_session(path, DEFAULT_CONFIG)
             assert len(parsed["generations"]) == 1
-            # Text came first in the source, so output_text must lead
-            # with "preface" rather than reshuffling thinking ahead of it.
-            assert parsed["generations"][0]["output_text"] == "preface\nafterthought"
+            # Text came first in the source, so it must lead rather than
+            # thinking being reshuffled ahead of it, and each block keeps its type.
+            blocks = parsed["generations"][0]["output_blocks"]
+            assert blocks == [
+                {"type": "text", "text": "preface"},
+                {"type": "thinking", "thinking": "afterthought"},
+            ]
         finally:
             os.unlink(path)
+
+    def test_thinking_and_text_stay_separate_blocks(self):
+        entries = [
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "go"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+            {
+                "type": "assistant", "uuid": "a-1", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
+                    "usage": {"input_tokens": 5, "output_tokens": 10},
+                    "content": [
+                        {"type": "thinking", "thinking": "weighing the options"},
+                        {"type": "text", "text": "Here is the answer."},
+                    ],
+                },
+                "timestamp": "2026-04-12T10:00:01.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        path = _write_jsonl(entries)
+        try:
+            parsed = parse_session(path, DEFAULT_CONFIG)
+            events = build_events(parsed, DEFAULT_CONFIG)
+            gen_ev = next(e for e in events if e["event"] == "$ai_generation")
+            content = gen_ev["properties"]["$ai_output_choices"][0]["content"]
+
+            thinking = [b for b in content if b.get("type") == "thinking"]
+            text = [b for b in content if b.get("type") == "text"]
+            assert len(thinking) == 1 and thinking[0]["thinking"] == "weighing the options"
+            assert len(text) == 1 and text[0]["text"] == "Here is the answer."
+        finally:
+            os.unlink(path)
+
+    @staticmethod
+    def _usage_session(*usages):
+        entries = [
+            {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
+            {
+                "type": "user", "uuid": "u-1", "parentUuid": None,
+                "promptId": "p-1", "isMeta": False,
+                "message": {"role": "user", "content": "go"},
+                "timestamp": "2026-04-12T10:00:00.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            },
+        ]
+        for i, usage in enumerate(usages):
+            entries.append({
+                "type": "assistant", "uuid": f"a-{i}", "parentUuid": "u-1",
+                "message": {
+                    "role": "assistant", "id": "msg-1",
+                    "model": "claude-opus-4-6", "stop_reason": "end_turn",
+                    "usage": usage,
+                    "content": [{"type": "text", "text": f"chunk {i}"}],
+                },
+                "timestamp": f"2026-04-12T10:00:0{i + 1}.000Z",
+                "sessionId": "s1", "version": "2.1.0", "cwd": "/tmp",
+            })
+        return entries
+
+    def _parse_generation(self, *usages):
+        path = _write_jsonl(self._usage_session(*usages))
+        try:
+            return parse_session(path, DEFAULT_CONFIG)
+        finally:
+            os.unlink(path)
+
+    def test_cache_creation_ttl_split_reaches_generation_event(self):
+        parsed = self._parse_generation({
+            "input_tokens": 2, "output_tokens": 9,
+            "cache_creation_input_tokens": 300,
+            "cache_creation": {"ephemeral_5m_input_tokens": 100, "ephemeral_1h_input_tokens": 200},
+        })
+        gen_ev = next(e for e in build_events(parsed, DEFAULT_CONFIG) if e["event"] == "$ai_generation")
+        props = gen_ev["properties"]
+        assert (
+            props["$ai_cache_creation_input_tokens"],
+            props["$ai_cache_creation_5m_input_tokens"],
+            props["$ai_cache_creation_1h_input_tokens"],
+        ) == (300, 100, 200)
+
+    def test_cache_creation_ttl_split_absent_without_breakdown(self):
+        parsed = self._parse_generation({
+            "input_tokens": 2, "output_tokens": 9, "cache_creation_input_tokens": 300,
+        })
+        gen_ev = next(e for e in build_events(parsed, DEFAULT_CONFIG) if e["event"] == "$ai_generation")
+        assert "$ai_cache_creation_1h_input_tokens" not in gen_ev["properties"]
+
+    def test_cache_creation_ttl_split_taken_from_latest_chunk_not_summed(self):
+        parsed = self._parse_generation(
+            {"cache_creation_input_tokens": 300,
+             "cache_creation": {"ephemeral_5m_input_tokens": 0, "ephemeral_1h_input_tokens": 300}},
+            {"cache_creation_input_tokens": 300,
+             "cache_creation": {"ephemeral_5m_input_tokens": 0, "ephemeral_1h_input_tokens": 300}},
+        )
+        gen = parsed["generations"][0]
+        assert (gen["cache_creation_5m_tokens"], gen["cache_creation_1h_tokens"]) == (0, 300)
 
     def test_three_chunk_merge_preserves_all_block_types(self):
         """Thinking, text, and tool_use arriving in three separate chunks
@@ -568,8 +677,10 @@ class TestParseSession:
             parsed = parse_session(path, DEFAULT_CONFIG)
             assert len(parsed["generations"]) == 1
             gen = parsed["generations"][0]
-            assert "ponder" in gen["output_text"]
-            assert "here goes" in gen["output_text"]
+            assert gen["output_blocks"] == [
+                {"type": "thinking", "thinking": "ponder"},
+                {"type": "text", "text": "here goes"},
+            ]
             assert len(gen["tool_use_blocks"]) == 1
             assert gen["stop_reason"] == "tool_use"
             assert gen["input_tokens"] == 10
@@ -616,7 +727,7 @@ class TestParseSession:
         try:
             parsed = parse_session(path, DEFAULT_CONFIG)
             assert len(parsed["generations"]) == 1
-            assert parsed["generations"][0]["output_text"] == "Hello, world."
+            assert parsed["generations"][0]["output_blocks"] == [{"type": "text", "text": "Hello, world."}]
         finally:
             os.unlink(path)
 

@@ -166,9 +166,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
         output_choices = None
         if not privacy_mode:
             max_attr = config.get("max_attribute_length", 12000)
-            content_blocks = []
-            if gen["output_text"]:
-                content_blocks.append({"type": "text", "text": gen["output_text"]})
+            content_blocks = list(gen["output_blocks"])
             content_blocks.extend(_truncate_tool_blocks(gen.get("tool_use_blocks", []), max_attr))
             if content_blocks:
                 output_choices = [{"role": "assistant", "content": content_blocks}]
@@ -189,6 +187,8 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
             output_tokens=gen["output_tokens"],
             cache_read_tokens=gen["cache_read_tokens"],
             cache_creation_tokens=gen["cache_creation_tokens"],
+            cache_creation_5m_tokens=gen["cache_creation_5m_tokens"],
+            cache_creation_1h_tokens=gen["cache_creation_1h_tokens"],
             stop_reason=gen["stop_reason"],
             is_error=gen["is_error"],
             error_message=gen.get("error_message"),
