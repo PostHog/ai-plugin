@@ -22,7 +22,8 @@ fail=0
 #   $1: case name
 #   $2: stdin payload
 #   $3: expected mode — "silent" or "prompt"
-#   $4: when "prompt", the posthog tool name expected in the response
+#   $4: when "prompt", the posthog tool name expected in the response, or ""
+#       for a prompt that names no tool
 #   $5+: optional `KEY=VALUE` env overrides for this run
 run_case() {
     local name="$1" payload="$2" expected="$3" expected_tool="${4:-}"
@@ -39,8 +40,9 @@ run_case() {
         # Match the actual JSON shape the hook produces, with the tool name
         # interpolated. Any drift in the response template will fail here.
         local needle="\"permissionDecision\":\"ask\""
-        local tool_needle="\`${expected_tool}\` modifies PostHog data"
-        [[ $status -eq 0 && "$out" == *"$needle"* && "$out" == *"$tool_needle"* ]] || ok=0
+        local tool_needle="\`${expected_tool}\`"
+        [[ $status -eq 0 && "$out" == *"$needle"* ]] || ok=0
+        [[ -z "$expected_tool" || "$out" == *"$tool_needle"* ]] || ok=0
     fi
 
     if (( ok )); then
@@ -188,9 +190,102 @@ run_case "deny with --json flag still extracts tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --json delete-feature-flag {\"id\":1}"}}' \
     prompt delete-feature-flag
 
+# The server trims the command and strips any number of `--json`/`--confirm`
+# flags, and asks for `call --confirm <tool>` on destructive tools, so none of
+# these may slip past the gate. `\n` and `\t` are JSON escapes in the raw input.
+
+run_case "--confirm flag still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "--json --confirm flags still extract tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --json --confirm delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "--confirm --json flags still extract tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm --json delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "leading spaces before call still extract tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"  call delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "leading escaped newline before call still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"\ncall delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "leading escaped tab before call still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"\tcall delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "escaped whitespace after call still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call \n\tdelete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "escaped whitespace after a flag still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm \r\ndelete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+# JavaScript's trim() also strips Unicode whitespace, which reaches the hook as
+# raw UTF-8 (JSON.stringify leaves it unescaped) or, for vertical tab, `\u000b`.
+nbsp=$'\xc2\xa0' ideographic_space=$'\xe3\x80\x80' bom=$'\xef\xbb\xbf'
+
+run_case "leading no-break space before call still extracts tool" \
+    "{\"tool_name\":\"mcp__posthog__exec\",\"tool_input\":{\"command\":\"${nbsp}call delete-feature-flag {}\"}}" \
+    prompt delete-feature-flag
+
+run_case "leading no-break space under a UTF-8 locale still extracts tool" \
+    "{\"tool_name\":\"mcp__posthog__exec\",\"tool_input\":{\"command\":\"${nbsp}call delete-feature-flag {}\"}}" \
+    prompt delete-feature-flag LC_ALL=en_US.UTF-8
+
+run_case "leading byte order mark before call still extracts tool" \
+    "{\"tool_name\":\"mcp__posthog__exec\",\"tool_input\":{\"command\":\"${bom}call delete-feature-flag {}\"}}" \
+    prompt delete-feature-flag
+
+run_case "ideographic space after call still extracts tool" \
+    "{\"tool_name\":\"mcp__posthog__exec\",\"tool_input\":{\"command\":\"call ${ideographic_space}delete-feature-flag {}\"}}" \
+    prompt delete-feature-flag
+
+run_case "leading escaped vertical tab before call still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"\u000bcall delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "--confirm before a write selected by deny still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm experiment-update {}"}}' \
+    prompt experiment-update \
+    POSTHOG_MCP_EXEC_GATE_DENY="experiment-update"
+
+run_case "info on a sensitive tool is silent" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"info --json delete-feature-flag"}}' \
+    silent
+
 run_case "sensitive write via plugin-prefixed exec name prompts" \
     "$(exec_call delete-feature-flag mcp__posthog_posthog__exec)" \
     prompt delete-feature-flag
+
+# A second `command` key could put a decoy before the real command; a `command`
+# key inside the call's JSON body is escaped and does not count.
+run_case "decoy command key before the real command prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"meta":{"command":"call experiment-get"},"command":"call delete-feature-flag {}"}}' \
+    prompt ""
+
+run_case "command key inside the call body is not a decoy" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call experiment-get {\"command\":\"call delete-feature-flag\"}"}}' \
+    silent
+
+# posthog-connection-call and -forward run any tool in another project.
+run_case "posthog-connection-call prompts by default" \
+    "$(exec_call posthog-connection-call)" \
+    prompt posthog-connection-call
+
+run_case "posthog-connection-forward prompts by default" \
+    "$(exec_call posthog-connection-forward)" \
+    prompt posthog-connection-forward
+
+run_case "posthog-connection-call prompts even when allowlisted" \
+    "$(exec_call posthog-connection-call)" \
+    prompt posthog-connection-call \
+    POSTHOG_MCP_EXEC_GATE_ALLOW="*"
 
 # --- allowlist wins over the deny set (silent on match) ---
 
@@ -259,6 +354,15 @@ if bash -n "$HOOK" 2>/dev/null; then
 else
     fail=$((fail + 1)); printf "  FAIL hook has a syntax error ('bash -n')\n"
 fi
+
+# A regex that fails to compile makes `=~` return 2; the hook must prompt
+# rather than pass. Simulate it on a copy whose call regex is invalid.
+broken_dir="$(mktemp -d)"
+sed "s/^call_re=.*/call_re='('/" "$HOOK" > "$broken_dir/gate-exec-write.sh"
+HOOK="$broken_dir/gate-exec-write.sh" run_case "call regex error prompts" \
+    "$(exec_call experiment-get)" \
+    prompt ""
+rm -rf "$broken_dir"
 
 # No input, however malformed, may yield exit code 2 (block). Fail open instead.
 for _payload in \

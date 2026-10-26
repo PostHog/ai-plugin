@@ -33,6 +33,10 @@
 #
 #           export POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*,annotation-create"
 #
+# Unless the gate is disabled, `posthog-connection-call` and
+# `posthog-connection-forward` prompt regardless of DENY and ALLOW, as does any
+# input the hook can't read reliably.
+#
 # Pure bash; no jq or other third-party tools required. Relies on the fact
 # that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
 # the raw JSON payload is safe.
@@ -51,6 +55,13 @@
 trap 'exit 0' EXIT
 
 set -u
+
+# Prompts with reason $1 and exits. The reason is interpolated into JSON
+# unescaped, so callers pass fixed text or a [a-zA-Z0-9_-]+ tool name.
+ask() {
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"%s"}}' "$1"
+    exit 0
+}
 
 # Codex compatibility: Codex's PreToolUse protocol does not support
 # `permissionDecision: "ask"` (it is parsed then rejected as unsupported), and
@@ -107,14 +118,40 @@ fi
 # `mcp__posthog_posthog__exec`).
 [[ "$tool_name" =~ __exec$ ]] || exit 0
 
-# Extract the PostHog tool name from `"command":"call [--json] <tool>..."`.
+# Extract the PostHog tool name from `"command":"call [--flag ...] <tool>..."`.
+# The server trims the command with JavaScript's trim() and skips any number of
+# `--json`/`--confirm` flags, so whitespace may surround `call` and each flag:
+# ASCII, a JSON escape like `\n` or `\u000b`, or raw UTF-8 Unicode whitespace,
+# which is matched as any non-ASCII byte under the C locale (extra prompts only).
 # Tool names are kebab-case [a-zA-Z0-9_-]+ so the regex stops cleanly at the
 # first space or escaped quote without needing to parse the trailing JSON.
-posthog_tool=""
-if [[ "$input" =~ \"command\"[[:space:]]*:[[:space:]]*\"call[[:space:]]+(--json[[:space:]]+)?([a-zA-Z0-9_-]+) ]]; then
-    posthog_tool="${BASH_REMATCH[2]}"
+#
+# The regex only compiles under LC_ALL=C: raw bytes \x80-\xff are invalid in a
+# UTF-8 locale, where `=~` returns 2 and nothing would ever match. A match
+# status of 2 therefore prompts instead of passing.
+LC_ALL=C
+ws='([[:space:]]|\\[nrtf]|\\u000[bB]|['$'\x80''-'$'\xff'']'')'
+call_re="\"command\"[[:space:]]*:[[:space:]]*\"${ws}*call${ws}+((--[a-zA-Z-]+${ws}+)*)([a-zA-Z0-9_-]+)"
+
+# The regex reads the first `command` key, so a second one (say, nested in an
+# extra object) could hide the real command behind a decoy. Quotes inside the
+# command string are escaped, so a body like {"command":…} doesn't count.
+if [[ "$input" =~ \"command\"[[:space:]]*:.*\"command\"[[:space:]]*: ]]; then
+    ask "The PostHog exec input has more than one command — approve to run."
 fi
+
+posthog_tool=""
+[[ "$input" =~ $call_re ]]
+case $? in
+    0) posthog_tool="${BASH_REMATCH[${#BASH_REMATCH[@]}-1]}" ;;
+    2) ask "The PostHog exec command could not be checked — approve to run." ;;
+esac
 [[ -n "$posthog_tool" ]] || exit 0
+
+# These run any tool, deletes included, in another project, so they always prompt.
+if [[ "$posthog_tool" == posthog-connection-call || "$posthog_tool" == posthog-connection-forward ]]; then
+    ask "\`$posthog_tool\` runs a tool in another PostHog project — approve to run."
+fi
 
 # Match write-verb fragments as whole hyphen-separated words within the tool
 # name. Keep this list in sync with the PostHog MCP write surface.
@@ -152,7 +189,7 @@ if [[ "$posthog_tool" =~ $write_re ]]; then
     # `posthog_tool` is restricted to [a-zA-Z0-9_-]+ by the regex above, so
     # interpolating it into the JSON response is safe — no characters that
     # would need escaping for JSON or printf.
-    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"`%s` modifies PostHog data — approve to run."}}' "$posthog_tool"
+    ask "\`$posthog_tool\` modifies PostHog data — approve to run."
 fi
 
 exit 0
