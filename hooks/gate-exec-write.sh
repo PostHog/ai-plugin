@@ -36,6 +36,10 @@
 #
 #           export POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*,annotation-create"
 #
+# Unless the gate is disabled, `posthog-connection-call` and
+# `posthog-connection-forward` prompt regardless of DENY and ALLOW, as does any
+# input the hook can't read reliably.
+#
 # Pure bash; no jq or other third-party tools required. Relies on the fact
 # that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
 # the raw JSON payload is safe.
