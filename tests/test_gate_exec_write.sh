@@ -203,6 +203,10 @@ run_case "empty POSTHOG_MCP_EXEC_GATE_DENY falls back to default set" \
     prompt notebooks-destroy \
     POSTHOG_MCP_EXEC_GATE_DENY=""
 
+run_case "--no-skills before the tool name still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --no-skills insight-delete {}"}}' \
+    prompt insight-delete
+
 run_case "deny with --json flag still extracts tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --json delete-feature-flag {\"id\":1}"}}' \
     prompt delete-feature-flag
@@ -222,10 +226,6 @@ run_case "--json --confirm flags still extract tool" \
 run_case "--confirm --json flags still extract tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm --json delete-feature-flag {}"}}' \
     prompt delete-feature-flag
-
-run_case "--no-skills before the tool name still extracts tool" \
-    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --no-skills insight-delete {}"}}' \
-    prompt insight-delete
 
 run_case "leading spaces before call still extract tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"  call delete-feature-flag {}"}}' \
