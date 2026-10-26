@@ -114,15 +114,17 @@ fi
 [[ "$tool_name" =~ __exec$ ]] || exit 0
 
 # Extract the PostHog tool name from `"command":"call [--flag ...] <tool>..."`.
-# `call` accepts several leading flags (`--json`, `--confirm`, `--no-skills`),
-# so skip every `--` token before the name. Tool names are kebab-case
-# [a-zA-Z0-9_-]+ so the regex stops cleanly at the first space or escaped quote
-# without needing to parse the trailing JSON.
+# The server trims the command and skips any number of `--json`/`--confirm`
+# flags, so whitespace (raw or a JSON escape like `\n`) may surround `call` and
+# each flag. Tool names are kebab-case [a-zA-Z0-9_-]+ so the regex stops cleanly
+# at the first space or escaped quote without needing to parse the trailing JSON.
+ws='([[:space:]]|\\[nrtf])'
+call_re="\"command\"[[:space:]]*:[[:space:]]*\"${ws}*call${ws}+((--[a-zA-Z-]+${ws}+)*)([a-zA-Z0-9_-]+)"
 posthog_tool=""
-if [[ "$input" =~ \"command\"[[:space:]]*:[[:space:]]*\"call[[:space:]]+((--[a-zA-Z-]+[[:space:]]+)*)([a-zA-Z0-9_-]+) ]]; then
-    posthog_tool="${BASH_REMATCH[3]}"
+if [[ "$input" =~ $call_re ]]; then
+    posthog_tool="${BASH_REMATCH[${#BASH_REMATCH[@]}-1]}"
 fi
-[[ -n "$posthog_tool" && "$posthog_tool" != -* ]] || exit 0
+[[ -n "$posthog_tool" ]] || exit 0
 
 # Match write-verb fragments as whole hyphen-separated words within the tool
 # name. Keep this list in sync with the PostHog MCP write surface.

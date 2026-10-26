@@ -188,13 +188,57 @@ run_case "deny with --json flag still extracts tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --json delete-feature-flag {\"id\":1}"}}' \
     prompt delete-feature-flag
 
-run_case "--confirm before the tool name still extracts tool" \
-    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm insight-delete {}"}}' \
-    prompt insight-delete
+# The server trims the command and strips any number of `--json`/`--confirm`
+# flags, and asks for `call --confirm <tool>` on destructive tools, so none of
+# these may slip past the gate. `\n` and `\t` are JSON escapes in the raw input.
+
+run_case "--confirm flag still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "--json --confirm flags still extract tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --json --confirm delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "--confirm --json flags still extract tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm --json delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "leading spaces before call still extract tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"  call delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "leading escaped newline before call still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"\ncall delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "leading escaped tab before call still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"\tcall delete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "escaped whitespace after call still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call \n\tdelete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "escaped whitespace after a flag still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm \r\ndelete-feature-flag {}"}}' \
+    prompt delete-feature-flag
+
+run_case "--confirm on a non-sensitive write is silent" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --confirm experiment-update {}"}}' \
+    silent
+
+run_case "info on a sensitive tool is silent" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"info --json delete-feature-flag"}}' \
+    silent
 
 run_case "sensitive write via plugin-prefixed exec name prompts" \
     "$(exec_call delete-feature-flag mcp__posthog_posthog__exec)" \
     prompt delete-feature-flag
+
+run_case "--no-skills before the tool name still extracts tool" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --no-skills insight-delete {}"}}' \
+    prompt insight-delete
 
 # --- allowlist wins over the deny set (silent on match) ---
 
