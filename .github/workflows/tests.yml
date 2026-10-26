@@ -21,6 +21,9 @@ jobs:
       - name: Run read-tool list generator tests
         run: ./tests/test_generate_read_tools.sh
 
+      - name: Run skill telemetry hook tests
+        run: ./tests/test_skill_invoked.sh
+
       - name: Install pytest
         run: python3 -m pip install --user pytest
 

@@ -325,25 +325,26 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
     prompt_id = state["prompt_id"]
     timestamp = state["timestamp"]
     usage = state.get("usage") or {}
+    cache_creation = usage.get("cache_creation") or {}
 
     blocks = state["blocks_by_type"]
     # Fall back to a sensible default order for older state dicts; new
     # entries populate type_order in first-seen order during the merge.
     type_order = state.get("type_order") or ["thinking", "text", "tool_use"]
 
-    text_parts = []
+    output_blocks = []
     entry_tool_uses = []
     for block_type in type_order:
         if block_type == "thinking":
             for item in blocks.get("thinking", []):
                 t = item.get("thinking", "")
                 if t:
-                    text_parts.append(t)
+                    output_blocks.append({"type": "thinking", "thinking": t})
         elif block_type == "text":
             for item in blocks.get("text", []):
                 t = item.get("text", "")
                 if t:
-                    text_parts.append(t)
+                    output_blocks.append({"type": "text", "text": t})
         elif block_type == "tool_use":
             for item in blocks.get("tool_use", []):
                 entry_tool_uses.append({
@@ -359,7 +360,6 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
         {"type": "tool_use", "name": tu["name"], "input": tu.get("input")}
         for tu in entry_tool_uses
     ]
-    output_text = "\n".join(text_parts) if text_parts else None
     stop_reason = state.get("stop_reason")
 
     generation = {
@@ -368,12 +368,14 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
         "output_tokens": usage.get("output_tokens", 0),
         "cache_read_tokens": usage.get("cache_read_input_tokens", 0),
         "cache_creation_tokens": usage.get("cache_creation_input_tokens", 0),
+        "cache_creation_5m_tokens": cache_creation.get("ephemeral_5m_input_tokens"),
+        "cache_creation_1h_tokens": cache_creation.get("ephemeral_1h_input_tokens"),
         "stop_reason": stop_reason,
         "timestamp": timestamp,
         "prompt_id": prompt_id,
         "span_id": span_id,
         "msg_id": state.get("msg_id", ""),
-        "output_text": output_text,
+        "output_blocks": output_blocks,
         "tool_use_blocks": tool_use_blocks,
         "is_error": stop_reason == "error",
         "error_message": state.get("error_message"),

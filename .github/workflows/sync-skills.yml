@@ -10,6 +10,11 @@ on:
         required: false
         default: ''
 
+# Default-deny on the implicit GITHUB_TOKEN. Commits, PR creation, and
+# auto-merge use the GH App token; the job grants the implicit token only
+# pull-requests: write so a different identity can approve the App's PR.
+permissions: {}
+
 jobs:
   sync-skills:
     runs-on: ubuntu-latest
@@ -62,19 +67,57 @@ jobs:
             done < "$MANIFEST"
           fi
 
+          # Zip-slip-safe extractor: refuses traversal, absolute, and symlink
+          # entries before extracting anything, so an archive cannot write
+          # outside $dest. zipfile would write a symlink entry as a stub file
+          # holding the link target, which would then be committed.
+          safe_unzip() {
+            local archive="$1" dest="$2"
+            python3 - "$archive" "$dest" <<'PY'
+          import os
+          import stat
+          import sys
+          import zipfile
+
+          archive, dest = sys.argv[1], sys.argv[2]
+          os.makedirs(dest, exist_ok=True)
+          dest_abs = os.path.realpath(dest)
+
+          with zipfile.ZipFile(archive) as zf:
+              for member in zf.infolist():
+                  name = member.filename
+                  if name.startswith("/") or os.path.isabs(name) or ".." in name.split("/"):
+                      sys.exit(f"refusing entry {name!r} in {archive!r}: traversal or absolute path")
+                  if stat.S_ISLNK(member.external_attr >> 16):
+                      sys.exit(f"refusing entry {name!r} in {archive!r}: symlink")
+                  target = os.path.realpath(os.path.join(dest_abs, name))
+                  if target != dest_abs and not target.startswith(dest_abs + os.sep):
+                      sys.exit(f"refusing entry {name!r} in {archive!r}: escapes {dest!r}")
+              zf.extractall(dest)
+          PY
+          }
+
+          # Skill names become paths under skills/ and manifest lines that the
+          # next run deletes, so anything but a plain name could escape skills/.
+          valid_name() { [[ $1 =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; }
+
           # Extract PostHog release skills
-          unzip -o /tmp/skills.zip -d skills/
+          while IFS= read -r name; do
+            valid_name "$name" || { echo "refusing skills.zip directory '$name'" >&2; exit 1; }
+          done < <(zipinfo -1 /tmp/skills.zip | grep '/' | cut -d'/' -f1 | sort -u)
+          safe_unzip /tmp/skills.zip skills/
 
           # Extract context-mill skills (nested zips, strip omnibus- prefix)
           tmp_cm=$(mktemp -d)
           cm_manifest=$(mktemp)
-          unzip -q -o /tmp/context-mill.zip -d "$tmp_cm"
+          safe_unzip /tmp/context-mill.zip "$tmp_cm"
           while read -r inner_zip; do
             skill_name="$(basename "$inner_zip" .zip)"
             skill_name="${skill_name#omnibus-}"
+            valid_name "$skill_name" || { echo "refusing inner zip $inner_zip" >&2; exit 1; }
             echo "$skill_name" >> "$cm_manifest"
             mkdir -p "skills/$skill_name"
-            unzip -q -o "$inner_zip" -d "skills/$skill_name"
+            safe_unzip "$inner_zip" "skills/$skill_name"
             find "skills/$skill_name" -name 'SKILL.md' -type f -exec sed -i 's/^\(name: *\)omnibus-/\1/' {} +
             find "skills/$skill_name" -name 'SKILL.md' -type f -exec sed -i '/^  version: .*/d' {} +
           done < <(find "$tmp_cm" -name 'omnibus-*.zip' -type f)
