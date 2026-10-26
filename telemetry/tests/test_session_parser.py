@@ -301,7 +301,7 @@ class TestParseSession:
             gen = parsed["generations"][0]
 
             # Both the thinking text and the tool_use survived
-            assert gen["output_text"] == "deep thoughts"
+            assert gen["output_blocks"] == [{"type": "thinking", "thinking": "deep thoughts"}]
             assert len(gen["tool_use_blocks"]) == 1
             assert gen["tool_use_blocks"][0]["name"] == "Bash"
 
@@ -513,11 +513,8 @@ class TestParseSession:
         try:
             parsed = parse_session(path, DEFAULT_CONFIG)
             assert len(parsed["generations"]) == 1
-            # Text came first in the source, so output_text must lead
-            # with "preface" rather than reshuffling thinking ahead of it.
-            assert parsed["generations"][0]["output_text"] == "preface\nafterthought"
-            # The same order is preserved in the structured blocks, with each
-            # block keeping its own type rather than collapsing into text.
+            # Text came first in the source, so it must lead rather than
+            # thinking being reshuffled ahead of it, and each block keeps its type.
             blocks = parsed["generations"][0]["output_blocks"]
             assert blocks == [
                 {"type": "text", "text": "preface"},
@@ -529,10 +526,8 @@ class TestParseSession:
     def test_thinking_and_text_stay_separate_blocks(self):
         """Extended thinking must not be ingested as assistant text.
 
-        _finalize_generation joins thinking and text into a single output_text
-        for backward compatibility, but $ai_output_choices needs them typed
-        separately or thinking content renders as ordinary assistant output and
-        cannot be filtered on.
+        $ai_output_choices needs them typed separately or thinking content
+        renders as ordinary assistant output and cannot be filtered on.
         """
         entries = [
             {"type": "permission-mode", "permissionMode": "default", "sessionId": "s1"},
@@ -562,9 +557,6 @@ class TestParseSession:
         try:
             parsed = parse_session(path, DEFAULT_CONFIG)
             gen = parsed["generations"][0]
-            # Flattened form is unchanged.
-            assert gen["output_text"] == "weighing the options\nHere is the answer."
-
             events = build_events(parsed, DEFAULT_CONFIG)
             gen_ev = next(e for e in events if e["event"] == "$ai_generation")
             content = gen_ev["properties"]["$ai_output_choices"][0]["content"]
@@ -629,8 +621,10 @@ class TestParseSession:
             parsed = parse_session(path, DEFAULT_CONFIG)
             assert len(parsed["generations"]) == 1
             gen = parsed["generations"][0]
-            assert "ponder" in gen["output_text"]
-            assert "here goes" in gen["output_text"]
+            assert gen["output_blocks"] == [
+                {"type": "thinking", "thinking": "ponder"},
+                {"type": "text", "text": "here goes"},
+            ]
             assert len(gen["tool_use_blocks"]) == 1
             assert gen["stop_reason"] == "tool_use"
             assert gen["input_tokens"] == 10
@@ -677,7 +671,7 @@ class TestParseSession:
         try:
             parsed = parse_session(path, DEFAULT_CONFIG)
             assert len(parsed["generations"]) == 1
-            assert parsed["generations"][0]["output_text"] == "Hello, world."
+            assert parsed["generations"][0]["output_blocks"] == [{"type": "text", "text": "Hello, world."}]
         finally:
             os.unlink(path)
 

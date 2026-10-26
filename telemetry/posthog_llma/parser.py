@@ -331,10 +331,6 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
     # entries populate type_order in first-seen order during the merge.
     type_order = state.get("type_order") or ["thinking", "text", "tool_use"]
 
-    text_parts = []
-    # Structured counterpart to text_parts: keeps thinking and text distinct so
-    # downstream consumers can render/filter them separately. `output_text`
-    # remains the flattened join for backward compatibility.
     output_blocks = []
     entry_tool_uses = []
     for block_type in type_order:
@@ -342,13 +338,11 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
             for item in blocks.get("thinking", []):
                 t = item.get("thinking", "")
                 if t:
-                    text_parts.append(t)
                     output_blocks.append({"type": "thinking", "thinking": t})
         elif block_type == "text":
             for item in blocks.get("text", []):
                 t = item.get("text", "")
                 if t:
-                    text_parts.append(t)
                     output_blocks.append({"type": "text", "text": t})
         elif block_type == "tool_use":
             for item in blocks.get("tool_use", []):
@@ -365,7 +359,6 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
         {"type": "tool_use", "name": tu["name"], "input": tu.get("input")}
         for tu in entry_tool_uses
     ]
-    output_text = "\n".join(text_parts) if text_parts else None
     stop_reason = state.get("stop_reason")
 
     generation = {
@@ -379,7 +372,6 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
         "prompt_id": prompt_id,
         "span_id": span_id,
         "msg_id": state.get("msg_id", ""),
-        "output_text": output_text,
         "output_blocks": output_blocks,
         "tool_use_blocks": tool_use_blocks,
         "is_error": stop_reason == "error",
