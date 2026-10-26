@@ -10,9 +10,9 @@ on:
         required: false
         default: ''
 
-# Default-deny on the implicit GITHUB_TOKEN. The actual writes (commit + PR
-# create + auto-merge) flow through the GH App token plumbed in below, so the
-# implicit token does not need any scopes.
+# Default-deny on the implicit GITHUB_TOKEN. Commits, PR creation, and
+# auto-merge use the GH App token; the job grants the implicit token only
+# pull-requests: write so a different identity can approve the App's PR.
 permissions: {}
 
 jobs:
@@ -60,16 +60,15 @@ jobs:
             done < "$MANIFEST"
           fi
 
-          # Zip-slip-safe extractor. Plain `unzip -o` does not validate
-          # entries — a malicious archive with `../` traversal could write
-          # outside the destination and tamper with workflow files,
-          # `.git/`, or other ai-plugin source. We validate every entry's
-          # resolved path is contained within $dest before extracting any
-          # member.
+          # Zip-slip-safe extractor: refuses traversal, absolute, and symlink
+          # entries before extracting anything, so an archive cannot write
+          # outside $dest. zipfile would write a symlink entry as a stub file
+          # holding the link target, which would then be committed.
           safe_unzip() {
             local archive="$1" dest="$2"
             python3 - "$archive" "$dest" <<'PY'
           import os
+          import stat
           import sys
           import zipfile
 
@@ -82,6 +81,8 @@ jobs:
                   name = member.filename
                   if name.startswith("/") or os.path.isabs(name) or ".." in name.split("/"):
                       sys.exit(f"refusing entry {name!r} in {archive!r}: traversal or absolute path")
+                  if stat.S_ISLNK(member.external_attr >> 16):
+                      sys.exit(f"refusing entry {name!r} in {archive!r}: symlink")
                   target = os.path.realpath(os.path.join(dest_abs, name))
                   if target != dest_abs and not target.startswith(dest_abs + os.sep):
                       sys.exit(f"refusing entry {name!r} in {archive!r}: escapes {dest!r}")
@@ -89,7 +90,14 @@ jobs:
           PY
           }
 
+          # Skill names become paths under skills/ and manifest lines that the
+          # next run deletes, so anything but a plain name could escape skills/.
+          valid_name() { [[ $1 =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; }
+
           # Extract PostHog release skills
+          while IFS= read -r name; do
+            valid_name "$name" || { echo "refusing skills.zip directory '$name'" >&2; exit 1; }
+          done < <(zipinfo -1 /tmp/skills.zip | grep '/' | cut -d'/' -f1 | sort -u)
           safe_unzip /tmp/skills.zip skills/
 
           # Extract context-mill skills (nested zips, strip omnibus- prefix)
@@ -99,6 +107,7 @@ jobs:
           while read -r inner_zip; do
             skill_name="$(basename "$inner_zip" .zip)"
             skill_name="${skill_name#omnibus-}"
+            valid_name "$skill_name" || { echo "refusing inner zip $inner_zip" >&2; exit 1; }
             echo "$skill_name" >> "$cm_manifest"
             mkdir -p "skills/$skill_name"
             safe_unzip "$inner_zip" "skills/$skill_name"
