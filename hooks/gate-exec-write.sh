@@ -47,18 +47,12 @@
 # the raw JSON payload is safe.
 
 # `--fail-closed` is for hooks/codex-gate-exec-write.sh, which approves every
-# call this script passes silently. In that mode the script asks for anything it
-# cannot classify and lets runtime failures exit non-zero, so the caller can tell
-# a pass from a crash.
+# call this script passes silently. In that mode the script passes only known
+# reads (exec's read-only verbs and `call`s of tools on the read list), asks for
+# everything else whatever the POSTHOG_MCP_EXEC_GATE_* variables say, and lets
+# runtime failures exit non-zero, so the caller can tell a pass from a crash.
 fail_closed=0
 [[ "${1:-}" == --fail-closed ]] && fail_closed=1
-
-# Pass in normal mode; ask in fail-closed mode.
-unclassified() {
-    (( fail_closed )) || exit 0
-    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"The PostHog exec command could not be classified — approve to run."}}'
-    exit 0
-}
 
 # Otherwise fail open — this gate must never break a Claude Code tool call.
 #
@@ -82,6 +76,12 @@ ask() {
     exit 0
 }
 
+# Passes in normal mode; asks in fail-closed mode.
+not_a_known_read() {
+    (( fail_closed )) || exit 0
+    ask "The PostHog exec command is not a known read — approve to run."
+}
+
 # Codex compatibility: Codex's PreToolUse protocol does not support
 # `permissionDecision: "ask"` (it is parsed then rejected as unsupported), so
 # Codex runs this script through hooks/codex-gate-exec-write.sh instead. Skip the
@@ -94,8 +94,9 @@ fi
 
 # Full opt-out — turn the gate off entirely. Set to any non-empty value other
 # than `0`. Lets remote devboxes and Claude Cloud runs, where no one can answer
-# the prompt, run write `call`s without interruption.
-if [[ -n "${POSTHOG_MCP_EXEC_GATE_DISABLE:-}" && "${POSTHOG_MCP_EXEC_GATE_DISABLE}" != "0" ]]; then
+# the prompt, run write `call`s without interruption. In fail-closed mode it
+# would approve every write, so it is ignored there.
+if [[ -n "${POSTHOG_MCP_EXEC_GATE_DISABLE:-}" && "${POSTHOG_MCP_EXEC_GATE_DISABLE}" != "0" ]] && (( ! fail_closed )); then
     exit 0
 fi
 
@@ -135,7 +136,7 @@ fi
 # Match any MCP tool whose name ends in `__exec` regardless of plugin/server
 # namespacing (bare `mcp__posthog__exec` or plugin-prefixed variants like
 # `mcp__posthog_posthog__exec`).
-[[ "$tool_name" =~ __exec$ ]] || unclassified
+[[ "$tool_name" =~ __exec$ ]] || not_a_known_read
 
 # Extract the PostHog tool name from `"command":"call [--flag ...] <tool>..."`.
 # The server trims the command with JavaScript's trim() and skips any number of
@@ -166,11 +167,11 @@ case $? in
     2) ask "The PostHog exec command could not be checked — approve to run." ;;
 esac
 
-# In fail-closed mode, only a parsed `call` or one of exec's read-only verbs is
-# classified.
-if (( fail_closed )); then
-    read_verb_re='\"command\"[[:space:]]*:[[:space:]]*\"[[:space:]]*(help|learn|tools|search|info|schema)([[:space:]]|\")'
-    [[ -n "$posthog_tool" || "$input" =~ $read_verb_re ]] || unclassified
+# Without a `call`, fail-closed mode passes only exec's read-only verbs, which
+# the server reads up to the first space.
+if [[ -z "$posthog_tool" ]] && (( fail_closed )); then
+    read_verb_re="\"command\"[[:space:]]*:[[:space:]]*\"${ws}*(help|learn|tools|search|info|schema)( |\")"
+    [[ "$input" =~ $read_verb_re ]] || not_a_known_read
 fi
 [[ -n "$posthog_tool" ]] || exit 0
 
@@ -181,12 +182,15 @@ fi
 
 # Third-party tools reached through the MCP gateway are named `<server>__<tool>`
 # (PostHog tool names never contain `__`) and follow their server's own policy.
-[[ "$posthog_tool" == *__* ]] && exit 0
+[[ "$posthog_tool" == *__* ]] && not_a_known_read
 
 read_tools_file="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/read-tools.txt"
 if [[ -r "$read_tools_file" ]]; then
     read_tools=$'\n'"$(<"$read_tools_file")"$'\n'
     [[ "$read_tools" == *$'\n'"$posthog_tool"$'\n'* ]] && exit 0
+fi
+if (( fail_closed )); then
+    not_a_known_read
 fi
 
 # Match comma-separated bash globs in $2 against the PostHog tool name ($1).
