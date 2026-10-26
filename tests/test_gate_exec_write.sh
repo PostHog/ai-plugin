@@ -266,6 +266,16 @@ run_case "--no-skills before the tool name still extracts tool" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call --no-skills insight-delete {}"}}' \
     prompt insight-delete
 
+# A second `command` key could put a decoy before the real command; a `command`
+# key inside the call's JSON body is escaped and does not count.
+run_case "decoy command key before the real command prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"meta":{"command":"call experiment-get"},"command":"call delete-feature-flag {}"}}' \
+    prompt ""
+
+run_case "command key inside the call body is not a decoy" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call experiment-get {\"command\":\"call delete-feature-flag\"}"}}' \
+    silent
+
 # --- allowlist wins over the deny set (silent on match) ---
 
 run_case "allowlist glob matches (feature-flag-*) over default deny" \
