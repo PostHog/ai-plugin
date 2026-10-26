@@ -49,6 +49,13 @@ jobs:
             -o /tmp/context-mill.zip \
             "https://github.com/PostHog/context-mill/releases/latest/download/skills-mcp-resources.zip"
 
+      # A refused or failed regeneration keeps the committed list, lets the
+      # skill sync go ahead, and fails the job at the end so the run shows red.
+      - name: Regenerate MCP read-tool list
+        id: read_tools
+        run: |
+          bash scripts/generate-read-tools.sh || echo "failed=true" >> "$GITHUB_OUTPUT"
+
       - name: Sync skills directory
         run: |
           MANIFEST="skills/.sync-manifest"
@@ -136,7 +143,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          git add -A skills/ commands/*.toml gemini-extension.json
+          git add -A skills/ commands/*.toml gemini-extension.json hooks/read-tools.txt
           if git diff --cached --quiet; then
             echo "No changes detected."
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
@@ -213,10 +220,27 @@ jobs:
           BASE_REF: ${{ steps.branch.outputs.base }}
           HEAD_REF: ${{ steps.branch.outputs.branch }}
         run: |
+          BODY="Automated skill sync from PostHog release and context-mill."
+          READ_TOOL_CHANGES=$(git diff HEAD -U0 -- hooks/read-tools.txt | grep -E '^[+-][a-z0-9]' || true)
+          if [ -n "$READ_TOOL_CHANGES" ]; then
+            BODY="$BODY
+
+          The MCP read-tool list changed. The exec write gate now treats added (+) tools as reads and removed (-) ones as writes:
+
+          \`\`\`diff
+          $READ_TOOL_CHANGES
+          \`\`\`"
+          fi
           PR_URL=$(gh pr create \
             --base "$BASE_REF" \
             --head "$HEAD_REF" \
             --title "$COMMIT_MESSAGE" \
-            --body "Automated skill sync from PostHog release and context-mill.")
+            --body "$BODY")
           GH_TOKEN="$GH_APPROVAL_TOKEN" gh pr review "$PR_URL" --approve
           gh pr merge "$PR_URL" --auto --squash
+
+      - name: Fail if the read-tool list was not regenerated
+        if: steps.read_tools.outputs.failed == 'true'
+        run: |
+          echo "::error::hooks/read-tools.txt was not regenerated; the committed list was kept. See the 'Regenerate MCP read-tool list' step."
+          exit 1
