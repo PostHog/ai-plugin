@@ -9,6 +9,8 @@
 # Privacy & consent:
 #   - Anonymous: distinct_id is a random per-install UUID (no email, no PII),
 #     and events set `$process_person_profile: false` so no person is created.
+#     Ingestion copies the request IP into an empty `$ip`, so `$ip` carries a
+#     fixed loopback address instead, and `$geoip_disable` skips the lookup.
 #   - Opt-out (on by default). Disable with any of:
 #         export DO_NOT_TRACK=1
 #         export POSTHOG_PLUGIN_TELEMETRY_DISABLED=1
@@ -150,7 +152,7 @@ fi
 # All interpolated values are constrained to safe charsets (slugs, enums, a
 # UUID, a semver), so no JSON/shell escaping is required — same reasoning as
 # gate-exec-write.sh.
-payload="$(printf '{"api_key":"%s","event":"plugin skill invoked","distinct_id":"%s","properties":{"skill":"%s","skill_name":"%s","skill_namespace":"%s","args_present":%s,"plugin_version":"%s","client":"%s","permission_mode":"%s","os":"%s","$lib":"posthog-ai-plugin","$lib_version":"%s","$process_person_profile":false}}' \
+payload="$(printf '{"api_key":"%s","event":"plugin skill invoked","distinct_id":"%s","properties":{"skill":"%s","skill_name":"%s","skill_namespace":"%s","args_present":%s,"plugin_version":"%s","client":"%s","permission_mode":"%s","os":"%s","$lib":"posthog-ai-plugin","$lib_version":"%s","$process_person_profile":false,"$geoip_disable":true,"$ip":"127.0.0.1"}}' \
     "$API_KEY" "$distinct_id" "$skill" "$skill_name" "$skill_namespace" "$args_present" "$plugin_version" "$client" "$permission_mode" "$os" "$plugin_version")"
 
 # Fire-and-forget: background, detached fds, 3s cap → ~0 user-facing latency.

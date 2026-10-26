@@ -69,6 +69,8 @@ ok()   { pass=$((pass + 1)); printf "  ok   %s\n" "$1"; }
 bad()  { fail=$((fail + 1)); printf "  FAIL %s\n       %s\n" "$1" "${2:-}"; }
 
 body() { sed -n 's/^BODY //p' "$CAP"; }
+# JSON-encoded value of a property in the sent body; fails when the body isn't valid JSON.
+prop() { body | python3 -I -c 'import json, sys; print(json.dumps(json.load(sys.stdin)["properties"].get(sys.argv[1])))' "$1"; }
 
 # PostToolUse payload for a Skill invocation.
 skill_payload() {
@@ -114,6 +116,14 @@ if wait_sent && [[ "$(body)" == *'"args_present":true'* && "$(body)" != *"SECRET
 else
     bad "args presence captured as boolean, content never sent" "body=$(body)"
 fi
+
+# --- anonymous: no GeoIP lookup, client IP replaced before ingestion ------
+
+run_hook "$(skill_payload "posthog:querying-posthog-data")" 1
+wait_sent
+if [[ "$(prop '$geoip_disable')" == "true" ]]; then ok "GeoIP lookup disabled"; else bad "GeoIP lookup disabled" "body=$(body)"; fi
+if [[ "$(prop '$ip')" == '"127.0.0.1"' ]]; then ok "client IP replaced"; else bad "client IP replaced" "body=$(body)"; fi
+if [[ "$(prop '$process_person_profile')" == "false" ]]; then ok "no person profile"; else bad "no person profile" "body=$(body)"; fi
 
 # --- ignored: not this plugin's skills -----------------------------------
 
