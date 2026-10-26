@@ -44,10 +44,10 @@ jobs:
             -o /tmp/context-mill.zip \
             "https://github.com/PostHog/context-mill/releases/latest/download/skills-mcp-resources.zip"
 
-      - name: Regenerate MCP write-tool list
+      - name: Regenerate MCP read-tool list
         run: |
-          bash scripts/generate-write-tools.sh \
-            || echo "::warning::write-tools.txt not regenerated; keeping the committed list"
+          bash scripts/generate-read-tools.sh \
+            || echo "::warning::read-tools.txt not regenerated; keeping the committed list"
 
       - name: Sync skills directory
         run: |
@@ -98,7 +98,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          git add -A skills/ commands/*.toml gemini-extension.json hooks/write-tools.txt
+          git add -A skills/ commands/*.toml gemini-extension.json hooks/read-tools.txt
           if git diff --cached --quiet; then
             echo "No changes detected."
             echo "has_changes=false" >> "$GITHUB_OUTPUT"

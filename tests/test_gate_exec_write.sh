@@ -164,7 +164,7 @@ run_case "disable=0 leaves the gate active" \
 
 # --- POSTHOG_MCP_EXEC_GATE_DENY overrides the default set ---
 
-run_case 'deny="*" restores prompting on every write (survey-stop has no regex verb)' \
+run_case 'deny="*" restores prompting on every write (survey-stop)' \
     "$(exec_call survey-stop)" \
     prompt survey-stop \
     POSTHOG_MCP_EXEC_GATE_DENY="*"
@@ -284,19 +284,55 @@ run_case "empty POSTHOG_MCP_EXEC_GATE_ALLOW behaves as unset" \
     prompt create-feature-flag \
     POSTHOG_MCP_EXEC_GATE_ALLOW=""
 
-# --- regex word-boundary cases ---
+# --- read list: any tool not on hooks/read-tools.txt is a write ---
 
-run_case "tool with no write verb stays silent (persons-list)" \
+run_case 'deny="*": listed read tool (persons-list) is silent' \
     "$(exec_call persons-list)" \
+    silent "" \
+    POSTHOG_MCP_EXEC_GATE_DENY="*"
+
+run_case 'deny="*": unlisted tool (made-up-tool) prompts' \
+    "$(exec_call made-up-tool)" \
+    prompt made-up-tool \
+    POSTHOG_MCP_EXEC_GATE_DENY="*"
+
+run_case 'deny="*": write with no write verb (notebooks-run) prompts' \
+    "$(exec_call notebooks-run)" \
+    prompt notebooks-run \
+    POSTHOG_MCP_EXEC_GATE_DENY="*"
+
+run_case "default: feature-flag write with no write verb prompts" \
+    "$(exec_call feature-flag-roll-out-to-everyone)" \
+    prompt feature-flag-roll-out-to-everyone
+
+run_case "default: read tool named like a write (feature-flags-test-evaluation-create) is silent" \
+    "$(exec_call feature-flags-test-evaluation-create)" \
     silent
 
-run_case "embedded substring is not a write verb (e.g. updates-feed)" \
-    "$(exec_call some-updates-feed)" \
+run_case "default: read-only delete prepare step is silent" \
+    "$(exec_call data-catalog-metric-delete-prepare)" \
     silent
 
-run_case "write verb regex still applies to a tool absent from write-tools.txt" \
-    "$(exec_call made-up-tool-delete)" \
-    prompt made-up-tool-delete
+run_case "default: matching delete execute step prompts" \
+    "$(exec_call data-catalog-metric-delete-execute)" \
+    prompt data-catalog-metric-delete-execute
+
+run_case "read list matches whole names only (persons-list-x is unlisted)" \
+    "$(exec_call persons-list-x)" \
+    prompt persons-list-x \
+    POSTHOG_MCP_EXEC_GATE_DENY="*"
+
+# Without the read list every call counts as a write, so the gate still prompts.
+_no_list_dir="$(mktemp -d)"
+cp "$HOOK" "$_no_list_dir/"
+_hook_saved="$HOOK"
+HOOK="$_no_list_dir/gate-exec-write.sh"
+run_case 'deny="*": missing read list prompts on a read tool' \
+    "$(exec_call persons-list)" \
+    prompt persons-list \
+    POSTHOG_MCP_EXEC_GATE_DENY="*"
+HOOK="$_hook_saved"
+rm -rf "$_no_list_dir"
 
 # --- fail-open contract: the hook must never break a tool call ---
 #
