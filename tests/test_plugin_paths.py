@@ -52,6 +52,19 @@ def test_hook_commands_resolve(name, plugin_root):
         assert target.is_file(), f"{hooks_file}: {command} points at missing {target}"
 
 
+@pytest.mark.parametrize("name,plugin_root", PLUGIN_ROOTS, ids=[n for n, _ in PLUGIN_ROOTS])
+def test_hook_commands_quote_plugin_root(name, plugin_root):
+    # Claude Code runs hook commands through a shell, so an unquoted path splits on a space in the plugin root.
+    hooks_file = plugin_root / "hooks" / "hooks.json"
+    if not hooks_file.is_file():
+        pytest.skip(f"{name} ships no hooks.json")
+
+    for command in _hook_commands(hooks_file):
+        for match in PLUGIN_ROOT_REF.finditer(command):
+            quoted = command[match.start() - 1 : match.start()] == '"' and command[match.end() : match.end() + 1] == '"'
+            assert quoted, f"{hooks_file}: {command} leaves {match.group(0)} unquoted"
+
+
 @pytest.mark.parametrize(
     "command_file",
     sorted((REPO_ROOT / "commands").glob("*.md")) + sorted((REPO_ROOT / "commands").glob("*.toml")),

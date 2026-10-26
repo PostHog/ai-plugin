@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}/hooks/skill-invoked.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}/hooks/skill-invoked.sh\"",
             "timeout": 5
           }
         ]
