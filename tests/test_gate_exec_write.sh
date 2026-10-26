@@ -263,6 +263,16 @@ run_case "sensitive write via plugin-prefixed exec name prompts" \
     "$(exec_call delete-feature-flag mcp__posthog_posthog__exec)" \
     prompt delete-feature-flag
 
+# A second `command` key could put a decoy before the real command; a `command`
+# key inside the call's JSON body is escaped and does not count.
+run_case "decoy command key before the real command prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"meta":{"command":"call experiment-get"},"command":"call delete-feature-flag {}"}}' \
+    prompt ""
+
+run_case "command key inside the call body is not a decoy" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call experiment-get {\"command\":\"call delete-feature-flag\"}"}}' \
+    silent
+
 # --- allowlist wins over the deny set (silent on match) ---
 
 run_case "allowlist glob matches (feature-flag-*) over default deny" \

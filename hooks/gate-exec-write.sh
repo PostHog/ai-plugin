@@ -129,6 +129,13 @@ LC_ALL=C
 ws='([[:space:]]|\\[nrtf]|\\u000[bB]|['$'\x80''-'$'\xff'']'')'
 call_re="\"command\"[[:space:]]*:[[:space:]]*\"${ws}*call${ws}+((--[a-zA-Z-]+${ws}+)*)([a-zA-Z0-9_-]+)"
 
+# The regex reads the first `command` key, so a second one (say, nested in an
+# extra object) could hide the real command behind a decoy. Quotes inside the
+# command string are escaped, so a body like {"command":…} doesn't count.
+if [[ "$input" =~ \"command\"[[:space:]]*:.*\"command\"[[:space:]]*: ]]; then
+    ask "The PostHog exec input has more than one command — approve to run."
+fi
+
 posthog_tool=""
 [[ "$input" =~ $call_re ]]
 case $? in
