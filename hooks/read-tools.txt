@@ -284,6 +284,8 @@ inbox-report-checks-list
 inbox-report-checks-retrieve
 inbox-reports-list
 inbox-reports-retrieve
+inbox-reviewer-exclusions-get
+inbox-reviewer-exclusions-list
 inbox-source-configs-list
 inbox-source-configs-retrieve
 inbox-steering-instructions-get
@@ -296,6 +298,7 @@ insights-list
 insights-trending-retrieve
 integration-get
 integrations-channels-retrieve
+integrations-email-status-retrieve
 integrations-github-repos-retrieve
 integrations-jira-projects-retrieve
 integrations-linear-teams-retrieve
@@ -574,7 +577,6 @@ vision-scanners-observations-stats
 vision-scanners-scout-reports-get
 vision-scanners-scout-reports-list
 vision-scanners-self-driving-stats
-vision-scanners-suggest-tags
 vision-scanners-variants-list
 vision-scanners-watch-feed
 visual-review-repos-flakiness-retrieve

@@ -137,6 +137,7 @@ signals-scout-data-warehouse
 signals-scout-error-tracking
 signals-scout-experiments
 signals-scout-feature-flags
+signals-scout-first-report
 signals-scout-general
 signals-scout-health-checks
 signals-scout-inbox-validation
