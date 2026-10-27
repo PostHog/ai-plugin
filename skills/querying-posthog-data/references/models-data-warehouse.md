@@ -57,6 +57,7 @@ Column | Type | Nullable | Description
 `columns` | JSON | NOT NULL | JSON schema of the table's columns.
 `row_count` | Integer | NOT NULL | Approximate number of rows in the table.
 `external_data_source_id` | String | NOT NULL | Source that produced this table; joins to data_warehouse_sources.id.
+`created_by_id` | Integer | NULL | User who created the table.
 `created_at` | DateTime | NOT NULL | When the table was first synced.
 `updated_at` | DateTime | NOT NULL | When the table metadata was last updated.
 `deleted` | Integer | NOT NULL | 1 if the table has been deleted, 0 otherwise.
