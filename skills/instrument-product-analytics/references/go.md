@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/go
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
 - [Capturing events](#capturing-events)
@@ -21,6 +22,14 @@ Canonical URL: https://posthog.com/docs/libraries/go
 - [Thank you](#thank-you)
 
 This library uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server-side application that needs performance.
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Go project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 

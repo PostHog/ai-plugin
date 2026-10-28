@@ -70,7 +70,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/nuxt-3-6
         public: {
           posthogPublicKey: '<ph_project_token>',
           posthogHost: 'https://us.i.posthog.com',
-          posthogDefaults: '2026-05-30'
+          posthogDefaults: '2026-08-30'
         }
       }
     })

@@ -15,6 +15,8 @@ Canonical URL: https://posthog.com/docs/logs/installation/nodejs
 - [Test your setup](#test-your-setup)
 - [Next steps](#next-steps)
 
+> **Note:** If you use Pino or Winston, follow the [Pino](https://posthog.com/docs/logs/installation/pino.md) or [Winston](https://posthog.com/docs/logs/installation/winston.md) guide instead. It sends your existing logs without changes to your logger calls.
+
 1.  1
 
     ## Install OpenTelemetry packages

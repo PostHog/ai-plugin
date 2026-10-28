@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/svelte
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Install the package](#install-the-package)
 - [Initialize PostHog](#initialize-posthog)
 - [Server-side setup](#server-side-setup)
@@ -16,6 +17,14 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/svelte
 - [Set up server-side exception capture](#set-up-server-side-exception-capture)
 - [Verify error tracking](#verify-error-tracking)
 - [Upload source maps](#upload-source-maps)
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your SvelteKit project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 1.  1
 
@@ -70,7 +79,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/svelte
           '<ph_project_token>',
           {
             api_host: 'https://us.i.posthog.com',
-            defaults: '2026-05-30'
+            defaults: '2026-08-30'
           }
         )
       }

@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/ios
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Install dependency](#install-dependency)
 - [Configure PostHog](#configure-posthog)
 - [Send events](#send-events)
@@ -16,6 +17,14 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/ios
 - [Configure in-app frames](#configure-in-app-frames)
 - [Verify error tracking](#verify-error-tracking)
 - [Upload dSYMs](#upload-dsyms)
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your iOS project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 1.  1
 

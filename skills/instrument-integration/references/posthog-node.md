@@ -1018,7 +1018,7 @@ Prefer this over repeated `isFeatureEnabled()` / `getFeatureFlag()` calls and ov
 
 ### Parameters
 
-- **`options?`** (`AllFlagsOptions`) - Optional configuration for flag evaluation. Supports the same fields as `getAllFlags()`. `flagKeys` scopes local evaluation, the `/flags` request, and the returned snapshot. `onlyEvaluateLocally` prevents fallback and leaves unresolved keys absent.
+- **`options?`** (`AllFlagsOptions`) - Optional configuration for flag evaluation. Supports the same fields as `getAllFlags()`. `flagKeys` scopes local evaluation, the `/flags` request, and the returned snapshot. `onlyEvaluateLocally` prevents fallback and leaves unresolved keys absent; the snapshot's `unresolvedFlags` lists them with a reason.
 
 ### Returns
 

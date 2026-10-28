@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/flutter
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Capturing events](#capturing-events)
 - [Identifying users](#identifying-users)
@@ -32,6 +33,14 @@ Canonical URL: https://posthog.com/docs/libraries/flutter
 This is an optional library you can install if you're working with Flutter. It uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your mobile app.
 
 PostHog supports the iOS, macOS, Android, and Web platforms.
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Flutter project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 
@@ -270,7 +279,7 @@ web/index.html
       })(document, window.posthog || []);
       posthog.init("<ph_project_token>", {
         api_host: "https://us.i.posthog.com", // 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
-        defaults: "2026-05-30",
+        defaults: "2026-08-30",
       });
     </script>
   </head>

@@ -265,7 +265,7 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
           })(document, window.posthog || []);
           posthog.init("<ph_project_token>", {
             api_host: "https://us.i.posthog.com", // 'https://us.i.posthog.com' or 'https://eu.i.posthog.com'
-            defaults: "2026-05-30",
+            defaults: "2026-08-30",
           });
         </script>
       </head>

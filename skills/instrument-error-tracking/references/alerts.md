@@ -43,7 +43,7 @@ Since error tracking works by capturing `$exception` events, PostHog features th
 
 ### Real time destinations
 
-The first way is using [real time destinations](https://posthog.com/docs/cdp/destinations.md). This enables you to send events (like `$exception`) to other tools as soon as they are ingested.
+The first way is using [real time destinations](https://posthog.com/docs/data-pipelines/destinations.md). This enables you to send events (like `$exception`) to other tools as soon as they are ingested.
 
 To create a real time destination, go to the [data pipelines tab](https://app.posthog.com/data-management/destinations) in PostHog, click **\+ New**, and then select **Destination**. Choose your destination and press **\+ Create**.
 
@@ -51,7 +51,7 @@ On the destination creation screen, make sure to add an event matcher for the `$
 
 ![Real time destination](https://res.cloudinary.com/dmukukwp6/image/upload/http_error_alert_light_9898376c56.png)
 
-Check out our [real time destinations docs](https://posthog.com/docs/cdp/destinations.md) for more information.
+Check out our [real time destinations docs](https://posthog.com/docs/data-pipelines/destinations.md) for more information.
 
 ### Trend alerts
 

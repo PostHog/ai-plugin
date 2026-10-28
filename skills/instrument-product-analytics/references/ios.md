@@ -6,6 +6,7 @@ Canonical URL: https://posthog.com/docs/libraries/ios
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
 - [Offline behavior](#offline-behavior)
@@ -17,6 +18,14 @@ Canonical URL: https://posthog.com/docs/libraries/ios
 The PostHog iOS SDK is a library that you can use to track events, identify users, record session replays, evaluate feature flags, run experiments, build surveys, and more.
 
 This page shows you how to install the SDK and get started with it. If you've already installed the SDK, you can skip ahead to learn about [using the features](https://posthog.com/docs/libraries/ios/usage.md) and [configuring the SDK](https://posthog.com/docs/libraries/ios/configuration.md).
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your iOS project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 

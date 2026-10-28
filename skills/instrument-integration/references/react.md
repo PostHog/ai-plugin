@@ -9,7 +9,7 @@ Canonical URL: https://posthog.com/docs/libraries/react
 ## On this page
 
 - [Using a framework?](#using-a-framework)
-- [Beta: integration via LLM](#beta-integration-via-llm)
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
 - [Usage](#usage)
@@ -30,13 +30,13 @@ Using React with a framework like Next.js, Remix, or React Router requires addit
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/rr_logo_light_970950178e.svg)React Router](https://posthog.com/docs/libraries/react-router.md)
 
-## Beta: integration via LLM
+## Install with the wizard
 
-Install PostHog for React in seconds with our wizard by running this prompt with [LLM coding agents](https://posthog.com/blog/envoy-wizard-llm-agent.md) like Cursor and Bolt, or by running it in your terminal.
+Run this command in your project directory to add PostHog to your React project. The wizard detects your framework, installs the SDK, and sets up your first events.
 
 `npx @posthog/wizard`
 
-Or, to integrate manually, continue with the rest of this guide.
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 
@@ -100,7 +100,7 @@ import { PostHogProvider } from '@posthog/react'
 
 posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {
   api_host: import.meta.env.VITE_POSTHOG_HOST,
-  defaults: '2026-05-30',
+  defaults: '2026-08-30',
 });
 
 createRoot(document.getElementById('root')).render(
@@ -141,7 +141,7 @@ import { PostHogProvider} from '@posthog/react'
 
 posthog.init(process.env.REACT_APP_PUBLIC_POSTHOG_PROJECT_TOKEN, {
   api_host: process.env.REACT_APP_PUBLIC_POSTHOG_HOST,
-  defaults: '2026-05-30',
+  defaults: '2026-08-30',
   // Optional: send PostHog session/user context to your backend
   tracing_headers: ['api.example.com'],
 });
@@ -492,7 +492,7 @@ You can configure the `feature_flag_request_timeout_ms` parameter when initializ
 ```javascript
 posthog.init('<ph_project_token>', {
   api_host: 'https://us.i.posthog.com',
-  defaults: '2026-05-30',
+  defaults: '2026-08-30',
   feature_flag_request_timeout_ms: 3000 // Time in milliseconds. Default is 3000 (3 seconds).
 }
 )

@@ -1,4 +1,5 @@
 adding-warehouse-person-properties
+analyzing-ai-citations
 analyzing-expensive-users
 analyzing-experiment-session-replays
 analyzing-funnel-correlation
@@ -87,6 +88,7 @@ instrument-llm-analytics
 instrument-logs
 instrument-metrics
 instrument-product-analytics
+instrument-tracing
 investigate-metric
 investigating-ci-failures
 investigating-error-issue

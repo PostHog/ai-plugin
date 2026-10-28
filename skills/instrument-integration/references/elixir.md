@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/elixir
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
 - [Capturing events](#capturing-events)
@@ -18,6 +19,14 @@ Canonical URL: https://posthog.com/docs/libraries/elixir
 - [Thanks](#thanks)
 
 This library provides an Elixir HTTP client for PostHog. [See the repository](https://github.com/posthog/posthog-elixir) for more information.
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Elixir project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 

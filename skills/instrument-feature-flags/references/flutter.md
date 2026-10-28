@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/feature-flags/installation/flutter
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Install the package](#install-the-package)
 - [Platform setup](#platform-setup)
 - [Send events](#send-events)
@@ -15,6 +16,14 @@ Canonical URL: https://posthog.com/docs/feature-flags/installation/flutter
 - [Evaluate multivariate feature flags](#evaluate-multivariate-feature-flags)
 - [Running experiments](#running-experiments)
 - [Next steps](#next-steps)
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Flutter project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 1.  1
 
@@ -109,7 +118,7 @@ Canonical URL: https://posthog.com/docs/feature-flags/installation/flutter
           !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}p||((p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",p.onerror=function(){p=null},(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r));var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="init capture register register_once register_for_session unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group identify setPersonProperties setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags resetGroups onFeatureFlags addFeatureFlagsHandler onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
           posthog.init('<ph_project_token>', {
               api_host: 'https://us.i.posthog.com',
-              defaults: '2026-05-30',
+              defaults: '2026-08-30',
           })
         </script>
       </head>

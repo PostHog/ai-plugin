@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/vue-js
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Prerequisites](#prerequisites)
 - [Setting up PostHog](#setting-up-posthog)
 - [Identifying users](#identifying-users)
@@ -19,6 +20,14 @@ PostHog makes it easy to get data about usage of your [Vue.js](https://vuejs.org
 This guide walks you through integrating PostHog into your app for both Vue 2 and Vue 3. We'll use the [JavaScript Web SDK](https://posthog.com/docs/libraries/js.md) for this.
 
 For integrating PostHog into a [Nuxt.js](https://nuxt.com/) app, see our [Nuxt guide](https://posthog.com/docs/libraries/nuxt-js.md).
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Vue project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Prerequisites
 
@@ -88,7 +97,7 @@ const app = createApp(App);
 
 posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN || '<ph_project_token>', {
   api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com',
-  defaults: '2026-05-30',
+  defaults: '2026-08-30',
 });
 
 app.use(createPinia())
@@ -128,7 +137,7 @@ export default {
   install(Vue) {
     posthog.init('<ph_project_token>', {
       api_host: 'https://us.i.posthog.com',
-      defaults: '2026-05-30'
+      defaults: '2026-08-30'
     })
 
     Vue.prototype.$posthog = posthog

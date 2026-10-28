@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/node
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
 - [Capturing events](#capturing-events)
@@ -31,6 +32,14 @@ Canonical URL: https://posthog.com/docs/libraries/node
 - [Upgrading from V1 to V2](#upgrading-from-v1-to-v2)
 
 If you're working with Node.js (versions 20+), the official `posthog-node` library is the simplest way to integrate your software with PostHog. This library uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server-side application that needs performance. And in addition to event capture, [feature flags](https://posthog.com/docs/feature-flags.md) are supported as well.
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Node.js project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 

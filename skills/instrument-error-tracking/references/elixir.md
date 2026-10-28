@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/elixir
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Install the Elixir SDK](#install-the-elixir-sdk)
 - [Configure PostHog](#configure-posthog)
 - [Errors are captured automatically](#errors-are-captured-automatically)
@@ -16,6 +17,14 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/elixir
 - [Configure error tracking options (optional)](#configure-error-tracking-options-optional)
 - [Enable source code context (optional)](#enable-source-code-context-optional)
 - [Verify error tracking](#verify-error-tracking)
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Elixir project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 1.  1
 

@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/ruby
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Identifying users](#identifying-users)
@@ -27,6 +28,14 @@ The `posthog-ruby` library provides tracking functionality on the server-side fo
 It uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your web app or other server-side application that needs performance.
 
 > **Use a single client instance (singleton)** — Create the PostHog client once and reuse it throughout your application. Multiple client instances with the same API key can cause dropped events and inconsistent behavior. The SDK logs a warning if it detects multiple instances.
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Ruby project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 

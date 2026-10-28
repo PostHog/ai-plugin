@@ -4,6 +4,14 @@
 
 Canonical URL: https://posthog.com/docs/feature-flags/installation/rust
 
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Rust project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
+
 Install the `posthog-rs` crate by adding it to your `Cargo.toml`.
 
 Cargo.toml

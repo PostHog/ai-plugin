@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/nextjs
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Install the package](#install-the-package)
 - [Add environment variables](#add-environment-variables)
 - [Initialize PostHog](#initialize-posthog)
@@ -18,6 +19,14 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/nextjs
 - [Capturing server-side exceptions](#capturing-server-side-exceptions)
 - [Verify error tracking](#verify-error-tracking)
 - [Upload source maps](#upload-source-maps)
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Next.js project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 1.  1
 
@@ -85,7 +94,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/nextjs
     
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
         api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-        defaults: '2026-05-30'
+        defaults: '2026-08-30'
     })
     ```
 
@@ -108,7 +117,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/nextjs
       useEffect(() => {
         posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN as string, {
           api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-          defaults: '2026-05-30'
+          defaults: '2026-08-30'
         })
       }, [])
     
@@ -159,7 +168,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/nextjs
       useEffect(() => {
         posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN as string, {
           api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-          defaults: '2026-05-30',
+          defaults: '2026-08-30',
           loaded: (posthog) => {
             if (process.env.NODE_ENV === 'development') posthog.debug()
           }

@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/laravel
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Request context middleware](#request-context-middleware)
 - [Error tracking in Laravel](#error-tracking-in-laravel)
@@ -15,6 +16,14 @@ Canonical URL: https://posthog.com/docs/libraries/laravel
 - [Next steps](#next-steps)
 
 PostHog integrates with Laravel through the [PostHog PHP SDK](https://posthog.com/docs/libraries/php.md). This page covers Laravel-specific setup. For SDK features such as event capture, identifying users, feature flags, group analytics, and configuration options, see the [PHP SDK docs](https://posthog.com/docs/libraries/php.md).
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Laravel project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 

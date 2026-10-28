@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/nuxt-js
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
 - [Configuration](#configuration)
@@ -32,6 +33,14 @@ The `@posthog/nuxt` module provides:
 For server-side event capture beyond error tracking, use the `posthog-node` SDK directly.
 
 > **Using an older version?** See our docs for [Nuxt 3.0-3.6](https://posthog.com/docs/libraries/nuxt-js-3-6.md) or [Nuxt 2.x](https://posthog.com/docs/libraries/nuxt-js-2.md).
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Nuxt project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 

@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/react-native
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Install the package](#install-the-package)
 - [Configure PostHog](#configure-posthog)
 - [Send events](#send-events)
@@ -18,6 +19,14 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/react-native
 - [Verify error tracking](#verify-error-tracking)
 - [Upload source maps & native symbols](#upload-source-maps--native-symbols)
 - [iOS dependency resolution for native crash capture](#ios-dependency-resolution-for-native-crash-capture)
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your React Native project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 1.  1
 

@@ -111,7 +111,7 @@ If your app already knows the signed-in user when you initialize the JavaScript 
 ```javascript
 posthog.init('<ph_project_token>', {
     api_host: 'https://us.i.posthog.com',
-    defaults: '2026-05-30',
+    defaults: '2026-08-30',
     loaded: (posthog) => {
         if (currentUser?.id) {
             posthog.identify(currentUser.id, {

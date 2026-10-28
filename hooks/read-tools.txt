@@ -224,6 +224,7 @@ experiment-setup-context
 experiment-stats
 experiment-timeseries-results
 experiments-session-event-deltas-create
+explain-chart
 external-data-destinations-list
 external-data-destinations-retrieve
 external-data-schemas-destinations-retrieve
@@ -618,6 +619,7 @@ workflows-list-revisions
 workflows-list-versions
 workflows-logs
 workflows-make-email-template-transactional-prepare
+workflows-reputation-get
 workflows-sending-rules-get
 workflows-setup-status
 workflows-show-email-template

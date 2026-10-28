@@ -26,6 +26,10 @@ Follow the guides below to set up your logging client:
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/nodejs.svg)Node.js](https://posthog.com/docs/logs/installation/nodejs.md)
 
+-   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/nodejs.svg)Pino](https://posthog.com/docs/logs/installation/pino.md)
+
+-   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/nodejs.svg)Winston](https://posthog.com/docs/logs/installation/winston.md)
+
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/python.svg)Python](https://posthog.com/docs/logs/installation/python.md)
 
 -   [![](https://res.cloudinary.com/dmukukwp6/image/upload/posthog.com/contents/images/docs/integrate/go.svg)Go](https://posthog.com/docs/logs/installation/go.md)
@@ -163,7 +167,7 @@ PostHog's Logs is built to be cost-effective by default, with a generous free ti
 -   First 10 GB of ingested logs per month are free
 -   Above 10 GB we have usage-based pricing at $0.25/GB with discounts
 -   All logs are retained 14 days by default. Set custom retention per service or per source for $0.05/GB per month retained – see [logs pricing](https://posthog.com/docs/logs/pricing.md#retention) for more details
--   Set billing limits to avoid surprise charges
+-   Set billing limits to avoid surprise charges (they don't cap custom retention)
 -   See our [pricing page](https://posthog.com/docs/logs/pricing.md) for more up-to-date details
 
 ---

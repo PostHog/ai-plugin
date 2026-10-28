@@ -8,7 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/astro
 
 ## On this page
 
-- [Beta: integration via LLM](#beta-integration-via-llm)
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
 - [Next steps](#next-steps)
@@ -17,13 +17,13 @@ PostHog makes it easy to get data about traffic and usage of your [Astro](https:
 
 This guide walks you through integrating PostHog into your Astro app using the [JavaScript Web SDK](https://posthog.com/docs/libraries/js.md).
 
-## Beta: integration via LLM
+## Install with the wizard
 
-Install PostHog for Astro in seconds with our wizard by running this prompt with [LLM coding agents](https://posthog.com/blog/envoy-wizard-llm-agent.md) like Cursor and Bolt, or by running it in your terminal.
+Run this command in your project directory to add PostHog to your Astro project. The wizard detects your framework, installs the SDK, and sets up your first events.
 
 `npx @posthog/wizard`
 
-Or, to integrate manually, continue with the rest of this guide.
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 
@@ -47,7 +47,7 @@ posthog.astro
   !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagResult reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
   posthog.init('<ph_project_token>', {
     api_host:'https://us.i.posthog.com',
-    defaults: '2026-05-30'
+    defaults: '2026-08-30'
   })
 </script>
 ```
@@ -82,7 +82,7 @@ posthog.astro
 
     posthog.init('<ph_project_token>', {
       api_host: 'https://us.i.posthog.com',
-      defaults: '2026-05-30',
+      defaults: '2026-08-30',
       capture_pageview: 'history_change'
     })
   }

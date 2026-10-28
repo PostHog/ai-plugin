@@ -6,6 +6,7 @@ Canonical URL: https://posthog.com/docs/libraries/react-native
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Capturing events](#capturing-events)
 - [Autocapture](#autocapture)
@@ -31,6 +32,14 @@ Canonical URL: https://posthog.com/docs/libraries/react-native
 - [Debug mode](#debug-mode)
 - [Disabling for local development](#disabling-for-local-development)
 - [Upgrading from V1, V2 to V3 or V3 to V4](#upgrading-from-v1-v2-to-v3-or-v3-to-v4)
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your React Native project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 

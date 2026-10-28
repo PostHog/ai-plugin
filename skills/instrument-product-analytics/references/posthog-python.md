@@ -2,7 +2,7 @@
 
 # PostHog Python SDK
 
-**SDK Version:** 7.73.1
+**SDK Version:** 7.76.0
 
 Integrate PostHog into any python application.
 
@@ -43,7 +43,7 @@ Initialize a new PostHog client instance.
 - **`gzip`** (`bool`) - Whether to gzip event upload payloads.
 - **`max_retries`** (`int`) - Number of upload retries. Values below 0 are treated as 0.
 - **`sync_mode`** (`bool`) - If True, send each event synchronously instead of using         background worker threads. This blocks the calling thread; in         asyncio applications such as FastAPI, use ``AsyncPosthog``         instead.
-- **`timeout`** (`int`) - HTTP request timeout in seconds for event uploads.
+- **`timeout`** (`float`) - HTTP request timeout in seconds for event uploads.
 - **`thread`** (`int`) - Number of background consumer threads.
 - **`poll_interval`** (`int`) - Seconds between local feature flag definition refreshes.
 - **`personal_api_key`** (`any`) - Deprecated alias for ``secret_key``. Still honored         for backwards compatibility; prefer ``secret_key``, which also         accepts a Project Secret API Key.
@@ -51,7 +51,7 @@ Initialize a new PostHog client instance.
 - **`disable_geoip`** (`bool`) - Whether to disable server-side GeoIP enrichment.         Defaults to True.
 - **`is_server`** (`bool`) - Whether events are emitted from a server-side runtime.         Defaults to True; set to False when using the SDK as a client/CLI         so the device OS is attributed to the person normally.
 - **`historical_migration`** (`bool`) - Mark events as historical migration imports.
-- **`feature_flags_request_timeout_seconds`** (`int`) - Timeout in seconds for feature         flag and remote config requests.
+- **`feature_flags_request_timeout_seconds`** (`float`) - Timeout in seconds for feature         flag and remote config requests.
 - **`feature_flags_request_max_retries`** (`int`) - Number of retries for feature flag         requests after network, transport, or timeout failures. Defaults         to 1. Set to 0 to disable retries.
 - **`super_properties`** (`any`) - Properties merged into every captured event.
 - **`enable_exception_autocapture`** (`bool`) - Automatically capture uncaught         exceptions.

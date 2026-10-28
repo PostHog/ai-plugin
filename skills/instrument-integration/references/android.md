@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/android
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Capturing events](#capturing-events)
 - [Identifying users](#identifying-users)
@@ -34,6 +35,14 @@ Canonical URL: https://posthog.com/docs/libraries/android
 - [Do I need to declare permissions in the AndroidManifest.xml?](#do-i-need-to-declare-permissions-in-the-androidmanifestxml)
 
 It uses an internal queue to make calls fast and non-blocking. It also batches requests and flushes asynchronously, making it perfect to use in any part of your mobile app.
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Android project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 
