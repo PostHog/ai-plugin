@@ -187,10 +187,15 @@ def test_cursor_mcp_server_is_hosted():
 def test_codex_mcp_server_matches_claude_code():
     # Codex reads codex-mcp.json, a copy of .mcp.json plus the approval mode its exec gate relies on.
     # Codex's server config only reads `http_headers`; it silently drops `headers`.
+    # `render-ui` only tells the host to mount a view, and the exec gate never sees it, so it skips the prompt.
     claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
     codex = json.loads((REPO_ROOT / "codex-mcp.json").read_text())["mcpServers"]["posthog"]
     expected = {k: v for k, v in claude_code.items() if k != "headers"}
-    expected |= {"http_headers": claude_code["headers"], "default_tools_approval_mode": "prompt"}
+    expected |= {
+        "http_headers": claude_code["headers"],
+        "default_tools_approval_mode": "prompt",
+        "tools": {"render-ui": {"approval_mode": "approve"}},
+    }
     assert codex == expected
 
 

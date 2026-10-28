@@ -6,7 +6,12 @@
       "http_headers": {
         "x-posthog-mcp-consumer": "plugin"
       },
-      "default_tools_approval_mode": "prompt"
+      "default_tools_approval_mode": "prompt",
+      "tools": {
+        "render-ui": {
+          "approval_mode": "approve"
+        }
+      }
     }
   }
 }

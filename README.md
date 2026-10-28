@@ -78,11 +78,11 @@ Grok Bot (desktop and mobile) lists the same plugin from the Cursor Marketplace.
     /plugins
     ```
 
-3. Trust the plugin's hook when Codex asks you to review it at startup, or later from `/hooks`. The hook approves known PostHog reads (`tools`, `search`, `info` and the other read-only `exec` commands, and calls to tools on `hooks/read-tools.txt`) so they run without a prompt. Every other call, including every write, gets Codex's own approval prompt. The `POSTHOG_MCP_EXEC_GATE_*` variables don't apply on Codex. Codex asks before every PostHog call until you trust the hook, and again after each plugin update until you re-trust it.
+3. Trust the plugin's hook when Codex asks you to review it at startup, or later from `/hooks`. The hook approves known PostHog reads (`tools`, `search`, `info` and the other read-only `exec` commands, and calls to tools on `hooks/read-tools.txt`) so they run without a prompt. Every other call, including every write, gets Codex's own approval prompt. The `POSTHOG_MCP_EXEC_GATE_*` variables don't apply on Codex. Codex asks before every PostHog call until you trust the hook, and again after each plugin update until you re-trust it. The one exception is `render-ui`, which shows a PostHog chart or view in the conversation and never changes data, so it always runs without a prompt.
 
     A few Codex settings change this:
 
-    - A `[mcp_servers.posthog]` entry in your own `~/.codex/config.toml` replaces the plugin's server config entirely, including the prompt mode the gate relies on. Remove it, or add `default_tools_approval_mode = "prompt"` to it.
+    - A `[mcp_servers.posthog]` entry in your own `~/.codex/config.toml` replaces the plugin's server config entirely, including the prompt mode the gate relies on. Remove it, or add `default_tools_approval_mode = "prompt"` and a `[mcp_servers.posthog.tools.render-ui]` table with `approval_mode = "approve"` to it.
     - With approval policy `never` and full access (`--dangerously-bypass-approvals-and-sandbox`), Codex approves MCP calls before the hook runs, so nothing is gated.
     - With approval policy `never` and a restricted sandbox, calls the hook doesn't approve are denied instead of prompted.
 
