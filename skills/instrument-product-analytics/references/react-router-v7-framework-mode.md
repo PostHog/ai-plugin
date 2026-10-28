@@ -115,7 +115,7 @@ This guide walks you through setting up PostHog for React Router V7 in framework
     
     posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN, {
       api_host: import.meta.env.VITE_POSTHOG_HOST,
-      defaults: '2026-05-30',
+      defaults: '2026-08-30',
       tracing_headers: [ window.location.hostname, 'localhost' ],
     });
     

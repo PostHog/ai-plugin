@@ -8,7 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/ruby-on-rails
 
 ## On this page
 
-- [Beta: integration via LLM](#beta-integration-via-llm)
+- [Install with the wizard](#install-with-the-wizard)
 - [Features](#features)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
@@ -27,13 +27,13 @@ PostHog makes it easy to get data about traffic and usage of your Ruby on Rails 
 
 This guide walks you through integrating PostHog into your Rails app using the [posthog-rails gem](https://github.com/PostHog/posthog-ruby/tree/main/posthog-rails).
 
-## Beta: integration via LLM
+## Install with the wizard
 
-Install PostHog for Rails in seconds with our wizard by running this prompt with [LLM coding agents](https://posthog.com/blog/envoy-wizard-llm-agent.md) like Cursor and Bolt, or by running it in your terminal.
+Run this command in your project directory to add PostHog to your Rails project. The wizard detects your framework, installs the SDK, and sets up your first events.
 
 `npx @posthog/wizard`
 
-Or, to integrate manually, continue with the rest of this guide.
+Or set it up manually by following the rest of this guide.
 
 ## Features
 

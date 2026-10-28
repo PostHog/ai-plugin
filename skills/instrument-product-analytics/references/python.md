@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/python
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Use the asyncio client](#use-the-asyncio-client)
 - [Identifying users](#identifying-users)
@@ -37,6 +38,14 @@ Canonical URL: https://posthog.com/docs/libraries/python
 The Python SDK makes it easy to capture events, evaluate feature flags, track errors, and more in your Python apps.
 
 > These docs cover version `7.x` of the Python SDK, which requires Python 3.10 or higher. On Python 3.9? See [supported versions](#supported-versions).
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Python project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 

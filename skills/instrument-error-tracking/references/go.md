@@ -8,10 +8,19 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/go
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Install the Go SDK](#install-the-go-sdk)
 - [Initialize the client](#initialize-the-client)
 - [Capture exceptions](#capture-exceptions)
 - [Verify error tracking](#verify-error-tracking)
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Go project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 1.  1
 

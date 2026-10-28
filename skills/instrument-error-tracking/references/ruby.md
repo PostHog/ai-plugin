@@ -8,12 +8,21 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/ruby
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Install the gem](#install-the-gem)
 - [Configure PostHog](#configure-posthog)
 - [Send events](#send-events)
 - [Manually capture exceptions](#manually-capture-exceptions)
 - [Verify error tracking](#verify-error-tracking)
 - [Link releases](#link-releases)
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Ruby project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 1.  1
 

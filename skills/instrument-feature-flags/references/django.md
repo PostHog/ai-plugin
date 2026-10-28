@@ -8,7 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/django
 
 ## On this page
 
-- [Beta: integration via LLM](#beta-integration-via-llm)
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
 - [Django contexts middleware](#django-contexts-middleware)
@@ -19,13 +19,13 @@ PostHog makes it easy to get data about traffic and usage of your Django app. In
 
 This guide walks you through integrating PostHog into your Django app using the [Python SDK](https://posthog.com/docs/libraries/python.md).
 
-## Beta: integration via LLM
+## Install with the wizard
 
-Install PostHog for Django in seconds with our wizard by running this prompt with [LLM coding agents](https://posthog.com/blog/envoy-wizard-llm-agent.md) like Cursor and Bolt, or by running it in your terminal.
+Run this command in your project directory to add PostHog to your Django project. The wizard detects your framework, installs the SDK, and sets up your first events.
 
 `npx @posthog/wizard`
 
-Or, to integrate manually, continue with the rest of this guide.
+Or set it up manually by following the rest of this guide.
 
 > These docs cover version `7.x` of the Python SDK, which requires Python 3.10 or higher. On Python 3.9? See [supported versions](#supported-versions).
 
@@ -115,7 +115,20 @@ MIDDLEWARE = [
 ]
 ```
 
-The middleware uses the globally configured `posthog` client by default, so you don't need to create or pass it a separate client instance.
+The middleware uses the globally configured `posthog` client by default. If you create your own client with `Posthog(...)`, pass it to the middleware with `POSTHOG_MW_CLIENT`. Otherwise the middleware sends exceptions to the unconfigured global client, and they don't reach PostHog:
+
+```python
+# settings.py
+from posthog import Posthog
+
+POSTHOG_MW_CLIENT = Posthog(
+    "<ph_project_token>",
+    host="https://us.i.posthog.com",
+    enable_exception_autocapture=True,
+)
+```
+
+`POSTHOG_MW_CLIENT` only selects where the middleware sends the exceptions it captures. Events you capture through another client go to that client.
 
 The middleware automatically extracts and uses:
 
@@ -161,7 +174,7 @@ If you're using [PostHog JavaScript Web](https://posthog.com/docs/libraries/js.m
 
 ### Exception capture
 
-By default, the middleware captures exceptions and sends them to PostHog's error tracking using the globally configured `posthog` client. This includes Django view exceptions that Django converts into error responses.
+By default, the middleware captures exceptions and sends them to PostHog's error tracking using `POSTHOG_MW_CLIENT`, or the globally configured `posthog` client when you leave it unset. This includes Django view exceptions that Django converts into error responses.
 
 Disable this by setting:
 

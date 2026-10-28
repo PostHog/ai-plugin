@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/flask
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
 - [Request contexts](#request-contexts)
@@ -20,6 +21,14 @@ PostHog makes it easy to get data about traffic and usage of your Flask app. Int
 This guide walks you through integrating PostHog into your Flask app using the [Python SDK](https://posthog.com/docs/libraries/python.md).
 
 > These docs cover version `7.x` of the Python SDK, which requires Python 3.10 or higher. On Python 3.9? See [supported versions](#supported-versions).
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Flask project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 

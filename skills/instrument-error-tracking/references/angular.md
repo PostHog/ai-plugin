@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/angular
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Install the package](#install-the-package)
 - [Initialize PostHog](#initialize-posthog)
 - [Send events](#send-events)
@@ -15,6 +16,14 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/angular
 - [Manually capture exceptions](#manually-capture-exceptions)
 - [Verify error tracking](#verify-error-tracking)
 - [Upload source maps](#upload-source-maps)
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Angular project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 1.  1
 
@@ -83,7 +92,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/angular
         this.ngZone.runOutsideAngular(() => {
           posthog.init(environment.posthogKey, {
             api_host: environment.posthogHost,
-            defaults: '2026-05-30',
+            defaults: '2026-08-30',
           });
         });
       }
@@ -127,7 +136,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/angular
     import posthog from 'posthog-js'
     posthog.init(environment.posthogKey, {
       api_host: environment.posthogHost,
-      defaults: '2026-05-30'
+      defaults: '2026-08-30'
     })
     bootstrapApplication(AppComponent, appConfig)
       .catch((err) => console.error(err));

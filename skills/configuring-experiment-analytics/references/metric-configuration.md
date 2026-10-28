@@ -2771,7 +2771,8 @@ The schema is authoritative; the prose and examples below are guidance.
             "mapping": {
               "ActionsNode": "#/$defs/ActionsNode",
               "EventsNode": "#/$defs/EventsNode",
-              "ExperimentDataWarehouseNode": "#/$defs/ExperimentDataWarehouseNode"
+              "ExperimentDataWarehouseNode": "#/$defs/ExperimentDataWarehouseNode",
+              "ExperimentWarehouseNativeNode": "#/$defs/ExperimentWarehouseNativeNode"
             },
             "propertyName": "kind"
           },
@@ -2784,6 +2785,9 @@ The schema is authoritative; the prose and examples below are guidance.
             },
             {
               "$ref": "#/$defs/ExperimentDataWarehouseNode"
+            },
+            {
+              "$ref": "#/$defs/ExperimentWarehouseNativeNode"
             }
           ],
           "title": "Source"
@@ -2962,7 +2966,8 @@ The schema is authoritative; the prose and examples below are guidance.
             "mapping": {
               "ActionsNode": "#/$defs/ActionsNode",
               "EventsNode": "#/$defs/EventsNode",
-              "ExperimentDataWarehouseNode": "#/$defs/ExperimentDataWarehouseNode"
+              "ExperimentDataWarehouseNode": "#/$defs/ExperimentDataWarehouseNode",
+              "ExperimentWarehouseNativeNode": "#/$defs/ExperimentWarehouseNativeNode"
             },
             "propertyName": "kind"
           },
@@ -2975,6 +2980,9 @@ The schema is authoritative; the prose and examples below are guidance.
             },
             {
               "$ref": "#/$defs/ExperimentDataWarehouseNode"
+            },
+            {
+              "$ref": "#/$defs/ExperimentWarehouseNativeNode"
             }
           ],
           "title": "Denominator"
@@ -3054,7 +3062,8 @@ The schema is authoritative; the prose and examples below are guidance.
             "mapping": {
               "ActionsNode": "#/$defs/ActionsNode",
               "EventsNode": "#/$defs/EventsNode",
-              "ExperimentDataWarehouseNode": "#/$defs/ExperimentDataWarehouseNode"
+              "ExperimentDataWarehouseNode": "#/$defs/ExperimentDataWarehouseNode",
+              "ExperimentWarehouseNativeNode": "#/$defs/ExperimentWarehouseNativeNode"
             },
             "propertyName": "kind"
           },
@@ -3067,6 +3076,9 @@ The schema is authoritative; the prose and examples below are guidance.
             },
             {
               "$ref": "#/$defs/ExperimentDataWarehouseNode"
+            },
+            {
+              "$ref": "#/$defs/ExperimentWarehouseNativeNode"
             }
           ],
           "title": "Numerator"
@@ -3358,6 +3370,104 @@ The schema is authoritative; the prose and examples below are guidance.
         "start_handling"
       ],
       "title": "ExperimentRetentionMetric",
+      "type": "object"
+    },
+    "ExperimentWarehouseNativeMathType": {
+      "enum": [
+        "total",
+        "sum"
+      ],
+      "title": "ExperimentWarehouseNativeMathType",
+      "type": "string"
+    },
+    "ExperimentWarehouseNativeNode": {
+      "additionalProperties": false,
+      "properties": {
+        "connection_id": {
+          "description": "The direct-query source (an ExternalDataSource id) the SQL is written for.",
+          "title": "Connection Id",
+          "type": "string"
+        },
+        "custom_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Custom Name"
+        },
+        "kind": {
+          "const": "ExperimentWarehouseNativeNode",
+          "default": "ExperimentWarehouseNativeNode",
+          "title": "Kind",
+          "type": "string"
+        },
+        "math": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentWarehouseNativeMathType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How to aggregate the rows per entity. Defaults to `total` (row count)."
+        },
+        "math_property": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The numeric column `math` reads. Required when `math` is `sum`. One SQL relation can serve several metrics, each reading a different column.",
+          "title": "Math Property"
+        },
+        "query": {
+          "description": "Read-only SQL in the warehouse's dialect, returning one row per outcome with `entity_id` and `timestamp` columns plus any numeric columns a metric can measure.",
+          "title": "Query",
+          "type": "string"
+        },
+        "response": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Response"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "version of the node, used for schema migrations",
+          "title": "Version"
+        }
+      },
+      "required": [
+        "connection_id",
+        "query"
+      ],
+      "title": "ExperimentWarehouseNativeNode",
       "type": "object"
     },
     "FeaturePropertyFilter": {

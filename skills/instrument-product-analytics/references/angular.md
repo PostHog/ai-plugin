@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/angular
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
 - [Tracking pageviews](#tracking-pageviews)
@@ -19,6 +20,14 @@ Canonical URL: https://posthog.com/docs/libraries/angular
 PostHog makes it easy to get data about traffic and usage of your [Angular](https://angular.dev/) app. Integrating PostHog into your site enables analytics about user behavior, custom events capture, session recordings, feature flags, and more.
 
 This guide walks you through integrating PostHog into your Angular app using the [JavaScript Web SDK](https://posthog.com/docs/libraries/js.md).
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your Angular project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 
@@ -90,7 +99,7 @@ export class PosthogService {
     this.ngZone.runOutsideAngular(() => {
       posthog.init(environment.posthogKey, {
         api_host: environment.posthogHost,
-        defaults: '2026-05-30',
+        defaults: '2026-08-30',
       });
     });
   }
@@ -139,7 +148,7 @@ import posthog from 'posthog-js'
 
 posthog.init(environment.posthogKey, {
   api_host: environment.posthogHost,
-  defaults: '2026-05-30'
+  defaults: '2026-08-30'
 })
 
 bootstrapApplication(AppComponent, appConfig)

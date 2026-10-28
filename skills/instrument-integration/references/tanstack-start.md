@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/tanstack-start
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
 - [Identifying users](#identifying-users)
 - [Initialize PostHog on the client](#initialize-posthog-on-the-client)
@@ -17,6 +18,14 @@ Canonical URL: https://posthog.com/docs/libraries/tanstack-start
 - [Next steps](#next-steps)
 
 This tutorial shows how to integrate PostHog with a [TanStack Start](https://tanstack.com/start) app for both client-side and server-side analytics.
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your TanStack Start project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 ## Installation
 
@@ -28,6 +37,16 @@ npm install @posthog/react posthog-node
 
 -   `@posthog/react` - React package for our [JS Web SDK](https://posthog.com/docs/libraries/js.md) for client-side usage
 -   `posthog-node` - PostHog [Node.js SDK](https://posthog.com/docs/libraries/node.md) for server-side event capture
+
+> **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
+>
+> ```
+> script-src 'self' https://*.posthog.com;
+> connect-src 'self' https://*.posthog.com;
+> worker-src 'self' blob: data:;
+> ```
+>
+> `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](https://posthog.com/docs/advanced/content-security-policy.md), or use a [reverse proxy](https://posthog.com/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
 
 ## Identifying users
 
@@ -57,10 +76,9 @@ Tracing headers help you attribute events across front and backend consistently.
 
 Wrap your app with `PostHogProvider` in your root route with your project token, host, and other options.
 
-```
-import CspAllowancesCallout from "../_snippets/csp-allowances-callout.mdx"
+src/routes/\_\_root.tsx
 
-<CspAllowancesCallout />tsx file=src/routes/__root.tsx
+```jsx
 // src/routes/__root.tsx
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { PostHogProvider } from '@posthog/react'
@@ -86,7 +104,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           apiKey="<ph_project_token>"
           options={{
             api_host: 'https://us.i.posthog.com',
-            defaults: '2026-05-30',
+            defaults: '2026-08-30',
             capture_exceptions: true
           }}
         >

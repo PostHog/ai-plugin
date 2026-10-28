@@ -73,7 +73,7 @@ export default defineNuxtConfig({
     public: {
       posthogToken: process.env.NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN || '<ph_project_token>',
       posthogHost: process.env.NUXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-      posthogDefaults: '2026-05-30',
+      posthogDefaults: '2026-08-30',
     },
   }
 })
@@ -211,7 +211,7 @@ export default defineNuxtConfig({
     public: {
       posthogToken: process.env.NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN || '<ph_project_token>',
       posthogHost: process.env.NUXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-      posthogDefaults: '2026-05-30',
+      posthogDefaults: '2026-08-30',
     }
   }
 })

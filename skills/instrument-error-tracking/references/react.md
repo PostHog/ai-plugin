@@ -8,6 +8,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/react
 
 ## On this page
 
+- [Install with the wizard](#install-with-the-wizard)
 - [Install the package](#install-the-package)
 - [Add environment variables](#add-environment-variables)
 - [Initialize PostHog](#initialize-posthog)
@@ -18,6 +19,14 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/react
 - [Manually capture exceptions](#manually-capture-exceptions)
 - [Verify error tracking](#verify-error-tracking)
 - [Upload source maps](#upload-source-maps)
+
+## Install with the wizard
+
+Run this command in your project directory to add PostHog to your React project. The wizard detects your framework, installs the SDK, and sets up your first events.
+
+`npx @posthog/wizard`
+
+Or set it up manually by following the rest of this guide.
 
 1.  1
 
@@ -85,7 +94,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/react
     
     const options = {
       api_host: import.meta.env.VITE_POSTHOG_HOST,
-      defaults: '2026-05-30',
+      defaults: '2026-08-30',
     } as const
     
     createRoot(document.getElementById('root')).render(

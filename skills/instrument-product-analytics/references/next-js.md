@@ -9,7 +9,7 @@ Canonical URL: https://posthog.com/docs/libraries/next-js
 ## On this page
 
 - [Prerequisites](#prerequisites)
-- [Beta: integration via LLM](#beta-integration-via-llm)
+- [Install with the wizard](#install-with-the-wizard)
 - [Client-side setup](#client-side-setup)
 - [Integration](#integration)
 - [Identifying users](#identifying-users)
@@ -35,13 +35,13 @@ To follow this guide along, you need:
 1.  A PostHog instance (either [Cloud](https://app.posthog.com/signup) or [self-hosted](https://posthog.com/docs/self-host.md))
 2.  A Next.js application
 
-## Beta: integration via LLM
+## Install with the wizard
 
-Install PostHog for Next.js in seconds with our wizard by running this prompt with [LLM coding agents](https://posthog.com/blog/envoy-wizard-llm-agent.md) like Cursor and Bolt, or by running it in your terminal.
+Run this command in your project directory to add PostHog to your Next.js project. The wizard detects your framework, installs the SDK, and sets up your first events.
 
 `npx @posthog/wizard`
 
-Or, to integrate manually, continue with the rest of this guide.
+Or set it up manually by following the rest of this guide.
 
 ## Client-side setup
 
@@ -103,7 +103,7 @@ import posthog from 'posthog-js'
 
 posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
   api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-  defaults: '2026-05-30'
+  defaults: '2026-08-30'
 });
 ```
 
@@ -114,7 +114,7 @@ import posthog from 'posthog-js'
 
 posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
   api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-  defaults: '2026-05-30'
+  defaults: '2026-08-30'
 });
 ```
 
@@ -427,7 +427,9 @@ posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
 
 ## Configuring a reverse proxy to PostHog
 
-To improve the reliability of client-side tracking and make requests less likely to be intercepted by tracking blockers, you can setup a reverse proxy in Next.js. Read more about deploying a reverse proxy using [Next.js rewrites](https://posthog.com/docs/advanced/proxy/nextjs.md), [Next.js middleware](https://posthog.com/docs/advanced/proxy/nextjs-middleware.md), and [Vercel rewrites](https://posthog.com/docs/advanced/proxy/vercel.md).
+To improve the reliability of client-side tracking and make requests less likely to be intercepted by tracking blockers, you can setup a reverse proxy in Next.js. Read more about deploying a reverse proxy using [Next.js rewrites](https://posthog.com/docs/advanced/proxy/nextjs.md), the [Next.js proxy file](https://posthog.com/docs/advanced/proxy/nextjs-middleware.md) (`middleware.ts` on Next.js 15 and earlier), and [Vercel rewrites](https://posthog.com/docs/advanced/proxy/vercel.md). With the Next.js rewrites and proxy file options, also set `skipTrailingSlashRedirect: true` in your Next.js config. PostHog API paths end with a slash, and without this setting, Next.js redirects each request before it forwards it.
+
+If you use [`@posthog/next`](https://posthog.com/docs/libraries/next-js/posthog-next.md), its `proxy` option includes a reverse proxy. See [Add the proxy file](https://posthog.com/docs/libraries/next-js/posthog-next.md#add-the-proxy-file).
 
 ## Further reading
 

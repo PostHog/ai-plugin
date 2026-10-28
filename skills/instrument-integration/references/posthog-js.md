@@ -1446,6 +1446,7 @@ Checks if the user has opted out of data capturing.
 **Notes:**
 
 Returns the current consent status for event tracking and data persistence.
+In cookieless `'always'` mode this returns `true`, because the SDK does not store data for the user. Events are still captured in this mode. To check if the SDK captures events, use `is_capturing()`.
 
 ### Returns
 
@@ -2024,7 +2025,7 @@ if (posthog.isFeatureEnabled('feature', { send_event: false })) {
 
 **Release Tag:** public
 
-Register an event listener that runs when feature flags become available or when they change. If there are flags, the listener is called immediately in addition to being called on future changes. Note that this is not called only when we fetch feature flags from the server, but also when they change in the browser.
+Register an event listener that runs when feature flags become available or when they change. If there are flags, the listener is called immediately in addition to being called on future changes. Note that this is not called only when we fetch feature flags from the server, but also when they change in the browser, including when another open tab of your site stores new flags. Do not call `reloadFeatureFlags()` inside this callback: each reload in one tab triggers the callback in the other tabs, which can send flag requests in a loop.
 
 ### Parameters
 

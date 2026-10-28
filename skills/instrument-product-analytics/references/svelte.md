@@ -8,7 +8,7 @@ Canonical URL: https://posthog.com/docs/libraries/svelte
 
 ## On this page
 
-- [Beta: integration via LLM](#beta-integration-via-llm)
+- [Install with the wizard](#install-with-the-wizard)
 - [Client-side setup](#client-side-setup)
 - [Identifying users](#identifying-users)
 - [Server-side setup](#server-side-setup)
@@ -20,13 +20,13 @@ PostHog makes it easy to get data about traffic and usage of your [Svelte](https
 
 This guide walks you through integrating PostHog into your SvelteKit app using the [JavaScript Web](https://posthog.com/docs/libraries/js.md) and [Node.js](https://posthog.com/docs/libraries/node.md) SDKs.
 
-## Beta: integration via LLM
+## Install with the wizard
 
-Install PostHog for Svelte in seconds with our wizard by running this prompt with [LLM coding agents](https://posthog.com/blog/envoy-wizard-llm-agent.md) like Cursor and Bolt, or by running it in your terminal.
+Run this command in your project directory to add PostHog to your SvelteKit project. The wizard detects your framework, installs the SDK, and sets up your first events.
 
 `npx @posthog/wizard`
 
-Or, to integrate manually, continue with the rest of this guide.
+Or set it up manually by following the rest of this guide.
 
 ## Client-side setup
 
@@ -78,7 +78,7 @@ export const load = async () => {
   if (browser) {
     posthog.init('<ph_project_token>', {
       api_host: 'https://us.i.posthog.com',
-      defaults: '2026-05-30',
+      defaults: '2026-08-30',
     })
   }
 
