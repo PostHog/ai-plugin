@@ -65,7 +65,7 @@ FROM
                     FROM
                         events
                     WHERE
-                        and(and(ilike(toString(properties.$pathname), '%ai-%'), notILike(toString(properties.$pathname), '%docs%')), and(greaterOrEquals(events.timestamp, toStartOfInterval(assumeNotNull(toDateTime('2025-12-03 00:00:00')), toIntervalDay(1))), lessOrEquals(events.timestamp, assumeNotNull(toDateTime('2025-12-10 23:59:59')))), equals(event, '$pageview'))
+                        and(and(ilike(toString(properties.$pathname), '%ai-%'), notILike(toString(properties.$pathname), '%docs%')), and(greaterOrEquals(events.timestamp, toStartOfInterval(assumeNotNull(toDateTime('2025-12-03 00:00:00')), toIntervalDay(1))), lessOrEquals(events.timestamp, assumeNotNull(toDateTime('2025-12-10 23:59:59')))), notEquals(events.event, '$feature_flag_called'), equals(event, '$pageview'))
                     ORDER BY
                         events.person_id ASC,
                         events.timestamp ASC)
