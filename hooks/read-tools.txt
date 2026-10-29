@@ -204,6 +204,7 @@ error-tracking-suppression-rules-list
 error-tracking-symbol-sets-download-retrieve
 error-tracking-symbol-sets-list
 error-tracking-symbol-sets-retrieve
+event-definition-get
 event-streams-list
 execute-sql
 experiment-activity
@@ -225,6 +226,7 @@ experiment-stats
 experiment-timeseries-results
 experiments-session-event-deltas-create
 explain-chart
+external-data-destinations-connect-link
 external-data-destinations-list
 external-data-destinations-retrieve
 external-data-schemas-destinations-retrieve
@@ -496,6 +498,7 @@ scout-trial-get
 scout-trial-list
 scout-trial-report
 scout-trial-setup
+session-recording-console-logs-list
 session-recording-get
 session-recording-playlist-get
 session-recording-playlists-list
@@ -528,6 +531,7 @@ subscriptions-deliveries-retrieve
 subscriptions-list
 subscriptions-retrieve
 subscriptions-summaries-list
+supabase-auth-emails-settings-get
 survey-get
 survey-stats
 surveys-get-all
@@ -570,6 +574,7 @@ vision-scanners-backfills-list
 vision-scanners-counts
 vision-scanners-estimate
 vision-scanners-get
+vision-scanners-highlight-feed
 vision-scanners-impact-get
 vision-scanners-list
 vision-scanners-observations-get
@@ -579,7 +584,6 @@ vision-scanners-scout-reports-get
 vision-scanners-scout-reports-list
 vision-scanners-self-driving-stats
 vision-scanners-variants-list
-vision-scanners-watch-feed
 visual-review-repos-flakiness-retrieve
 visual-review-repos-list
 visual-review-repos-quarantine-list
@@ -610,6 +614,7 @@ workflows-get-email-template
 workflows-get-invocation
 workflows-get-revision
 workflows-global-stats
+workflows-import-notes
 workflows-list
 workflows-list-batch-jobs
 workflows-list-email-templates
