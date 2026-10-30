@@ -163,7 +163,7 @@ A `PreToolUse` hook (`hooks/gate-exec-write.sh`) asks for approval before the Po
 
 Outside the Codex approval hook (below), the script passes silently, leaving the normal permission flow, for a `tool_name` it cannot read, a missing or `null` `command`, and a verb other than `call` (such as `tools` or `search`). Known reads, third-party gateway tools and writes outside the default set pass silently too.
 
-In Claude Code's `bypassPermissions` mode (a top-level `permission_mode` of exactly that value) the hook never asks.
+In Claude Code's `bypassPermissions` mode the hook never asks, provided the input has exactly one top-level `permission_mode` member and its value is `bypassPermissions`. A `permission_mode` inside `tool_input` is ignored. A repeated top-level `permission_mode` member, or a top-level key spelled with `\u` escapes, keeps the normal prompts.
 
 On Codex the `PreToolUse` hook is skipped. The Codex approval hook (`hooks/codex-hooks.json`, `hooks/codex-gate-exec-write.sh`) stays active: it approves only known reads, ignores `permission_mode` and the variables below, and leaves every other command to Codex's own prompt.
 

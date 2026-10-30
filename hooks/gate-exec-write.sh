@@ -86,47 +86,50 @@ ask() {
     exit 0
 }
 
-# Succeeds only when the input's top-level `permission_mode` is exactly
-# `bypassPermissions`. A `permission_mode` key anywhere else (inside `tool_input`,
-# say) is model-controlled text, so it must not silence the gate. Anything
-# ambiguous fails: a second `"permission_mode"` anywhere after the first, a first
-# one that starts inside a string (an escaped `\"` in another key or value), or a
-# first one that isn't at depth 1. Depth counts only the brackets outside strings.
-# Strings and brackets are split with `read`.
+# Succeeds only when the input has exactly one top-level `permission_mode` member
+# and its value is `bypassPermissions`. The input is split on `"` once, so the walk
+# stays linear in its size. Pieces alternate between text outside strings and
+# string content; a quote after an odd run of backslashes is escaped and stays
+# inside the string. A string is a key only when a `:` follows it, and only a key
+# at depth 1 (the top-level object) counts. Brackets count only outside strings.
+# A `permission_mode` in `tool_input` is model-controlled text and is ignored. A
+# repeated top-level member, or any other value, fails.
 top_level_bypass() {
-    local key='"permission_mode"' bs_re='(\\*)$' before rest part outside="" instr=0 last_in=0 depth=0 c
-    local -a fields
-    before="${input%%"$key"*}"
-    (( ${#before} < ${#input} )) || return 1
-    rest="${input:$(( ${#before} + ${#key} ))}"
-    [[ "${rest%%"$key"*}" == "$rest" ]] || return 1
-    [[ "$rest" =~ ^[[:space:]]*:[[:space:]]*\"bypassPermissions\"[[:space:]]*[,}] ]] || return 1
-    IFS='"' read -ra fields -d '' <<< "$before"
-    # The here-string adds a newline to the last field; drop it so a trailing
-    # backslash run is still counted below.
-    fields[${#fields[@]}-1]="${fields[${#fields[@]}-1]%$'\n'}"
-    for part in "${fields[@]}"; do
-        last_in=$instr
-        if (( ! instr )); then
-            outside+="$part"
-            instr=1
-        else
-            # A quote after an odd run of backslashes is escaped: still in the string.
-            [[ "$part" =~ $bs_re ]]
-            (( ${#BASH_REMATCH[1]} % 2 )) || instr=0
+    [[ "$input" == *'"permission_mode"'* ]] || return 1
+    local -a p
+    local i=0 j k n out t depth=0 modes=0 value_ok=0
+    IFS='"' read -ra p -d '' <<< "$input"
+    n=${#p[@]}
+    while (( i < n )); do
+        out="${p[i]}"
+        t="${out//[^{[]/}"; depth=$(( depth + ${#t} ))
+        t="${out//[^\}\]]/}"; depth=$(( depth - ${#t} ))
+        (( i + 1 < n )) || break
+        # The string runs from piece i+1 to the first piece j whose closing quote
+        # follows an even run of backslashes.
+        j=$(( i + 1 ))
+        while :; do
+            (( j < n - 1 )) || return 1
+            t="${p[j]}"; t="${t##*[!\\]}"
+            (( ${#t} % 2 )) || break
+            j=$(( j + 1 ))
+        done
+        if (( depth == 1 )) && [[ "${p[j+1]}" =~ ^[[:space:]]*: ]]; then
+            # Apart from \u, no JSON escape gives a letter of permission_mode, so a
+            # top-level key written with \u might still be that member: ask.
+            for (( k = i + 1; k <= j; k++ )); do
+                [[ "${p[k]}" == *'\u'* ]] && return 1
+            done
+            if (( j == i + 1 )) && [[ "${p[j]}" == permission_mode ]]; then
+                modes=$(( modes + 1 ))
+                if (( j + 3 < n )) && [[ "${p[j+1]}" =~ ^[[:space:]]*:[[:space:]]*$ && "${p[j+2]}" == bypassPermissions && "${p[j+3]}" =~ ^[[:space:]]*[,}] ]]; then
+                    value_ok=1
+                fi
+            fi
         fi
+        i=$(( j + 1 ))
     done
-    # The last field was inside a string, so the key's opening quote is escaped
-    # text or a closing quote, not the start of a member name.
-    (( ! last_in )) || return 1
-    for c in '{' '[' '}' ']'; do
-        IFS="$c" read -ra fields -d '' <<< "${outside}x"
-        case "$c" in
-            '{' | '[') depth=$(( depth + ${#fields[@]} - 1 )) ;;
-            *) depth=$(( depth - ${#fields[@]} + 1 )) ;;
-        esac
-    done
-    (( depth == 1 ))
+    (( modes == 1 && value_ok ))
 }
 
 # Passes in normal mode; asks in fail-closed mode.

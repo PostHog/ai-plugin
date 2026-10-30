@@ -260,13 +260,13 @@ run_case "duplicate permission_mode (bypassPermissions last) still prompts" \
     '{"tool_name":"mcp__posthog__exec","permission_mode":"default","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
     prompt insight-delete
 
-run_case "top-level bypassPermissions plus a nested permission_mode still prompts" \
+run_case "top-level bypassPermissions plus a nested permission_mode silences the gate" \
     '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}","permission_mode":"default"}}' \
-    prompt insight-delete
+    silent
 
-run_case "permission_mode as a string value elsewhere is ambiguous and prompts" \
+run_case "permission_mode as a string value elsewhere is ignored and the top-level bypass silences the gate" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"a":["permission_mode"],"command":"call insight-delete {}"},"permission_mode":"bypassPermissions"}' \
-    prompt insight-delete
+    silent
 
 run_case "permission_mode key hidden behind an escaped quote still prompts" \
     '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}"},"x\"permission_mode":"bypassPermissions"}' \
