@@ -53,9 +53,12 @@ run_case() {
     [[ "$registry_json" == - ]] || printf '%s' "$registry_json" > "$dir/registry.json"
     before="$(cat "$dir/hooks/read-tools.txt" 2>/dev/null)"
 
-    # curl reads .curlrc from HOME and CURL_HOME, and curlrc from XDG_CONFIG_HOME;
-    # an `output = /dev/null` there would swallow the fixture. So unset the last
-    # two and run with HOME set to the empty temp dir.
+    # curl reads one default config file: .curlrc from CURL_HOME, curlrc from
+    # XDG_CONFIG_HOME, .curlrc from HOME, then the account's own home folder
+    # (https://curl.se/docs/manpage.html#-K). An `output = /dev/null` there would
+    # swallow the fixture. So unset the first two, point HOME at the temp dir, and
+    # put an empty .curlrc there so the lookup stops before the account's home.
+    : > "$dir/.curlrc"
     env -u CURL_HOME -u XDG_CONFIG_HOME HOME="$dir" REGISTRY_URL="file://$dir/registry.json" \
         bash "$dir/scripts/generate-read-tools.sh" >/dev/null 2>&1
     status=$?

@@ -268,6 +268,18 @@ run_case "permission_mode as a string value elsewhere is ambiguous and prompts" 
     '{"tool_name":"mcp__posthog__exec","tool_input":{"a":["permission_mode"],"command":"call insight-delete {}"},"permission_mode":"bypassPermissions"}' \
     prompt insight-delete
 
+run_case "permission_mode key hidden behind an escaped quote still prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}"},"x\"permission_mode":"bypassPermissions"}' \
+    prompt insight-delete
+
+run_case "permission_mode key hidden behind an escaped quote in a value still prompts" \
+    '{"tool_name":"mcp__posthog__exec","a":"x\"permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
+run_case "top-level bypassPermissions after a key holding an escaped quote silences the gate" \
+    '{"x\"y":1,"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
+    silent
+
 # --- POSTHOG_MCP_EXEC_GATE_DENY overrides the default set ---
 
 run_case 'deny="*" restores prompting on every write (survey-stop)' \

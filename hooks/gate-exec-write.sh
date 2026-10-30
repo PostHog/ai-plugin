@@ -89,12 +89,12 @@ ask() {
 # Succeeds only when the input's top-level `permission_mode` is exactly
 # `bypassPermissions`. A `permission_mode` key anywhere else (inside `tool_input`,
 # say) is model-controlled text, so it must not silence the gate. Anything
-# ambiguous fails: a second `"permission_mode"` anywhere after the first, or a
+# ambiguous fails: a second `"permission_mode"` anywhere after the first, a first
+# one that starts inside a string (an escaped `\"` in another key or value), or a
 # first one that isn't at depth 1. Depth counts only the brackets outside strings.
-# Bash's `${var//pat/}` is quadratic (30 s on 20 KB under macOS bash 3.2), so
-# strings and brackets are split with `read` instead.
+# Strings and brackets are split with `read`.
 top_level_bypass() {
-    local key='"permission_mode"' bs_re='(\\*)$' before rest part outside="" instr=0 depth=0 c
+    local key='"permission_mode"' bs_re='(\\*)$' before rest part outside="" instr=0 last_in=0 depth=0 c
     local -a fields
     before="${input%%"$key"*}"
     (( ${#before} < ${#input} )) || return 1
@@ -102,7 +102,11 @@ top_level_bypass() {
     [[ "${rest%%"$key"*}" == "$rest" ]] || return 1
     [[ "$rest" =~ ^[[:space:]]*:[[:space:]]*\"bypassPermissions\"[[:space:]]*[,}] ]] || return 1
     IFS='"' read -ra fields -d '' <<< "$before"
+    # The here-string adds a newline to the last field; drop it so a trailing
+    # backslash run is still counted below.
+    fields[${#fields[@]}-1]="${fields[${#fields[@]}-1]%$'\n'}"
     for part in "${fields[@]}"; do
+        last_in=$instr
         if (( ! instr )); then
             outside+="$part"
             instr=1
@@ -112,6 +116,9 @@ top_level_bypass() {
             (( ${#BASH_REMATCH[1]} % 2 )) || instr=0
         fi
     done
+    # The last field was inside a string, so the key's opening quote is escaped
+    # text or a closing quote, not the start of a member name.
+    (( ! last_in )) || return 1
     for c in '{' '[' '}' ']'; do
         IFS="$c" read -ra fields -d '' <<< "${outside}x"
         case "$c" in
