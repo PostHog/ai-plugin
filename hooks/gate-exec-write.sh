@@ -90,8 +90,9 @@ ask() {
 # and its value is `bypassPermissions`. The input is split on `"` once, so the walk
 # stays linear in its size. Pieces alternate between text outside strings and
 # string content; a quote after an odd run of backslashes is escaped and stays
-# inside the string. A string is a key only when a `:` follows it, and only a key
-# at depth 1 (the top-level object) counts. Brackets count only outside strings.
+# inside the string (https://www.rfc-editor.org/rfc/rfc8259#section-7). A string
+# is a key only when a `:` follows it, and only a key at depth 1 (the top-level
+# object) counts. Brackets count only outside strings.
 # A `permission_mode` in `tool_input` is model-controlled text and is ignored. A
 # repeated top-level member, or any other value, fails.
 top_level_bypass() {
@@ -115,8 +116,10 @@ top_level_bypass() {
             j=$(( j + 1 ))
         done
         if (( depth == 1 )) && [[ "${p[j+1]}" =~ ^[[:space:]]*: ]]; then
-            # Apart from \u, no JSON escape gives a letter of permission_mode, so a
-            # top-level key written with \u might still be that member: ask.
+            # Apart from \u, no JSON escape gives a letter of permission_mode (the
+            # escapes are \" \\ \/ \b \f \n \r \t and \uXXXX, per
+            # https://www.rfc-editor.org/rfc/rfc8259#section-7), so a top-level key
+            # written with \u might still be that member: ask.
             for (( k = i + 1; k <= j; k++ )); do
                 [[ "${p[k]}" == *'\u'* ]] && return 1
             done
