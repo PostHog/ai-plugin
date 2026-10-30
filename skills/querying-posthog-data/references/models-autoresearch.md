@@ -17,6 +17,8 @@ Column | Type | Nullable | Description
 `horizon_days` | Integer | NOT NULL | Number of days ahead the prediction looks for the target event.
 `status` | String | NOT NULL | One of draft, bootstrapping, running, converged, paused, archived.
 `iteration_budget` | Integer | NOT NULL | Maximum training iterations the agent loop may spend.
+`agent_model` | String | NULL | Model override for the training agent (NULL uses the autoresearch default model).
+`agent_reasoning_effort` | String | NULL | Reasoning effort override for the training agent (NULL uses the autoresearch default).
 `iteration_budget_remaining` | Integer | NULL | Training iterations still available to spend (NULL when unset).
 `output_person_property` | String | NOT NULL | Person property the champion model's score is written to; blank when unset.
 `last_scored_at` | DateTime | NULL | When inference last ran (NULL before the first run).

@@ -82,6 +82,25 @@ The output type cannot change after creation.
       "default": null,
       "description": "Judge method. Omit to keep the saved method; null restores automatic routing.",
       "title": "Judge Method"
+    },
+    "reasoning_level": {
+      "anyOf": [
+        {
+          "enum": [
+            "minimal",
+            "low",
+            "medium",
+            "high"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "How much the judge model reasons before it answers. Null uses the model's default.",
+      "title": "Reasoning Level"
     }
   },
   "required": [
