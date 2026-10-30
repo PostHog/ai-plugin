@@ -53,7 +53,11 @@ run_case() {
     [[ "$registry_json" == - ]] || printf '%s' "$registry_json" > "$dir/registry.json"
     before="$(cat "$dir/hooks/read-tools.txt" 2>/dev/null)"
 
-    REGISTRY_URL="file://$dir/registry.json" bash "$dir/scripts/generate-read-tools.sh" >/dev/null 2>&1
+    # curl reads .curlrc from HOME and CURL_HOME, and curlrc from XDG_CONFIG_HOME;
+    # an `output = /dev/null` there would swallow the fixture. So unset the last
+    # two and run with HOME set to the empty temp dir.
+    env -u CURL_HOME -u XDG_CONFIG_HOME HOME="$dir" REGISTRY_URL="file://$dir/registry.json" \
+        bash "$dir/scripts/generate-read-tools.sh" >/dev/null 2>&1
     status=$?
     after="$(cat "$dir/hooks/read-tools.txt" 2>/dev/null)"
 

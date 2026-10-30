@@ -20,15 +20,17 @@
 # tools — feature-flag writes and any delete/destroy — rather than every write.
 # Three env vars tune this (all matched against the PostHog tool name):
 #
-#   POSTHOG_MCP_EXEC_GATE_DISABLE  — set to a non-empty value (e.g. `1`) to turn
-#       the gate off entirely. Useful for remote devboxes and Claude Cloud runs
-#       where the prompt can't be answered. Example:
+#   POSTHOG_MCP_EXEC_GATE_DISABLE  — set to a non-empty value other than `0` (e.g.
+#       `1`) to turn the gate off entirely, connection calls included; `0` leaves
+#       the gate active. Useful for remote devboxes and Claude Cloud runs where the
+#       prompt can't be answered. Example:
 #
 #           export POSTHOG_MCP_EXEC_GATE_DISABLE=1
 #
 #   POSTHOG_MCP_EXEC_GATE_DENY     — comma-separated bash globs selecting which
 #       write tools prompt. Overrides the built-in default set. Use `*` to
-#       prompt on every write (the previous behaviour). Example:
+#       prompt on every write (the previous behaviour). Tools on
+#       `hooks/read-tools.txt` never prompt, whatever DENY says. Example:
 #
 #           export POSTHOG_MCP_EXEC_GATE_DENY="*feature-flag*,*-delete"
 #
@@ -38,15 +40,17 @@
 #
 #           export POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*,annotation-create"
 #
-# Unless the gate is disabled, `posthog-connection-call` and
-# `posthog-connection-forward` prompt regardless of DENY and ALLOW, as does any
-# input the hook can't read reliably.
+# Exceptions: `posthog-connection-call` and `posthog-connection-forward` prompt
+# whatever ALLOW and DENY say (only DISABLE or bypass mode silences them), and
+# so does an exec input with more than one `command` field or a command the
+# regex below can't check. Outside fail-closed mode, inputs that name no `call`
+# (a missing or null `command`, a non-`call` verb, a payload whose `tool_name`
+# can't be read) exit 0 silently.
 #
-# The gate also stays silent for DENY-set writes when the PreToolUse input
-# reports `permission_mode` as `bypassPermissions`. Claude Code documents that
-# field in the hook input (https://code.claude.com/docs/en/hooks, "Common input
-# fields"). The always-prompt cases above still prompt in that mode, and every
-# other mode prompts as before.
+# The gate stays silent for everything when the PreToolUse input reports
+# `permission_mode` as `bypassPermissions` (a field Claude Code documents at
+# https://code.claude.com/docs/en/hooks, "Common input fields"). Only the
+# top-level field counts: see `top_level_bypass`.
 #
 # Pure bash; no jq or other third-party tools required. Relies on the fact
 # that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
@@ -80,6 +84,42 @@ set -u
 ask() {
     printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"%s"}}' "$1"
     exit 0
+}
+
+# Succeeds only when the input's top-level `permission_mode` is exactly
+# `bypassPermissions`. A `permission_mode` key anywhere else (inside `tool_input`,
+# say) is model-controlled text, so it must not silence the gate. Anything
+# ambiguous fails: a second `"permission_mode"` anywhere after the first, or a
+# first one that isn't at depth 1. Depth counts only the brackets outside strings.
+# Bash's `${var//pat/}` is quadratic (30 s on 20 KB under macOS bash 3.2), so
+# strings and brackets are split with `read` instead.
+top_level_bypass() {
+    local key='"permission_mode"' bs_re='(\\*)$' before rest part outside="" instr=0 depth=0 c
+    local -a fields
+    before="${input%%"$key"*}"
+    (( ${#before} < ${#input} )) || return 1
+    rest="${input:$(( ${#before} + ${#key} ))}"
+    [[ "${rest%%"$key"*}" == "$rest" ]] || return 1
+    [[ "$rest" =~ ^[[:space:]]*:[[:space:]]*\"bypassPermissions\"[[:space:]]*[,}] ]] || return 1
+    IFS='"' read -ra fields -d '' <<< "$before"
+    for part in "${fields[@]}"; do
+        if (( ! instr )); then
+            outside+="$part"
+            instr=1
+        else
+            # A quote after an odd run of backslashes is escaped: still in the string.
+            [[ "$part" =~ $bs_re ]]
+            (( ${#BASH_REMATCH[1]} % 2 )) || instr=0
+        fi
+    done
+    for c in '{' '[' '}' ']'; do
+        IFS="$c" read -ra fields -d '' <<< "${outside}x"
+        case "$c" in
+            '{' | '[') depth=$(( depth + ${#fields[@]} - 1 )) ;;
+            *) depth=$(( depth - ${#fields[@]} + 1 )) ;;
+        esac
+    done
+    (( depth == 1 ))
 }
 
 # Passes in normal mode; asks in fail-closed mode.
@@ -159,6 +199,13 @@ LC_ALL=C
 ws='([[:space:]]|\\[nrtf]|\\u000[bB]|['$'\x80''-'$'\xff'']'')'
 call_re="\"command\"[[:space:]]*:[[:space:]]*\"${ws}*call${ws}+((--[a-zA-Z-]+${ws}+)*)([a-zA-Z0-9_-]+)"
 
+# Bypass mode: the user chose to run without prompts (issue #246), so none of the
+# prompts below apply. Not in fail-closed mode: hooks/codex-gate-exec-write.sh:20-23
+# reads a silent gate as an approval.
+if (( ! fail_closed )) && top_level_bypass; then
+    exit 0
+fi
+
 # The regex reads the first `command` key, so a second one (say, nested in an
 # extra object) could hide the real command behind a decoy. Quotes inside the
 # command string are escaped, so a body like {"command":…} doesn't count.
@@ -189,14 +236,6 @@ fi
 # Third-party tools reached through the MCP gateway are named `<server>__<tool>`
 # (PostHog tool names never contain `__`) and follow their server's own policy.
 [[ "$posthog_tool" == *__* ]] && not_a_known_read
-
-# Bypass mode: exit silently when `permission_mode` is exactly `bypassPermissions`
-# (field documented at https://code.claude.com/docs/en/hooks, "Common input fields").
-# Placed after the always-prompt cases above, so those still prompt in bypass mode.
-# Not in fail-closed mode: hooks/codex-gate-exec-write.sh:20-23 reads a silent gate as an approval.
-if (( ! fail_closed )) && [[ "$input" =~ \"permission_mode\"[[:space:]]*:[[:space:]]*\"bypassPermissions\" ]]; then
-    exit 0
-fi
 
 read_tools_file="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/read-tools.txt"
 if [[ -r "$read_tools_file" ]]; then

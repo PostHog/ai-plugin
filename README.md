@@ -155,11 +155,17 @@ The plugin also ships 30+ task-specific skills that your AI client loads on dema
 
 ### Write gate
 
-A `PreToolUse` hook asks for approval before the PostHog MCP `exec` tool runs a sensitive write, such as a feature-flag change or any delete or destroy. In Claude Code's `bypassPermissions` mode it stays silent for those writes, but still prompts for `posthog-connection-call` and unreadable input. It is also skipped on Codex. Three environment variables tune it:
+A `PreToolUse` hook (`hooks/gate-exec-write.sh`) asks for approval before the PostHog MCP `exec` tool runs a sensitive write, such as a feature-flag change or any delete or destroy. It also asks for `posthog-connection-call` and `posthog-connection-forward`, for an `exec` input with more than one `command` field, and for a command it cannot check.
 
-- `POSTHOG_MCP_EXEC_GATE_DISABLE`: set to a non-empty value other than `0` to turn the gate off.
-- `POSTHOG_MCP_EXEC_GATE_DENY`: comma-separated globs of PostHog tool names that prompt. Overrides the default set; `*` prompts on every write.
-- `POSTHOG_MCP_EXEC_GATE_ALLOW`: comma-separated globs of tools that never prompt. Wins over the deny set.
+In Claude Code's `bypassPermissions` mode (a top-level `permission_mode` of exactly that value) the hook never asks.
+
+On Codex the `PreToolUse` hook is skipped. The Codex approval hook (`hooks/codex-hooks.json`, `hooks/codex-gate-exec-write.sh`) stays active: it approves only known reads, ignores `permission_mode` and the variables below, and leaves every other command to Codex's own prompt.
+
+Three environment variables tune the Claude Code hook:
+
+- `POSTHOG_MCP_EXEC_GATE_DISABLE`: set to a non-empty value other than `0` to turn the gate off, connection calls included. `0` leaves the gate on.
+- `POSTHOG_MCP_EXEC_GATE_DENY`: comma-separated globs of PostHog tool names that prompt. Overrides the default set; `*` prompts on every write. Tools in `hooks/read-tools.txt` never prompt, and connection calls prompt whatever it says.
+- `POSTHOG_MCP_EXEC_GATE_ALLOW`: comma-separated globs of tools that never prompt. Wins over the deny set, except that connection calls still prompt.
 
 For example, `POSTHOG_MCP_EXEC_GATE_ALLOW="annotation-create"`. See `hooks/gate-exec-write.sh` for the default set.
 
