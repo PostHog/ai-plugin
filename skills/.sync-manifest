@@ -109,6 +109,7 @@ modeling-dimension-tables
 modeling-product-usage-metrics
 modeling-revenue-metrics
 modeling-warehouse-foundations
+prioritizing-my-inbox
 querying-canvas-data
 querying-posthog-data
 resolving-ingestion-warnings
@@ -126,6 +127,7 @@ scanning-experiments-with-replay-vision
 setting-up-a-custom-rest-source
 setting-up-a-data-warehouse-source
 setting-up-data-catalog
+setting-up-supabase-auth-emails
 setting-up-warehouse-properties
 signals
 signals-scout-ai-observability
