@@ -193,7 +193,8 @@ fi
 # Bypass mode: exit silently when `permission_mode` is exactly `bypassPermissions`
 # (field documented at https://code.claude.com/docs/en/hooks, "Common input fields").
 # Placed after the always-prompt cases above, so those still prompt in bypass mode.
-if [[ "$input" =~ \"permission_mode\"[[:space:]]*:[[:space:]]*\"bypassPermissions\" ]]; then
+# Not in fail-closed mode: hooks/codex-gate-exec-write.sh:20-23 reads a silent gate as an approval.
+if (( ! fail_closed )) && [[ "$input" =~ \"permission_mode\"[[:space:]]*:[[:space:]]*\"bypassPermissions\" ]]; then
     exit 0
 fi
 

@@ -155,7 +155,7 @@ The plugin also ships 30+ task-specific skills that your AI client loads on dema
 
 ### Write gate
 
-A `PreToolUse` hook asks for approval before the PostHog MCP `exec` tool runs a sensitive write, such as a feature-flag change or any delete or destroy. It stays silent in Claude Code's `bypassPermissions` mode, and on Codex. Three environment variables tune it:
+A `PreToolUse` hook asks for approval before the PostHog MCP `exec` tool runs a sensitive write, such as a feature-flag change or any delete or destroy. In Claude Code's `bypassPermissions` mode it stays silent for those writes, but still prompts for `posthog-connection-call` and unreadable input. It is also skipped on Codex. Three environment variables tune it:
 
 - `POSTHOG_MCP_EXEC_GATE_DISABLE`: set to a non-empty value other than `0` to turn the gate off.
 - `POSTHOG_MCP_EXEC_GATE_DENY`: comma-separated globs of PostHog tool names that prompt. Overrides the default set; `*` prompts on every write.
