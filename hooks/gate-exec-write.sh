@@ -42,10 +42,11 @@
 # `posthog-connection-forward` prompt regardless of DENY and ALLOW, as does any
 # input the hook can't read reliably.
 #
-# When Claude Code reports `permission_mode` as `bypassPermissions`, the gate
-# stays silent for the DENY-set writes: the user chose to run without prompts,
-# and a hook's `ask` would otherwise override that. The prompts above still fire
-# in that mode, and every other mode prompts as before.
+# The gate also stays silent for DENY-set writes when the PreToolUse input
+# reports `permission_mode` as `bypassPermissions`. Claude Code documents that
+# field in the hook input (https://code.claude.com/docs/en/hooks, "Common input
+# fields"). The always-prompt cases above still prompt in that mode, and every
+# other mode prompts as before.
 #
 # Pure bash; no jq or other third-party tools required. Relies on the fact
 # that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
@@ -189,9 +190,9 @@ fi
 # (PostHog tool names never contain `__`) and follow their server's own policy.
 [[ "$posthog_tool" == *__* ]] && not_a_known_read
 
-# Bypass mode: the user opted out of permission prompts, and Claude Code honours
-# a hook's `ask` over that choice. Match only the exact value. Placed after the
-# always-prompt cases above, so those still prompt in bypass mode.
+# Bypass mode: exit silently when `permission_mode` is exactly `bypassPermissions`
+# (field documented at https://code.claude.com/docs/en/hooks, "Common input fields").
+# Placed after the always-prompt cases above, so those still prompt in bypass mode.
 if [[ "$input" =~ \"permission_mode\"[[:space:]]*:[[:space:]]*\"bypassPermissions\" ]]; then
     exit 0
 fi
