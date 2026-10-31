@@ -89,6 +89,8 @@ run_case "posthog-connection-call prompts" prompt \
     "$(exec_payload 'call posthog-connection-call {\"connection_id\":\"c\",\"tool_name\":\"delete-feature-flag\",\"arguments\":{\"id\":1}}')"
 run_case "switch-project prompts" prompt "$(exec_payload 'call switch-project {\"project_id\":2}')"
 run_case "gateway tool prompts" prompt "$(exec_payload 'call linear__list_issues {}')"
+run_case "bypassPermissions mode does not approve a sensitive write" prompt \
+    "$(exec_payload 'call delete-feature-flag {}' | sed 's/"permission_mode":"default"/"permission_mode":"bypassPermissions"/')"
 
 # --- commands the gate cannot classify prompt ---
 

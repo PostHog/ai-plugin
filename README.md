@@ -153,6 +153,28 @@ This plugin provides access to 27+ PostHog tools across these categories:
 
 The plugin also ships 30+ task-specific skills that your AI client loads on demand to follow PostHog best practices — covering HogQL query patterns, experiment creation and lifecycle, feature flags, data warehouse setup and troubleshooting, LLM analytics exploration, session replay diagnostics, and SDK instrumentation. Skills activate automatically when their description matches your request (e.g. "create an experiment", "why isn't my Stripe sync working?", "audit my feature flags"), so you generally don't need to invoke them by name.
 
+### Write gate
+
+A `PreToolUse` hook (`hooks/gate-exec-write.sh`) asks for approval before the PostHog MCP `exec` tool runs a sensitive write, such as a feature-flag change or any delete or destroy. It also asks for:
+
+- `posthog-connection-call` and `posthog-connection-forward`, whatever `POSTHOG_MCP_EXEC_GATE_ALLOW` and `POSTHOG_MCP_EXEC_GATE_DENY` say;
+- an `exec` input with more than one `command` field;
+- a `command` whose check fails to evaluate.
+
+Outside the Codex approval hook (below), the script passes silently, leaving the normal permission flow, for a `tool_name` it cannot read, a missing or `null` `command`, and a verb other than `call` (such as `tools` or `search`). Known reads, third-party gateway tools and writes outside the default set pass silently too.
+
+In Claude Code's `bypassPermissions` mode the hook never asks, provided the input has exactly one top-level `permission_mode` member and its value is `bypassPermissions`. A `permission_mode` inside `tool_input` is ignored. A repeated top-level `permission_mode` member, or a top-level key spelled with `\u` escapes, keeps the normal prompts.
+
+On Codex the `PreToolUse` hook is skipped. The Codex approval hook (`hooks/codex-hooks.json`, `hooks/codex-gate-exec-write.sh`) stays active: it approves only known reads, ignores `permission_mode` and the variables below, and leaves every other command to Codex's own prompt.
+
+Three environment variables tune the Claude Code hook:
+
+- `POSTHOG_MCP_EXEC_GATE_DISABLE`: set to a non-empty value other than `0` to turn the gate off, connection calls included. `0` leaves the gate on.
+- `POSTHOG_MCP_EXEC_GATE_DENY`: comma-separated globs of PostHog tool names that prompt. Overrides the default set; `*` prompts on every write. Tools in `hooks/read-tools.txt` never prompt, and connection calls prompt whatever it says.
+- `POSTHOG_MCP_EXEC_GATE_ALLOW`: comma-separated globs of tools that never prompt. Wins over the deny set, except that connection calls still prompt.
+
+For example, `POSTHOG_MCP_EXEC_GATE_ALLOW="annotation-create"`. See `hooks/gate-exec-write.sh` for the default set.
+
 ## Example usage
 
 ```

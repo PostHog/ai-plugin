@@ -20,15 +20,17 @@
 # tools — feature-flag writes and any delete/destroy — rather than every write.
 # Three env vars tune this (all matched against the PostHog tool name):
 #
-#   POSTHOG_MCP_EXEC_GATE_DISABLE  — set to a non-empty value (e.g. `1`) to turn
-#       the gate off entirely. Useful for remote devboxes and Claude Cloud runs
-#       where the prompt can't be answered. Example:
+#   POSTHOG_MCP_EXEC_GATE_DISABLE  — set to a non-empty value other than `0` (e.g.
+#       `1`) to turn the gate off entirely, connection calls included; `0` leaves
+#       the gate active. Useful for remote devboxes and Claude Cloud runs where the
+#       prompt can't be answered. Example:
 #
 #           export POSTHOG_MCP_EXEC_GATE_DISABLE=1
 #
 #   POSTHOG_MCP_EXEC_GATE_DENY     — comma-separated bash globs selecting which
 #       write tools prompt. Overrides the built-in default set. Use `*` to
-#       prompt on every write (the previous behaviour). Example:
+#       prompt on every write (the previous behaviour). Tools on
+#       `hooks/read-tools.txt` never prompt, whatever DENY says. Example:
 #
 #           export POSTHOG_MCP_EXEC_GATE_DENY="*feature-flag*,*-delete"
 #
@@ -38,9 +40,17 @@
 #
 #           export POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*,annotation-create"
 #
-# Unless the gate is disabled, `posthog-connection-call` and
-# `posthog-connection-forward` prompt regardless of DENY and ALLOW, as does any
-# input the hook can't read reliably.
+# Exceptions: `posthog-connection-call` and `posthog-connection-forward` prompt
+# whatever ALLOW and DENY say (only DISABLE or bypass mode silences them), and
+# so does an exec input with more than one `command` field or a command the
+# regex below can't check. Outside fail-closed mode, inputs that name no `call`
+# (a missing or null `command`, a non-`call` verb, a payload whose `tool_name`
+# can't be read) exit 0 silently.
+#
+# The gate stays silent for everything when the PreToolUse input reports
+# `permission_mode` as `bypassPermissions` (a field Claude Code documents at
+# https://code.claude.com/docs/en/hooks, "Common input fields"). Only the
+# top-level field counts: see `top_level_bypass`.
 #
 # Pure bash; no jq or other third-party tools required. Relies on the fact
 # that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
@@ -76,6 +86,55 @@ ask() {
     exit 0
 }
 
+# Succeeds only when the input has exactly one top-level `permission_mode` member
+# and its value is `bypassPermissions`. The input is split on `"` once, so the walk
+# stays linear in its size. Pieces alternate between text outside strings and
+# string content; a quote after an odd run of backslashes is escaped and stays
+# inside the string (https://www.rfc-editor.org/rfc/rfc8259#section-7). A string
+# is a key only when a `:` follows it, and only a key at depth 1 (the top-level
+# object) counts. Brackets count only outside strings.
+# A `permission_mode` in `tool_input` is model-controlled text and is ignored. A
+# repeated top-level member, or any other value, fails.
+top_level_bypass() {
+    [[ "$input" == *'"permission_mode"'* ]] || return 1
+    local -a p
+    local i=0 j k n out t depth=0 modes=0 value_ok=0
+    IFS='"' read -ra p -d '' <<< "$input"
+    n=${#p[@]}
+    while (( i < n )); do
+        out="${p[i]}"
+        t="${out//[^{[]/}"; depth=$(( depth + ${#t} ))
+        t="${out//[^\}\]]/}"; depth=$(( depth - ${#t} ))
+        (( i + 1 < n )) || break
+        # The string runs from piece i+1 to the first piece j whose closing quote
+        # follows an even run of backslashes.
+        j=$(( i + 1 ))
+        while :; do
+            (( j < n - 1 )) || return 1
+            t="${p[j]}"; t="${t##*[!\\]}"
+            (( ${#t} % 2 )) || break
+            j=$(( j + 1 ))
+        done
+        if (( depth == 1 )) && [[ "${p[j+1]}" =~ ^[[:space:]]*: ]]; then
+            # Apart from \u, no JSON escape gives a letter of permission_mode (the
+            # escapes are \" \\ \/ \b \f \n \r \t and \uXXXX, per
+            # https://www.rfc-editor.org/rfc/rfc8259#section-7), so a top-level key
+            # written with \u might still be that member: ask.
+            for (( k = i + 1; k <= j; k++ )); do
+                [[ "${p[k]}" == *'\u'* ]] && return 1
+            done
+            if (( j == i + 1 )) && [[ "${p[j]}" == permission_mode ]]; then
+                modes=$(( modes + 1 ))
+                if (( j + 3 < n )) && [[ "${p[j+1]}" =~ ^[[:space:]]*:[[:space:]]*$ && "${p[j+2]}" == bypassPermissions && "${p[j+3]}" =~ ^[[:space:]]*[,}] ]]; then
+                    value_ok=1
+                fi
+            fi
+        fi
+        i=$(( j + 1 ))
+    done
+    (( modes == 1 && value_ok ))
+}
+
 # Passes in normal mode; asks in fail-closed mode.
 not_a_known_read() {
     (( fail_closed )) || exit 0
@@ -99,6 +158,8 @@ fi
 if [[ -n "${POSTHOG_MCP_EXEC_GATE_DISABLE:-}" && "${POSTHOG_MCP_EXEC_GATE_DISABLE}" != "0" ]] && (( ! fail_closed )); then
     exit 0
 fi
+
+input="$(cat)"
 
 # Default set of write tools that prompt. Comma-separated bash globs, grounded in
 # the live PostHog MCP tool registry. Covers the genuinely sensitive surface:
@@ -125,8 +186,6 @@ fi
 # POSTHOG_MCP_EXEC_GATE_DENY="*" to restore prompting on every write.
 DEFAULT_DENY='*feature-flag*,*delete*,*destroy*,experiment-launch,experiment-ship-variant,experiment-reset,survey-launch,workflows-enable'
 
-input="$(cat)"
-
 # Extract `tool_name` — simple identifier, no escaping inside the value.
 tool_name=""
 if [[ "$input" =~ \"tool_name\"[[:space:]]*:[[:space:]]*\"([^\"]+)\" ]]; then
@@ -152,6 +211,13 @@ fi
 LC_ALL=C
 ws='([[:space:]]|\\[nrtf]|\\u000[bB]|['$'\x80''-'$'\xff'']'')'
 call_re="\"command\"[[:space:]]*:[[:space:]]*\"${ws}*call${ws}+((--[a-zA-Z-]+${ws}+)*)([a-zA-Z0-9_-]+)"
+
+# Bypass mode: the user chose to run without prompts (issue #246), so none of the
+# prompts below apply. Not in fail-closed mode: hooks/codex-gate-exec-write.sh:20-23
+# reads a silent gate as an approval.
+if (( ! fail_closed )) && top_level_bypass; then
+    exit 0
+fi
 
 # The regex reads the first `command` key, so a second one (say, nested in an
 # extra object) could hide the real command behind a decoy. Quotes inside the

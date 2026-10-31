@@ -181,6 +181,105 @@ run_case "disable=0 leaves the gate active" \
     prompt delete-feature-flag \
     POSTHOG_MCP_EXEC_GATE_DISABLE="0"
 
+# --- permission_mode: only a top-level bypassPermissions skips the gate ---
+
+# Same as exec_call, with a `permission_mode` field before `tool_input`.
+exec_call_mode() {
+    printf '{"tool_name":"mcp__posthog__exec","permission_mode":"%s","tool_input":{"command":"call %s {}"}}' "$1" "$2"
+}
+
+run_case "bypassPermissions silences a sensitive write" \
+    "$(exec_call_mode bypassPermissions insight-delete)" \
+    silent
+
+run_case "default mode still prompts" \
+    "$(exec_call_mode default insight-delete)" \
+    prompt insight-delete
+
+run_case "acceptEdits mode still prompts" \
+    "$(exec_call_mode acceptEdits insight-delete)" \
+    prompt insight-delete
+
+run_case "plan mode still prompts" \
+    "$(exec_call_mode plan insight-delete)" \
+    prompt insight-delete
+
+run_case "bypassPermissions as a prefix of another mode still prompts" \
+    "$(exec_call_mode bypassPermissionsX insight-delete)" \
+    prompt insight-delete
+
+run_case "bypassPermissions text inside the command does not silence the gate" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {\"permission_mode\":\"bypassPermissions\"}"}}' \
+    prompt insight-delete
+
+run_case "bypassPermissions after tool_input silences a sensitive write" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}"},"permission_mode":"bypassPermissions"}' \
+    silent
+
+run_case "bypassPermissions in pretty-printed JSON silences a sensitive write" \
+    '{ "tool_name" : "mcp__posthog__exec", "permission_mode" : "bypassPermissions" , "tool_input" : {"command":"call insight-delete {}"} }' \
+    silent
+
+run_case "bypassPermissions silences posthog-connection-call" \
+    "$(exec_call_mode bypassPermissions posthog-connection-call)" \
+    silent
+
+run_case "bypassPermissions silences posthog-connection-forward" \
+    "$(exec_call_mode bypassPermissions posthog-connection-forward)" \
+    silent
+
+run_case "bypassPermissions silences a command the gate cannot check" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}","command":"call experiment-get {}"}}' \
+    silent
+
+run_case "bypassPermissions with brackets inside a string silences the gate" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {\"x\":\"{{[\"}"},"permission_mode":"bypassPermissions"}' \
+    silent
+
+run_case "top-level default with nested bypassPermissions still prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"default","tool_input":{"command":"call insight-delete {}","permission_mode":"bypassPermissions"}}' \
+    prompt insight-delete
+
+run_case "nested bypassPermissions with no top-level mode still prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}","permission_mode":"bypassPermissions"}}' \
+    prompt insight-delete
+
+run_case "nested bypassPermissions after a string holding a bracket still prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete \"}\"","permission_mode":"bypassPermissions"}}' \
+    prompt insight-delete
+
+run_case "nested bypassPermissions after an escaped backslash still prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete \\","permission_mode":"bypassPermissions"}}' \
+    prompt insight-delete
+
+run_case "duplicate permission_mode (bypassPermissions first) still prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","permission_mode":"default","tool_input":{"command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
+run_case "duplicate permission_mode (bypassPermissions last) still prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"default","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
+run_case "top-level bypassPermissions plus a nested permission_mode silences the gate" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}","permission_mode":"default"}}' \
+    silent
+
+run_case "permission_mode as a string value elsewhere is ignored and the top-level bypass silences the gate" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"a":["permission_mode"],"command":"call insight-delete {}"},"permission_mode":"bypassPermissions"}' \
+    silent
+
+run_case "permission_mode key hidden behind an escaped quote still prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}"},"x\"permission_mode":"bypassPermissions"}' \
+    prompt insight-delete
+
+run_case "permission_mode key hidden behind an escaped quote in a value still prompts" \
+    '{"tool_name":"mcp__posthog__exec","a":"x\"permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
+run_case "top-level bypassPermissions after a key holding an escaped quote silences the gate" \
+    '{"x\"y":1,"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
+    silent
+
 # --- POSTHOG_MCP_EXEC_GATE_DENY overrides the default set ---
 
 run_case 'deny="*" restores prompting on every write (survey-stop)' \
