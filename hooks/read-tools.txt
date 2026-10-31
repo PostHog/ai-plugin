@@ -285,6 +285,7 @@ inbox-report-artefacts-list
 inbox-report-artefacts-retrieve
 inbox-report-checks-list
 inbox-report-checks-retrieve
+inbox-reports-for-me
 inbox-reports-list
 inbox-reports-retrieve
 inbox-reviewer-exclusions-get
@@ -442,6 +443,7 @@ query-lifecycle-actors
 query-llm-trace
 query-llm-traces-list
 query-logs
+query-marketing-recommendations
 query-mcp-harness-breakdown
 query-mcp-missing-capabilities
 query-mcp-tool-daily-stats
