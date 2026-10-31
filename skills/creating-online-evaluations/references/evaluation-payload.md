@@ -83,6 +83,19 @@ The output type cannot change after creation.
       "description": "Judge method. Omit to keep the saved method; null restores automatic routing.",
       "title": "Judge Method"
     },
+    "include_media": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Set to false to judge text only.",
+      "title": "Include Media"
+    },
     "reasoning_level": {
       "anyOf": [
         {
