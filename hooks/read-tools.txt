@@ -133,6 +133,8 @@ comments-list
 context-wiki-channel-resolve
 context-wiki-page-retrieve
 conversations-list
+conversations-macros-list
+conversations-macros-retrieve
 conversations-retrieve
 conversations-tickets-list
 conversations-tickets-messages-retrieve
@@ -564,6 +566,8 @@ view-run-history
 vision-alerts-events-list
 vision-alerts-get
 vision-alerts-list
+vision-groups-get
+vision-groups-list
 vision-observations-get
 vision-observations-list
 vision-observations-search
@@ -584,8 +588,11 @@ vision-scanners-observations-list
 vision-scanners-observations-stats
 vision-scanners-scout-reports-get
 vision-scanners-scout-reports-list
+vision-scanners-scouts-templates-list
 vision-scanners-self-driving-stats
 vision-scanners-variants-list
+vision-themes-get
+vision-themes-list
 visual-review-repos-flakiness-retrieve
 visual-review-repos-list
 visual-review-repos-quarantine-list
