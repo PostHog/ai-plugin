@@ -284,7 +284,7 @@ run_case "top-level bypassPermissions after a key holding an escaped quote silen
 # letter, so the plain-text match misses it. Its value is default, so the hook must
 # ask rather than trust the bypassPermissions member.
 run_case "top-level bypassPermissions plus an escaped permission_mode key still prompts" \
-    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","\\u0070ermission_mode":"default","tool_input":{"command":"call insight-delete {}"}}' \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","\u0070ermission_mode":"default","tool_input":{"command":"call insight-delete {}"}}' \
     prompt insight-delete
 
 # --- POSTHOG_MCP_EXEC_GATE_DENY overrides the default set ---
