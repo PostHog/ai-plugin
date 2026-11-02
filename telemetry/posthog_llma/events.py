@@ -144,7 +144,7 @@ def build_ai_span(
         "$ai_input_state": None if privacy_mode else _truncate(input_state, max_attribute_length),
         "$ai_output_state": None if privacy_mode else _truncate(output_state, max_attribute_length),
         "$ai_is_error": is_error,
-        "$ai_error": error_message,
+        "$ai_error": None if privacy_mode else error_message,
         "$ai_lib": "posthog-ai-plugin",
         "$ai_framework": "claude-code",
         "$ai_project_name": project_name,
