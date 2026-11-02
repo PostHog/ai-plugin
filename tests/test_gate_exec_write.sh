@@ -280,6 +280,13 @@ run_case "top-level bypassPermissions after a key holding an escaped quote silen
     '{"x\"y":1,"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
     silent
 
+# The second top-level key spells permission_mode with a JSON escape for its first
+# letter, so the plain-text match misses it. Its value is default, so the hook must
+# ask rather than trust the bypassPermissions member.
+run_case "top-level bypassPermissions plus an escaped permission_mode key still prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","\\u0070ermission_mode":"default","tool_input":{"command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
 # --- POSTHOG_MCP_EXEC_GATE_DENY overrides the default set ---
 
 run_case 'deny="*" restores prompting on every write (survey-stop)' \
@@ -577,6 +584,39 @@ do
         fail=$((fail + 1)); printf "  FAIL exited 2 (would block) for: %q\n" "$_payload"
     fi
 done
+
+# --- speed: a large escaped body stays fast under stock bash ---
+#
+# macOS ships bash 3.2, where indexing an array costs time in proportion to the
+# index. The permission_mode walk once did that per piece, which took about 14 s on
+# a 500 KB body. This runs the hook under /bin/bash and fails past 2 s.
+
+# Writes a payload whose command body is $1 kilobytes of escaped quotes.
+escaped_quote_payload() {
+    local body
+    body="$(yes '\"x' | tr -d '\n' | head -c $(( $1 * 1000 )))"
+    printf '%s' '{"tool_name":"mcp__posthog__exec","permission_mode":"default","tool_input":{"command":"call insight-delete {\"a\":\"'
+    printf '%s' "$body"
+    printf '%s' '\"}"}}'
+}
+
+# Build the payload before timing, so the clock covers only the hook run.
+escaped_quote_payload 500 > "$fixture_dir/speed-payload.json"
+TIMEFORMAT=%R
+speed_secs="$( { time env -i PATH="$PATH" /bin/bash "$HOOK" < "$fixture_dir/speed-payload.json" > "$fixture_dir/speed-out.txt"; } 2>&1 )"
+speed_out="$(cat "$fixture_dir/speed-out.txt")"
+
+# %R prints seconds with three decimals, e.g. 1.361; convert to whole milliseconds.
+speed_ms=-1
+if [[ "$speed_secs" =~ ^[0-9]+\.[0-9][0-9][0-9]$ ]]; then
+    speed_ms=$(( 10#${speed_secs/./} ))
+fi
+
+if [[ "$speed_out" == *'"permissionDecision":"ask"'* ]] && [[ "$speed_out" == *'`insight-delete` modifies PostHog data'* ]] && (( speed_ms >= 0 && speed_ms <= 2000 )); then
+    pass=$((pass + 1)); printf "  ok   500 KB escaped body under /bin/bash in %s s\n" "$speed_secs"
+else
+    fail=$((fail + 1)); printf "  FAIL 500 KB escaped body under /bin/bash: %s s (limit 2 s), stdout=%q\n" "$speed_secs" "$speed_out"
+fi
 
 # --- summary ---
 

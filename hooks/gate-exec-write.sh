@@ -98,39 +98,61 @@ ask() {
 top_level_bypass() {
     [[ "$input" == *'"permission_mode"'* ]] || return 1
     local -a p
-    local i=0 j k n out t depth=0 modes=0 value_ok=0
+    local x t k=0 n depth=0 modes=0 value_ok=0
+    # String state: inside a string, the depth where it opened, how many pieces it
+    # spans so far, and whether any of them holds \u.
+    local inside=0 sdepth=0 span=0 span_u=0
+    # A key string just closed; the next outside piece decides whether it is a key.
+    local pend=0 pend_u=0 pend_mode=0
+    # After `"permission_mode":`, 1 expects the value and 2 means it matched.
+    local value_stage=0
     IFS='"' read -ra p -d '' <<< "$input"
     n=${#p[@]}
-    while (( i < n )); do
-        out="${p[i]}"
-        t="${out//[^{[]/}"; depth=$(( depth + ${#t} ))
-        t="${out//[^\}\]]/}"; depth=$(( depth - ${#t} ))
-        (( i + 1 < n )) || break
-        # The string runs from piece i+1 to the first piece j whose closing quote
-        # follows an even run of backslashes.
-        j=$(( i + 1 ))
-        while :; do
-            (( j < n - 1 )) || return 1
-            t="${p[j]}"; t="${t##*[!\\]}"
-            (( ${#t} % 2 )) || break
-            j=$(( j + 1 ))
-        done
-        if (( depth == 1 )) && [[ "${p[j+1]}" =~ ^[[:space:]]*: ]]; then
-            # Apart from \u, no JSON escape gives a letter of permission_mode (the
-            # escapes are \" \\ \/ \b \f \n \r \t and \uXXXX, per
-            # https://www.rfc-editor.org/rfc/rfc8259#section-7), so a top-level key
-            # written with \u might still be that member: ask.
-            for (( k = i + 1; k <= j; k++ )); do
-                [[ "${p[k]}" == *'\u'* ]] && return 1
-            done
-            if (( j == i + 1 )) && [[ "${p[j]}" == permission_mode ]]; then
-                modes=$(( modes + 1 ))
-                if (( j + 3 < n )) && [[ "${p[j+1]}" =~ ^[[:space:]]*:[[:space:]]*$ && "${p[j+2]}" == bypassPermissions && "${p[j+3]}" =~ ^[[:space:]]*[,}] ]]; then
-                    value_ok=1
+    for x in "${p[@]}"; do
+        k=$(( k + 1 ))
+        if (( inside )); then
+            # Content piece. The last piece can never close a string.
+            (( k < n )) || return 1
+            span=$(( span + 1 ))
+            [[ "$x" == *'\u'* ]] && span_u=1
+            if (( value_stage == 1 )); then
+                if [[ "$x" == bypassPermissions ]]; then value_stage=2; else value_stage=0; fi
+            fi
+            # Closed when the quote follows an even run of backslashes.
+            t="${x##*[!\\]}"
+            if (( ${#t} % 2 == 0 )); then
+                inside=0
+                if (( sdepth == 1 )); then
+                    pend=1; pend_u=$span_u; pend_mode=0
+                    if (( span == 1 )) && [[ "$x" == permission_mode ]]; then pend_mode=1; fi
                 fi
             fi
+        else
+            # Outside piece. Settle the value check, then the key closed just before it.
+            if (( value_stage == 2 )); then
+                [[ "$x" =~ ^[[:space:]]*[,}] ]] && value_ok=1
+                value_stage=0
+            fi
+            if (( pend )); then
+                if [[ "$x" =~ ^[[:space:]]*: ]]; then
+                    # Apart from \u, no JSON escape gives a letter of permission_mode (the
+                    # escapes are \" \\ \/ \b \f \n \r \t and \uXXXX, per
+                    # https://www.rfc-editor.org/rfc/rfc8259#section-7), so a top-level key
+                    # written with \u might still be that member: ask.
+                    (( pend_u )) && return 1
+                    if (( pend_mode )); then
+                        modes=$(( modes + 1 ))
+                        [[ "$x" =~ ^[[:space:]]*:[[:space:]]*$ ]] && value_stage=1
+                    fi
+                fi
+                pend=0
+            fi
+            t="${x//[^{[]/}"; depth=$(( depth + ${#t} ))
+            t="${x//[^\}\]]/}"; depth=$(( depth - ${#t} ))
+            if (( k < n )); then
+                inside=1; sdepth=$depth; span=0; span_u=0
+            fi
         fi
-        i=$(( j + 1 ))
     done
     (( modes == 1 && value_ok ))
 }
