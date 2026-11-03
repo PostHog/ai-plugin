@@ -24,6 +24,7 @@ accounts-summaries-list
 action-get
 actions-get-all
 activity-summary-get
+activity-summary-search
 activity-summary-versions-list
 advanced-activity-logs-filters
 advanced-activity-logs-list
