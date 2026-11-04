@@ -50,7 +50,7 @@
 # The gate stays silent for everything when the PreToolUse input reports
 # `permission_mode` as `bypassPermissions` (a field Claude Code documents at
 # https://code.claude.com/docs/en/hooks, "Common input fields"). Only the
-# top-level field counts: see `top_level_bypass`.
+# top-level field counts, and only up to the size cap: see `top_level_bypass`.
 #
 # Pure bash; no jq or other third-party tools required. Relies on the fact
 # that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
@@ -86,28 +86,45 @@ ask() {
     exit 0
 }
 
-# Succeeds only when the input has exactly one top-level `permission_mode` member
-# and its value is `bypassPermissions`. The input is split on `"` once, so the walk
-# stays linear in its size. Pieces alternate between text outside strings and
-# string content; a quote after an odd run of backslashes is escaped and stays
-# inside the string (https://www.rfc-editor.org/rfc/rfc8259#section-7). A string
-# is a key only when a `:` follows it, and only a key at depth 1 (the top-level
-# object) counts. Brackets count only outside strings.
-# A `permission_mode` in `tool_input` is model-controlled text and is ignored. A
-# repeated top-level member, or any other value, fails.
+# Succeeds only when the input has exactly one top-level `permission_mode` member set to `bypassPermissions`.
+# The input is split on `"` once, so the walk is linear. Only depth-1 keys count; a `permission_mode` in
+# `tool_input` is ignored. Escaped quotes stay inside strings (RFC 8259 section 7). Malformed input (trailing
+# text, bad escapes, mismatched brackets, nesting past 64 levels, a repeated key) fails.
+#
+# Size caps fail closed (the call prompts and the walk never runs): over `max_pieces` (20,000) pieces,
+# over `max_opens` (1,000) non-root outside opens, or over `max_bytes` (131,072 bytes, 128 KB). A piece
+# ending in 64 or more backslashes also fails.
 top_level_bypass() {
     [[ "$input" == *'"permission_mode"'* ]] || return 1
+    # The walk compares raw text and never decodes a JSON escape, so it can succeed
+    # only when the literal bypassPermissions is in the input. A \u-escaped spelling
+    # fails here and keeps the prompt.
+    [[ "$input" == *bypassPermissions* ]] || return 1
+    # A backslash must start a JSON escape: \" \\ \/ \b \f \n \r \t or \uXXXX. The left
+    # anchor takes the whole backslash run, so an even run (\\) passes and \q fails. A
+    # regex that does not compile (status 2) asks too.
+    local esc_re='(^|[^\\])(\\\\)*\\([^"\\/bfnrtu]|u[0-9a-fA-F]{0,3}([^0-9a-fA-F]|$))' esc_rc=0
+    [[ "$input" =~ $esc_re ]]; esc_rc=$?
+    if (( esc_rc != 1 )); then return 1; fi
+    # Depth above this many open brackets fails: the walk asks rather than tracking it.
+    local max_depth=64
     local -a p
-    local x t k=0 n depth=0 modes=0 value_ok=0
-    # String state: inside a string, the depth where it opened, how many pieces it
+    local max_pieces=20000 max_opens=1000 max_bytes=131072
+    local x w c pre wl off ch tl t tn j=0 k=0 n modes=0 value_ok=0 outside_opens=0
+    # String state: inside a string, the stack depth where it opened, how many pieces it
     # spans so far, and whether any of them holds \u.
     local inside=0 sdepth=0 span=0 span_u=0
     # A key string just closed; the next outside piece decides whether it is a key.
     local pend=0 pend_u=0 pend_mode=0
     # After `"permission_mode":`, 1 expects the value and 2 means it matched.
     local value_stage=0
+    # Brackets open outside strings, innermost last. The object's `{` is the first one.
+    local stk='' top want
+    # LC_ALL=C is set above, so ${#input} counts bytes.
+    if (( ${#input} > max_bytes )); then return 1; fi
     IFS='"' read -ra p -d '' <<< "$input"
     n=${#p[@]}
+    if (( n > max_pieces )); then return 1; fi
     for x in "${p[@]}"; do
         k=$(( k + 1 ))
         if (( inside )); then
@@ -118,8 +135,11 @@ top_level_bypass() {
             if (( value_stage == 1 )); then
                 if [[ "$x" == bypassPermissions ]]; then value_stage=2; else value_stage=0; fi
             fi
-            # Closed when the quote follows an even run of backslashes.
-            t="${x##*[!\\]}"
+            # Closed when the quote follows an even run of backslashes. Only the last 64
+            # characters are counted, so the time stays bounded; a run of 64 or more fails.
+            if (( ${#x} > 64 )); then tl=${x:${#x}-64}; else tl=$x; fi
+            t="${tl##*[!\\]}"
+            if (( ${#t} == 64 )); then return 1; fi
             if (( ${#t} % 2 == 0 )); then
                 inside=0
                 if (( sdepth == 1 )); then
@@ -135,10 +155,7 @@ top_level_bypass() {
             fi
             if (( pend )); then
                 if [[ "$x" =~ ^[[:space:]]*: ]]; then
-                    # Apart from \u, no JSON escape gives a letter of permission_mode (the
-                    # escapes are \" \\ \/ \b \f \n \r \t and \uXXXX, per
-                    # https://www.rfc-editor.org/rfc/rfc8259#section-7), so a top-level key
-                    # written with \u might still be that member: ask.
+                    # A top-level key written with \u might still be permission_mode (RFC 8259 section 7): ask.
                     (( pend_u )) && return 1
                     if (( pend_mode )); then
                         modes=$(( modes + 1 ))
@@ -147,14 +164,60 @@ top_level_bypass() {
                 fi
                 pend=0
             fi
-            t="${x//[^{[]/}"; depth=$(( depth + ${#t} ))
-            t="${x//[^\}\]]/}"; depth=$(( depth - ${#t} ))
+            w="$x"
+            if (( k == 1 )); then
+                # The object opens in the first piece: only whitespace may come before its `{`.
+                [[ "$x" =~ ^[[:space:]]*\{ ]] || return 1
+                w="${x#*\{}"
+                stk='{'
+            fi
+            # Brackets are read from 256-character chunks: a substring copies the whole piece,
+            # so one bracket at a time from the full piece would take quadratic time in bash 3.2.
+            wl=${#w}
+            for (( off = 0; off < wl; off += 256 )); do
+                c="${w:off:256}"
+                while [[ "$c" == *[\{\[\}\]]* ]]; do
+                    pre="${c%%[\{\[\}\]]*}"
+                    c="${c:${#pre}}"
+                    ch="${c:0:1}"
+                    c="${c:1}"
+                    case "$ch" in
+                        '{'|'[')
+                            # An opener after the object closed, or nesting past the cap, fails.
+                            if (( ${#stk} == 0 || ${#stk} >= max_depth )); then return 1; fi
+                            stk="$stk$ch"
+                            outside_opens=$(( outside_opens + 1 ))
+                            if (( outside_opens > max_opens )); then return 1; fi
+                            ;;
+                        *)
+                            # A closer must match the innermost open bracket, and none may follow the
+                            # object's own `}`.
+                            if (( ${#stk} == 0 )); then return 1; fi
+                            top="${stk:${#stk}-1:1}"
+                            if [[ "$ch" == '}' ]]; then want='{'; else want='['; fi
+                            if [[ "$top" != "$want" ]]; then return 1; fi
+                            stk="${stk:0:${#stk}-1}"
+                            ;;
+                    esac
+                done
+            done
             if (( k < n )); then
-                inside=1; sdepth=$depth; span=0; span_u=0
+                inside=1; sdepth=${#stk}; span=0; span_u=0
             fi
         fi
     done
-    (( modes == 1 && value_ok ))
+    (( modes == 1 && value_ok )) || return 1
+    # Every opener is closed, so the object's `}` was the last bracket.
+    [[ -z "$stk" ]] || return 1
+    # The object's `}` must be the last non-whitespace character; only the last 4097 characters are read.
+    tl="$input"
+    if (( ${#tl} > 4097 )); then tl="${tl:${#tl}-4097}"; fi
+    tn=${#tl}
+    while (( j < tn )); do
+        ch="${tl:tn-1-j:1}"
+        case "$ch" in ' '|$'\t'|$'\r'|$'\n') j=$(( j + 1 )) ;; *) break ;; esac
+    done
+    (( j < tn )) && [[ "${tl:tn-1-j:1}" == '}' ]]
 }
 
 # Passes in normal mode; asks in fail-closed mode.
