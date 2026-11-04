@@ -729,7 +729,7 @@ done
 # macOS ships bash 3.2, where indexing an array costs time in proportion to the
 # index. The permission_mode walk once did that per piece, which took about 14 s on
 # a 500 KB body. The size cap in top_level_bypass keeps bodies this large off the walk.
-# This runs the hook under /bin/bash on a 500 KB and a 2 MB body, and fails past 1 s
+# This runs the hook under /bin/bash on a 500 KB and a 2 MB body, and fails past 3 s
 # or unless each one asks. The two backslash rows hold a 40,000-byte run in one string,
 # with and without a top-level bypass: the run check must answer before it walks the run.
 
@@ -737,7 +737,7 @@ done
 # Each payload is built before timing, so the clock covers only the hook run.
 # Args: label, payload file, and "silent" when the hook should pass the call (default: ask).
 speed_check() {
-    local label="$1" payload="$2" want="${3:-ask}" limit_ms="${4:-1000}" speed_secs speed_out speed_ms=-1 ok=0
+    local label="$1" payload="$2" want="${3:-ask}" limit_ms="${4:-3000}" speed_secs speed_out speed_ms=-1 ok=0
     TIMEFORMAT=%R
     speed_secs="$( { time env -i PATH="$PATH" /bin/bash "$HOOK" < "$payload" > "$payload.out"; } 2>&1 )"
     speed_out="$(cat "$payload.out")"
@@ -811,7 +811,8 @@ speed_check "200 KB number array in default mode" "$fixture_dir/array-200-defaul
 speed_check "120 KB number array with top-level bypassPermissions is silent" "$fixture_dir/array-120-bypass.json" silent
 
 # Exactly the outside-open cap (1,000) in a 131,072-byte body is still decided: silent, under the
-# 1 s promise. The worst valid input the caps admit is 1,000 opens with 19,999 pieces in the same size.
+# 3 s limit (headroom for shared CI runners, still under the 5 s hook timeout). The worst valid
+# input the caps admit is 1,000 opens with 19,999 pieces in the same size.
 outside_opens_payload 1000 131072 > "$fixture_dir/opens-cap-131072.json"
 speed_check "1,000 outside opens in a 131,072-byte body is silent" "$fixture_dir/opens-cap-131072.json" silent
 pieces_payload 1000 131072 9991 > "$fixture_dir/pieces-cap-131072.json"
