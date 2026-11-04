@@ -3449,6 +3449,9 @@ The schema is authoritative; the prose and examples below are guidance.
           "default": null,
           "title": "Response"
         },
+        "unit": {
+          "$ref": "#/$defs/ExperimentWarehouseNativeUnitBinding"
+        },
         "version": {
           "anyOf": [
             {
@@ -3465,9 +3468,31 @@ The schema is authoritative; the prose and examples below are guidance.
       },
       "required": [
         "connection_id",
-        "query"
+        "query",
+        "unit"
       ],
       "title": "ExperimentWarehouseNativeNode",
+      "type": "object"
+    },
+    "ExperimentWarehouseNativeUnitBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "id_namespace": {
+          "description": "Which ids represent that unit, such as `billing_customer_id`.",
+          "title": "Id Namespace",
+          "type": "string"
+        },
+        "unit_type": {
+          "description": "What was randomized, as a stable project-scoped label such as `customer` or `account`.",
+          "title": "Unit Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id_namespace",
+        "unit_type"
+      ],
+      "title": "ExperimentWarehouseNativeUnitBinding",
       "type": "object"
     },
     "FeaturePropertyFilter": {

@@ -31,6 +31,7 @@ advanced-activity-logs-list
 aeo-prompts-checks-list
 aeo-prompts-get
 aeo-prompts-list
+aeo-prompts-overview-get
 aeo-prompts-stats-get
 aeo-prompts-topics-list
 aeo-prompts-versions-list
@@ -230,6 +231,7 @@ experiment-timeseries-results
 experiments-session-event-deltas-create
 explain-chart
 external-data-destinations-connect-link
+external-data-destinations-connect-link-status
 external-data-destinations-list
 external-data-destinations-retrieve
 external-data-schemas-destinations-retrieve
