@@ -4,6 +4,13 @@ Datasets hold curated inputs, expected outputs, and optional trace provenance fo
 Dataset items have stable IDs and immutable content versions.
 Every item mutation creates a dataset revision, which makes prior dataset contents queryable as exact snapshots.
 
+Active datasets expire after 90 days of inactivity; archived datasets and historical revisions expire after 30 days,
+with a 12-hour usage recording margin. Expired datasets and revisions may remain in these tables during cleanup.
+Only datasets and requested snapshots with `expired_at IS NULL` are available; expired snapshots can be incomplete.
+HogQL reads do not refresh retention. Use the dataset API or MCP item-read tools to refresh a snapshot's retention.
+Expired snapshots return 404 through those tools. Dataset names can be reused after expiry, so select by UUID or
+filter out expired datasets when selecting by name.
+
 ## Dataset (`system.datasets`)
 
 Column | Type | Nullable | Description
@@ -14,6 +21,7 @@ Column | Type | Nullable | Description
 `description` | String | NOT NULL | What the dataset contains.
 `metadata` | JSON | NOT NULL | JSON dataset metadata.
 `archived` | Boolean | NOT NULL | Whether the dataset is archived.
+`expired_at` | DateTime | NULL | When the dataset expired; NULL while available.
 `current_revision_id` | UUID | NULL | Latest committed revision; NULL before the first item mutation.
 `created_by_id` | Integer | NULL | User who created the dataset.
 `created_at` | DateTime | NOT NULL | When the dataset was created.
@@ -27,6 +35,7 @@ Column | Type | Nullable | Description
 `team_id` | Integer | NOT NULL |
 `dataset_id` | UUID | NOT NULL | Parent dataset; joins to datasets.id.
 `revision` | Integer | NOT NULL | Monotonic revision number within the dataset.
+`expired_at` | DateTime | NULL | When the snapshot expired; NULL while available. Expired snapshots may be incomplete.
 `created_by_id` | Integer | NULL | User who committed the revision.
 `created_at` | DateTime | NOT NULL | When the revision was committed.
 
@@ -96,14 +105,19 @@ SELECT
     v.source_output,
     v.metadata
 FROM system.dataset_items AS i
+INNER JOIN system.datasets AS d ON d.id = i.dataset_id
 INNER JOIN system.dataset_item_versions AS v ON v.id = i.current_version_id
 WHERE i.dataset_id = '01234567-89ab-cdef-0123-456789abcdef'
+  AND d.expired_at IS NULL
   AND v.archived = false
 ORDER BY i.created_at DESC
 LIMIT 100
 ```
 
 Reconstruct active items at dataset revision 7:
+
+Check the requested snapshot's expiry, not the expiry of each version's introducing revision. A version introduced
+by an expired revision can still be needed by an available snapshot.
 
 ```sql
 SELECT
@@ -115,28 +129,34 @@ SELECT
     tupleElement(argMax(tuple(v.source_output), r.revision), 1) AS source_output,
     argMax(v.metadata, r.revision) AS metadata
 FROM system.dataset_items AS i
+INNER JOIN system.datasets AS d ON d.id = i.dataset_id
+INNER JOIN system.dataset_revisions AS snapshot ON snapshot.dataset_id = i.dataset_id AND snapshot.revision = 7
 INNER JOIN system.dataset_item_versions AS v ON v.dataset_item_id = i.id
 INNER JOIN system.dataset_revisions AS r ON r.id = v.dataset_revision_id
 WHERE i.dataset_id = '01234567-89ab-cdef-0123-456789abcdef'
+  AND d.expired_at IS NULL
+  AND snapshot.expired_at IS NULL
   AND r.revision <= 7
 GROUP BY i.id, i.client_item_id
 HAVING argMax(v.archived, r.revision) = false
 ORDER BY i.id
 ```
 
-List the immutable history of one item:
+List the retained immutable history of one item in an available dataset:
 
 ```sql
 SELECT
-    version,
-    archived,
-    input,
-    expected_output,
-    metadata,
-    dataset_revision_id,
-    created_by_id,
-    created_at
-FROM system.dataset_item_versions
-WHERE dataset_item_id = '01234567-89ab-cdef-0123-456789abcdef'
-ORDER BY version DESC
+    v.version,
+    v.archived,
+    v.input,
+    v.expected_output,
+    v.metadata,
+    v.dataset_revision_id,
+    v.created_by_id,
+    v.created_at
+FROM system.dataset_item_versions AS v
+INNER JOIN system.datasets AS d ON d.id = v.dataset_id
+WHERE v.dataset_item_id = '01234567-89ab-cdef-0123-456789abcdef'
+  AND d.expired_at IS NULL
+ORDER BY v.version DESC
 ```

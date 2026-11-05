@@ -637,6 +637,7 @@ workflows-list-versions
 workflows-logs
 workflows-make-email-template-transactional-prepare
 workflows-reputation-get
+workflows-send-email-prepare
 workflows-sending-rules-get
 workflows-setup-status
 workflows-show-email-template
