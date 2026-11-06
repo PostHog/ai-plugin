@@ -12,6 +12,7 @@ Canonical URL: https://posthog.com/docs/libraries/svelte
 - [Client-side setup](#client-side-setup)
 - [Identifying users](#identifying-users)
 - [Server-side setup](#server-side-setup)
+- [Server span context](#server-span-context)
 - [Feature flags](#feature-flags)
 - [Configuring session replay for server-side rendered apps](#configuring-session-replay-for-server-side-rendered-apps)
 - [Next steps](#next-steps)
@@ -168,26 +169,93 @@ pnpm add posthog-node
 bun add posthog-node
 ```
 
-Then, initialize the PostHog Node client where you'd like to use it on the server side. For example, in a [load function](https://kit.svelte.dev/docs/load#page-data):
+Create one client in a server-only module. Import this client from your server hooks, load functions, and tracing setup:
 
-routes/+page.server.js
+src/lib/server/posthog.js
 
 ```javascript
 import { PostHog } from 'posthog-node';
 
-export async function load() {
-  const posthog = new PostHog('<ph_project_token>', { host: 'https://us.i.posthog.com' });
+export const posthog = new PostHog('<ph_project_token>', {
+  host: 'https://us.i.posthog.com',
+});
+```
 
+For example, capture an event from a [load function](https://svelte.dev/docs/kit/load):
+
+src/routes/+page.server.js
+
+```javascript
+import { posthog } from '$lib/server/posthog';
+
+export async function load() {
   posthog.capture({
     distinctId: 'distinct_id_of_the_user',
     event: 'event_name',
-  })
+  });
 
-  await posthog.shutdown()
+  await posthog.flush();
 }
 ```
 
-> **Note:** Make sure to always call `posthog.shutdown()` after capturing events from the server-side. PostHog queues events into larger batches, and this call forces all batched events to be flushed immediately.
+Flush queued events before your platform can stop server work. Call `posthog.shutdown()` once when the server stops.
+
+## Server span context
+
+For a Node server with SvelteKit 2.31.0 or later, use the same server client for PostHog events and OpenTelemetry span context. This setup needs the optional `posthog-node/otel` entrypoint.
+
+Enable [SvelteKit server tracing and instrumentation](https://svelte.dev/docs/kit/observability). In SvelteKit 3, configure `tracing: { server: true }` in the `sveltekit(...)` Vite plugin options. In SvelteKit 2.31, configure `kit.experimental.tracing.server` and `kit.experimental.instrumentation.server` in `svelte.config.js`.
+
+Add `new PostHogContextSpanProcessor(posthog)` to the span processors in your existing OpenTelemetry setup in `src/instrumentation.server.js`. Import the processor from `posthog-node/otel` and the client from `$lib/server/posthog`. Keep your existing provider, exporters, and sampler. The processor fills missing `posthogDistinctId` and `sessionId` attributes on child spans.
+
+Add this server hook. If you already have hooks, add this scope around their request work and add the capture call to your existing `handleError` function. An authentication hook can establish the verified identity with `posthog.withContext` before this scope starts. Header IDs are analytics context and must not authorize access.
+
+src/hooks.server.js
+
+```javascript
+import { context, trace, isSpanContextValid } from '@opentelemetry/api';
+import { enrichCurrentSpan } from 'posthog-node/otel';
+import { posthog } from '$lib/server/posthog';
+
+function tracingId(value) {
+  return value?.replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim().slice(0, 1000) || undefined;
+}
+
+export async function handle({ event, resolve }) {
+  const existing = posthog.getContext();
+  const data = {
+    distinctId: existing?.distinctId ?? tracingId(event.request.headers.get('x-posthog-distinct-id')),
+    sessionId: existing?.sessionId ?? tracingId(event.request.headers.get('x-posthog-session-id')),
+  };
+  const spanContext = event.tracing.root.spanContext();
+  event.locals.posthogError = {
+    distinctId: data.distinctId,
+    properties: {
+      ...(data.sessionId ? { $session_id: data.sessionId } : {}),
+      ...(event.tracing.enabled && isSpanContextValid(spanContext)
+        ? { $trace_id: spanContext.traceId, $span_id: spanContext.spanId }
+        : {}),
+    },
+  };
+
+  return posthog.withContext(data, async () => {
+    if (event.tracing.enabled) {
+      context.with(trace.setSpan(context.active(), event.tracing.root), () => enrichCurrentSpan(posthog));
+    }
+    enrichCurrentSpan(posthog);
+    return await resolve(event);
+  }, { fresh: true });
+}
+
+export function handleError({ error, event, message }) {
+  posthog.captureException(error, event.locals.posthogError?.distinctId, event.locals.posthogError?.properties);
+  return { message };
+}
+```
+
+SvelteKit starts its request root span before this hook. The two `enrichCurrentSpan` calls fill missing IDs on that public root span and on the active span. Explicit span attributes remain unchanged. A missing or blank header adds no ID.
+
+Work that the request starts keeps its IDs after `resolve(event)` settles. Pass explicit context to separate jobs that need their own IDs. The saved values on `event.locals` let `handleError` attribute a hook error that SvelteKit reports outside this scope. Errors before this hook runs have no saved request identity. Add the `posthogError` field to `App.Locals` if your app uses TypeScript.
 
 ## Feature flags
 
@@ -220,17 +288,12 @@ To use server-side feature flags, import PostHog into your SvelteKit `load` func
 routes/+page.server.js
 
 ```javascript
-import { PostHog } from 'posthog-node';
-
-const client = new PostHog(
-  '<ph_project_token>',
-  { host: 'https://us.i.posthog.com' }
-);
+import { posthog } from '$lib/server/posthog';
 
 export async function load() {
   const distinctId = 'distinct_id_of_the_user';
 
-  const megaFeature = await client.isFeatureEnabled(
+  const megaFeature = await posthog.isFeatureEnabled(
     'mega-feature',
     distinctId
   );

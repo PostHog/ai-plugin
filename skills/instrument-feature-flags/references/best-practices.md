@@ -19,7 +19,7 @@ Canonical URL: https://posthog.com/docs/feature-flags/best-practices
 -    [Call `identify()` before evaluating flags](#resolve-identity-before-evaluating-flags) – the hash uses the wrong ID otherwise. This is the most common input problem.
 -    [Evaluate flags server-side with local evaluation](#server-side-local-evaluation-is-the-recommended-default) – explicit inputs, your data right there, no workarounds.
 -    [Bootstrap client-side flags](#have-the-value-before-you-need-it) – client-side evaluation is async. [Bootstrap](https://posthog.com/docs/feature-flags/bootstrapping.md) to eliminate the gap.
--    [Handle `undefined` explicitly](#undefined-is-not-false) – it means "not evaluated yet," not `false`.
+-    [Handle `undefined` explicitly](#undefined-is-not-flag-is-off-nor-false) – it means "not evaluated yet," not `false`.
 -    [Evaluate once, record the result](#evaluate-once-not-continuously) – a flag is a one-time signal. Re-evaluate only on meaningful state changes.
 -    [Evaluate where the data lives](#evaluate-where-the-data-lives) – if the data is on your server, evaluate there.
 -    [Choose evaluation context deliberately](#choose-a-flag-type-intentionally) – "server and client" is the default for compatibility, not because it's the right choice for your flag.

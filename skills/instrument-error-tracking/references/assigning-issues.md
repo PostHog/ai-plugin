@@ -92,7 +92,7 @@ The new issue has a partial stack trace and a link to the issue in PostHog.
 
 ### Via the API
 
-You can also create external references programmatically using the [PostHog API](https://posthog.com/docs/api.md) with a [personal API key](https://posthog.com/docs/api.md#personal-api-keys) that has the `error_tracking:write` scope.
+You can also create external references programmatically using the [PostHog API](https://posthog.com/docs/api.md) with a [personal API key](https://posthog.com/docs/api/personal-api-keys.md) that has the `error_tracking:write` scope.
 
 ### Via MCP
 

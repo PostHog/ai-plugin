@@ -119,7 +119,6 @@ This guide walks you through setting up PostHog for React Router V7 in framework
       tracing_headers: [ window.location.hostname, 'localhost' ],
     });
     
-    
     startTransition(() => {
       hydrateRoot(
         document,
@@ -376,58 +375,109 @@ This guide walks you through setting up PostHog for React Router V7 in framework
 
      Recommended
 
-     Next, create a server-side middleware to help you capture server-side events. This middleware helps you achieve the following:
+     Use one PostHog client for a long-running Node server. Create it in a server-only module and import it from your middleware and tracing setup.
 
-     -   Initialize a PostHog client
-     -   Fetch the session and distinct ID from the `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID` headers and pass them to your request as a [context](https://posthog.com/docs/libraries/node.md#contexts). This automatically identifies the user and session for you in all subsequent event captures.
-     -   Calls `shutdown()` on the PostHog client to ensure all events are sent before the request is completed.
-
-     app/lib/posthog-middleware.ts
+     app/lib/posthog.server.ts
 
      ```typescript
-     import { PostHog } from "posthog-node";
-     import type { RouterContextProvider } from "react-router";
-     import type { Route } from "../+types/root";
+     import { PostHog } from 'posthog-node';
      
-     export interface PostHogContext extends RouterContextProvider {
-       posthog?: PostHog;
-     }
-     
-     export const posthogMiddleware: Route.MiddlewareFunction = async ({ request, context }, next) => {
-       const posthog = new PostHog(process.env.VITE_POSTHOG_PROJECT_TOKEN!, {
-         host: process.env.VITE_POSTHOG_HOST!,
-         flushAt: 1,
-         flushInterval: 0,
-       });
-     
-       const sessionId = request.headers.get('X-POSTHOG-SESSION-ID');
-       const distinctId = request.headers.get('X-POSTHOG-DISTINCT-ID');
-     
-       (context as PostHogContext).posthog = posthog;
-     
-       const response = await posthog.withContext(
-         { sessionId: sessionId ?? undefined, distinctId: distinctId ?? undefined },
-         next
-       );
-     
-       await posthog.shutdown().catch(() => {});
-     
-       return response;
+     export const posthog = new PostHog(process.env.VITE_POSTHOG_PROJECT_TOKEN!, {
+       host: process.env.VITE_POSTHOG_HOST!,
+     });
+     ```
+
+     In React Router 7, enable server middleware in `react-router.config.ts`:
+
+     react-router.config.ts
+
+     ```typescript
+     export default {
+       future: { v8_middleware: true },
      };
      ```
 
-     Then, you'll need to register the middleware in your app in the `app/root.tsx` file by exporting it in the `Route.MiddlewareFunction[]` array.
+     React Router 8 enables server middleware by default. Add the following middleware. It reads PostHog tracing headers and keeps each request context separate. Missing or blank headers add no ID. Header IDs are analytics context and must not authorize access.
+
+     app/lib/posthog-middleware.server.ts
+
+     ```typescript
+     import { createContext, type MiddlewareFunction } from 'react-router';
+     import { posthog } from './posthog.server';
+     
+     type RequestIds = { distinctId?: string; sessionId?: string };
+     
+     export const posthogClientContext = createContext<typeof posthog>();
+     export const posthogErrorContext = createContext<RequestIds | undefined>(undefined);
+     
+     function tracingId(value: string | null): string | undefined {
+       return value?.replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim().slice(0, 1000) || undefined;
+     }
+     
+     export const posthogMiddleware: MiddlewareFunction<Response> = async ({ request, context }, next) => {
+       const existing = posthog.getContext();
+       const data: RequestIds = {
+         distinctId: existing?.distinctId ?? tracingId(request.headers.get('x-posthog-distinct-id')),
+         sessionId: existing?.sessionId ?? tracingId(request.headers.get('x-posthog-session-id')),
+       };
+       context.set(posthogClientContext, posthog);
+       context.set(posthogErrorContext, data);
+     
+       return posthog.withContext(data, () => next(), { fresh: true });
+     };
+     ```
+
+     Register the middleware in `app/root.tsx`. Put an authentication middleware before it if you use `posthog.withContext` to establish a verified application identity. Existing application IDs take priority over header IDs.
 
      app/root.tsx
 
      ```jsx
-     import { posthogMiddleware } from './lib/posthog-middleware';
+     import { posthogMiddleware } from './lib/posthog-middleware.server';
      
      export const middleware: Route.MiddlewareFunction[] = [
        posthogMiddleware,
        // other middlewares...
      ];
      ```
+
+     Work that the request starts keeps its IDs after `next()` settles. Pass explicit context to separate jobs that need their own IDs. Flush queued events before your platform can stop server work. Call `posthog.shutdown()` once when the server stops.
+
+     To capture server errors, add the capture call to your existing `handleError` export in `app/entry.server.tsx`. The saved IDs remain available when a middleware error reaches this hook outside the scope. Errors before this middleware runs have no saved request identity.
+
+     app/entry.server.tsx
+
+     ```typescript
+     import type { HandleErrorFunction } from 'react-router';
+     import { posthog } from './lib/posthog.server';
+     import { posthogErrorContext } from './lib/posthog-middleware.server';
+     
+     export const handleError: HandleErrorFunction = (error, { context }) => {
+       const saved = context.get(posthogErrorContext);
+       posthog.captureException(error, saved?.distinctId,
+         saved?.sessionId ? { $session_id: saved.sessionId } : undefined);
+     };
+     ```
+
+     ### Optional server span context
+
+     Use the optional `posthog-node/otel` entrypoint when your Node SDK includes it. Add `new PostHogContextSpanProcessor(posthog)` to the processors in your existing OpenTelemetry setup. Import the processor from `posthog-node/otel` and reuse the client from `posthog.server.ts`. Keep your provider, exporters, and sampler.
+
+     Import the helper in `posthog-middleware.server.ts`:
+
+     ```typescript
+     import { enrichCurrentSpan } from 'posthog-node/otel';
+     ```
+
+     Inside the `withContext` callback, call it immediately before `next()`:
+
+     ```typescript
+     enrichCurrentSpan(posthog);
+           return await next();
+     ```
+
+     The helper fills missing `posthogDistinctId` and `sessionId` attributes on the active span and its nearest recording server ancestor whose parent chain the processor observed. Explicit span attributes stay unchanged. The processor adds the request IDs to new child spans. If a sampler drops an intermediate span, the earlier server span stays unchanged because its parent chain cannot be verified.
+
+     React Router provides [server instrumentation hooks](https://reactrouter.com/how-to/instrumentation) for application-owned tracing. Their stable export, `instrumentations`, is available from 7.15.0. This setup does not create request spans. Configure those hooks or your existing server tracing to start a span before the middleware runs. This recipe was tested with React Router 7.15.0 and 8.4.0 on Node.
 
 11.  ## Verify server-side events are captured
 
@@ -442,14 +492,14 @@ This guide walks you through setting up PostHog for React Router V7 in framework
      app/routes/api.checkout.ts
 
      ```jsx
-     import type { PostHogContext } from "../lib/posthog-middleware";
+     import { posthogClientContext } from "../lib/posthog-middleware.server";
      
      export async function action({ request, context }: Route.ActionArgs) {
        const body = await request.json();
        // ... existing code ...
      
        // Access the PostHog client from the context and capture an event
-       const posthog = (context as PostHogContext).posthog;
+       const posthog = context.get(posthogClientContext);
        posthog?.capture({ event: 'checkout_completed' });
      
        return Response.json({

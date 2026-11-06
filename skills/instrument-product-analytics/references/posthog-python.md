@@ -2,7 +2,7 @@
 
 # PostHog Python SDK
 
-**SDK Version:** 7.76.0
+**SDK Version:** 7.84.0
 
 Integrate PostHog into any python application.
 
@@ -81,6 +81,10 @@ Initialize a new PostHog client instance.
 - **`_use_ai_lane`** (`bool`)
 - **`_enable_multimodal_capture`** (`bool`)
 - **`traces?`** (`dict`) - Config dict for distributed tracing: ``service_name``,         ``service_version``, ``environment``, ``resource_attributes``,         ``flush_interval`` (5 s), ``max_queue_size`` (2048),         ``max_export_batch_size`` (512), ``max_live_spans`` (10000),         ``max_span_age`` (3600 s), ``max_attributes_per_span`` (128),         ``max_events_per_span`` (128), ``max_attribute_value_length``         (8192). ``before_span_send`` is a callable, or a         list run in order, that receives each finished span as a dict         (``trace_id``, ``span_id`` and ``parent_span_id`` are read-only)         and returns it, edited, or ``None`` to drop it; a hook that         raises drops the span. Tracing is off until this is provided.         Spans export on a background timer even with ``sync_mode``;         serverless handlers should call ``flush()`` before returning.         Defaults to None.
+- **`app_host?`** (`str`) - Your PostHog app host, such as ``https://posthog.example.com``.         ``emails`` sends there. Needed only when ``host`` is not PostHog         Cloud, for example a reverse proxy, which must not receive the         secret key.
+- **`email_request_timeout_seconds`** (`float`) - Timeout in seconds for each email send         request. Defaults to 15.
+- **`email_request_max_retries`** (`int`) - Number of retries for an email send after a         network error, a rate limit, or an unavailable service. Defaults to 2.         Set to 0 when a job runner already retries the send.
+- **`migrated_from?`** (`str`) - The email provider you moved from, such as         ``"resend"``. ``emails`` sends it with every request.
 
 ### Returns
 
@@ -321,7 +325,7 @@ Evaluate all feature flags for a user in a single call and return a :class:`Feat
 - **`groups?`** (`Mapping[str, Union[str, int]]`) - Mapping of group type to group key.
 - **`person_properties?`** (`dict[str, Any]`) - Person properties to use for evaluation.
 - **`group_properties?`** (`dict[str, dict[str, Any]]`) - Group properties keyed by group type.
-- **`only_evaluate_locally`** (`bool`) - If True, never fall back to remote evaluation —         flags that can't be evaluated locally are simply omitted from the snapshot.
+- **`only_evaluate_locally`** (`bool`) - If True, never fall back to remote evaluation —         flags that can't be evaluated locally are omitted from the snapshot and         listed with a reason in its ``unresolved_flags``.
 - **`disable_geoip?`** (`bool`) - Whether to disable GeoIP lookup.
 - **`flag_keys?`** (`list[str]`) - Optional list that scopes local evaluation, the underlying         ``/flags`` request, and the returned snapshot. When omitted or ``None``, all         flags are evaluated. An empty list returns an empty snapshot without evaluating         flags. A requested key absent from loaded local definitions is included in one         remote fallback per ``evaluate_flags`` call unless ``only_evaluate_locally`` is         True. If the server also does not know the key, it is omitted from the snapshot.
 - **`device_id?`** (`str`) - Optional device ID override. If not provided, falls back to the         context device_id (which may be set via tracing headers). Used by         experience-continuity flags to match users across distinct_id changes.
@@ -716,7 +720,7 @@ posthog.load_feature_flags()
 
 **Release Tag:** public
 
-Attempt immediate delivery of queued events and ended spans, keeping the client reusable.  For a client shared across requests or serverless invocations (including the module-level client), call ``flush()`` before a short-lived invocation returns. Use ``shutdown()`` instead only for final process cleanup or when disposing of a client that will not be reused. Flush does not stop the background workers or feature flag poller, and does not end open spans.  Returning does not guarantee server receipt: pending work can remain after a timeout or span export failure, and failed events may be dropped by the consumers. Calls made directly from SDK callbacks such as ``on_error`` are deferred rather than blocking the worker that invoked the callback.
+Attempt immediate delivery of queued events, ended spans and autocaptured metrics, keeping the client reusable.  For a client shared across requests or serverless invocations (including the module-level client), call ``flush()`` before a short-lived invocation returns. Use ``shutdown()`` instead only for final process cleanup or when disposing of a client that will not be reused. Flush does not stop the background workers or feature flag poller, and does not end open spans.  Returning does not guarantee server receipt: pending work can remain after a timeout or span export failure, and failed events may be dropped by the consumers. Calls made directly from SDK callbacks such as ``on_error`` are deferred rather than blocking the worker that invoked the callback.
 
 ### Parameters
 
@@ -1277,7 +1281,7 @@ Evaluate all feature flags for a user in a single call and return a :class:`Feat
 - **`groups?`** (`Mapping[str, Union[str, int]]`) - Mapping of group type to group key.
 - **`person_properties?`** (`dict[str, Any]`) - Person properties to use for evaluation.
 - **`group_properties?`** (`dict[str, dict[str, Any]]`) - Group properties keyed by group type.
-- **`only_evaluate_locally`** (`bool`) - If ``True``, never fall back to remote evaluation and         omit flags that cannot be evaluated locally.
+- **`only_evaluate_locally`** (`bool`) - If ``True``, never fall back to remote evaluation and         omit flags that cannot be evaluated locally. The snapshot's         ``unresolved_flags`` lists them with a reason.
 - **`disable_geoip?`** (`bool`) - Whether to disable GeoIP lookup.
 - **`flag_keys?`** (`list[str]`) - Optional list that scopes local evaluation, the underlying ``/flags``         request, and the returned snapshot. When omitted or ``None``, all flags are evaluated.         An empty list returns an empty snapshot without evaluating flags. A requested key         absent from loaded local definitions is included in one remote fallback per         ``evaluate_flags`` call unless ``only_evaluate_locally`` is ``True``. If the server         also does not know the key, it is omitted from the snapshot.
 - **`device_id?`** (`str`) - Optional device ID override. If not provided, falls back to the         context device_id (which may be set via tracing headers). Used by         experience-continuity flags to match users across distinct_id changes.
