@@ -14,9 +14,11 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/flutter
 - [Send events](#send-events)
 - [Set up exception autocapture](#set-up-exception-autocapture)
 - [Manually capture exceptions](#manually-capture-exceptions)
+- [Upload Dart debug symbols](#upload-dart-debug-symbols)
 - [Future features](#future-features)
 - [Verify error tracking](#verify-error-tracking)
 - [Upload source maps](#upload-source-maps)
+- [iOS and macOS dependency resolution](#ios-and-macos-dependency-resolution)
 
 ## Install with the wizard
 
@@ -37,7 +39,7 @@ Or set it up manually by following the rest of this guide.
     pubspec.yaml
 
     ```yaml
-    posthog_flutter: ^5.24.0
+    posthog_flutter: ^5.58.0
     ```
 
 2.  2
@@ -160,6 +162,8 @@ Or set it up manually by following the rest of this guide.
 
     This configuration is client-side only. Support for remote configuration in the [error tracking settings](https://app.posthog.com/settings/project-error-tracking#exception-autocapture) will be added in a future release.
 
+    Dart AOT symbolication and background isolate listeners require `posthog_flutter` 5.58.0 or later. If your project uses an earlier version, set `posthog_flutter: ^5.58.0` in `pubspec.yaml` and run `flutter pub get`.
+
     You can autocapture exceptions by configuring the `errorTrackingConfig` when setting up PostHog:
 
     Dart
@@ -182,7 +186,7 @@ Or set it up manually by following the rest of this guide.
     | --- | --- |
     | `captureFlutterErrors` | Captures Flutter framework errors (`FlutterError.onError`) |
     | `capturePlatformDispatcherErrors` | Captures Dart runtime errors (`PlatformDispatcher.onError`). Web not supported. |
-    | `captureIsolateErrors` | Captures errors from main isolate. Web not supported. |
+    | `captureIsolateErrors` | Captures errors from the isolate where PostHog is set up. Spawn background isolates paused and call `isolate.addPostHogErrorListener()` before resuming them to capture their errors. Web not supported. |
     | `captureNativeExceptions` | Captures native exceptions. Android (Java/Kotlin) and Apple platforms (iOS, macOS, tvOS). |
     | `captureSilentFlutterErrors` | Captures Flutter errors that are marked as silent. Default: false. |
 
@@ -248,22 +252,76 @@ Or set it up manually by following the rest of this guide.
 
 6.  6
 
+    ## Upload Dart debug symbols
+
+    Optional
+
+    Flutter writes Dart debug symbols for release builds when you pass `--split-debug-info`. Upload the symbols for each build you ship so PostHog can show Dart function names and line numbers for Android and iOS exceptions. Add `--obfuscate` to the build command if you obfuscate your app.
+
+    ### Android
+
+    ```bash
+    flutter build apk --release \
+      --split-debug-info=build/posthog-symbols/android
+    ```
+
+    ### iOS
+
+    ```bash
+    flutter build ipa --release \
+      --split-debug-info=build/posthog-symbols/ios
+    ```
+
+    Run these commands from your app's root directory to upload each build's `.symbols` files. Sign in with `posthog-cli login`, or set `POSTHOG_CLI_API_KEY` and `POSTHOG_CLI_PROJECT_ID` in CI. Keep each build's symbols in its own directory.
+
+    ### Android
+
+    ```bash
+    posthog-cli symbol-sets upload \
+      --directory build/posthog-symbols/android
+    ```
+
+    ### iOS
+
+    ```bash
+    posthog-cli symbol-sets upload \
+      --directory build/posthog-symbols/ios
+    ```
+
+    To show [source code context](https://posthog.com/docs/error-tracking/stack-traces.md), use this command instead of the symbol-only upload. It includes your app's source files:
+
+    ### Android
+
+    ```bash
+    posthog-cli symbol-sets upload \
+      --directory build/posthog-symbols/android \
+      --include-source --source-root ./lib
+    ```
+
+    ### iOS
+
+    ```bash
+    posthog-cli symbol-sets upload \
+      --directory build/posthog-symbols/ios \
+      --include-source --source-root ./lib
+    ```
+
+    `--source-root ./lib` limits source files, not symbol files. Run the upload on the build machine while your app source is available. Review your source files before uploading them. See the [CLI debug symbol guide](https://github.com/PostHog/posthog/blob/master/cli/README.md#uploading-native-debug-symbols) for more options.
+
+7.  7
+
     ## Future features
 
     Optional
 
     We currently don't support the following features:
 
-    -   No de-obfuscating stacktraces from obfuscated builds ([\--obfuscate](https://docs.flutter.dev/deployment/obfuscate) and [\--split-debug-info](https://docs.flutter.dev/deployment/obfuscate)) for Dart code
-    -   No [Source code context](https://posthog.com/docs/error-tracking/stack-traces.md) associated with an exception (native Android Java/Kotlin errors and Flutter web only)
-    -   No native C/C++ exception capture on Android (Java/Kotlin only)
-    -   No background isolate error capture
+    -   Restoring obfuscated Dart exception class names
+    -   Capturing native C/C++ exceptions on Android (Java/Kotlin only)
 
-    For symbolicated stack traces on native platforms, see the [Flutter debug symbols guide](https://posthog.com/docs/error-tracking/upload-source-maps/flutter.md).
+    For symbolicated native Android and iOS stack traces, see the [Flutter debug symbols guide](https://posthog.com/docs/error-tracking/upload-source-maps/flutter.md).
 
-    These features will be added in future releases. We recommend you stay up to date with the latest version of the PostHog Flutter SDK.
-
-7.  ## Verify error tracking
+8.  ## Verify error tracking
 
     Recommended
 
@@ -275,7 +333,7 @@ Or set it up manually by following the rest of this guide.
 
     [Check for exceptions in PostHog](https://app.posthog.com/activity/explore)
 
-8.  7
+9.  8
 
     ## Upload source maps
 
@@ -286,3 +344,14 @@ Or set it up manually by following the rest of this guide.
     Let's continue to the next section.
 
     [Upload source maps](https://posthog.com/docs/error-tracking/upload-source-maps/flutter.md)
+
+## iOS and macOS dependency resolution
+
+> **CocoaPods is becoming read-only.** [CocoaPods has announced](https://blog.cocoapods.org/CocoaPods-Specs-Repo/) the following schedule for its public specs repository:
+>
+> -   November 2–6, 2026: A read-only dry run will prevent us from publishing new PostHog iOS SDK versions to CocoaPods.
+> -   December 2, 2026 onward: The repository will be permanently read-only. New PostHog iOS SDK versions will only be available through Swift Package Manager (SPM).
+>
+> Existing native SDK versions will remain available through CocoaPods. To keep receiving native SDK updates on iOS and macOS, migrate your Flutter app to SPM. The `posthog_flutter` package supports SPM, and Flutter 3.44 and later enable it by default. On earlier Flutter versions that support SPM, or if you disabled it, run `flutter config --enable-swift-package-manager`, then rebuild your app. Follow [Flutter's SPM migration guide](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-app-developers) for project setup and troubleshooting.
+>
+> This change does not affect `posthog_flutter` releases on pub.dev, Android, or web.

@@ -298,6 +298,7 @@ inbox-reviewer-exclusions-list
 inbox-source-configs-list
 inbox-source-configs-retrieve
 inbox-steering-instructions-get
+inbox-usage-get
 insight-get
 insight-query
 insight-trust-check
@@ -377,6 +378,7 @@ logs-count
 logs-count-ranges
 logs-facet-values-create
 logs-group-by
+logs-impact
 logs-patterns
 logs-patterns-diff
 logs-services-create
@@ -528,6 +530,8 @@ stamphog-repo-configs-get
 stamphog-repo-configs-list
 stamphog-review-runs-get
 stamphog-review-runs-list
+stamphog-routing-runs-get
+stamphog-routing-runs-list
 streamlit-apps-get
 streamlit-apps-get-source
 streamlit-apps-list
@@ -642,4 +646,8 @@ workflows-sending-rules-get
 workflows-setup-status
 workflows-show-email-template
 workflows-stats
+workflows-transactional-email-get
+workflows-transactional-email-results
+workflows-transactional-email-stats
+workflows-transactional-emails-list
 workflows-version-stats

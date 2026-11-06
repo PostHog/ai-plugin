@@ -72,7 +72,7 @@ PostHogSDK.shared.screen("Dashboard", properties: ["fromIcon": "bottom"])
 
 > **Important:** While `captureScreenViews` works with both `UIKit` and `SwiftUI`, the screen names captured in `SwiftUI` may not be very meaningful as they are based on internal SwiftUI view identifiers. For `SwiftUI` applications, we recommend turning this option off and instead using the `.postHogScreenView()` view modifier (see next section) to capture screen views with meaningful names.
 
-> **Note:** You can use the `BeforeSendBlock` to filter or drop any undesired screen events, giving you control over which screen views are sent to PostHog. See [Amending, dropping or sampling events](https://posthog.com/docs/libraries/ios.md#amending-dropping-or-sampling-events) for implementation examples.
+> **Note:** You can use the `BeforeSendBlock` to filter or drop any undesired screen events, giving you control over which screen views are sent to PostHog. See [Amending, dropping or sampling events](https://posthog.com/docs/libraries/ios/configuration.md#amending-dropping-or-sampling-events) for implementation examples.
 
 ### Capturing screen views in SwiftUI
 
@@ -330,7 +330,7 @@ PostHogSDK.shared.register(["team_id": 22])
 
 The call above ensures that every event sent by the user will include `"team_id": 22`. This way, if you filtered events by property using `team_id = 22`, it would display all events captured on that user after the `PostHogSDK.shared.register` call, since they all include the specified Super Property.
 
-However, please note that this does not store properties against the User, only against their events. To store properties against the User object, you should use `PostHogSDK.shared.identify`. More information on this can be found on the [Sending User Information section](#sending-user-information).
+However, please note that this does not store properties against the User, only against their events. To store properties against the User object, you should use `PostHogSDK.shared.identify`. More information on this can be found on the [Sending User Information section](#identifying-users).
 
 ### Removing stored super properties
 
@@ -346,7 +346,7 @@ If you are doing this as part of a user logging out, you can instead simply use 
 
 ## Reset after logout
 
-To reset the user's ID and anonymous ID after logout, call `reset`. See [Identifying users](https://posthog.com/docs/product-analytics/identify.md#reset) for the shared reset guidance and iOS example.
+To reset the user's ID and anonymous ID after logout, call `reset`. See [Identifying users](https://posthog.com/docs/product-analytics/identify.md#reset-on-logout) for the shared reset guidance and iOS example.
 
 ## Group analytics
 

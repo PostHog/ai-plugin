@@ -12,6 +12,7 @@ Canonical URL: https://posthog.com/docs/distributed-tracing/installation/php
 - [Get your project token](#get-your-project-token)
 - [Configure the SDK](#configure-the-sdk)
 - [Create spans](#create-spans)
+- [Link spans to people and sessions](#link-spans-to-people-and-sessions)
 - [Test your setup](#test-your-setup)
 - [Next steps](#next-steps)
 
@@ -116,6 +117,33 @@ Canonical URL: https://posthog.com/docs/distributed-tracing/installation/php
 
 5.  5
 
+    ## Link spans to people and sessions
+
+    Recommended
+
+    After your existing PostHog client is initialized, add the optional processor to your existing OpenTelemetry provider builder alongside its exporter:
+
+    ```php
+    use PostHog\OpenTelemetry\ContextSpanProcessor;
+    use PostHog\PostHog;
+    
+    $tracerProvider = TracerProvider::builder()
+        ->addSpanProcessor(new ContextSpanProcessor(PostHog::getClient()))
+        ->addSpanProcessor(new BatchSpanProcessor(new SpanExporter($transport)))
+        ->setResource($resource)
+        ->build();
+    ```
+
+    Use this configuration in place of the builder above. Keep your existing provider, exporter, and sampler. Register the processor before requests start. OpenTelemetry SDK 1.0.0 or later is supported and remains an optional application dependency.
+
+    The processor reads this client's PostHog context when each span starts. The [Laravel request middleware](https://posthog.com/docs/libraries/laravel.md) sets that context with `PostHog::withContext()`. With the processor registered, entering a context also enriches the active request span in normal PHP execution. Configure [`tracing_headers`](https://posthog.com/docs/libraries/js/config.md#tracing-headers) for your backend hostname in the browser SDK.
+
+    Existing `sessionId` and `posthogDistinctId` span attributes take precedence. Missing IDs stay absent. The scope closes after success or failure, while spans that already started keep their attributes.
+
+    **Fiber limit:** Incoming spans that started before `withContext()` inside a Fiber are skipped. OpenTelemetry has no safe public check for initialized Fiber storage. Child spans can receive IDs from Fiber-local PostHog context when the application's OpenTelemetry Fiber context is initialized. New Fibers and queue jobs need explicit context transfer.
+
+6.  6
+
     ## Test your setup
 
     Recommended
@@ -128,7 +156,7 @@ Canonical URL: https://posthog.com/docs/distributed-tracing/installation/php
 
     [View your traces in PostHog](https://app.posthog.com/tracing)
 
-7.  ## Next steps
+8.  ## Next steps
 
     Checkpoint
 

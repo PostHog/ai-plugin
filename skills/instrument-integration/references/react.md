@@ -158,7 +158,7 @@ root.render(
 
 ### Calling PostHog methods
 
-By default, the `posthog-js` library automatically captures pageviews, element clicks, inputs, and more. Autocapture can be tuned in with [the configuration options](https://posthog.com/docs/product-analytics/autocapture.md#configuring-autocapture).
+By default, the `posthog-js` library automatically captures pageviews, element clicks, inputs, and more. Autocapture can be tuned in with [the configuration options](https://posthog.com/docs/product-analytics/autocapture.md#configuring-interaction-autocapture).
 
 To call PostHog methods for actions like identifying users, capturing events, using feature flags, or using other features, you can access the initialized `posthog-js` library using the `usePostHog` hook.
 

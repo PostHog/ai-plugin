@@ -4,7 +4,7 @@
 
 Canonical URL: https://posthog.com/docs/logs/best-practices
 
-> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://us.posthog.com` or `https://app.posthog.com` (app host for links).
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
 
 ## On this page
 
@@ -373,7 +373,7 @@ Even with good practices, sensitive data can slip into logs accidentally. PostHo
 
 **Automatic PII scrubbing is in closed beta**
 
-Automatic PII scrubbing is currently available to internal PostHog teams only while we measure its ingestion overhead. If you'd like early access, please [reach out to us](https://us.posthog.com/project/2/settings/#panel=support%3Asupport%3A%3A%3Afalse) via in-app support.
+Automatic PII scrubbing is currently available to internal PostHog teams only while we measure its ingestion overhead. If you'd like early access, please [reach out to us](https://app.posthog.com/settings/#panel=support%3Asupport%3A%3A%3Afalse) via in-app support.
 
 Once you have access, enable it under [**Project settings** → **Logs** → **PII scrubbing**](https://app.posthog.com/settings/environment-logs#logs-pii-scrub). The toggle is off by default.
 

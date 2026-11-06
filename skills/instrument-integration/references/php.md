@@ -23,6 +23,8 @@ Canonical URL: https://posthog.com/docs/libraries/php
 
 This is an optional library you can install if you're working with PHP. It uses an internal queue to batch requests, flushes at the end of the request, and optionally does so in an async manner.
 
+Using Laravel? See our [Laravel guide](https://posthog.com/docs/libraries/laravel.md) for the experimental Laravel SDK or [manual integration with the PHP SDK](https://posthog.com/docs/libraries/laravel.md#manual-setup-with-the-php-sdk). Using the PHP SDK directly with your own instrumentation remains supported.
+
 ## Installation
 
 Install the package with Composer:

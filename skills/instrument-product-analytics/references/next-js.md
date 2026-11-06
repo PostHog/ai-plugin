@@ -223,7 +223,7 @@ export default function FeatureComponent() {
 
 See the [React SDK docs](https://posthog.com/docs/libraries/react.md) for examples of how to use:
 
--   [`posthog-js` functions like custom event capture, user identification, and more.](https://posthog.com/docs/libraries/react.md#using-posthog-js-functions)
+-   [`posthog-js` functions like custom event capture, user identification, and more.](https://posthog.com/docs/libraries/react.md#calling-posthog-methods)
 -   [Feature flags including variants and payloads.](https://posthog.com/docs/libraries/react.md#feature-flags)
 
 You can also read [the full `posthog-js` documentation](https://posthog.com/docs/libraries/js/usage.md) for all the usable functions.

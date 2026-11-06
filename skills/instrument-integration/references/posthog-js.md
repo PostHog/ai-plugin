@@ -1491,7 +1491,7 @@ Opts the user into data capturing and persistence.
 
 **Notes:**
 
-Enables event tracking and data persistence (cookies/localStorage) for this PostHog instance. By default, captures an `$opt_in` event unless disabled.
+Enables event tracking and data persistence (cookies/localStorage) for this PostHog instance. By default, captures an `$opt_in` event unless disabled. The event is only captured when the user was not already opted in, so calling this on every page load (for example from a consent tool callback that re-applies stored consent) sends it once per user rather than once per page.
 
 ### Parameters
 

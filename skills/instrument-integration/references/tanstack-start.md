@@ -15,6 +15,7 @@ Canonical URL: https://posthog.com/docs/libraries/tanstack-start
 - [Capture events on the client](#capture-events-on-the-client)
 - [Initialize PostHog on the server](#initialize-posthog-on-the-server)
 - [Capture events on the server](#capture-events-on-the-server)
+- [Add request context to backend spans](#add-request-context-to-backend-spans)
 - [Next steps](#next-steps)
 
 This tutorial shows how to integrate PostHog with a [TanStack Start](https://tanstack.com/start) app for both client-side and server-side analytics.
@@ -202,7 +203,6 @@ src/routes/api/checkout.ts
 ```typescript
 // src/routes/api/checkout.ts
 import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
 import { getPostHogClient } from '../../utils/posthog-server'
 
 export const Route = createFileRoute('/api/checkout')({
@@ -223,7 +223,7 @@ export const Route = createFileRoute('/api/checkout')({
           },
         })
 
-        return json({ success: true })
+        return Response.json({ success: true })
       },
     },
   },
@@ -231,6 +231,82 @@ export const Route = createFileRoute('/api/checkout')({
 ```
 
 The server-side `capture` call requires a `distinctId` (the user identifier), an `event` name, and optional `properties`.
+
+## Add request context to backend spans
+
+For a Node.js deployment with OpenTelemetry, reuse `getPostHogClient()` for both request context and the span processor. Add this processor to your existing tracing provider before the server accepts requests:
+
+```typescript
+import { PostHogContextSpanProcessor } from 'posthog-node/otel'
+import { getPostHogClient } from './src/utils/posthog-server'
+
+const posthogSpanProcessor = new PostHogContextSpanProcessor(getPostHogClient())
+```
+
+Include `posthogSpanProcessor` in that provider's `spanProcessors` configuration. Keep your existing exporter, sampler, and instrumentation. See the [Node.js tracing setup](https://posthog.com/docs/distributed-tracing/installation/nodejs.md#with-opentelemetry) for provider setup. Keep this setup on the server. Shut down the provider and the PostHog client through your application's shutdown hook, after requests finish.
+
+Add global request middleware in `src/start.ts`. If that file already exists, add the middleware to its existing configuration. Keep your existing CSRF and authentication middleware. This example includes TanStack Start's CSRF middleware because defining `src/start.ts` replaces its default setup.
+
+src/start.ts
+
+```typescript
+import {
+  createCsrfMiddleware,
+  createMiddleware,
+  createStart,
+} from '@tanstack/react-start'
+import { enrichCurrentSpan } from 'posthog-node/otel'
+import { getPostHogClient } from './utils/posthog-server'
+
+function tracingHeader(request: Request, name: string): string | undefined {
+  const value = request.headers.get(name)
+  return value?.replace(/[\x00-\x1f\x7f-\x9f]/g, '').trim().slice(0, 1000) || undefined
+}
+
+const posthogContext = createMiddleware().server(async ({ request, next }) => {
+  const posthog = getPostHogClient()
+  const existing = posthog.getContext()
+
+  return posthog.withContext(
+    {
+      distinctId:
+        existing?.distinctId ??
+        tracingHeader(request, 'X-POSTHOG-DISTINCT-ID'),
+      sessionId:
+        existing?.sessionId ??
+        tracingHeader(request, 'X-POSTHOG-SESSION-ID'),
+    },
+    async () => {
+      enrichCurrentSpan(posthog)
+      return await next()
+    },
+    { fresh: true }
+  )
+})
+
+export const startInstance = createStart(() => ({
+  requestMiddleware: [createCsrfMiddleware({ filter: ({ handlerType }) => handlerType === 'serverFn' }), posthogContext],
+}))
+```
+
+This setup was checked with TanStack Start 1.169.3 on Node.js. It runs for SSR, server routes, and server functions. It reads the two browser tracing headers without copying other headers or request data. The header helper removes control characters, trims whitespace, and limits each ID to 1,000 characters. An identity already set by application code takes precedence. Treat browser IDs as analytics data, not authentication. Set authenticated identity before this middleware when you need it to take precedence.
+
+The processor fills missing `sessionId` and `posthogDistinctId` span attributes. Explicit canonical attributes stay unchanged, including non-string values. `user.id` alone is not an override. At request entry, the helper also fills missing attributes on the nearest recording server ancestor whose parent chain the processor observed. A sampler-dropped intermediate breaks that chain, so the earlier server span stays unchanged.
+
+Work that the request starts, including detached tasks, keeps the IDs after `next()` returns or throws. This example does not support the edge runtime. Give separately owned background work that needs its own IDs an explicit context.
+
+TanStack handles some route and server-function errors before middleware can see them. Capture an error once at the application handler that owns it, while request context is active:
+
+```typescript
+try {
+  await savePurchase()
+} catch (error) {
+  getPostHogClient().captureException(error)
+  throw error
+}
+```
+
+Do not add a second capture if an existing error handler already reports the same error. This middleware does not enable automatic error capture.
 
 ## Next steps
 

@@ -168,6 +168,8 @@ skills-store
 suggesting-data-imports
 suggesting-path-cleaning-rules
 suppressing-noisy-errors
+syncing-migrated-self-managed-tables
+transcribing-slack-audio
 triaging-error-issues
 triaging-visual-review-runs
 tuning-incremental-sync-config

@@ -15,6 +15,7 @@ Canonical URL: https://posthog.com/docs/libraries/ruby-on-rails
 - [Configuration](#configuration)
 - [Capturing events](#capturing-events)
 - [Request context](#request-context)
+- [Trace context](#trace-context)
 - [Logs](#logs)
 - [Error tracking](#error-tracking)
 - [Feature flags](#feature-flags)
@@ -207,6 +208,22 @@ Disable tracing header identity/session capture if you do not want client-suppli
 ```ruby
 PostHog::Rails.config.use_tracing_headers = false
 ```
+
+## Trace context
+
+PostHog Rails adds missing `sessionId` and `posthogDistinctId` attributes to an active OpenTelemetry SDK request span after it reads the request context. To also add these attributes to child spans, register the optional processor on your existing OpenTelemetry provider before requests start:
+
+```ruby
+require 'posthog/otel/context_span_processor'
+
+OpenTelemetry.tracer_provider.add_span_processor(
+  PostHog::ContextSpanProcessor.new
+)
+```
+
+This integration supports OpenTelemetry SDK 1.0.0 or later. Keep your existing provider, exporter, sampler, and processors. Put the OpenTelemetry request middleware outside the PostHog request middleware so the request span is active when PostHog reads the context. To send spans to PostHog, configure your existing OTLP exporter with the [PostHog trace endpoint](https://posthog.com/docs/distributed-tracing/installation.md).
+
+Existing `sessionId` and `posthogDistinctId` span attributes take precedence. Set authenticated application identity with `posthogDistinctId`. Missing IDs stay absent. Spans that already started keep their attributes after the request ends. Separate threads and fibers need explicit context transfer. With `config.auto_instrument_active_job = true`, Active Job copies the session and distinct IDs into queued jobs, so job spans get them too. The processor does not create a session, recording, trace provider, or exporter.
 
 ## Logs
 

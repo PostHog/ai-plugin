@@ -145,6 +145,15 @@ export function MyApp() {
 
 ### Choose an iOS dependency path for the native plugin
 
+> **CocoaPods is becoming read-only.** [CocoaPods has announced](https://blog.cocoapods.org/CocoaPods-Specs-Repo/) the following schedule for its public specs repository:
+>
+> -   November 2–6, 2026: A read-only dry run will prevent us from publishing new PostHog iOS SDK versions to CocoaPods.
+> -   December 2, 2026 onward: The repository will be permanently read-only. New PostHog iOS SDK versions will only be available through Swift Package Manager (SPM).
+>
+> Existing iOS SDK versions will remain available through CocoaPods. To keep receiving iOS SDK updates, migrate the native plugin's `posthog-ios` dependency to SPM using the [hybrid CocoaPods and SPM setup](https://posthog.com/docs/libraries/react-native.md#cocoapods-with-posthog-ios-through-swift-package-manager), or use [full SPM integration](https://posthog.com/docs/libraries/react-native.md#full-swift-package-manager) if your app supports it. The hybrid path keeps CocoaPods for the plugin and other React Native dependencies.
+>
+> This change does not affect `@posthog/react-native-plugin` releases on npm or Android.
+
 The optional `@posthog/react-native-plugin` package adds native features such as session replay and native crash capture. Install it as described in the guide for the feature that you use. Then choose one iOS dependency path:
 
 | Path | Requirements | What it resolves |
@@ -268,7 +277,7 @@ You can further customize how PostHog works through its configuration on initial
 | `before_send` **Type:** Function **Default:** `undefined` | A callback function that is called before each event is sent to PostHog. You can use it to modify, filter, or suppress events. Return `null` to drop the event, or return the modified event to send it. See [customizing exception capture](#customizing-exception-capture-with-before_send) for details. |
 | `capturePushNotificationSubscriptions` **Type:** Boolean **Default:** `true` | Whether to automatically register this device's push token so [Workflows](https://posthog.com/docs/workflows.md) can target it. Requires `@posthog/react-native-plugin`. See [push notifications](#push-notifications). Available in version 4.62.0+. |
 | `capturePushNotificationOpened` **Type:** Boolean **Default:** `true` | Whether to automatically capture `$push_notification_opened` when the user taps a push notification. Requires `@posthog/react-native-plugin`. See [push notifications](#push-notifications). Available in version 4.62.0+. |
-| `pushIdentityProvider` **Type:** Function **Default:** `undefined` | Supplies a signed identity-verification token for push subscription requests. Only needed when your push channel requires identity verification. See [identity verification](#identity-verification). Available in version 4.62.0+. |
+| `pushIdentityProvider` **Type:** Function **Default:** `undefined` | Supplies a signed identity-verification token for push subscription requests. Only needed when your push channel requires identity verification. See [identity verification](https://posthog.com/docs/workflows/push-notifications/react-native.md#identity-verification). Available in version 4.62.0+. |
 
 ### Tracing headers
 
@@ -649,7 +658,7 @@ We strongly recommend reading our docs on [alias](https://posthog.com/docs/produ
 
 ## Setting person properties
 
-Person properties enable you to capture, manage, and analyze specific data about a user. You can use them to create [filters](https://posthog.com/docs/product-analytics/trends.md#filtering-events-based-on-properties) or [cohorts](https://posthog.com/docs/data/cohorts.md), which can then be used in [insights](https://posthog.com/docs/product-analytics/insights.md), [feature flags](https://posthog.com/docs/feature-flags.md), and more.
+Person properties enable you to capture, manage, and analyze specific data about a user. You can use them to create [filters](https://posthog.com/docs/product-analytics/trends/filters.md) or [cohorts](https://posthog.com/docs/data/cohorts.md), which can then be used in [insights](https://posthog.com/docs/product-analytics/insights.md), [feature flags](https://posthog.com/docs/feature-flags.md), and more.
 
 To set a user's properties, include the `$set` or `$set_once` property when capturing any event:
 
@@ -686,7 +695,7 @@ posthog.register({
 
 The call above ensures that every event sent by the user will include `"icecream pref": "vanilla"` and `"team_id": 22`. This way, if you filtered events by property using `icecream_pref = vanilla`, it would display all events captured on that user after the `posthog.register` call, since they all include the specified Super Property.
 
-This does **not** set the user's properties. This only sets the properties for their events. To store person properties, see the [setting person properties section](#setting-user-properties).
+This does **not** set the user's properties. This only sets the properties for their events. To store person properties, see the [setting person properties section](#setting-person-properties).
 
 ### Removing stored super properties
 
@@ -757,7 +766,7 @@ posthog.optIn() // opt in
 posthog.optOut() // opt out
 ```
 
-If you still wish capture these events but want to create a distinction between users and team in PostHog, you should look into [Cohorts](https://posthog.com/docs/user-guides/cohorts.md#differentiating-team-vs-users-traffic).
+If you still wish capture these events but want to create a distinction between users and team in PostHog, you should look into [Cohorts](https://posthog.com/tutorials/filter-internal-users.md).
 
 ## Feature Flags
 
