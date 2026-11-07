@@ -28,6 +28,8 @@ activity-summary-search
 activity-summary-versions-list
 advanced-activity-logs-filters
 advanced-activity-logs-list
+aeo-brands-get
+aeo-brands-list
 aeo-prompts-checks-list
 aeo-prompts-get
 aeo-prompts-list
@@ -132,6 +134,7 @@ comment-count
 comment-get
 comment-thread
 comments-list
+comments-send-to-slack-prepare
 context-wiki-channel-resolve
 context-wiki-page-retrieve
 conversations-list

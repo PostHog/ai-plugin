@@ -13,6 +13,10 @@ Column | Type | Nullable | Description
 `name` | String | NOT NULL | Endpoint name, used to call it.
 `is_active` | Integer | NOT NULL | 1 if the endpoint is active and callable, 0 otherwise.
 `current_version` | Integer | NOT NULL | Version number currently served; joins to data_modeling_endpoint_versions.version.
+`description` | String | NOT NULL | Description of the current endpoint version.
+`query` | JSON | NOT NULL | JSON HogQL query of the current endpoint version.
+`data_freshness_seconds` | Integer | NOT NULL | Maximum cache age for the current version, in seconds.
+`columns` | JSON | NOT NULL | JSON schema of the current version's output columns.
 `derived_from_insight` | String | NOT NULL | Short id of the insight this endpoint was created from, if any.
 `created_by_id` | Integer | NULL | User who created the endpoint.
 `created_at` | DateTime | NOT NULL | When the endpoint was created.

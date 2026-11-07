@@ -87,6 +87,11 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/hono
             property2: 'value',
         },
     })
+    
+    // The client sends events in batches. Call shutdown() before the process
+    // exits so that queued events are sent. In a long-running server, call it
+    // once when the server stops.
+    await client.shutdown()
     ```
 
 4.  4
