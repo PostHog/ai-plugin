@@ -10,7 +10,11 @@ permissions:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -27,13 +31,17 @@ jobs:
       - name: Run skill telemetry hook tests
         run: ./tests/test_skill_invoked.sh
 
+      # Python steps stay on Linux: the macOS runner's pip is not checked here.
       - name: Install pytest
+        if: runner.os == 'Linux'
         run: python3 -m pip install --user pytest
 
       - name: Run Python tests
+        if: runner.os == 'Linux'
         run: python3 -m pytest tests/test_plugin_paths.py telemetry/tests/test_session_parser.py telemetry/tests/test_posthog_llma.py
 
       - name: Validate the Cursor manifest against Cursor's plugin schema
+        if: runner.os == 'Linux'
         run: pipx run check-jsonschema==0.38.2 --schemafile https://raw.githubusercontent.com/cursor/plugins/5229aad76c37451561c5b81a9b5072ae1c549a5b/schemas/plugin.schema.json .cursor-plugin/plugin.json
 
   antigravity:

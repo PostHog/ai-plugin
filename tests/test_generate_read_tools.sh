@@ -53,7 +53,17 @@ run_case() {
     [[ "$registry_json" == - ]] || printf '%s' "$registry_json" > "$dir/registry.json"
     before="$(cat "$dir/hooks/read-tools.txt" 2>/dev/null)"
 
-    REGISTRY_URL="file://$dir/registry.json" bash "$dir/scripts/generate-read-tools.sh" >/dev/null 2>&1
+    # curl reads one default config file: .curlrc from CURL_HOME, curlrc from
+    # XDG_CONFIG_HOME, .curlrc from HOME, then the account's own home folder
+    # (https://curl.se/docs/manpage.html#-K). An `output = /dev/null` there would
+    # swallow the fixture. So run the generator under `env -i`, which drops the
+    # caller's environment, including CURL_HOME, XDG_CONFIG_HOME and BASH_ENV, a
+    # startup file bash runs before a script
+    # (https://www.gnu.org/software/bash/manual/bash.html#Bash-Startup-Files).
+    # HOME points at the temp dir, with an empty .curlrc, so the lookup stops there.
+    : > "$dir/.curlrc"
+    env -i PATH="$PATH" HOME="$dir" REGISTRY_URL="file://$dir/registry.json" \
+        bash "$dir/scripts/generate-read-tools.sh" >/dev/null 2>&1
     status=$?
     after="$(cat "$dir/hooks/read-tools.txt" 2>/dev/null)"
 

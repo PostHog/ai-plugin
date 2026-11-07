@@ -20,15 +20,17 @@
 # tools — feature-flag writes and any delete/destroy — rather than every write.
 # Three env vars tune this (all matched against the PostHog tool name):
 #
-#   POSTHOG_MCP_EXEC_GATE_DISABLE  — set to a non-empty value (e.g. `1`) to turn
-#       the gate off entirely. Useful for remote devboxes and Claude Cloud runs
-#       where the prompt can't be answered. Example:
+#   POSTHOG_MCP_EXEC_GATE_DISABLE  — set to a non-empty value other than `0` (e.g.
+#       `1`) to turn the gate off entirely, connection calls included; `0` leaves
+#       the gate active. Useful for remote devboxes and Claude Cloud runs where the
+#       prompt can't be answered. Example:
 #
 #           export POSTHOG_MCP_EXEC_GATE_DISABLE=1
 #
 #   POSTHOG_MCP_EXEC_GATE_DENY     — comma-separated bash globs selecting which
 #       write tools prompt. Overrides the built-in default set. Use `*` to
-#       prompt on every write (the previous behaviour). Example:
+#       prompt on every write (the previous behaviour). Tools on
+#       `hooks/read-tools.txt` never prompt, whatever DENY says. Example:
 #
 #           export POSTHOG_MCP_EXEC_GATE_DENY="*feature-flag*,*-delete"
 #
@@ -38,9 +40,17 @@
 #
 #           export POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*,annotation-create"
 #
-# Unless the gate is disabled, `posthog-connection-call` and
-# `posthog-connection-forward` prompt regardless of DENY and ALLOW, as does any
-# input the hook can't read reliably.
+# Exceptions: `posthog-connection-call` and `posthog-connection-forward` prompt
+# whatever ALLOW and DENY say (only DISABLE or bypass mode silences them), and
+# so does an exec input with more than one `command` field or a command the
+# regex below can't check. Outside fail-closed mode, inputs that name no `call`
+# (a missing or null `command`, a non-`call` verb, a payload whose `tool_name`
+# can't be read) exit 0 silently.
+#
+# The gate stays silent for everything when the PreToolUse input reports
+# `permission_mode` as `bypassPermissions` (a field Claude Code documents at
+# https://code.claude.com/docs/en/hooks, "Common input fields"). Only the
+# top-level field counts, and only up to the size cap: see `top_level_bypass`.
 #
 # Pure bash; no jq or other third-party tools required. Relies on the fact
 # that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
@@ -76,6 +86,140 @@ ask() {
     exit 0
 }
 
+# Succeeds only when the input has exactly one top-level `permission_mode` member set to `bypassPermissions`.
+# The input is split on `"` once, so the walk is linear. Only depth-1 keys count; a `permission_mode` in
+# `tool_input` is ignored. Escaped quotes stay inside strings (RFC 8259 section 7). Malformed input (trailing
+# text, bad escapes, mismatched brackets, nesting past 64 levels, a repeated key) fails.
+#
+# Size caps fail closed (the call prompts and the walk never runs): over `max_pieces` (20,000) pieces,
+# over `max_opens` (1,000) non-root outside opens, or over `max_bytes` (131,072 bytes, 128 KB). A piece
+# ending in 64 or more backslashes also fails.
+top_level_bypass() {
+    [[ "$input" == *'"permission_mode"'* ]] || return 1
+    # The walk compares raw text and never decodes a JSON escape, so it can succeed
+    # only when the literal bypassPermissions is in the input. A \u-escaped spelling
+    # fails here and keeps the prompt.
+    [[ "$input" == *bypassPermissions* ]] || return 1
+    # A backslash must start a JSON escape: \" \\ \/ \b \f \n \r \t or \uXXXX. The left
+    # anchor takes the whole backslash run, so an even run (\\) passes and \q fails. A
+    # regex that does not compile (status 2) asks too.
+    local esc_re='(^|[^\\])(\\\\)*\\([^"\\/bfnrtu]|u[0-9a-fA-F]{0,3}([^0-9a-fA-F]|$))' esc_rc=0
+    [[ "$input" =~ $esc_re ]]; esc_rc=$?
+    if (( esc_rc != 1 )); then return 1; fi
+    # Depth above this many open brackets fails: the walk asks rather than tracking it.
+    local max_depth=64
+    local -a p
+    local max_pieces=20000 max_opens=1000 max_bytes=131072
+    local x w c pre wl off ch tl t tn j=0 k=0 n modes=0 value_ok=0 outside_opens=0
+    # String state: inside a string, the stack depth where it opened, how many pieces it
+    # spans so far, and whether any of them holds \u.
+    local inside=0 sdepth=0 span=0 span_u=0
+    # A key string just closed; the next outside piece decides whether it is a key.
+    local pend=0 pend_u=0 pend_mode=0
+    # After `"permission_mode":`, 1 expects the value and 2 means it matched.
+    local value_stage=0
+    # Brackets open outside strings, innermost last. The object's `{` is the first one.
+    local stk='' top want
+    # LC_ALL=C is set above, so ${#input} counts bytes.
+    if (( ${#input} > max_bytes )); then return 1; fi
+    IFS='"' read -ra p -d '' <<< "$input"
+    n=${#p[@]}
+    if (( n > max_pieces )); then return 1; fi
+    for x in "${p[@]}"; do
+        k=$(( k + 1 ))
+        if (( inside )); then
+            # Content piece. The last piece can never close a string.
+            (( k < n )) || return 1
+            span=$(( span + 1 ))
+            [[ "$x" == *'\u'* ]] && span_u=1
+            if (( value_stage == 1 )); then
+                if [[ "$x" == bypassPermissions ]]; then value_stage=2; else value_stage=0; fi
+            fi
+            # Closed when the quote follows an even run of backslashes. Only the last 64
+            # characters are counted, so the time stays bounded; a run of 64 or more fails.
+            if (( ${#x} > 64 )); then tl=${x:${#x}-64}; else tl=$x; fi
+            t="${tl##*[!\\]}"
+            if (( ${#t} == 64 )); then return 1; fi
+            if (( ${#t} % 2 == 0 )); then
+                inside=0
+                if (( sdepth == 1 )); then
+                    pend=1; pend_u=$span_u; pend_mode=0
+                    if (( span == 1 )) && [[ "$x" == permission_mode ]]; then pend_mode=1; fi
+                fi
+            fi
+        else
+            # Outside piece. Settle the value check, then the key closed just before it.
+            if (( value_stage == 2 )); then
+                [[ "$x" =~ ^[[:space:]]*[,}] ]] && value_ok=1
+                value_stage=0
+            fi
+            if (( pend )); then
+                if [[ "$x" =~ ^[[:space:]]*: ]]; then
+                    # A top-level key written with \u might still be permission_mode (RFC 8259 section 7): ask.
+                    (( pend_u )) && return 1
+                    if (( pend_mode )); then
+                        modes=$(( modes + 1 ))
+                        [[ "$x" =~ ^[[:space:]]*:[[:space:]]*$ ]] && value_stage=1
+                    fi
+                fi
+                pend=0
+            fi
+            w="$x"
+            if (( k == 1 )); then
+                # The object opens in the first piece: only whitespace may come before its `{`.
+                [[ "$x" =~ ^[[:space:]]*\{ ]] || return 1
+                w="${x#*\{}"
+                stk='{'
+            fi
+            # Brackets are read from 256-character chunks: a substring copies the whole piece,
+            # so one bracket at a time from the full piece would take quadratic time in bash 3.2.
+            wl=${#w}
+            for (( off = 0; off < wl; off += 256 )); do
+                c="${w:off:256}"
+                while [[ "$c" == *[\{\[\}\]]* ]]; do
+                    pre="${c%%[\{\[\}\]]*}"
+                    c="${c:${#pre}}"
+                    ch="${c:0:1}"
+                    c="${c:1}"
+                    case "$ch" in
+                        '{'|'[')
+                            # An opener after the object closed, or nesting past the cap, fails.
+                            if (( ${#stk} == 0 || ${#stk} >= max_depth )); then return 1; fi
+                            stk="$stk$ch"
+                            outside_opens=$(( outside_opens + 1 ))
+                            if (( outside_opens > max_opens )); then return 1; fi
+                            ;;
+                        *)
+                            # A closer must match the innermost open bracket, and none may follow the
+                            # object's own `}`.
+                            if (( ${#stk} == 0 )); then return 1; fi
+                            top="${stk:${#stk}-1:1}"
+                            if [[ "$ch" == '}' ]]; then want='{'; else want='['; fi
+                            if [[ "$top" != "$want" ]]; then return 1; fi
+                            stk="${stk:0:${#stk}-1}"
+                            ;;
+                    esac
+                done
+            done
+            if (( k < n )); then
+                inside=1; sdepth=${#stk}; span=0; span_u=0
+            fi
+        fi
+    done
+    (( modes == 1 && value_ok )) || return 1
+    # Every opener is closed, so the object's `}` was the last bracket.
+    [[ -z "$stk" ]] || return 1
+    # The object's `}` must be the last non-whitespace character; only the last 4097 characters are read.
+    tl="$input"
+    if (( ${#tl} > 4097 )); then tl="${tl:${#tl}-4097}"; fi
+    tn=${#tl}
+    while (( j < tn )); do
+        ch="${tl:tn-1-j:1}"
+        case "$ch" in ' '|$'\t'|$'\r'|$'\n') j=$(( j + 1 )) ;; *) break ;; esac
+    done
+    (( j < tn )) && [[ "${tl:tn-1-j:1}" == '}' ]]
+}
+
 # Passes in normal mode; asks in fail-closed mode.
 not_a_known_read() {
     (( fail_closed )) || exit 0
@@ -99,6 +243,8 @@ fi
 if [[ -n "${POSTHOG_MCP_EXEC_GATE_DISABLE:-}" && "${POSTHOG_MCP_EXEC_GATE_DISABLE}" != "0" ]] && (( ! fail_closed )); then
     exit 0
 fi
+
+input="$(cat)"
 
 # Default set of write tools that prompt. Comma-separated bash globs, grounded in
 # the live PostHog MCP tool registry. Covers the genuinely sensitive surface:
@@ -125,8 +271,6 @@ fi
 # POSTHOG_MCP_EXEC_GATE_DENY="*" to restore prompting on every write.
 DEFAULT_DENY='*feature-flag*,*delete*,*destroy*,experiment-launch,experiment-ship-variant,experiment-reset,survey-launch,workflows-enable'
 
-input="$(cat)"
-
 # Extract `tool_name` — simple identifier, no escaping inside the value.
 tool_name=""
 if [[ "$input" =~ \"tool_name\"[[:space:]]*:[[:space:]]*\"([^\"]+)\" ]]; then
@@ -152,6 +296,13 @@ fi
 LC_ALL=C
 ws='([[:space:]]|\\[nrtf]|\\u000[bB]|['$'\x80''-'$'\xff'']'')'
 call_re="\"command\"[[:space:]]*:[[:space:]]*\"${ws}*call${ws}+((--[a-zA-Z-]+${ws}+)*)([a-zA-Z0-9_-]+)"
+
+# Bypass mode: the user chose to run without prompts (issue #246), so none of the
+# prompts below apply. Not in fail-closed mode: hooks/codex-gate-exec-write.sh:20-23
+# reads a silent gate as an approval.
+if (( ! fail_closed )) && top_level_bypass; then
+    exit 0
+fi
 
 # The regex reads the first `command` key, so a second one (say, nested in an
 # extra object) could hide the real command behind a decoy. Quotes inside the
