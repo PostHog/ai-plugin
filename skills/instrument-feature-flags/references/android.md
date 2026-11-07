@@ -110,7 +110,7 @@ Or set it up manually by following the rest of this guide.
     if (isMyFlagEnabled) {
         // Do something differently for this user
         // Optional: fetch the payload
-        val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key")?.payload
+        val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key", sendFeatureFlagEvent = false)?.payload
     }
     ```
 
@@ -129,7 +129,7 @@ Or set it up manually by following the rest of this guide.
     if (enabledVariant == "variant-key") { // replace 'variant-key' with the key of your variant
         // Do something differently for this user
         // Optional: fetch the payload
-        val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key")?.payload
+        val matchedFlagPayload = PostHog.getFeatureFlagResult("flag-key", sendFeatureFlagEvent = false)?.payload
     }
     ```
 
