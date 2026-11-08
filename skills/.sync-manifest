@@ -12,6 +12,7 @@ auditing-warehouse-source-health
 auditing-warehouse-view-health
 authoring-data-quality-checks
 authoring-error-tracking-alerts
+authoring-insight-alerts
 authoring-log-alerts
 authoring-scouts
 building-a-dashboard

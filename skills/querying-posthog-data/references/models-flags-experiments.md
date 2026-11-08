@@ -109,7 +109,7 @@ Column | Type | Nullable | Description
 `response` | String | NULL | What the flag returned: 'true', 'false', or a variant key. NULL when the flag returned null or the SDK sent no response, as on events. A variant named 'null' also reads NULL. `JSONHas(properties, '$feature_flag_response')` tells a null response from a missing one.
 `session_id` | String | NOT NULL | Session the evaluation happened in, if the SDK sent one.
 `request_id` | String | NOT NULL | Identifier of the flag-evaluation request, shared by every flag evaluated in it.
-`person_mode` | String | NOT NULL | How ingestion processed the person: 'full', 'propertyless' or 'force_upgrade'. A 'propertyless' evaluation had no person profile, and its `person.properties` is '{}'.
+`person_mode` | String | NOT NULL | How ingestion processed the person: 'full', 'propertyless' or 'force_upgrade'. A 'propertyless' evaluation had no person profile, so it carries no person properties.
 `poe` | VirtualTable | NOT NULL |
 `poe.id` | UUID | NOT NULL | The person the evaluation is attributed to, corrected for any later identify or merge, so `uniq(person_id)` counts a merged person once.
 `poe.created_at` | DateTime | NOT NULL |
