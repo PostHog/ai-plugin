@@ -565,6 +565,8 @@ tasks-retrieve
 tasks-runs-list
 tasks-runs-retrieve
 tasks-runs-session-logs-retrieve
+ui-customization-describe
+ui-customization-get
 usage-metrics-list
 usage-metrics-retrieve
 user-get
