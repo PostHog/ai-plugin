@@ -11,6 +11,7 @@ access-control-role-objects-list
 access-control-role-properties-list
 access-control-role-rule-set-prepare
 access-control-roles-list
+account-notes-list
 account-relationship-definitions-list
 account-relationship-definitions-retrieve
 accounts-custom-property-values-list
@@ -213,6 +214,9 @@ error-tracking-symbol-sets-list
 error-tracking-symbol-sets-retrieve
 event-definition-get
 event-streams-list
+events-retention-deletion-count
+events-retention-get
+events-retention-update-prepare
 execute-sql
 experiment-activity
 experiment-calculate-running-time
@@ -296,6 +300,7 @@ inbox-report-checks-retrieve
 inbox-reports-for-me
 inbox-reports-list
 inbox-reports-retrieve
+inbox-reports-search
 inbox-reviewer-exclusions-get
 inbox-reviewer-exclusions-list
 inbox-source-configs-list
@@ -428,6 +433,9 @@ opt-outs-list
 org-member-get-github-login
 org-members-list
 organization-enforce-2fa-prepare
+organization-events-retention-deletion-count
+organization-events-retention-get
+organization-events-retention-update-prepare
 organization-get
 organizations-get
 organizations-list
@@ -620,6 +628,10 @@ visual-review-runs-snapshot-history-list
 visual-review-runs-snapshots-list
 visual-review-runs-tolerated-hashes-list
 warehouse-column-annotations-list
+warehouse-migration-connect-link
+warehouse-migration-get
+warehouse-migration-items-list
+warehouse-migrations-list
 warehouse-suggestions-accept-prepare
 warehouse-suggestions-get
 warehouse-suggestions-list

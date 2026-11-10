@@ -652,6 +652,7 @@ protocol
 quantile
 quantileExact
 quantiles
+quantilesExact
 quantilesMerge
 quantilesState
 queryString
