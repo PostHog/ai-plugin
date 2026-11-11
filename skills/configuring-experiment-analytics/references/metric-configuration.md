@@ -2599,6 +2599,18 @@ The schema is authoritative; the prose and examples below are guidance.
           "default": null,
           "title": "Uuid"
         },
+        "value_format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentMetricValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How results show the value of the metric. Metrics that report a share of users (funnel, retention, mean with a threshold) ignore it."
+        },
         "version": {
           "anyOf": [
             {
@@ -2833,6 +2845,18 @@ The schema is authoritative; the prose and examples below are guidance.
           "default": null,
           "title": "Uuid"
         },
+        "value_format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentMetricValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How results show the value of the metric. Metrics that report a share of users (funnel, retention, mean with a threshold) ignore it."
+        },
         "version": {
           "anyOf": [
             {
@@ -2924,6 +2948,30 @@ The schema is authoritative; the prose and examples below are guidance.
       },
       "title": "ExperimentMetricOutlierHandling",
       "type": "object"
+    },
+    "ExperimentMetricValueFormat": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/ExperimentMetricValueFormatType"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "ExperimentMetricValueFormat",
+      "type": "object"
+    },
+    "ExperimentMetricValueFormatType": {
+      "enum": [
+        "currency",
+        "duration",
+        "duration_ms",
+        "percentage",
+        "percentage_scaled"
+      ],
+      "title": "ExperimentMetricValueFormatType",
+      "type": "string"
     },
     "ExperimentQuantileMetric": {
       "additionalProperties": false,
@@ -3083,6 +3131,18 @@ The schema is authoritative; the prose and examples below are guidance.
           ],
           "default": null,
           "title": "Uuid"
+        },
+        "value_format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentMetricValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How results show the value of the metric. Metrics that report a share of users (funnel, retention, mean with a threshold) ignore it."
         },
         "version": {
           "anyOf": [
@@ -3312,6 +3372,18 @@ The schema is authoritative; the prose and examples below are guidance.
           "default": null,
           "title": "Uuid"
         },
+        "value_format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentMetricValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How results show the value of the metric. Metrics that report a share of users (funnel, retention, mean with a threshold) ignore it."
+        },
         "version": {
           "anyOf": [
             {
@@ -3527,6 +3599,18 @@ The schema is authoritative; the prose and examples below are guidance.
           ],
           "default": null,
           "title": "Uuid"
+        },
+        "value_format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentMetricValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How results show the value of the metric. Metrics that report a share of users (funnel, retention, mean with a threshold) ignore it."
         },
         "version": {
           "anyOf": [
@@ -5146,8 +5230,9 @@ instead.
 numeric property. `math` is ignored. `quantile` is the level, from `0.01` to
 `0.99`. Events without a numeric value for the property don't count.
 
-Not supported: breakdowns, data warehouse sources, CUPED, timeseries and
-sequential testing. With sequential testing on, the metric returns an error.
+Not supported: breakdowns, data warehouse sources, CUPED and timeseries.
+Sequential testing works, and its tuning parameter counts exposed users, not
+events, as it does for every other metric.
 
 ### Right — p90 page load time
 

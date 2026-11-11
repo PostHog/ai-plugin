@@ -1,0 +1,227 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
+# Cloudflare Workers
+
+Canonical URL: https://posthog.com/docs/libraries/cloudflare-workers
+
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host).
+
+## On this page
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Node.js compatibility](#nodejs-compatibility)
+- [Environment variables](#environment-variables)
+- [Event flushing](#event-flushing)
+- [Durable Objects and local evaluation](#durable-objects-and-local-evaluation)
+- [Further reading](#further-reading)
+
+This doc focuses on features unique to Cloudflare Workers. If you're looking for details on frameworks like [React](https://posthog.com/docs/libraries/react.md), [Vue](https://posthog.com/docs/libraries/vue-js.md), [Remix](https://posthog.com/docs/libraries/remix.md), [Svelte](https://posthog.com/docs/libraries/svelte.md), [Hono](https://posthog.com/docs/libraries/hono.md), [Astro](https://posthog.com/docs/libraries/astro.md), and more see their framework-specific docs.
+
+## Installation
+
+To use PostHog in Cloudflare Workers, start by installing the `posthog-node` library:
+
+```bash
+npm i posthog-node
+```
+
+Afterwards, set up your project token and host in your `wrangler.jsonc` (or `wrangler.toml`) file like this:
+
+```json
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-posthog-worker",
+  "main": "src/index.js",
+  "compatibility_date": "2025-06-20",
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "POSTHOG_PROJECT_TOKEN": "<ph_project_token>",
+    "POSTHOG_HOST": "https://us.i.posthog.com",
+  },
+}
+```
+
+Next, set up the PostHog helper to create a PostHog client. We set `flushAt` to `1` and `flushInterval` to `0` to send captured data without batching. Batched data is sent asynchronously and Cloudflare Workers can terminate before it's sent causing data loss.
+
+```jsx
+// src/posthog.js
+import { PostHog } from 'posthog-node'
+
+export function createPostHogClient(env) {
+
+  const posthog = new PostHog(env.POSTHOG_PROJECT_TOKEN, {
+    host: env.POSTHOG_HOST,
+    flushAt: 1, // Send events immediately in edge environment
+    flushInterval: 0, // Don't wait for interval
+  })
+  return posthog
+}
+```
+
+## Usage
+
+With PostHog installed, you can add and use it in your app like this:
+
+```jsx
+// src/index.js
+import { createPostHogClient } from './posthog.js';
+
+export default {
+  async fetch(request, env, ctx) {
+    const posthog = createPostHogClient(env);
+    const distinctId = 'ian@posthog.com' // replace with actual user ID
+
+    ctx.waitUntil(
+      posthog.captureImmediate({
+        distinctId: distinctId,
+        event: 'hello_world_request',
+        properties: {
+          $current_url: request.url
+        }
+      })
+    );
+
+    const flag = await posthog.isFeatureEnabled('test_flag', distinctId) || false
+
+    ctx.waitUntil(
+      posthog.shutdown()
+    );
+
+    return new Response('Hello World! ' + flag);
+  },
+};
+```
+
+You'll notice two different usage patterns here:
+
+1.  We use `ctx.waitUntil()` with `captureImmediate()` to capture an event. This doesn't block the **response**, but does ensure data is captured before the worker shuts down.
+2.  We `await` flags which blocks the response until we get the [feature flag](https://posthog.com/docs/feature-flags.md) data we need.
+
+### Error tracking
+
+You can capture errors in Cloudflare Workers like you would in other Node applications using `posthog.captureException()`.
+
+For more details and a method for automatically capturing errors, see our [error tracking installation docs](https://posthog.com/docs/error-tracking/installation.md).
+
+### Request and span context
+
+The standard `workerd` export uses the edge client. It has no implicit request context: `withContext()` runs the callback, and `getContext()` returns `undefined`. Enabling `nodejs_compat` does not add context support to this entrypoint. Node request middleware and `PostHogContextSpanProcessor` cannot supply automatic request IDs here.
+
+Pass the IDs explicitly to each capture. Use a verified application ID when your app has one. Browser tracing headers are untrusted analytics data and must not authorize access. This example reads the headers only for analytics, removes control characters, trims whitespace, omits blanks, and limits each ID to 1,000 characters:
+
+src/index.js
+
+```javascript
+import { createPostHogClient } from './posthog.js';
+
+function tracingId(value) {
+  return value?.replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim().slice(0, 1000) || undefined;
+}
+
+export default {
+  async fetch(request, env, ctx) {
+    const posthog = createPostHogClient(env);
+    const distinctId = tracingId(request.headers.get('x-posthog-distinct-id'));
+    const sessionId = tracingId(request.headers.get('x-posthog-session-id'));
+    const properties = sessionId ? { $session_id: sessionId } : {};
+
+    ctx.waitUntil((async () => {
+      try {
+        await posthog.captureImmediate({
+          distinctId,
+          event: 'request_received',
+          properties,
+        });
+      } finally {
+        await posthog.shutdown();
+      }
+    })());
+
+    return new Response('OK');
+  },
+};
+```
+
+Without a distinct ID, each capture gets a new SDK-generated anonymous ID. Those captures do not share person context. Without a session ID, they have no browser session link. Use a verified application ID when you need related captures to share a person.
+
+For an error, pass the same explicit values to `posthog.captureException(error, distinctId, properties)` and keep the flush or shutdown promise in `ctx.waitUntil()`. Values in these callbacks come from the current request's local variables. Keep request IDs out of global variables. [waitUntil](https://developers.cloudflare.com/workers/runtime-apis/context/#waituntil) extends execution for the registered promise; it does not add identity context to other work.
+
+Cloudflare has its own [native custom spans API](https://developers.cloudflare.com/workers/observability/traces/custom-spans/). The shared Node processor does not connect to it. The native span API has no documented attribute reader for filling only missing IDs. Automatic missing-attribute enrichment, preservation of pre-existing native attributes, and SDK exception links to native trace IDs are therefore outside this setup. An application can set `posthogDistinctId` and `sessionId` when it creates its own custom spans, using explicit IDs on each span that needs them. Platform-created child spans receive no automatic PostHog ID propagation from the edge client.
+
+## Node.js compatibility
+
+`posthog-node` ships a dedicated `workerd` export that avoids Node.js built-ins — it does **not** require `nodejs_compat` on its own. However, other dependencies in your project may need it. If you see missing-module errors at import time, add the compatibility flag to your Wrangler config:
+
+```toml
+compatibility_flags = ["nodejs_compat"]
+```
+
+## Environment variables
+
+Workers historically had no `process.env`, but since April 2025 (compatibility date `2025-04-01`+), `process.env` is populated automatically when using the `nodejs_compat` flag. You can also use `import { env } from 'cloudflare:workers'` to access bindings from anywhere, including top-level scope.
+
+How you access environment variables depends on your framework:
+
+| Framework | Server-side env access |
+| --- | --- |
+| React Router 7 | `context.cloudflare.env.VAR_NAME` (in loaders, actions, middleware) |
+| SvelteKit | `platform.env.VAR_NAME` (in hooks and server routes) |
+| Nuxt | `process.env` works via `unenv` polyfill — but **only inside event handlers**, not at top-level. Prefer `useRuntimeConfig(event)` |
+| Astro 5 | `Astro.locals.runtime.env.VAR_NAME` (in SSR pages and API routes) |
+| Astro 6+ | `import { env } from 'cloudflare:workers'` (direct import; `Astro.locals.runtime` was removed) |
+| Hono | `env.VAR_NAME` from the fetch handler's `env` parameter |
+| Raw Workers | `env.VAR_NAME` from the fetch handler's `env` parameter |
+
+Define variables in `wrangler.toml` under `[vars]` (non-secret) or via `wrangler secret put` (secret).
+
+## Event flushing
+
+Workers isolates are stateless — they may be reused across requests on the same edge location, but have no guaranteed longevity. Use `ctx.waitUntil()` to flush after the response is sent. The `ctx` / `waitUntil` source depends on your framework:
+
+| Framework | waitUntil access |
+| --- | --- |
+| React Router 7 | `context.cloudflare.ctx.waitUntil()` |
+| SvelteKit | `platform.ctx.waitUntil()` |
+| Astro 5 | `Astro.locals.runtime.ctx.waitUntil()` |
+| Astro 6+ | `Astro.locals.cfContext.waitUntil()` |
+| Hono | `c.executionCtx.waitUntil()` |
+| Raw Workers | `ctx.waitUntil()` (the `ExecutionContext` directly) |
+
+As a framework-agnostic alternative, you can `import { waitUntil } from 'cloudflare:workers'` and call it from anywhere.
+
+We recommend creating a new PostHog client per request. Workers may reuse globals across requests on the same isolate, but the shutdown/flush lifecycle makes per-request instantiation safer.
+
+## Durable Objects and local evaluation
+
+When using [local evaluation](https://posthog.com/docs/feature-flags/local-evaluation.md) inside a Durable Object, disable automatic flag polling if the object needs to hibernate or shut down while idle. Polling timers can keep the object active and extend billable duration, even when flag definitions come from a shared cache.
+
+With Cloudflare compatibility dates of `2026-10-01` or later, pending timers also prevent idle eviction without a connected client. Earlier dates can enable this behavior with `durable_object_io_tasks_prevent_eviction`. See [Cloudflare's lifecycle change](https://developers.cloudflare.com/changelog/post/2026-10-01-pending-io-keep-alive/).
+
+In `posthog-node` 5.55.0 or later, set `featureFlagsPollingInterval` to `null` to disable feature flag polling timers:
+
+```javascript
+const posthog = new PostHog(env.POSTHOG_PROJECT_TOKEN, {
+  host: env.POSTHOG_HOST,
+  secretKey: env.POSTHOG_FEATURE_FLAGS_SECURE_API_KEY,
+  featureFlagsPollingInterval: null,
+})
+```
+
+Store your [feature flags secure API key](https://posthog.com/docs/feature-flags/local-evaluation.md) in the `POSTHOG_FEATURE_FLAGS_SECURE_API_KEY` secret binding.
+
+Definitions still load when you create the client. The SDK consults your configured cache provider or fetches them from PostHog. If the cache is empty and the client has no definitions, the SDK fetches them from PostHog. Local evaluation waits for the initial load.
+
+After loading, the client keeps its in-memory definitions without refreshing them automatically. If your application needs updated definitions, `await posthog.reloadFeatureFlags()` explicitly reloads them. Choose a refresh frequency based on how quickly your application needs flag changes. Do not reload on every request or WebSocket message: each reload can fetch definitions from PostHog and increase costs. A failed refresh can leave the previous definitions in use.
+
+You can also use a separate Worker with a Cron Trigger to [refresh a shared KV cache](https://posthog.com/docs/feature-flags/local-evaluation/distributed-environments.md#caches-without-locking). New clients load the updated cache. Existing clients still need an explicit reload to read it.
+
+This option disables only the feature flag polling timer. Requests, event flushing, and other pending work can still delay hibernation or shutdown.
+
+## Further reading
+
+-   [Node.js SDK reference](https://posthog.com/docs/libraries/node.md)
+-   [Using Cloudflare as a reverse proxy](https://posthog.com/docs/advanced/proxy/cloudflare.md)
+-   [Linking Cloudflare R2 as a source](https://posthog.com/docs/data-pipelines/sources/r2.md)

@@ -9,7 +9,6 @@ Messaging preferences per recipient, one row per recipient. The `preferences` ma
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Preference row UUID.
-`team_id` | Integer | NOT NULL |
 `identifier` | String | NOT NULL | Recipient identifier, usually an email address.
 `preferences` | JSON | NOT NULL | JSON map of message category ID to 'OPTED_OUT' or 'OPTED_IN'. The key '$all' covers all marketing messages; other keys are message_categories ids.
 `deleted` | Integer | NOT NULL | 1 if the row has been deleted, 0 otherwise.
@@ -25,7 +24,6 @@ Message categories recipients can opt out of, one row per category. Category IDs
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Category UUID, used as the key in recipient preferences.
-`team_id` | Integer | NOT NULL |
 `key` | String | NOT NULL | Stable category key used in the API, e.g. 'newsletter'.
 `name` | String | NOT NULL | Display name of the category.
 `description` | String | NOT NULL | Internal description of the category.

@@ -163,9 +163,9 @@ This makes it possible to track users across their entire journey (e.g. from vis
 
 For certain features like [heatmaps](https://posthog.com/docs/toolbar/heatmaps.md), your Web Application Firewall (WAF) may be blocking PostHog's requests to your site. Add these IP addresses to your WAF allowlist or rules to let PostHog access your site.
 
-**EU**: `3.75.65.221`, `18.197.246.42`, `3.120.223.253`
+**EU**: `3.75.65.221`, `18.197.246.42`, `3.120.223.253`, `3.40.9.80/28`
 
-**US**: `44.205.89.55`, `52.4.194.122`, `44.208.188.173`
+**US**: `44.205.89.55`, `52.4.194.122`, `44.208.188.173`, `3.41.215.48/28`
 
 These are public, stable IPs used by PostHog services.
 

@@ -18,7 +18,7 @@ This is a React and [TanStack Router](https://tanstack.com/router) example demon
 - **Error tracking**: Capture and track errors
 - **User authentication**: Demo login system with PostHog user identification
 - **Client-side tracking**: Pure client-side React implementation
-- **Reverse proxy**: PostHog ingestion through Vite proxy
+- **Reverse proxy**: PostHog ingestion host set through an environment variable, so you can point it at a managed reverse proxy
 
 ## Getting started
 
@@ -37,7 +37,7 @@ VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=your_posthog_project_token
 VITE_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
-Get your PostHog project token from your [PostHog project settings](https://app.posthog.com/project/settings).
+Get your PostHog project token from your [PostHog project settings](https://app.posthog.com/project/settings). `.env.example` lists the variable names. If the token is missing, the app still builds and runs, and logs a warning in development instead of initializing PostHog.
 
 ### 3. Run the development server
 
@@ -76,11 +76,10 @@ import { PostHogProvider } from '@posthog/react'
 export const Route = createRootRoute({
   component: () => (
     <PostHogProvider
-      apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN!}
+      apiKey={posthogToken}
       options={{
-        api_host: '/ingest',
-        ui_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST || 'https://us.posthog.com',
-        defaults: '2026-01-30',
+        api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+        defaults: '2026-08-30',
         capture_exceptions: true,
         debug: import.meta.env.DEV,
       }}
@@ -90,6 +89,14 @@ export const Route = createRootRoute({
   ),
 })
 ```
+
+`posthogToken` is `import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN`. When it is missing, the root route logs a warning in development and renders the app without the provider.
+
+### Reverse proxy
+
+Ad blockers drop events sent to PostHog's domain. A reverse proxy sends them through your own domain instead. This example is a client-only app with no server layer, so it has no proxy code and sends events straight to PostHog (`https://us.i.posthog.com` by default). A Vite dev server proxy would only work in development, not in a production build.
+
+To use a proxy, set up the [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy) and set `VITE_PUBLIC_POSTHOG_HOST` to your proxy domain. Add `ui_host` for your region (`https://us.posthog.com` or `https://eu.posthog.com`) to the `posthog.init` options so toolbar links keep pointing at PostHog's own domain, not the proxy. For an EU project, also set the default `api_host` to `https://eu.i.posthog.com`.
 
 ### User identification (contexts/AuthContext.tsx)
 
@@ -130,7 +137,7 @@ This example uses TanStack Router. Key details:
 1. **Client-side only**: No server-side logic, no API routes, no posthog-node
 2. **File-based routing**: Routes are files in `src/routes` directory
 3. **Standard hooks**: Uses `useNavigate()` from @tanstack/react-router
-4. **Vite proxy**: Uses Vite's proxy config for PostHog calls
+4. **Reverse proxy**: No proxy code, because the app has no server layer; see the reverse proxy section
 5. **Environment variables**: Uses `import.meta.env.VITE_*`
 6. **PostHog provider**: Uses `PostHogProvider` from `@posthog/react` in root route
 
@@ -449,37 +456,56 @@ import { PostHogProvider } from '@posthog/react'
 import Header from '../components/Header'
 import { AuthProvider } from '../contexts/AuthContext'
 
-export const Route = createRootRoute({
-  component: () => (
+const posthogToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN
+
+if (!posthogToken && import.meta.env.DEV) {
+  console.warn(
+    'VITE_PUBLIC_POSTHOG_PROJECT_TOKEN is not set. PostHog is disabled.',
+  )
+}
+
+function RootComponent() {
+  const app = (
+    <AuthProvider>
+      <Header />
+      <main>
+        <Outlet />
+      </main>
+      <TanStackDevtools
+        config={{
+          position: 'bottom-right',
+        }}
+        plugins={[
+          {
+            name: 'Tanstack Router',
+            render: <TanStackRouterDevtoolsPanel />,
+          },
+        ]}
+      />
+    </AuthProvider>
+  )
+
+  return posthogToken ? (
     <PostHogProvider
-      apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN!}
+      apiKey={posthogToken}
       options={{
-        api_host: '/ingest',
-        ui_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST || 'https://us.posthog.com',
-        defaults: '2026-01-30',
+        api_host:
+          import.meta.env.VITE_PUBLIC_POSTHOG_HOST ||
+          'https://us.i.posthog.com',
+        defaults: '2026-08-30',
         capture_exceptions: true,
         debug: import.meta.env.DEV,
       }}
     >
-      <AuthProvider>
-        <Header />
-        <main>
-          <Outlet />
-        </main>
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
-      </AuthProvider>
+      {app}
     </PostHogProvider>
-  ),
+  ) : (
+    app
+  )
+}
+
+export const Route = createRootRoute({
+  component: RootComponent,
 })
 
 ```
@@ -650,7 +676,7 @@ function Home() {
 
 ```tsx
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { usePostHog } from 'posthog-js/react'
+import { usePostHog } from '@posthog/react'
 import { useAuth } from '../contexts/AuthContext'
 
 export const Route = createFileRoute('/profile')({
@@ -727,7 +753,7 @@ function ProfilePage() {
 ## vite.config.ts
 
 ```ts
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -735,43 +761,20 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
-
-  return {
-    plugins: [
-      tanstackRouter({
-        target: 'react',
-        autoCodeSplitting: true,
-      }),
-      viteReact(),
-      tailwindcss(),
-    ],
-    resolve: {
-      alias: {
-        '@': fileURLToPath(new URL('./src', import.meta.url)),
-      },
+export default defineConfig({
+  plugins: [
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,
+    }),
+    viteReact(),
+    tailwindcss(),
+  ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
-    server: {
-      proxy: {
-        '/ingest/static': {
-          target: 'https://us-assets.i.posthog.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/ingest/, ''),
-        },
-        '/ingest/array': {
-          target: 'https://us-assets.i.posthog.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/ingest/, ''),
-        },
-        '/ingest': {
-          target: env.VITE_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/ingest/, ''),
-        },
-      },
-    },
-  }
+  },
 })
 
 ```

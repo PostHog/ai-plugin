@@ -43,7 +43,7 @@ NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN=your_posthog_project_token
 NUXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
-Get your PostHog project token from your [PostHog project settings](https://app.posthog.com/project/settings).
+Get your PostHog project token from your [PostHog project settings](https://app.posthog.com/project/settings). If the token is missing, the app still builds and boots: in development `nuxt.config.ts` logs a warning naming `NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, and PostHog is not initialized.
 
 ### 3. Run the Development Server
 
@@ -77,6 +77,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 │   │   │   └── login.post.ts # Login API with server-side tracking
 │   │   └── burrito/
 │   │       └── consider.post.ts # Burrito API with server-side tracking
+│   ├── routes/
+│   │   └── burrito-relay/
+│   │       └── [...path].ts  # Reverse proxy to PostHog
 │   └── utils/
 │       └── users.ts          # In-memory user storage utilities
 ├── types/
@@ -95,8 +98,15 @@ import type { PostHog, PostHogInterface } from 'posthog-js'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const runtimeConfig = useRuntimeConfig()
-  const posthogClient = posthog.init(runtimeConfig.public.posthog.publicKey, {
-    api_host: runtimeConfig.public.posthog.host,
+  const publicKey = runtimeConfig.public.posthog.publicKey
+
+  if (!publicKey) {
+    return { provide: { posthog: undefined } }
+  }
+
+  const posthogClient = posthog.init(publicKey, {
+    api_host: '/burrito-relay', // Reverse proxy, see below
+    ui_host: 'https://us.posthog.com',
     defaults: runtimeConfig.public.posthog.posthogDefaults as any,
     loaded: (posthog: PostHogInterface) => {
       if (import.meta.env.MODE === 'development') posthog.debug()
@@ -279,10 +289,16 @@ import type { PostHog } from 'posthog-js'
 
 declare module '#app' {
   interface NuxtApp {
-    $posthog: PostHog
+    $posthog: PostHog | undefined
   }
 }
 ```
+
+## Reverse proxy
+
+Ad blockers drop events sent to PostHog's domain. This example sends events to its own domain instead: the server route in `server/routes/burrito-relay/[...path].ts` forwards them to PostHog, and the client sets `api_host` to `/burrito-relay` and `ui_host` to your PostHog app URL so toolbar links still work. The route and `ui_host` follow the region in `NUXT_PUBLIC_POSTHOG_HOST`, so setting it to `https://eu.i.posthog.com` sends events to EU Cloud through `eu.i.posthog.com` and `eu-assets.i.posthog.com`. The proxy path is arbitrary, so pick your own and avoid names like `/posthog` or `/analytics`.
+
+Server routes don't exist with `nuxt generate`, and all PostHog traffic passes through your deployment. If your app can't proxy itself, use PostHog's [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy), which is free for PostHog Cloud users.
 
 ## Learn More
 
@@ -295,9 +311,9 @@ declare module '#app' {
 ## .env.example
 
 ```example
+NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN=your_posthog_project_token_here
+NUXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 
-NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN=
-NUXT_PUBLIC_POSTHOG_HOST=
 ```
 
 ---
@@ -453,6 +469,10 @@ export const useAuth = () => {
 ## nuxt.config.ts
 
 ```ts
+if (!process.env.NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NODE_ENV === 'development') {
+  console.warn('NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN is not set. Skipping PostHog init.')
+}
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
@@ -463,7 +483,7 @@ export default defineNuxtConfig({
       posthog: {
         publicKey: process.env.NUXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
         host: process.env.NUXT_PUBLIC_POSTHOG_HOST,
-        posthogDefaults: '2026-01-30',
+        posthogDefaults: '2026-08-30',
       },
     },
   },
@@ -708,8 +728,18 @@ import type { PostHog, PostHogInterface } from 'posthog-js'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const runtimeConfig = useRuntimeConfig()
-  const posthogClient = posthog.init(runtimeConfig.public.posthog.publicKey, {
-    api_host: runtimeConfig.public.posthog.host,
+  const publicKey = runtimeConfig.public.posthog.publicKey
+
+  // nuxt.config.ts warns about a missing token in development
+  if (!publicKey) {
+    return { provide: { posthog: undefined } }
+  }
+
+  const posthogClient = posthog.init(publicKey, {
+    // Events go through the server route in server/routes/burrito-relay
+    api_host: '/burrito-relay',
+    // The PostHog app for the region in NUXT_PUBLIC_POSTHOG_HOST
+    ui_host: String(runtimeConfig.public.posthog.host || '').includes('eu.') ? 'https://eu.posthog.com' : 'https://us.posthog.com',
     defaults: runtimeConfig.public.posthog.posthogDefaults as any,
     // Automatically add X-POSTHOG-SESSION-ID and X-POSTHOG-DISTINCT-ID headers
     // to same-origin requests so server-side events join the same session.
@@ -781,8 +811,9 @@ export default defineEventHandler(async (event) => {
 
   const posthog = new PostHog(
     runtimeConfig.public.posthog.publicKey,
-    { 
-      host: runtimeConfig.public.posthog.host, 
+    {
+      host: runtimeConfig.public.posthog.host,
+      disabled: !runtimeConfig.public.posthog.publicKey,
     }
   )
 
@@ -853,8 +884,9 @@ export default defineEventHandler(async (event) => {
 
   const posthog = new PostHog(
     runtimeConfig.public.posthog.publicKey,
-    { 
-      host: runtimeConfig.public.posthog.host, 
+    {
+      host: runtimeConfig.public.posthog.host,
+      disabled: !runtimeConfig.public.posthog.publicKey,
     }
   )
 
@@ -875,6 +907,75 @@ export default defineEventHandler(async (event) => {
     success: true,
     user: { ...user }
   }
+})
+
+```
+
+---
+
+## server/routes/burrito-relay/[...path].ts
+
+```ts
+export default defineEventHandler(async (event) => {
+  const path = event.context.params?.path || ''
+  const url = getRequestURL(event)
+  const search = url.search || ''
+
+  // Proxy to the region in NUXT_PUBLIC_POSTHOG_HOST: us.i.posthog.com or eu.i.posthog.com
+  const apiHostname = new URL(process.env.NUXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com').hostname
+  const useAssetHost = path.startsWith('static/') || path.startsWith('array/')
+  const hostname = useAssetHost
+    ? apiHostname.replace('.i.posthog.com', '-assets.i.posthog.com')
+    : apiHostname
+
+  const targetUrl = `https://${hostname}/${path}${search}`
+
+  // Forward headers, excluding ones that shouldn't be proxied
+  const headers = new Headers()
+  const excludedHeaders = ['host', 'connection', 'content-length', 'transfer-encoding', 'accept-encoding', 'cookie']
+
+  const requestHeaders = getRequestHeaders(event)
+  for (const [key, value] of Object.entries(requestHeaders)) {
+    const name = key.toLowerCase()
+    // Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+    // To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+    const isNonBearerAuth = name === 'authorization' && !/^Bearer ph[csx]_/.test(value ?? '')
+    if (value && !excludedHeaders.includes(name) && !isNonBearerAuth) {
+      headers.set(key, value)
+    }
+  }
+
+  headers.set('host', hostname)
+
+  // Forward client IP for geolocation
+  const clientIp = getHeader(event, 'x-forwarded-for') || getRequestIP(event)
+  if (clientIp) {
+    headers.set('x-forwarded-for', clientIp)
+  }
+
+  // Read body as binary buffer to preserve gzip compression
+  const body = event.method !== 'GET' && event.method !== 'HEAD'
+    ? await readRawBody(event, false)
+    : undefined
+
+  const response = await fetch(targetUrl, {
+    method: event.method,
+    headers,
+    body,
+  })
+
+  // Copy response headers, excluding problematic ones
+  for (const [key, value] of response.headers.entries()) {
+    if (!['content-encoding', 'content-length', 'transfer-encoding'].includes(key.toLowerCase())) {
+      setResponseHeader(event, key, value)
+    }
+  }
+
+  setResponseStatus(event, response.status)
+
+  // Return binary response
+  const arrayBuffer = await response.arrayBuffer()
+  return Buffer.from(arrayBuffer)
 })
 
 ```
@@ -930,7 +1031,7 @@ import type { PostHog } from 'posthog-js'
 
 declare module '#app' {
   interface NuxtApp {
-    $posthog: PostHog
+    $posthog: PostHog | undefined
   }
 }
 

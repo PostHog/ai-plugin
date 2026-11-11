@@ -16,7 +16,6 @@ filter out expired datasets when selecting by name.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Dataset UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Dataset name.
 `description` | String | NOT NULL | What the dataset contains.
 `metadata` | JSON | NOT NULL | JSON dataset metadata.
@@ -32,7 +31,6 @@ Column | Type | Nullable | Description
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Dataset revision UUID.
-`team_id` | Integer | NOT NULL |
 `dataset_id` | UUID | NOT NULL | Parent dataset; joins to datasets.id.
 `revision` | Integer | NOT NULL | Monotonic revision number within the dataset.
 `expired_at` | DateTime | NULL | When the snapshot expired; NULL while available. Expired snapshots may be incomplete.
@@ -47,7 +45,6 @@ Editing dataset name, description, or metadata does not create a revision.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Stable dataset item UUID.
-`team_id` | Integer | NOT NULL |
 `dataset_id` | UUID | NOT NULL | Parent dataset; joins to datasets.id.
 `client_item_id` | String | NULL | Optional caller-owned stable key, unique within the dataset.
 `current_version_id` | UUID | NULL | Latest immutable item version.
@@ -63,7 +60,6 @@ Join `current_version_id` to `system.dataset_item_versions.id` for the current v
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Dataset item version UUID.
-`team_id` | Integer | NOT NULL |
 `dataset_id` | UUID | NOT NULL | Parent dataset; joins to datasets.id.
 `dataset_item_id` | UUID | NOT NULL | Stable item; joins to dataset_items.id.
 `dataset_revision_id` | UUID | NOT NULL | Revision that introduced this version; joins to dataset_revisions.id.

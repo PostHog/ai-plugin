@@ -9,7 +9,6 @@ Early access features let teams manage staged feature rollouts where users can o
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Early access feature UUID.
-`team_id` | Integer | NOT NULL |
 `feature_flag_id` | Integer | NOT NULL | Feature flag gating the feature; joins to feature_flags.id.
 `name` | String | NOT NULL | Feature name shown to users.
 `description` | String | NOT NULL | Feature description shown to users.

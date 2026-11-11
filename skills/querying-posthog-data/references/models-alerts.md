@@ -9,7 +9,6 @@ Alerts monitor insight values and notify subscribed users when thresholds are br
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Alert UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | User-given name of the alert.
 `insight_id` | Integer | NOT NULL | Insight the alert watches; joins to insights.id.
 `enabled` | Boolean | NOT NULL | Whether the alert is active.

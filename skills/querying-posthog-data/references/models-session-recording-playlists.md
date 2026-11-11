@@ -13,7 +13,6 @@ Column | Type | Nullable | Description
 `name` | String | NOT NULL | User-given playlist name.
 `derived_name` | String | NOT NULL | Auto-generated name used when no name is set.
 `description` | String | NOT NULL | Playlist description.
-`team_id` | Integer | NOT NULL |
 `pinned` | Integer | NOT NULL | 1 if the playlist is pinned, 0 otherwise.
 `deleted` | Integer | NOT NULL | 1 if the playlist has been deleted, 0 otherwise.
 `filters` | JSON | NOT NULL | JSON filters defining which recordings are in the playlist.

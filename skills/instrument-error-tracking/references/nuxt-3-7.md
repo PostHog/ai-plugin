@@ -85,7 +85,7 @@ Or set it up manually by following the rest of this guide.
         sourcemaps: {
           enabled: true,
           projectId: '<ph_project_id>', // Your project ID, found in your environment settings: https://app.posthog.com/settings/environment#variables
-          personalApiKey: '<ph_personal_api_key>', // Your personal API key from PostHog settings https://app.posthog.com/settings/user-api-keys (requires organization:read and error_tracking:write scopes)
+          personalApiKey: '<ph_personal_api_key>', // Your personal API key from PostHog settings https://app.posthog.com/settings/user-api-keys (requires the error_tracking:write scope)
           releaseName: 'my-application', // Optional: defaults to git repository name
           releaseVersion: '1.0.0', // Optional: defaults to current git commit
         },
@@ -95,7 +95,7 @@ Or set it up manually by following the rest of this guide.
 
     **Personal API key**
 
-    Your personal API key will require `organization:read` and `error_tracking:write` scopes.
+    Your personal API key needs the `error_tracking:write` scope. You can limit the key to this project.
 
     The module will automatically:
 

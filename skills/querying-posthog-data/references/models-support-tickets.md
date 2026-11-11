@@ -9,7 +9,6 @@ Support tickets from the conversations product, created via widget, email, or Sl
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Ticket UUID.
-`team_id` | Integer | NOT NULL |
 `ticket_number` | Integer | NOT NULL | Human-friendly sequential ticket number.
 `organization_id` | String | NULL | Customer organization key. This matches a customer analytics account's external_id.
 `channel_source` | String | NOT NULL | Channel the ticket came in on, e.g. 'email', 'widget'.

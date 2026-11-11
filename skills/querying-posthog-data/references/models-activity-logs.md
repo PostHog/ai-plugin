@@ -11,7 +11,6 @@ Activity logs track user and system actions across PostHog entities, providing a
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Activity log entry UUID.
-`team_id` | Integer | NOT NULL |
 `activity` | String | NOT NULL | Action performed, e.g. 'created', 'updated', 'deleted'.
 `item_id` | String | NOT NULL | Id of the object the activity is about.
 `scope` | String | NOT NULL | Type of object affected, e.g. 'Insight', 'FeatureFlag', 'Dashboard'.

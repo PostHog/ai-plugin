@@ -9,7 +9,6 @@ API endpoints that expose saved HogQL or insight queries as callable API routes.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Endpoint UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Endpoint name, used to call it.
 `is_active` | Integer | NOT NULL | 1 if the endpoint is active and callable, 0 otherwise.
 `current_version` | Integer | NOT NULL | Version number currently served; joins to data_modeling_endpoint_versions.version.
@@ -60,7 +59,6 @@ A new version is created each time an endpoint's query changes.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Endpoint version UUID.
-`team_id` | Integer | NOT NULL |
 `endpoint_id` | String | NOT NULL | Parent endpoint; joins to data_modeling_endpoints.id.
 `version` | Integer | NOT NULL | Version number within the endpoint.
 `description` | String | NOT NULL | Description of this endpoint version.

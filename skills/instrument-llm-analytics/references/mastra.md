@@ -92,7 +92,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
 
     Use Mastra as normal. The `PosthogExporter` automatically captures `$ai_generation` events for each LLM call, including token usage, cost, latency, and the full conversation.
 
-    Pass `tracingOptions.metadata` to `generate()` to attach per-request metadata. The `userId` field maps to PostHog's distinct ID, `sessionId` maps to `$ai_session_id`, and any other keys are passed through as custom event properties.
+    Pass `tracingOptions.metadata` to `generate()` to attach per-request metadata. The `userId` field maps to PostHog's distinct ID, `sessionId` maps to `$ai_session_id`, `$groups` attaches every event in the run to [groups](https://posthog.com/docs/product-analytics/group-analytics.md), and any other keys are passed through as custom event properties. `$groups` needs `@mastra/posthog` 1.0.28 or later.
 
     ```typescript
     const agent = mastra.getAgent('weatherAgent')
@@ -102,6 +102,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
         metadata: {
           userId: 'user_123', // becomes distinct_id
           sessionId: 'session_abc', // becomes $ai_session_id
+          $groups: { company: 'company_id_in_your_db' }, // attaches every event to this group
           conversation_id: 'abc-123', // custom property
         },
       },
