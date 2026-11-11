@@ -1320,6 +1320,7 @@ posthog.unregister('plan_type')
 **Release Tag:** public
 
 Capture a log entry and send it to the PostHog logs endpoint.
+Note: logs are not subject to the user agent (bot) filter that drops events, so they are still sent from sessions whose events are dropped.
 
 ### Parameters
 

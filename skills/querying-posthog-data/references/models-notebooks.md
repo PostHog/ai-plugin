@@ -10,7 +10,6 @@ Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Notebook UUID.
 `short_id` | String | NOT NULL | Short URL-safe id used in notebook links.
-`team_id` | Integer | NOT NULL |
 `title` | String | NOT NULL | Notebook title.
 `content` | JSON | NOT NULL | JSON rich-text document (ProseMirror) content.
 `markdown` | String | NULL | Markdown source for markdown notebooks; NULL for legacy rich-text notebooks.

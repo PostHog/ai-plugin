@@ -11,7 +11,6 @@ These are the only columns exposed via HogQL — the full flag model (e.g. `acti
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | Integer | NOT NULL | Flag id.
-`team_id` | Integer | NOT NULL |
 `key` | String | NOT NULL | Flag key used by SDKs to evaluate the flag.
 `name` | String | NOT NULL | Human-readable flag name/description.
 `filters` | JSON | NOT NULL | JSON targeting rules, variants, and release conditions.
@@ -146,7 +145,6 @@ These are the only columns exposed via HogQL — the full experiment model (e.g.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | Integer | NOT NULL | Experiment id.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Experiment name.
 `description` | String | NOT NULL | Experiment description/hypothesis.
 `created_by_id` | Integer | NULL | User who created the experiment.

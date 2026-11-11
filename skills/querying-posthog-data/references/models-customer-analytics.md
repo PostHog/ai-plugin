@@ -36,7 +36,6 @@ One row per account.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Account UUID.
-`team_id` | Integer | NOT NULL |
 `external_id` | String | NULL | Identifier of the account in the source system.
 `name` | String | NOT NULL | Display name of the account.
 `properties` | JSON | NOT NULL | JSON map of account properties; the CRM id columns below are extracted from this.
@@ -75,7 +74,6 @@ A **relationship definition** is a team-defined relationship type between a Post
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Relationship definition UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Human-readable name of the relationship; unique within the team.
 `description` | String | NULL | What this relationship means.
 `is_single_holder` | Integer | NOT NULL | 1 if only one user can hold this relationship per account at a time, 0 otherwise.
@@ -88,7 +86,6 @@ Column | Type | Nullable | Description
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Relationship assignment UUID.
-`team_id` | Integer | NOT NULL |
 `definition_id` | UUID | NOT NULL | Relationship definition this assignment is for; join to `system.account_relationship_definitions.id`.
 `account_id` | UUID | NOT NULL | Account the assignment belongs to; join to `system.accounts.id`.
 `user_id` | Integer | NULL | Assigned PostHog user id.
@@ -114,7 +111,6 @@ The tables apply account access rules. `system.feature_requests` includes a requ
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Feature request UUID.
-`team_id` | Integer | NOT NULL |
 `title` | String | NOT NULL | Customer-facing request title.
 `description` | String | NOT NULL | Customer-facing description in Markdown.
 `status` | String | NOT NULL | Current lifecycle status: 'requested', 'planned', 'completed', 'wont_fix', or 'duplicate'.
@@ -134,7 +130,6 @@ One row per active request and account pair visible to the caller.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Feature request account link UUID.
-`team_id` | Integer | NOT NULL |
 `feature_request_id` | UUID | NOT NULL | Feature request this link belongs to. Join to `system.feature_requests.id`.
 `account_id` | UUID | NOT NULL | Affected account. Join to `system.accounts.id`.
 `created_at` | DateTime | NOT NULL | When the account was first linked.
@@ -145,7 +140,6 @@ Column | Type | Nullable | Description
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Evidence UUID.
-`team_id` | Integer | NOT NULL |
 `account_link_id` | UUID | NOT NULL | Request and account pair this evidence supports. Join to `system.feature_request_account_links.id`.
 `summary` | String | NOT NULL | Internal summary of the request evidence.
 `customer_quote` | String | NOT NULL | Customer quote kept with this evidence item.
@@ -167,7 +161,6 @@ Column | Type | Nullable | Description
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Product area UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Team-maintained product area name.
 `display_order` | Integer | NOT NULL | Position in product area selectors. Lower values appear first.
 `is_active` | Integer | NOT NULL | 1 if editors can select this area for new requests, 0 otherwise.
@@ -181,7 +174,6 @@ Column | Type | Nullable | Description
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Feature request product area link UUID.
-`team_id` | Integer | NOT NULL |
 `feature_request_id` | UUID | NOT NULL | Feature request. Join to `system.feature_requests.id`.
 `product_area_id` | UUID | NOT NULL | Product area. Join to `system.feature_request_product_areas.id`.
 `created_at` | DateTime | NOT NULL | When the product area was linked.
@@ -191,7 +183,6 @@ Column | Type | Nullable | Description
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Feature request history entry UUID.
-`team_id` | Integer | NOT NULL |
 `feature_request_id` | UUID | NOT NULL | Feature request that changed. Join to `system.feature_requests.id`.
 `changed_fields` | Array | NOT NULL | Names of the fields changed in this save. Before and after values are not exposed.
 `is_initial` | Integer | NOT NULL | 1 if this entry records the request's initial values, 0 otherwise.
@@ -244,7 +235,6 @@ Custom properties let a team attach typed attributes to accounts. A **definition
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Custom property definition UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Human-readable name of the custom property; unique within the team.
 `description` | String | NULL | Optional description of what the property represents.
 `display_type` | String | NOT NULL | How the property is interpreted and rendered: 'text', 'number', 'currency', 'percent', 'date', 'datetime', 'boolean', 'select' (allowed options stored on the definition), or 'link'.

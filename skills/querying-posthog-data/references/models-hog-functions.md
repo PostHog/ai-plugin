@@ -19,7 +19,6 @@ Hog functions are programmable event handlers in PostHog's CDP (Customer Data Pl
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Function UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Function name.
 `description` | String | NOT NULL | Function description.
 `type` | String | NOT NULL | Function type, e.g. 'destination', 'transformation', 'site_app'.

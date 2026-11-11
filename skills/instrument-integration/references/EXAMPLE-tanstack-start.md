@@ -18,7 +18,7 @@ This is a [TanStack Start](https://tanstack.com/start) example demonstrating Pos
 - **Error tracking**: Capture and track errors automatically
 - **User authentication**: Demo login system with PostHog user identification
 - **Server-side & client-side tracking**: Complete examples of both tracking methods
-- **Reverse proxy**: PostHog ingestion through Vite dev server proxy
+- **Reverse proxy**: PostHog ingestion through a TanStack Start server route
 
 ## Getting started
 
@@ -37,7 +37,7 @@ VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=your_posthog_project_token
 VITE_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
-Get your PostHog project token from your [PostHog project settings](https://app.posthog.com/project/settings).
+Get your PostHog project token from your [PostHog project settings](https://app.posthog.com/project/settings). `.env.example` lists the variable names. If the token is missing, the app still builds and runs, and logs a warning in development instead of initializing PostHog.
 
 ### 3. Run the development server
 
@@ -62,6 +62,7 @@ src/
 │   ├── index.tsx            # Home/login page
 │   ├── burrito.tsx          # Demo feature page with event tracking
 │   ├── profile.tsx          # User profile with error tracking demo
+│   ├── ingest.$.ts          # Reverse proxy to PostHog
 │   └── api/
 │       ├── auth/
 │       │   └── login.ts     # Login API with server-side tracking
@@ -69,7 +70,6 @@ src/
 │           └── consider.ts  # Burrito API with server-side tracking
 └── styles.css               # Global styles
 
-vite.config.ts               # Vite config with PostHog proxy
 .env                         # Environment variables
 ```
 
@@ -83,11 +83,11 @@ PostHog is initialized using `PostHogProvider` from `@posthog/react`. The provid
 import { PostHogProvider } from '@posthog/react'
 
 <PostHogProvider
-  apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN!}
+  apiKey={posthogToken}
   options={{
     api_host: '/ingest',
-    ui_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST || 'https://us.posthog.com',
-    defaults: '2025-05-24',
+    ui_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST?.includes('eu.') ? 'https://eu.posthog.com' : 'https://us.posthog.com',
+    defaults: '2026-08-30',
     capture_exceptions: true,
     debug: import.meta.env.DEV,
   }}
@@ -95,6 +95,8 @@ import { PostHogProvider } from '@posthog/react'
   {children}
 </PostHogProvider>
 ```
+
+The root route only renders `PostHogProvider` when `VITE_PUBLIC_POSTHOG_PROJECT_TOKEN` is set. Without it, it logs a warning in development and renders the app without PostHog.
 
 ### Server-side setup (utils/posthog-server.ts)
 
@@ -104,21 +106,24 @@ For server-side tracking, we use the `posthog-node` SDK with a singleton pattern
 import { PostHog } from 'posthog-node'
 
 export function getPostHogClient() {
+  const token =
+    process.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN ||
+    import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN
+  if (!token) return null
   if (!posthogClient) {
-    posthogClient = new PostHog(
-      process.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN || import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN!,
-      {
-        host: process.env.VITE_PUBLIC_POSTHOG_HOST || import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-        flushAt: 1,
-        flushInterval: 0,
-      }
-    )
+    posthogClient = new PostHog(token, {
+      host:
+        process.env.VITE_PUBLIC_POSTHOG_HOST ||
+        import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+      flushAt: 1,
+      flushInterval: 0,
+    })
   }
   return posthogClient
 }
 ```
 
-This client is used in API routes to track server-side events.
+This client is used in API routes to track server-side events. It returns `null` when the token is missing, so callers use optional chaining.
 
 ### Server-side capture (routes/api/*)
 
@@ -148,7 +153,7 @@ import { getPostHogClient } from '../../utils/posthog-server'
 const sessionId = request.headers.get('X-PostHog-Session-Id')
 
 const posthog = getPostHogClient()
-posthog.capture({
+posthog?.capture({
   distinctId: username,
   event: 'burrito_considered',
   properties: {
@@ -159,22 +164,22 @@ posthog.capture({
 })
 ```
 
-### Reverse proxy configuration
+### Reverse proxy (routes/ingest.$.ts)
 
-The Vite dev server is configured to proxy PostHog requests to avoid CORS issues and improve reliability:
+Ad blockers drop events sent to PostHog's domain. This example sends them through your own domain instead. A server route at `/ingest/$` forwards `/ingest/static/*` and `/ingest/array/*` to PostHog's assets host and every other `/ingest/*` request to PostHog's ingestion host. It sets the `host` header and removes cookies and non-PostHog credentials from the forwarded request. Because it is a server route, it works in development and in production builds.
 
 ```typescript
-server: {
-  proxy: {
-    '/ingest': {
-      target: 'https://us.i.posthog.com',
-      changeOrigin: true,
-      rewrite: (path) => path.replace(/^\/ingest/, ''),
-      secure: false,
+export const Route = createFileRoute('/ingest/$')({
+  server: {
+    handlers: {
+      GET: proxyToPostHog,
+      POST: proxyToPostHog,
     },
   },
-}
+})
 ```
+
+The proxy follows the region in `VITE_PUBLIC_POSTHOG_HOST`: `https://us.i.posthog.com` or `https://eu.i.posthog.com`. It derives the ingestion host, the assets host (`-assets.i.posthog.com`), and `ui_host` (`https://us.posthog.com` or `https://eu.posthog.com`) from that one value, so an EU project only needs to set `VITE_PUBLIC_POSTHOG_HOST`. Pick a proxy path unique to your app rather than a common name such as `/analytics` or `/telemetry`. If you deploy somewhere that can't run server routes, use the [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy) instead.
 
 ### User identification (contexts/AuthContext.tsx)
 
@@ -500,44 +505,60 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 })
 
+const posthogToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN
+
+if (!posthogToken && import.meta.env.DEV) {
+  console.warn(
+    'VITE_PUBLIC_POSTHOG_PROJECT_TOKEN is not set. PostHog is disabled.',
+  )
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const app = (
+    <AuthProvider>
+      <Header />
+      {children}
+      <TanStackDevtools
+        config={{
+          position: 'bottom-right',
+        }}
+        plugins={[
+          {
+            name: 'Tanstack Router',
+            render: <TanStackRouterDevtoolsPanel />,
+          },
+        ]}
+      />
+    </AuthProvider>
+  )
+
   return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body>
-        <PostHogProvider
-          apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN!}
-          options={{
-            api_host: '/ingest',
-            ui_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST || 'https://us.posthog.com',
-            defaults: '2025-05-24',
-            capture_exceptions: true,
-            debug: import.meta.env.DEV,
-            // Automatically add X-POSTHOG-SESSION-ID and X-POSTHOG-DISTINCT-ID
-            // headers to same-origin requests so server-side events join the
-            // same session. Guarded for SSR, where `window` is undefined.
-            tracing_headers:
-              typeof window !== 'undefined' ? [window.location.hostname] : [],
-          }}
-        >
-          <AuthProvider>
-            <Header />
-            {children}
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
+        {posthogToken ? (
+          <PostHogProvider
+            apiKey={posthogToken}
+            options={{
+              api_host: '/ingest',
+              ui_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST?.includes('eu.') ? 'https://eu.posthog.com' : 'https://us.posthog.com', // The PostHog app for your region
+              defaults: '2026-08-30',
+              capture_exceptions: true,
+              debug: import.meta.env.DEV,
+              // Automatically add X-POSTHOG-SESSION-ID and X-POSTHOG-DISTINCT-ID
+              // headers to same-origin requests so server-side events join the
+              // same session. Guarded for SSR, where `window` is undefined.
+              tracing_headers:
+                typeof window !== 'undefined' ? [window.location.hostname] : [],
             }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-            ]}
-          />
-          </AuthProvider>
-        </PostHogProvider>
+          >
+            {app}
+          </PostHogProvider>
+        ) : (
+          app
+        )}
         <Scripts />
       </body>
     </html>
@@ -583,7 +604,7 @@ export const Route = createFileRoute('/api/auth/login')({
 
         // Capture server-side login event
         const posthog = getPostHogClient()
-        posthog.capture({
+        posthog?.capture({
           distinctId: username,
           event: 'server_login',
           properties: {
@@ -595,7 +616,7 @@ export const Route = createFileRoute('/api/auth/login')({
         })
 
         // Identify user on server side
-        posthog.identify({
+        posthog?.identify({
           distinctId: username,
           properties: {
             username: username,
@@ -604,7 +625,7 @@ export const Route = createFileRoute('/api/auth/login')({
         })
 
         // This handler is short-lived; flush so the enqueued events send before it returns
-        await posthog.flush()
+        await posthog?.flush()
 
         return json({ success: true, user })
       },
@@ -640,7 +661,7 @@ export const Route = createFileRoute('/api/burrito/consider')({
         const sessionId = request.headers.get('X-PostHog-Session-Id')
 
         const posthog = getPostHogClient()
-        posthog.capture({
+        posthog?.capture({
           distinctId: username,
           event: 'burrito_considered',
           properties: {
@@ -652,7 +673,7 @@ export const Route = createFileRoute('/api/burrito/consider')({
         })
 
         // This handler is short-lived; flush so the enqueued event sends before it returns
-        await posthog.flush()
+        await posthog?.flush()
 
         return json({ success: true })
       },
@@ -877,6 +898,64 @@ function Home() {
 
 ---
 
+## src/routes/ingest.$.ts
+
+```ts
+import { createFileRoute } from '@tanstack/react-router'
+
+// Proxy to the region in VITE_PUBLIC_POSTHOG_HOST: us.i.posthog.com or eu.i.posthog.com
+const API_HOST = new URL(
+  process.env.VITE_PUBLIC_POSTHOG_HOST ||
+    import.meta.env.VITE_PUBLIC_POSTHOG_HOST ||
+    'https://us.i.posthog.com',
+).hostname
+const ASSET_HOST = API_HOST.replace('.i.posthog.com', '-assets.i.posthog.com')
+
+async function proxyToPostHog({ request }: { request: Request }) {
+  const url = new URL(request.url)
+  const pathname = url.pathname.replace(/^\/ingest/, '')
+  const hostname =
+    pathname.startsWith('/static/') || pathname.startsWith('/array/')
+      ? ASSET_HOST
+      : API_HOST
+
+  url.protocol = 'https:'
+  url.hostname = hostname
+  url.port = '443'
+  url.pathname = pathname
+
+  const headers = new Headers(request.headers)
+  headers.set('host', hostname)
+  // Remove cookies before forwarding to PostHog
+  headers.delete('cookie')
+  // Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+  if (!/^Bearer ph[csx]_/.test(headers.get('authorization') ?? '')) {
+    headers.delete('authorization')
+  }
+  headers.set('accept-encoding', '')
+
+  return fetch(url, {
+    method: request.method,
+    headers,
+    body: request.body,
+    // @ts-expect-error - duplex is required for streaming request bodies
+    duplex: 'half',
+  })
+}
+
+export const Route = createFileRoute('/ingest/$')({
+  server: {
+    handlers: {
+      GET: proxyToPostHog,
+      POST: proxyToPostHog,
+    },
+  },
+})
+
+```
+
+---
+
 ## src/routes/profile.tsx
 
 ```tsx
@@ -989,6 +1068,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as BurritoRouteImport } from './routes/burrito'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as IngestSplatRouteImport } from './routes/ingest.$'
 import { Route as ApiBurritoConsiderRouteImport } from './routes/api/burrito/consider'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 
@@ -1007,6 +1087,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IngestSplatRoute = IngestSplatRouteImport.update({
+  id: '/ingest/$',
+  path: '/ingest/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBurritoConsiderRoute = ApiBurritoConsiderRouteImport.update({
   id: '/api/burrito/consider',
   path: '/api/burrito/consider',
@@ -1022,6 +1107,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/burrito': typeof BurritoRoute
   '/profile': typeof ProfileRoute
+  '/ingest/$': typeof IngestSplatRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/burrito/consider': typeof ApiBurritoConsiderRoute
 }
@@ -1029,6 +1115,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/burrito': typeof BurritoRoute
   '/profile': typeof ProfileRoute
+  '/ingest/$': typeof IngestSplatRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/burrito/consider': typeof ApiBurritoConsiderRoute
 }
@@ -1037,6 +1124,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/burrito': typeof BurritoRoute
   '/profile': typeof ProfileRoute
+  '/ingest/$': typeof IngestSplatRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/burrito/consider': typeof ApiBurritoConsiderRoute
 }
@@ -1046,6 +1134,7 @@ export interface FileRouteTypes {
     | '/'
     | '/burrito'
     | '/profile'
+    | '/ingest/$'
     | '/api/auth/login'
     | '/api/burrito/consider'
   fileRoutesByTo: FileRoutesByTo
@@ -1053,6 +1142,7 @@ export interface FileRouteTypes {
     | '/'
     | '/burrito'
     | '/profile'
+    | '/ingest/$'
     | '/api/auth/login'
     | '/api/burrito/consider'
   id:
@@ -1060,6 +1150,7 @@ export interface FileRouteTypes {
     | '/'
     | '/burrito'
     | '/profile'
+    | '/ingest/$'
     | '/api/auth/login'
     | '/api/burrito/consider'
   fileRoutesById: FileRoutesById
@@ -1068,6 +1159,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BurritoRoute: typeof BurritoRoute
   ProfileRoute: typeof ProfileRoute
+  IngestSplatRoute: typeof IngestSplatRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiBurritoConsiderRoute: typeof ApiBurritoConsiderRoute
 }
@@ -1095,6 +1187,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ingest/$': {
+      id: '/ingest/$'
+      path: '/ingest/$'
+      fullPath: '/ingest/$'
+      preLoaderRoute: typeof IngestSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/burrito/consider': {
       id: '/api/burrito/consider'
       path: '/api/burrito/consider'
@@ -1116,6 +1215,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BurritoRoute: BurritoRoute,
   ProfileRoute: ProfileRoute,
+  IngestSplatRoute: IngestSplatRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiBurritoConsiderRoute: ApiBurritoConsiderRoute,
 }
@@ -1144,19 +1244,28 @@ import { PostHog } from 'posthog-node'
 let posthogClient: PostHog | null = null
 
 export function getPostHogClient() {
+  const token =
+    process.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN ||
+    import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN
+  if (!token) {
+    if (import.meta.env.DEV) {
+      console.warn(
+        'VITE_PUBLIC_POSTHOG_PROJECT_TOKEN is not set. Server-side PostHog is disabled.',
+      )
+    }
+    return null
+  }
   if (!posthogClient) {
-    posthogClient = new PostHog(
-      process.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN || import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN!,
-      {
-        host: process.env.VITE_PUBLIC_POSTHOG_HOST || import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-        flushAt: 1,
-        flushInterval: 0,
-      },
-    )
+    posthogClient = new PostHog(token, {
+      host:
+        process.env.VITE_PUBLIC_POSTHOG_HOST ||
+        import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+      flushAt: 1,
+      flushInterval: 0,
+    })
   }
   return posthogClient
 }
-
 
 ```
 
@@ -1179,28 +1288,6 @@ const config = defineConfig({
     tanstackStart(),
     viteReact(),
   ],
-  server: {
-    proxy: {
-      '/ingest/static': {
-        target: 'https://us-assets.i.posthog.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/ingest/, ''),
-        secure: false,
-      },
-      '/ingest/array': {
-        target: 'https://us-assets.i.posthog.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/ingest/, ''),
-        secure: false,
-      },
-      '/ingest': {
-        target: 'https://us.i.posthog.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/ingest/, ''),
-        secure: false,
-      },
-    },
-  },
 })
 
 export default config

@@ -46,6 +46,7 @@ VITE_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
 Get your PostHog project token from your project settings in PostHog.
+If the project token is not set, the app skips PostHog initialization and logs a warning in development.
 
 ### 3. Run the development server
 
@@ -84,9 +85,14 @@ src/
 ```ts
 import posthog from 'posthog-js'
 
-posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN || '', {
-  api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com',
-})
+const posthogToken = import.meta.env.VITE_POSTHOG_PROJECT_TOKEN
+
+if (posthogToken) {
+  posthog.init(posthogToken, {
+    api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com',
+    defaults: '2026-08-30',
+  })
+}
 
 app.config.errorHandler = (err) => {
   posthog.captureException(err)
@@ -150,6 +156,16 @@ npm run build
 # Lint
 npm run lint
 ```
+
+## Reverse proxy
+
+Ad blockers drop requests sent to PostHog's domain, so some events never arrive. A reverse proxy sends events through your own domain instead.
+
+The recommended option is the [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy), which PostHog hosts for you. You create a subdomain in your [organization proxy settings](https://app.posthog.com/settings/organization-proxy) and add a CNAME record at your DNS provider.
+
+If you prefer to run your own, PostHog has guides for [Vercel](https://posthog.com/docs/advanced/proxy/vercel), [Netlify](https://posthog.com/docs/advanced/proxy/netlify) and [Cloudflare](https://posthog.com/docs/advanced/proxy/cloudflare), among others. See [Deploy a reverse proxy](https://posthog.com/docs/advanced/proxy) for the full list.
+
+Once the proxy is live, set `VITE_POSTHOG_HOST` to the proxy URL, for example `https://yoursubdomain.myapp.com`. Also add `ui_host` to the `posthog.init` options, set to your PostHog app URL (`https://us.posthog.com` or `https://eu.posthog.com`), so the toolbar and links into PostHog keep working.
 
 ## Learn more
 
@@ -390,10 +406,16 @@ import posthog from "posthog-js";
 
 const app = createApp(App);
 
-posthog.init(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN || '', {
-  api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com',
-  defaults: '2026-01-30',
-});
+const posthogToken = import.meta.env.VITE_POSTHOG_PROJECT_TOKEN;
+
+if (posthogToken) {
+  posthog.init(posthogToken, {
+    api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com',
+    defaults: '2026-08-30',
+  });
+} else if (import.meta.env.DEV) {
+  console.warn('VITE_POSTHOG_PROJECT_TOKEN is not set. Skipping PostHog initialization.');
+}
 
 app.use(createPinia())
 app.use(router)

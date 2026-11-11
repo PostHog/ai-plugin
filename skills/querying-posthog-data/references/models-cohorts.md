@@ -9,7 +9,6 @@ Cohorts are groups of persons used for segmentation and targeting.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | Integer | NOT NULL | Cohort id.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Cohort name.
 `description` | String | NOT NULL | Cohort description.
 `deleted` | Integer | NOT NULL | 1 if the cohort has been deleted, 0 otherwise.
@@ -114,7 +113,6 @@ Audit trail for cohort calculation jobs.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Calculation run UUID.
-`team_id` | Integer | NOT NULL |
 `cohort_id` | Integer | NOT NULL | Cohort that was recalculated; joins to cohorts.id.
 `count` | Integer | NOT NULL | Number of people in the cohort after this calculation.
 `started_at` | DateTime | NOT NULL | When the calculation started.

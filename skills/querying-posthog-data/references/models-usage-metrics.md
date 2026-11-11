@@ -11,7 +11,6 @@ Usage metrics are team-defined numeric measures that render on Customer Analytic
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Usage metric UUID.
-`team_id` | Integer | NOT NULL |
 `group_type_index` | Integer | NOT NULL | Legacy; the query runner ignores it and evaluates every metric regardless. Don't filter on it.
 `name` | String | NOT NULL | Metric name.
 `format` | String | NOT NULL | Display format: 'numeric' or 'currency'.

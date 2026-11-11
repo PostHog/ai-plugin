@@ -10,7 +10,6 @@ An agent searches for a model that answers it, and the product scores the popula
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Pipeline UUID.
-`team_id` | Integer | NOT NULL | Team the pipeline belongs to.
 `name` | String | NOT NULL | Human-readable name.
 `description` | String | NOT NULL | Free-text description; blank when unset.
 `target_event` | String | NOT NULL | Event the pipeline predicts, for example '$pageview'.

@@ -9,7 +9,6 @@ The monthly tool is available when the project's rollout permits it; the SQL tab
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Unique spend record UUID.
-`team_id` | Integer | NOT NULL |
 `kind` | String | NOT NULL | ad-hoc (signal processing), research, repo_selection, scout_run, reviewer_triggered_implementation, or scout_triggered_implementation.
 `credits` | Decimal | NOT NULL | Recorded usage in credits, including fractional credits and exempt work. May be partial until finalized_at is set; convert with pricing.usd_per_credit from inbox-usage-get.
 `signal_id` | UUID | NULL | Signal owning processing or research spend; joins to document_embeddings.document_id after converting the UUID to a string.
@@ -52,7 +51,6 @@ ORDER BY day, kind
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Record UUID.
-`team_id` | Integer | NOT NULL |
 `task_run_id` | UUID | NOT NULL | Task run that executed the scout; internal runs may be absent from system.task_runs.
 `scout_config_id` | UUID | NULL | Configuration that started the scout; joins to scout_configs.id.
 `skill_name` | String | NOT NULL | Name of the skill that ran.

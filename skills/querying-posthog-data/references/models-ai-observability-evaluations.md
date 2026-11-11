@@ -9,7 +9,6 @@ Evaluation directories organize online evaluations. Directories are flat. An eva
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Directory UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Directory name.
 `created_by_id` | Integer | NULL | User who created the directory.
 `created_at` | DateTime | NOT NULL | When the directory was created.
@@ -24,7 +23,6 @@ Online evaluations score AI generations or traces. Evaluation results are stored
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Evaluation UUID.
-`team_id` | Integer | NOT NULL |
 `directory_id` | UUID | NULL | Directory containing the evaluation; NULL means the top level.
 `name` | String | NOT NULL | Evaluation name.
 `description` | String | NOT NULL | Evaluation description.

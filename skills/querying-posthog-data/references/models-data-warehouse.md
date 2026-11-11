@@ -9,7 +9,6 @@ External data sources connect providers, databases, and files to PostHog's data 
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Source UUID. Pass it as a query's connection id to live-query a direct connection.
-`team_id` | Integer | NOT NULL |
 `source_type` | String | NOT NULL | Source connector type, e.g. 'Stripe', 'Postgres', 'Hubspot'.
 `status` | String | NOT NULL | Legacy source-level status, deprecated in favour of per-schema status in source_schemas.status; may be stale.
 `access_method` | String | NOT NULL | 'direct' for a live-query connection (nothing is synced; its tables exist only when queried through the connection), or 'warehouse' for a source synced into PostHog.
@@ -56,7 +55,6 @@ Individual tables imported from external sources or uploaded files. Each table c
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Warehouse table UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Warehouse table name (includes the source prefix).
 `columns` | JSON | NOT NULL | JSON schema of the table's columns.
 `row_count` | Integer | NOT NULL | Approximate number of rows in the table.
@@ -115,7 +113,6 @@ Each schema represents one table or entity being synced from an external source.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Schema UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Name of the table/endpoint in the external source.
 `source_id` | String | NOT NULL | Parent source; joins to data_warehouse_sources.id.
 `table_id` | String | NOT NULL | Resulting warehouse table; joins to data_warehouse_tables.id.
@@ -161,7 +158,6 @@ Each job tracks the status, row count, and timing of a single sync operation.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Sync job UUID.
-`team_id` | Integer | NOT NULL |
 `pipeline_id` | String | NOT NULL | Source whose pipeline ran; joins to data_warehouse_sources.id.
 `schema_id` | String | NOT NULL | Source schema being synced; joins to source_schemas.id.
 `status` | String | NOT NULL | Job status, e.g. Running, Completed, Failed.

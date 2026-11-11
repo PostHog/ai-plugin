@@ -44,6 +44,7 @@ STEP 3: Install dependencies. (Skip if the codebase already exports OpenTelemetr
     - PHP: the packages from the platform reference. For auto-instrumentation, the `opentelemetry` PHP extension (from PECL) and the `open-telemetry/opentelemetry-auto-*` package for the framework, such as `open-telemetry/opentelemetry-auto-slim`.
     - Ruby: `opentelemetry-sdk`, `opentelemetry-exporter-otlp`, and `opentelemetry-instrumentation-all`, enabled with `c.use_all`.
   - Do not manually edit dependency files — use the package manager's install command.
+  - If the project keeps more than one lockfile for the same manifest, such as a second Gemfile lock for another bundle, update each one.
 
 STEP 4: Configure the OTLP trace exporter.
   - Send spans over OTLP HTTP/protobuf to `/i/v1/traces` on the PostHog host, with the project token in an `Authorization: Bearer` header. Do not use `/i/v0/ai/otel`. That endpoint accepts only LLM spans.
@@ -71,12 +72,15 @@ STEP 6: Link spans to people and sessions. (Optional.)
 
 STEP 7: Set up environment variables.
   - Check if the project already has PostHog environment variables configured (e.g. in `.env`, `.env.local`, or framework-specific env files). If valid values already exist, skip this step.
-  - If the PostHog project token is missing, use the PostHog MCP server's `projects-get` tool to retrieve the project's `api_token`. If multiple projects are returned, ask the user which project to use. If the MCP server is not connected or not authenticated, ask the user for their PostHog project token instead.
+  - If the PostHog project token is missing, use the project token that the tool or CLI which started this setup already gave you (for example in its output or instructions).
+  - If it gave you none, use the PostHog MCP server's `projects-get` tool to retrieve the project's `api_token`. If multiple projects are returned, ask the user which project to use. If the MCP server is not connected or not authenticated, ask the user for their PostHog project token instead.
   - Use the project token (it starts with `phc_`). Do not use a personal API key (it starts with `phx_`).
-  - For the PostHog host URL: check the `projects-get` MCP response for a `region` field — `US` maps to `https://us.i.posthog.com`, `EU` maps to `https://eu.i.posthog.com`. If the region is not available from the MCP response or from existing project configuration, ask the user: "Are you on PostHog US Cloud or EU Cloud?" Do not assume US Cloud.
-  - For the OTLP traces endpoint, use `https://us.i.posthog.com/i/v1/traces` (US) or `https://eu.i.posthog.com/i/v1/traces` (EU), matching the region determined above, with the project token as an `Authorization: Bearer` header.
+  - For the PostHog host URL: use the host that the tool or CLI which started this setup already gave you. If it gave you none, check the `projects-get` MCP response for a `region` field — `US` maps to `https://us.i.posthog.com`, `EU` maps to `https://eu.i.posthog.com`. If you still have no host from the calling tool, the MCP response, or existing project configuration, ask the user: "Are you on PostHog US Cloud or EU Cloud?" Do not assume US Cloud.
+  - For the OTLP traces endpoint, use the same host as above with the path `/i/v1/traces`: `https://us.i.posthog.com/i/v1/traces` (US) or `https://eu.i.posthog.com/i/v1/traces` (EU), with the project token as an `Authorization: Bearer` header.
   - Write these values to the appropriate env file using the framework's naming convention.
   - Reference these environment variables in code instead of hardcoding them.
+  - List the key names in `.env.example`, or the env template the project already uses, with placeholder values, so the next developer knows what to set. Create `.env.example` if the project has none. Never put real values in it.
+  - Read the keys as optional: a missing key must never break the build or boot. Follow the missing-configuration rule in `references/COMMANDMENTS.md`.
 
 STEP 8: Flush spans in short-lived processes.
   - The batch processor exports spans on an interval. A script, cron job, or serverless function can stop before the batch is sent.

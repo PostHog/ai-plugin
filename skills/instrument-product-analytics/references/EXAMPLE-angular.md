@@ -18,7 +18,7 @@ This is an [Angular](https://angular.dev/) example demonstrating PostHog integra
 - **Error tracking**: Capture and track errors
 - **User authentication**: Demo login system with PostHog user identification
 - **SSR-safe**: Uses platform checks for browser-only PostHog calls
-- **Reverse proxy**: PostHog ingestion through Angular proxy
+- **Reverse proxy**: Point `NG_APP_POSTHOG_HOST` at a reverse proxy
 
 ## Getting started
 
@@ -33,11 +33,12 @@ pnpm install
 Create a `.env` file in the root directory:
 
 ```bash
-VITE_POSTHOG_PROJECT_TOKEN=your_posthog_project_token
-VITE_POSTHOG_HOST=https://us.posthog.com
+NG_APP_POSTHOG_PROJECT_TOKEN=your_posthog_project_token
+NG_APP_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
 Get your PostHog project token from your [PostHog project settings](https://app.posthog.com/project/settings).
+If the project token is not set, the app skips PostHog initialization and logs a warning in development.
 
 ### 3. Run the development server
 
@@ -117,11 +118,13 @@ export class AppComponent implements OnInit {
   private readonly posthogService = inject(PostHogService);
 
   ngOnInit(): void {
-    this.posthogService.init(environment.posthogKey, {
-      api_host: '/ingest',
-      ui_host: environment.posthogHost || 'https://us.posthog.com',
-      capture_exceptions: true,
-    });
+    if (environment.posthogKey) {
+      this.posthogService.init(environment.posthogKey, {
+        api_host: environment.posthogHost,
+        defaults: '2026-08-30',
+        capture_exceptions: true,
+      });
+    }
   }
 }
 ```
@@ -166,16 +169,21 @@ This example uses Angular 21 with modern features:
 2. **Signals**: Reactive state management with Angular signals
 3. **SSR support**: Uses `isPlatformBrowser()` checks for SSR safety
 4. **Dependency injection**: PostHog wrapped in an injectable service
-5. **Proxy configuration**: Uses `proxy.conf.json` for PostHog API calls
-6. **Environment files**: Generated from `.env` at build time via prebuild script
+5. **Environment files**: Read from `.env` at build time by `@ngx-env/builder` (variables use the `NG_APP_` prefix)
 
 ## Environment variable handling
 
-Angular CLI doesn't natively support `.env` files. This project uses a prebuild script:
+Angular CLI doesn't natively support `.env` files. This project uses [`@ngx-env/builder`](https://github.com/chihab/ngx-env), which exposes `NG_APP_*` variables through `import.meta.env`. The files in `src/environments/` read them and default to an empty project token, which skips PostHog initialization.
 
-1. `scripts/generate-env.js` reads `.env` and generates `environment.generated.ts`
-2. The script runs automatically before `pnpm start` and `pnpm build`
-3. Environment files import from the generated file
+## Reverse proxy
+
+Ad blockers drop requests sent to PostHog's domain, so some events never arrive. A reverse proxy sends events through your own domain instead.
+
+The recommended option is the [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy), which PostHog hosts for you. You create a subdomain in your [organization proxy settings](https://app.posthog.com/settings/organization-proxy) and add a CNAME record at your DNS provider.
+
+If you prefer to run your own, PostHog has guides for [Vercel](https://posthog.com/docs/advanced/proxy/vercel), [Netlify](https://posthog.com/docs/advanced/proxy/netlify) and [Cloudflare](https://posthog.com/docs/advanced/proxy/cloudflare), among others. See [Deploy a reverse proxy](https://posthog.com/docs/advanced/proxy) for the full list.
+
+Once the proxy is live, set `NG_APP_POSTHOG_HOST` to the proxy URL, for example `https://yoursubdomain.myapp.com`. Also add `ui_host` to the `posthog.init` options, set to your PostHog app URL (`https://us.posthog.com` or `https://eu.posthog.com`), so the toolbar and links into PostHog keep working.
 
 ## Learn more
 
@@ -188,8 +196,8 @@ Angular CLI doesn't natively support `.env` files. This project uses a prebuild 
 ## .env.example
 
 ```example
-NG_APP_POSTHOG_PROJECT_TOKEN=<ph_project_token>
-NG_APP_POSTHOG_HOST=https://us.posthog.com
+NG_APP_POSTHOG_PROJECT_TOKEN=your_posthog_project_token
+NG_APP_POSTHOG_HOST=https://us.i.posthog.com
 
 ```
 
@@ -225,12 +233,18 @@ export class AppComponent implements OnInit {
   private readonly posthogService = inject(PostHogService);
 
   ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    if (environment.posthogKey) {
       this.posthogService.init(environment.posthogKey, {
-        api_host: '/ingest',
-        ui_host: environment.posthogHost || 'https://us.posthog.com',
+        api_host: environment.posthogHost,
+        defaults: '2026-08-30',
         capture_exceptions: true,
       });
+    } else if (!environment.production) {
+      console.warn('NG_APP_POSTHOG_PROJECT_TOKEN is not set. Skipping PostHog initialization.');
     }
   }
 }
@@ -855,8 +869,8 @@ declare interface ImportMeta {
 ```ts
 export const environment = {
   production: true,
-  posthogKey: import.meta.env['NG_APP_POSTHOG_PROJECT_TOKEN'] || '<ph_project_token>',
-  posthogHost: import.meta.env['NG_APP_POSTHOG_HOST'] || 'https://us.posthog.com',
+  posthogKey: import.meta.env['NG_APP_POSTHOG_PROJECT_TOKEN'] || '',
+  posthogHost: import.meta.env['NG_APP_POSTHOG_HOST'] || 'https://us.i.posthog.com',
 };
 
 ```
@@ -868,8 +882,8 @@ export const environment = {
 ```ts
 export const environment = {
   production: true,
-  posthogKey: import.meta.env['NG_APP_POSTHOG_PROJECT_TOKEN'] || '<ph_project_token>',
-  posthogHost: import.meta.env['NG_APP_POSTHOG_HOST'] || 'https://us.posthog.com',
+  posthogKey: import.meta.env['NG_APP_POSTHOG_PROJECT_TOKEN'] || '',
+  posthogHost: import.meta.env['NG_APP_POSTHOG_HOST'] || 'https://us.i.posthog.com',
 };
 
 ```
@@ -881,8 +895,8 @@ export const environment = {
 ```ts
 export const environment = {
   production: false,
-  posthogKey: import.meta.env['NG_APP_POSTHOG_PROJECT_TOKEN'] || '<ph_project_token>',
-  posthogHost: import.meta.env['NG_APP_POSTHOG_HOST'] || 'https://us.posthog.com',
+  posthogKey: import.meta.env['NG_APP_POSTHOG_PROJECT_TOKEN'] || '',
+  posthogHost: import.meta.env['NG_APP_POSTHOG_HOST'] || 'https://us.i.posthog.com',
 };
 
 ```

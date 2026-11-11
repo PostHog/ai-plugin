@@ -9,7 +9,6 @@ Annotations are timestamped notes used to mark product changes, incidents, or re
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | Integer | NOT NULL | Annotation id.
-`team_id` | Integer | NOT NULL |
 `content` | String | NULL | Annotation text.
 `scope` | String | NOT NULL | Where the annotation applies: 'project', 'organization', 'dashboard', 'dashboard_item' (insight), or 'recording'.
 `creation_type` | String | NOT NULL | How the annotation was created, e.g. user-created vs GitHub.

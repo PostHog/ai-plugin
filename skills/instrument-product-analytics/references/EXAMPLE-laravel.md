@@ -18,16 +18,16 @@ A Laravel application demonstrating PostHog integration for analytics, feature f
 - User identification and property tracking
 - Custom event tracking (burrito consideration tracker)
 - Page view tracking (dashboard, profile)
-- Feature flags with payload support
+- Feature flags with payload support (`evaluateFlags`)
 - Error tracking with manual exception capture
 - Reactive UI components with Livewire
 
 ## Tech Stack
 
-- **Framework**: Laravel 11.x
-- **Reactive Components**: Livewire 3.x
+- **Framework**: Laravel 12.x (PHP 8.2+)
+- **Reactive Components**: Livewire 4.x
 - **Database**: SQLite
-- **Analytics**: PostHog PHP SDK
+- **Analytics**: PostHog Laravel SDK (`posthog/posthog-laravel`)
 
 ## Quick Start
 
@@ -48,10 +48,11 @@ A Laravel application demonstrating PostHog integration for analytics, feature f
 
 3. Configure PostHog in `.env`:
    ```env
-   POSTHOG_PROJECT_TOKEN=your_posthog_project_token
+   POSTHOG_API_KEY=phc_your_project_token
    POSTHOG_HOST=https://us.i.posthog.com
-   POSTHOG_DISABLED=false
+   POSTHOG_ENABLED=true
    ```
+   For an EU Cloud project, use `https://eu.i.posthog.com` as the host. With a blank `POSTHOG_API_KEY` the app boots with PostHog disabled.
 
 4. Generate application key:
    ```bash
@@ -73,90 +74,110 @@ A Laravel application demonstrating PostHog integration for analytics, feature f
    - Login with default credentials: `admin@example.com` / `admin`
    - Or click "Sign up here" to create a new account
 
-## PostHog Service
+## How PostHog is wired in
 
-The `PostHogService` class (`app/Services/PostHogService.php`) wraps the PostHog PHP SDK and provides:
+This example uses the [PostHog Laravel SDK](https://posthog.com/docs/libraries/laravel) (`posthog/posthog-laravel`), which requires Laravel 12 or 13. Setup is two commands plus environment variables:
 
-| Method | Description |
-|--------|-------------|
-| `identify($distinctId, $properties)` | Identify a user with properties |
-| `capture($distinctId, $event, $properties)` | Capture custom events |
-| `captureException($exception, $distinctId)` | Capture exceptions with stack traces |
-| `isFeatureEnabled($key, $distinctId, $properties)` | Check feature flag status |
-| `getFeatureFlagPayload($key, $distinctId)` | Get feature flag payload |
+```bash
+composer require posthog/posthog-laravel
+php artisan posthog:install
+```
 
-All methods check `config('posthog.disabled')` and return early if PostHog is disabled.
+`posthog:install` publishes `config/posthog.php`, which reads `POSTHOG_API_KEY`, `POSTHOG_HOST` and `POSTHOG_ENABLED`. Laravel's package discovery registers the service provider and the `PostHog\Laravel\Facades\PostHog` facade, so the app has no PostHog service provider, middleware, exception callback or wrapper class.
+
+> **Laravel 11 or earlier:** the Laravel SDK does not support these versions. Use the PHP SDK (`posthog/posthog-php`) with the "Manual setup with the PHP SDK" steps on the [Laravel docs page](https://posthog.com/docs/libraries/laravel) instead. Do not combine that setup with this SDK.
+
+## What the SDK does for you
+
+- Events captured during a request carry the request method and matched route, and the visitor's IP as `$ip`.
+- The identity is the signed-in user's auth identifier. Without a signed-in user, the SDK falls back to the `X-PostHog-Distinct-Id` header sent by posthog-js, which is client-controlled and never authentication.
+- Signed-out events with no identity get a fresh random ID with `$process_person_profile` set to `false`. These IDs do not link events from the same visitor ([anonymous vs identified events](https://posthog.com/docs/data/anonymous-vs-identified-events.md)).
+- Exceptions Laravel reports are captured, honoring `dontReport`.
+- Events are flushed at the end of each request, queue job and Octane tick.
+- A blank `POSTHOG_API_KEY` or `POSTHOG_ENABLED=false` turns every call into a no-op without breaking boot. Run `php artisan posthog:doctor` to check the configuration.
+
+**Still done by the app**
+
+- Identifying users at login and signup with a stable distinct ID (`User::getPostHogDistinctId()`, the primary key, not the email, which can change).
+- Capturing events with `PostHog::capture`.
+- Evaluating flags with `PostHog::evaluateFlags`.
+- Capturing handled exceptions with `PostHog::captureException`.
+
+Behind a reverse proxy or load balancer, configure Laravel's [trusted proxies](https://laravel.com/docs/requests#configuring-trusted-proxies) so `$ip` is the visitor's address. Set `POSTHOG_CAPTURE_IP=false` to turn IP collection off.
+
+This example loads no browser SDK, so there is no `posthog-js` or reverse proxy setup here. If you add `posthog-js`, set `defaults: '2026-08-30'`, configure `tracing_headers` for this app's hostname, and see the [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md).
 
 ## PostHog Integration Points
 
+Every call uses the facade: `use PostHog\Laravel\Facades\PostHog;`.
+
 ### User Registration (`app/Http/Livewire/Auth/Register.php`)
-New users are identified and tracked on signup:
+New users are identified and tracked on signup. The distinct ID is passed explicitly so the identify and the event are tied to the same person:
 ```php
-$posthog->identify($user->email, $user->getPostHogProperties());
-$posthog->capture($user->email, 'user_signed_up', [
-    'signup_method' => 'form',
+PostHog::identify([
+    'distinctId' => $user->getPostHogDistinctId(),
+    'properties' => $user->getPostHogProperties(),
 ]);
+PostHog::capture('user_signed_up', [
+    'signup_method' => 'form',
+], $user->getPostHogDistinctId());
 ```
 
 ### User Login (`app/Http/Livewire/Auth/Login.php`)
-Users are identified on login with their properties:
+Users are identified on login with their properties. The distinct ID is passed explicitly so the identify and the event are tied to the same person:
 ```php
-$posthog->identify($user->email, $user->getPostHogProperties());
-$posthog->capture($user->email, 'user_logged_in', [
-    'login_method' => 'password',
+PostHog::identify([
+    'distinctId' => $user->getPostHogDistinctId(),
+    'properties' => $user->getPostHogProperties(),
 ]);
+PostHog::capture('user_logged_in', [
+    'login_method' => 'password',
+], $user->getPostHogDistinctId());
 ```
 
 ### User Logout (`routes/web.php`)
-Logout events are tracked:
+The event is captured before `Auth::logout()`, while the request still has a signed-in user:
 ```php
-$posthog->capture($user->email, 'user_logged_out');
+PostHog::capture('user_logged_out');
 ```
 
 ### Page View Tracking
-Dashboard and profile views are tracked (`app/Http/Livewire/Dashboard.php`, `app/Http/Livewire/Profile.php`):
+Dashboard and profile views are tracked (`app/Http/Livewire/Dashboard.php`, `app/Http/Livewire/Profile.php`). No distinct ID is passed: the SDK uses the signed-in user.
 ```php
-$posthog->capture($user->email, 'dashboard_viewed', [
+PostHog::capture('dashboard_viewed', [
     'is_staff' => $user->is_staff,
 ]);
 
-$posthog->capture($user->email, 'profile_viewed');
+PostHog::capture('profile_viewed');
 ```
 
 ### Custom Event Tracking (`app/Http/Livewire/BurritoTracker.php`)
 The burrito tracker demonstrates custom event capture:
 ```php
-$posthog->identify($user->email, $user->getPostHogProperties());
-$posthog->capture($user->email, 'burrito_considered', [
+PostHog::capture('burrito_considered', [
     'total_considerations' => $this->burritoCount,
 ]);
 ```
 
 ### Feature Flags (`app/Http/Livewire/Dashboard.php`)
-The dashboard demonstrates feature flag checking:
+The dashboard evaluates flags once for the signed-in user and reads from the snapshot:
 ```php
-$this->showNewFeature = $posthog->isFeatureEnabled(
-    'new-dashboard-feature',
-    $user->email,
-    $user->getPostHogProperties()
-) ?? false;
+$flags = PostHog::evaluateFlags(personProperties: $user->getPostHogProperties());
 
-$this->featureConfig = $posthog->getFeatureFlagPayload(
-    'new-dashboard-feature',
-    $user->email
-);
+$this->showNewFeature = $flags->isEnabled('new-dashboard-feature');
+$this->featureConfig = $flags->getFlagPayload('new-dashboard-feature');
 ```
 
 ### Error Tracking
-Manual exception capture is demonstrated in multiple places:
+Manual exception capture is demonstrated in multiple places. `captureException` returns a boolean, not an event ID, so the UI does not show an error ID.
 
 **Livewire Components** (`app/Http/Livewire/Dashboard.php`, `app/Http/Livewire/Profile.php`):
 ```php
 try {
     throw new \Exception('This is a test error for PostHog tracking');
 } catch (\Exception $e) {
-    $errorId = $posthog->captureException($e, $user->email);
-    $this->successMessage = "Error captured in PostHog! Error ID: {$errorId}";
+    PostHog::captureException($e);
+    $this->successMessage = 'Error captured in PostHog!';
 }
 ```
 
@@ -166,19 +187,19 @@ try {
     throw new \Exception('Test exception from critical operation');
 } catch (\Throwable $e) {
     if ($shouldCapture) {
-        $posthog->identify($user->email, $user->getPostHogProperties());
-        $eventId = $posthog->captureException($e, $user->email);
+        PostHog::captureException($e, properties: ['operation' => 'critical']);
 
         return response()->json([
             'error' => 'Operation failed',
-            'error_id' => $eventId,
-            'message' => "Error captured in PostHog. Reference ID: {$eventId}",
+            'message' => 'Error captured in PostHog.',
         ], 500);
     }
 }
 ```
 
-The `/api/test-error` endpoint demonstrates manual exception capture. Use `?capture=true` to capture in PostHog, or `?capture=false` to skip tracking.
+The `/api/test-error` endpoint demonstrates manual exception capture. Use `?capture=true` to capture in PostHog, or `?capture=false` to skip tracking. The API routes use the session guard, so call them from a signed-in browser session with a CSRF token.
+
+Exceptions that Laravel reports on its own (uncaught ones) are captured by the SDK with no code in the app.
 
 
 ## Pages
@@ -209,10 +230,8 @@ example-apps/laravel/
 │   │       ├── BurritoTracker.php          # Burrito tracker component
 │   │       ├── Dashboard.php               # Dashboard with feature flags
 │   │       └── Profile.php                 # User profile component
-│   ├── Models/
-│   │   └── User.php                        # User model with PostHog properties
-│   └── Services/
-│       └── PostHogService.php              # PostHog wrapper service
+│   └── Models/
+│       └── User.php                        # User model with PostHog properties
 ├── database/
 │   ├── migrations/                         # Database migrations
 │   └── seeders/
@@ -237,7 +256,7 @@ example-apps/laravel/
 │   ├── web.php                             # Web routes (auth, pages)
 │   └── api.php                             # API routes
 └── config/
-    └── posthog.php                         # PostHog configuration
+    └── posthog.php                         # Published by posthog:install
 ```
 
 ## Development Commands
@@ -275,9 +294,11 @@ CACHE_STORE=file
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
 
-POSTHOG_PROJECT_TOKEN=your_posthog_project_token_here
+# The app boots with PostHog disabled when POSTHOG_API_KEY is blank
+POSTHOG_API_KEY=phc_your_project_token_here
 POSTHOG_HOST=https://us.i.posthog.com
-POSTHOG_DISABLED=false
+# Set to false to turn PostHog off even when a key is present
+POSTHOG_ENABLED=true
 
 ```
 
@@ -291,24 +312,20 @@ POSTHOG_DISABLED=false
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\PostHogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use PostHog\Laravel\Facades\PostHog;
 
 class BurritoController extends Controller
 {
-    public function consider(Request $request, PostHogService $posthog): JsonResponse
+    public function consider(Request $request): JsonResponse
     {
-        $user = Auth::user();
-
         // Increment session counter
         $burritoCount = session('burrito_count', 0) + 1;
         session(['burrito_count' => $burritoCount]);
 
         // PostHog: Track event
-        $posthog->identify($user->email, $user->getPostHogProperties());
-        $posthog->capture($user->email, 'burrito_considered', [
+        PostHog::capture('burrito_considered', [
             'total_considerations' => $burritoCount,
         ]);
 
@@ -331,30 +348,26 @@ class BurritoController extends Controller
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\PostHogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use PostHog\Laravel\Facades\PostHog;
 
 class ErrorTestController extends Controller
 {
-    public function test(Request $request, PostHogService $posthog): JsonResponse
+    public function test(Request $request): JsonResponse
     {
         $shouldCapture = $request->query('capture', 'true') === 'true';
-        $user = Auth::user();
 
         try {
             throw new \Exception('Test exception from critical operation');
         } catch (\Throwable $e) {
             if ($shouldCapture) {
                 // Capture in PostHog
-                $posthog->identify($user->email, $user->getPostHogProperties());
-                $eventId = $posthog->captureException($e, $user->email);
+                PostHog::captureException($e, properties: ['operation' => 'critical']);
 
                 return response()->json([
                     'error' => 'Operation failed',
-                    'error_id' => $eventId,
-                    'message' => "Error captured in PostHog. Reference ID: {$eventId}",
+                    'message' => 'Error captured in PostHog.',
                 ], 500);
             }
 
@@ -392,9 +405,9 @@ abstract class Controller
 
 namespace App\Http\Livewire\Auth;
 
-use App\Services\PostHogService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use PostHog\Laravel\Facades\PostHog;
 
 class Login extends Component
 {
@@ -407,7 +420,7 @@ class Login extends Component
         'password' => 'required',
     ];
 
-    public function login(PostHogService $posthog)
+    public function login()
     {
         $this->validate();
 
@@ -415,10 +428,13 @@ class Login extends Component
             $user = Auth::user();
 
             // PostHog: Identify and track login
-            $posthog->identify($user->email, $user->getPostHogProperties());
-            $posthog->capture($user->email, 'user_logged_in', [
-                'login_method' => 'password',
+            PostHog::identify([
+                'distinctId' => $user->getPostHogDistinctId(),
+                'properties' => $user->getPostHogProperties(),
             ]);
+            PostHog::capture('user_logged_in', [
+                'login_method' => 'password',
+            ], $user->getPostHogDistinctId());
 
             session()->regenerate();
 
@@ -447,9 +463,9 @@ class Login extends Component
 namespace App\Http\Livewire\Auth;
 
 use App\Models\User;
-use App\Services\PostHogService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use PostHog\Laravel\Facades\PostHog;
 
 class Register extends Component
 {
@@ -462,7 +478,7 @@ class Register extends Component
         'password' => 'required|min:6|confirmed',
     ];
 
-    public function register(PostHogService $posthog)
+    public function register()
     {
         $validated = $this->validate();
 
@@ -473,10 +489,13 @@ class Register extends Component
         ]);
 
         // PostHog: Identify new user and track signup
-        $posthog->identify($user->email, $user->getPostHogProperties());
-        $posthog->capture($user->email, 'user_signed_up', [
-            'signup_method' => 'form',
+        PostHog::identify([
+            'distinctId' => $user->getPostHogDistinctId(),
+            'properties' => $user->getPostHogProperties(),
         ]);
+        PostHog::capture('user_signed_up', [
+            'signup_method' => 'form',
+        ], $user->getPostHogDistinctId());
 
         Auth::login($user);
 
@@ -503,9 +522,8 @@ class Register extends Component
 
 namespace App\Http\Livewire;
 
-use App\Services\PostHogService;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use PostHog\Laravel\Facades\PostHog;
 
 class BurritoTracker extends Component
 {
@@ -516,15 +534,13 @@ class BurritoTracker extends Component
         $this->burritoCount = session('burrito_count', 0);
     }
 
-    public function considerBurrito(PostHogService $posthog)
+    public function considerBurrito()
     {
         $this->burritoCount++;
         session(['burrito_count' => $this->burritoCount]);
 
         // PostHog: Track burrito consideration
-        $user = Auth::user();
-        $posthog->identify($user->email, $user->getPostHogProperties());
-        $posthog->capture($user->email, 'burrito_considered', [
+        PostHog::capture('burrito_considered', [
             'total_considerations' => $this->burritoCount,
         ]);
 
@@ -549,9 +565,9 @@ class BurritoTracker extends Component
 
 namespace App\Http\Livewire;
 
-use App\Services\PostHogService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use PostHog\Laravel\Facades\PostHog;
 
 class Dashboard extends Component
 {
@@ -560,41 +576,32 @@ class Dashboard extends Component
     public ?string $errorMessage = null;
     public ?string $successMessage = null;
 
-    public function mount(PostHogService $posthog)
+    public function mount()
     {
         $user = Auth::user();
 
         // PostHog: Track dashboard view
-        $posthog->capture($user->email, 'dashboard_viewed', [
+        PostHog::capture('dashboard_viewed', [
             'is_staff' => $user->is_staff,
         ]);
 
-        // Check feature flag
-        $this->showNewFeature = $posthog->isFeatureEnabled(
-            'new-dashboard-feature',
-            $user->email,
-            $user->getPostHogProperties()
-        ) ?? false;
+        // Evaluate flags once, then read from the snapshot
+        $flags = PostHog::evaluateFlags(personProperties: $user->getPostHogProperties());
 
-        // Get feature flag payload
-        $this->featureConfig = $posthog->getFeatureFlagPayload(
-            'new-dashboard-feature',
-            $user->email
-        );
+        $this->showNewFeature = $flags->isEnabled('new-dashboard-feature');
+        $this->featureConfig = $flags->getFlagPayload('new-dashboard-feature');
     }
 
-    public function testErrorWithCapture(PostHogService $posthog)
+    public function testErrorWithCapture()
     {
-        $user = Auth::user();
-
         try {
             // Simulate an error
             throw new \Exception('This is a test error for PostHog tracking');
         } catch (\Exception $e) {
             // Capture the exception in PostHog
-            $errorId = $posthog->captureException($e, $user->email);
+            PostHog::captureException($e);
 
-            $this->successMessage = "Error captured in PostHog! Error ID: {$errorId}";
+            $this->successMessage = 'Error captured in PostHog!';
             $this->errorMessage = null;
         }
     }
@@ -628,35 +635,30 @@ class Dashboard extends Component
 
 namespace App\Http\Livewire;
 
-use App\Services\PostHogService;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use PostHog\Laravel\Facades\PostHog;
 
 class Profile extends Component
 {
     public ?string $errorMessage = null;
     public ?string $successMessage = null;
 
-    public function mount(PostHogService $posthog)
+    public function mount()
     {
-        $user = Auth::user();
-
         // PostHog: Track profile view
-        $posthog->capture($user->email, 'profile_viewed');
+        PostHog::capture('profile_viewed');
     }
 
-    public function testErrorWithCapture(PostHogService $posthog)
+    public function testErrorWithCapture()
     {
-        $user = Auth::user();
-
         try {
             // Simulate an error
             throw new \Exception('This is a test error for PostHog tracking');
         } catch (\Exception $e) {
             // Capture the exception in PostHog
-            $errorId = $posthog->captureException($e, $user->email);
+            PostHog::captureException($e);
 
-            $this->successMessage = "Error captured in PostHog! Error ID: {$errorId}";
+            $this->successMessage = 'Error captured in PostHog!';
             $this->errorMessage = null;
         }
     }
@@ -718,6 +720,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Stable PostHog distinct ID. The primary key, not the email, which can
+     * change and would split one person's history in two.
+     */
+    public function getPostHogDistinctId(): string
+    {
+        return (string) $this->getKey();
+    }
+
+    /**
      * Get PostHog person properties for this user.
      */
     public function getPostHogProperties(): array
@@ -727,104 +738,6 @@ class User extends Authenticatable
             'is_staff' => $this->is_staff,
             'date_joined' => $this->created_at->toISOString(),
         ];
-    }
-}
-
-```
-
----
-
-## app/Services/PostHogService.php
-
-```php
-<?php
-
-namespace App\Services;
-
-use PostHog\PostHog;
-use Illuminate\Support\Facades\Auth;
-
-class PostHogService
-{
-    protected static $initialized = false;
-
-    public function __construct()
-    {
-        if (config('posthog.disabled')) {
-            return;
-        }
-
-        // Initialize PostHog once
-        if (!self::$initialized) {
-            PostHog::init(
-                config('posthog.api_key'),
-                [
-                    'host' => config('posthog.host'),
-                    'debug' => config('posthog.debug'),
-                ]
-            );
-            self::$initialized = true;
-        }
-    }
-
-    public function identify(string $distinctId, array $properties = []): void
-    {
-        if (config('posthog.disabled')) {
-            return;
-        }
-
-        PostHog::identify([
-            'distinctId' => $distinctId,
-            'properties' => $properties,
-        ]);
-    }
-
-    public function capture(string $distinctId, string $event, array $properties = []): void
-    {
-        if (config('posthog.disabled')) {
-            return;
-        }
-
-        PostHog::capture([
-            'distinctId' => $distinctId,
-            'event' => $event,
-            'properties' => $properties,
-        ]);
-    }
-
-    public function captureException(\Throwable $exception, ?string $distinctId = null): ?string
-    {
-        if (config('posthog.disabled')) {
-            return null;
-        }
-
-        $distinctId = $distinctId ?? Auth::user()?->email ?? 'anonymous';
-
-        $eventId = uniqid('error_', true);
-
-        PostHog::captureException($exception, $distinctId, [
-            'error_id' => $eventId,
-        ]);
-
-        return $eventId;
-    }
-
-    public function isFeatureEnabled(string $key, string $distinctId, array $properties = []): ?bool
-    {
-        if (config('posthog.disabled')) {
-            return false;
-        }
-
-        return PostHog::isFeatureEnabled($key, $distinctId, $properties);
-    }
-
-    public function getFeatureFlagPayload(string $key, string $distinctId)
-    {
-        if (config('posthog.disabled')) {
-            return null;
-        }
-
-        return PostHog::getFeatureFlagPayload($key, $distinctId);
     }
 }
 
@@ -893,6 +806,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
+
+```
+
+---
+
+## bootstrap/providers.php
+
+```php
+<?php
+
+return [];
 
 ```
 
@@ -1046,11 +970,54 @@ return [
 ```php
 <?php
 
+$integer = static function (string $name): ?int {
+    $value = env($name);
+    return $value === null || $value === '' ? null : (int) $value;
+};
+$decimal = static function (string $name): ?float {
+    $value = env($name);
+    return $value === null || $value === '' ? null : (float) $value;
+};
+$consumer = env('POSTHOG_CONSUMER');
+
 return [
-    'api_key' => env('POSTHOG_PROJECT_TOKEN', ''),
+    'enabled' => env('POSTHOG_ENABLED', true),
+    'api_key' => env('POSTHOG_API_KEY'),
     'host' => env('POSTHOG_HOST', 'https://us.i.posthog.com'),
-    'disabled' => env('POSTHOG_DISABLED', false),
-    'debug' => env('APP_DEBUG', false),
+    'secret_key' => env('POSTHOG_SECRET_KEY'),
+    'release_id' => env('POSTHOG_RELEASE_ID'),
+    'capture_exceptions' => true,
+    'capture_ip' => env('POSTHOG_CAPTURE_IP', true),
+    'header_context' => true,
+    'queue_context' => true,
+    'laravel_queue' => [
+        'enabled' => env('POSTHOG_LARAVEL_QUEUE_ENABLED', false),
+        'connection' => env('POSTHOG_LARAVEL_QUEUE_CONNECTION'),
+        'name' => env('POSTHOG_LARAVEL_QUEUE_NAME'),
+    ],
+    // Invokable container class; receives the application and returns a distinct ID or null.
+    'distinct_id' => null,
+    // Invokable container class; receives the application and returns group identifiers.
+    'groups' => null,
+    'sdk' => array_filter([
+        'disableGeoip' => true,
+        'timeout' => $decimal($consumer === 'socket' ? 'POSTHOG_SOCKET_TIMEOUT_SECONDS' : 'POSTHOG_TIMEOUT_MS'),
+        'http_timeout_ms' => $decimal('POSTHOG_TIMEOUT_MS'),
+        'batch_size' => $integer('POSTHOG_BATCH_SIZE'),
+        'max_queue_size' => $integer('POSTHOG_MAX_QUEUE_SIZE'),
+        'flush_interval_seconds' => $decimal('POSTHOG_FLUSH_INTERVAL_SECONDS'),
+        'compress_request' => env('POSTHOG_COMPRESS_REQUEST'),
+        'consumer' => $consumer,
+        'feature_flag_request_timeout_ms' => $integer('POSTHOG_FF_REQUEST_TIMEOUT_MS'),
+        'feature_flag_request_max_retries' => $integer('POSTHOG_FF_REQUEST_MAX_RETRIES'),
+        // before_send, error_handler and flag_definition_cache_provider accept container class names.
+    ], static fn ($value) => $value !== null && $value !== ''),
+    'flag_cache' => [
+        'enabled' => false,
+        'store' => null,
+        'ttl' => 300,
+        'refresh_interval' => 30,
+    ],
 ];
 
 ```
@@ -1162,13 +1129,14 @@ This document summarizes the implementation of the Laravel PostHog example appli
 - ✅ SQLite database configuration
 
 **PostHog Integration**
-- ✅ PostHog configuration file (`config/posthog.php`)
-- ✅ PostHogService class with all core methods:
+- ✅ PostHog Laravel SDK (`posthog/posthog-laravel`), configuration published with `php artisan posthog:install` (`config/posthog.php`)
+- ✅ Calls through the `PostHog\Laravel\Facades\PostHog` facade:
   - `identify()` - User identification
   - `capture()` - Event tracking
   - `captureException()` - Error tracking
-  - `isFeatureEnabled()` - Feature flag checking
-  - `getFeatureFlagPayload()` - Feature flag payload retrieval
+  - `evaluateFlags()` - Evaluate flags once, read values from the snapshot
+
+The SDK registers itself through package discovery and handles request context, exception reporting and flushing. The app has no PostHog service provider, middleware or wrapper class. Apps on Laravel 11 or earlier use the PHP SDK manual setup from the [Laravel docs page](https://posthog.com/docs/libraries/laravel) instead.
 
 **Authentication (Livewire Components)**
 - ✅ Login component with PostHog tracking
@@ -1225,7 +1193,7 @@ This document summarizes the implementation of the Laravel PostHog example appli
 
 ### 4. Error Tracking
 - Manual exception capture
-- Error ID generation
+- `captureException` returns a boolean, so no error ID is shown
 - Test endpoint with optional capture (`?capture=true/false`)
 
 ### 5. UI/UX
@@ -1238,15 +1206,15 @@ This document summarizes the implementation of the Laravel PostHog example appli
 
 | Feature | Location | PostHog Method |
 |---------|----------|----------------|
-| User Login | `Login.php:23-27` | `identify()` + `capture()` |
-| User Signup | `Register.php:29-32` | `identify()` + `capture()` |
-| User Logout | `web.php:25` | `capture()` |
-| Dashboard View | `Dashboard.php:18` | `capture()` |
-| Feature Flag Check | `Dashboard.php:21-25` | `isFeatureEnabled()` |
-| Feature Flag Payload | `Dashboard.php:28-31` | `getFeatureFlagPayload()` |
-| Burrito Tracking | `BurritoTracker.php:22-24` | `identify()` + `capture()` |
-| Profile View | `Profile.php:14` | `capture()` |
-| Error Capture | `ErrorTestController.php:22-24` | `identify()` + `captureException()` |
+| User Login | `Login.php` | `identify()` + `capture()` with explicit distinct ID |
+| User Signup | `Register.php` | `identify()` + `capture()` with explicit distinct ID |
+| User Logout | `routes/web.php` | `capture()` before `Auth::logout()` |
+| Dashboard View | `Dashboard.php` | `capture()` |
+| Feature Flag Check | `Dashboard.php` | `evaluateFlags(personProperties: ...)` + `isEnabled()` |
+| Feature Flag Payload | `Dashboard.php` | `getFlagPayload()` |
+| Burrito Tracking | `BurritoTracker.php`, `BurritoController.php` | `capture()` |
+| Profile View | `Profile.php` | `capture()` |
+| Error Capture | `Dashboard.php`, `Profile.php`, `ErrorTestController.php` | `captureException()` |
 
 ## 📁 File Structure
 
@@ -1266,10 +1234,8 @@ example-apps/laravel/
 │   │       ├── Dashboard.php
 │   │       ├── BurritoTracker.php
 │   │       └── Profile.php
-│   ├── Models/
-│   │   └── User.php
-│   └── Services/
-│       └── PostHogService.php
+│   └── Models/
+│       └── User.php
 ├── config/
 │   ├── app.php
 │   ├── auth.php
@@ -1336,14 +1302,14 @@ To make this a production-ready application:
 6. **Validation**: Add form request classes
 7. **Testing**: Implement PHPUnit tests
 8. **Caching**: Configure Redis/Memcached
-9. **Queue**: Set up queue workers for PostHog events
+9. **Queue**: The SDK flushes at queue job boundaries; no extra PostHog setup is needed for workers
 10. **Deployment**: Configure for production server
 
 ## 📝 Notes
 
 - This implementation uses inline CSS (matching Flask example) instead of Tailwind compilation
 - Livewire provides reactivity without separate JavaScript files
-- PostHog service is dependency-injected into components/controllers
+- PostHog is called through the SDK facade; no service is injected
 - Manual error capture pattern matches Flask implementation
 - Session-based burrito counter (same as Flask)
 - Default admin account: admin@example.com / admin
@@ -1352,15 +1318,15 @@ To make this a production-ready application:
 
 - [Laravel Documentation](https://laravel.com/docs)
 - [Livewire Documentation](https://livewire.laravel.com)
-- [PostHog PHP SDK](https://github.com/PostHog/posthog-php)
+- [PostHog Laravel SDK](https://github.com/PostHog/posthog-laravel)
 - [Eloquent ORM](https://laravel.com/docs/eloquent)
 
 ---
 
 **Implementation Date**: January 2026
-**Laravel Version**: 11.x
-**Livewire Version**: 3.x
-**PostHog PHP SDK**: 3.x
+**Laravel Version**: 12.x
+**Livewire Version**: 4.x
+**PostHog Laravel SDK**: 0.3.x
 
 ---
 
@@ -1976,19 +1942,21 @@ require __DIR__.'/../vendor/autoload.php';
 
     <div class="card">
         <h2>PostHog Integration</h2>
-        <p class="text-gray">When you sign up, the following PostHog events are captured:</p>
+        <p class="text-gray">When you sign up, the following PostHog calls are made:</p>
         <ul class="text-gray" style="margin-top: 10px;">
-            <li><code>identify()</code> - Associates your email with the user</li>
-            <li><code>capture()</code> - Sets person properties (email, etc.)</li>
-            <li><code>user_signed_up</code> event - Tracks the signup action</li>
+            <li><code>identify()</code> - Sets person properties (email, etc.) for your user ID</li>
+            <li><code>capture()</code> - Records the <code>user_signed_up</code> event for that user</li>
         </ul>
 
         <h3 style="margin-top: 20px;">Code Example</h3>
         <pre>// After creating the user
-$posthog->identify($user->email, $user->getPostHogProperties());
-$posthog->capture($user->email, 'user_signed_up', [
-    'signup_method' => 'form'
-]);</pre>
+PostHog::identify([
+    'distinctId' => $user->getPostHogDistinctId(),
+    'properties' => $user->getPostHogProperties(),
+]);
+PostHog::capture('user_signed_up', [
+    'signup_method' => 'form',
+], $user->getPostHogDistinctId());</pre>
     </div>
 </div>
 
@@ -2021,14 +1989,12 @@ $posthog->capture($user->email, 'user_signed_up', [
     <div class="card">
         <h3>Code Example</h3>
         <pre>// Livewire component method
-public function considerBurrito(PostHogService $posthog)
+public function considerBurrito()
 {
     $this->burritoCount++;
     session(['burrito_count' => $this->burritoCount]);
 
-    $user = Auth::user();
-    $posthog->identify($user->email, $user->getPostHogProperties());
-    $posthog->capture($user->email, 'burrito_considered', [
+    PostHog::capture('burrito_considered', [
         'total_considerations' => $this->burritoCount,
     ]);
 }</pre>
@@ -2079,11 +2045,10 @@ public function considerBurrito(PostHogService $posthog)
     processPayment();
 } catch (\Throwable $e) {
     // Manually capture this specific exception
-    $errorId = $posthog->captureException($e, $user->email);
+    PostHog::captureException($e);
 
     return response()->json([
         'error' => 'Operation failed',
-        'error_id' => $errorId
     ], 500);
 }</pre>
         <p class="text-gray" style="margin-top: 10px;">This demonstrates manual exception capture where you have control over whether errors are sent to PostHog.</p>
@@ -2107,18 +2072,11 @@ public function considerBurrito(PostHogService $posthog)
         @endif
 
         <h3 style="margin-top: 20px;">Code Example</h3>
-        <pre>// Check if feature flag is enabled
-$showNewFeature = $posthog->isFeatureEnabled(
-    'new-dashboard-feature',
-    $user->email,
-    $user->getPostHogProperties()
-);
+        <pre>// Evaluate flags once, then read from the snapshot
+$flags = PostHog::evaluateFlags(personProperties: $user->getPostHogProperties());
 
-// Get feature flag payload
-$featureConfig = $posthog->getFeatureFlagPayload(
-    'new-dashboard-feature',
-    $user->email
-);</pre>
+$showNewFeature = $flags->isEnabled('new-dashboard-feature');
+$featureConfig = $flags->getFlagPayload('new-dashboard-feature');</pre>
     </div>
 
 </div>
@@ -2186,14 +2144,12 @@ $featureConfig = $posthog->getFeatureFlagPayload(
         <pre>try {
     throw new \Exception('Test exception from critical operation');
 } catch (\Throwable $e) {
-    // Capture exception with user context
-    $posthog->identify($user->email, $user->getPostHogProperties());
-    $eventId = $posthog->captureException($e, $user->email);
+    // Capture the exception; the SDK attributes it to the signed-in user
+    PostHog::captureException($e, properties: ['operation' => 'critical']);
 
     return response()->json([
         'error' => 'Operation failed',
-        'error_id' => $eventId,
-        'message' => "Error captured in PostHog. Reference ID: {$eventId}"
+        'message' => 'Error captured in PostHog.',
     ], 500);
 }</pre>
     </div>
@@ -2212,7 +2168,7 @@ use App\Http\Controllers\Api\BurritoController;
 use App\Http\Controllers\Api\ErrorTestController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/burrito/consider', [BurritoController::class, 'consider']);
     Route::post('/test-error', [ErrorTestController::class, 'test']);
 });
@@ -2231,9 +2187,9 @@ use App\Http\Livewire\Auth\Register;
 use App\Http\Livewire\BurritoTracker;
 use App\Http\Livewire\Dashboard;
 use App\Http\Livewire\Profile;
-use App\Services\PostHogService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use PostHog\Laravel\Facades\PostHog;
 
 // Guest routes
 Route::middleware('guest')->group(function () {
@@ -2247,11 +2203,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/burrito', BurritoTracker::class)->name('burrito');
     Route::get('/profile', Profile::class)->name('profile');
 
-    Route::post('/logout', function (PostHogService $posthog) {
-        $user = Auth::user();
-
-        // PostHog: Track logout
-        $posthog->capture($user->email, 'user_logged_out');
+    Route::post('/logout', function () {
+        // PostHog: capture before logging out, while the request still has a signed-in user
+        PostHog::capture('user_logged_out');
 
         Auth::logout();
         request()->session()->invalidate();

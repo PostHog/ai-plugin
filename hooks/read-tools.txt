@@ -411,8 +411,6 @@ mcp-analytics-sessions-list
 mcp-analytics-sessions-tool-calls
 mcp-connection-tools-list
 mcp-connections-list
-mcp-registry-discover
-mcp-registry-server-get
 media-images-list
 message-categories-get
 message-categories-list

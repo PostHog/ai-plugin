@@ -9,7 +9,6 @@ Error tracking issues represent grouped exceptions captured by PostHog SDKs. Eac
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Issue UUID.
-`team_id` | Integer | NOT NULL |
 `created_at` | DateTime | NOT NULL | When the issue was first created.
 `status` | String | NOT NULL | Issue status, e.g. 'active', 'resolved', 'suppressed'.
 `severity` | String | NULL | Assigned issue severity, or null when unassigned.
@@ -53,7 +52,6 @@ Rows can also track missing symbol sets so future uploads know which stack frame
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Symbol set UUID.
-`team_id` | Integer | NOT NULL |
 `ref` | String | NOT NULL | Reference identifying the symbol set, e.g. a chunk/file id.
 `release_id` | String | NULL | Release this symbol set belongs to; joins to error_tracking_releases.id.
 `created_at` | DateTime | NOT NULL | When the symbol set was uploaded.

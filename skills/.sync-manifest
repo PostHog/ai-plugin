@@ -100,6 +100,7 @@ investigating-replay
 linking-errors-to-traces
 managing-endpoint-versions
 managing-experiment-lifecycle
+managing-llm-prompts
 managing-path-cleaning-rules
 managing-reminders
 managing-self-driving-spend

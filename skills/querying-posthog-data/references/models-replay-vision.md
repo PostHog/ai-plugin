@@ -14,7 +14,6 @@ One-off inline scans are not listed.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Scanner UUID. Cast with toString(id) to join on a string property such as scanner_id.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Scanner name, unique within the project.
 `description` | String | NOT NULL | Free-text description; blank when unset.
 `scanner_type` | String | NOT NULL | One of monitor, classifier, scorer, summarizer.

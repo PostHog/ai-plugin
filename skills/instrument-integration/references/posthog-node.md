@@ -10,6 +10,7 @@ PostHog Node.js SDK allows you to capture events and send them to PostHog from y
 - Identification
 - Capture
 - Error tracking
+- Logs
 - Privacy
 - Feature flags
 - Traces
@@ -958,6 +959,30 @@ try {
     status_code: 500
   })
 }
+```
+
+---
+
+### Logs methods
+
+#### captureLog()
+
+**Release Tag:** public
+
+Captures one structured log record to PostHog Logs. Attaches the active span's ids and the `withContext` person and session unless the options set their own.
+
+### Parameters
+
+- **`options`** (`CaptureLogOptions`)
+
+### Returns
+
+- `void`
+
+### Examples
+
+```node
+client.captureLog({ body: 'payment failed', level: 'error', attributes: { code: 'E001' } })
 ```
 
 ---
