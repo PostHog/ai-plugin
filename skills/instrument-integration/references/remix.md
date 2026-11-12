@@ -26,7 +26,7 @@ This guide walks you through integrating PostHog into your Remix app using the [
 Install `posthog-js` and `@posthog/react`:
 
 ```bash
-npm install --save posthog-js @posthog/react
+npm install --save posthog-js@1 @posthog/react@1
 ```
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:

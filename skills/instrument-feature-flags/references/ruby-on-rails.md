@@ -55,8 +55,8 @@ Add both gems to your Gemfile:
 Gemfile
 
 ```ruby
-gem 'posthog-ruby', require: 'posthog'
-gem 'posthog-rails'
+gem 'posthog-ruby', '~> 3.0', require: 'posthog'
+gem 'posthog-rails', '~> 3.0'
 ```
 
 Then run:

@@ -26,7 +26,7 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/php
     Install the [PostHog PHP SDK](https://posthog.com/docs/libraries/php.md) via Composer:
 
     ```bash
-    composer require posthog/posthog-php
+    composer require "posthog/posthog-php:^4.0"
     ```
 
 2.  2

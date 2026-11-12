@@ -191,9 +191,9 @@ edition = "2021"
 # A tiny "burrito" web service that mirrors the other PostHog example apps,
 # built on Axum and the official `posthog-rs` server SDK.
 [dependencies]
-# posthog-rs 0.21 enables the "async-client" and "error-tracking" features by
+# posthog-rs 0.31 enables the "async-client" and "error-tracking" features by
 # default, which is exactly what this example uses (async client + capture_exception).
-posthog-rs = "0.21"
+posthog-rs = "0.31"
 axum = "0.8"
 # Cookie jar for a minimal per-browser session (stores the user's distinct id).
 axum-extra = { version = "0.10", features = ["cookie"] }

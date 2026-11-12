@@ -34,25 +34,25 @@ Or set it up manually by following the rest of this guide.
     ### npm
 
     ```bash
-    npm install @posthog/nuxt
+    npm install @posthog/nuxt@1
     ```
 
     ### yarn
 
     ```bash
-    yarn add @posthog/nuxt
+    yarn add @posthog/nuxt@1
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add @posthog/nuxt
+    pnpm add @posthog/nuxt@1
     ```
 
     ### bun
 
     ```bash
-    bun add @posthog/nuxt
+    bun add @posthog/nuxt@1
     ```
 
     Add the module to your `nuxt.config.ts` file:

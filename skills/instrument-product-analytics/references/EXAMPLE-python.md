@@ -186,7 +186,7 @@ POSTHOG_HOST=https://us.i.posthog.com
 ## requirements.txt
 
 ```txt
-posthog>=3.0.0
+posthog>=7,<8
 python-dotenv>=1.0.0
 
 ```

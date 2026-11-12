@@ -31,7 +31,7 @@ Or set it up manually by following the rest of this guide.
 
 ## Installation
 
-To start, run `pip install posthog` to install PostHog’s Python SDK.
+To start, run `pip install "posthog<8"` to install PostHog’s Python SDK.
 
 Then, configure PostHog in your app config so it's initialized when Django starts:
 

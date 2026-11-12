@@ -37,25 +37,25 @@ Or set it up manually by following the rest of this guide.
     ### npm
 
     ```bash
-    npm install posthog-js
+    npm install posthog-js@1
     ```
 
     ### yarn
 
     ```bash
-    yarn add posthog-js
+    yarn add posthog-js@1
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add posthog-js
+    pnpm add posthog-js@1
     ```
 
     ### bun
 
     ```bash
-    bun add posthog-js
+    bun add posthog-js@1
     ```
 
 2.  2
@@ -103,25 +103,25 @@ Or set it up manually by following the rest of this guide.
     ### npm
 
     ```bash
-    npm install posthog-node --save
+    npm install posthog-node@5 --save
     ```
 
     ### yarn
 
     ```bash
-    yarn add posthog-node
+    yarn add posthog-node@5
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add posthog-node
+    pnpm add posthog-node@5
     ```
 
     ### bun
 
     ```bash
-    bun add posthog-node
+    bun add posthog-node@5
     ```
 
     Then, initialize the PostHog Node client where you'd like to use it on the server side. For example, in a load function:

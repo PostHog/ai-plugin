@@ -27,7 +27,7 @@ Both routes send OTLP spans to the same endpoint, so you can start with one and 
 
 ## With `posthog-node`
 
-> **Minimum version:** `posthog-node@5.52.0` or later.
+> **Minimum version:** `posthog-node@5.52.0` or later. The native tracing API is experimental, so its options can change in a minor release. The ingestion endpoint returns a success response even when it can't use the data, so confirm spans landed by searching for your `serviceName` in [Tracing](https://app.posthog.com/tracing).
 
 1.  1
 
@@ -38,25 +38,25 @@ Both routes send OTLP spans to the same endpoint, so you can start with one and 
     ### npm
 
     ```bash
-    npm install posthog-node --save
+    npm install posthog-node@5 --save
     ```
 
     ### Yarn
 
     ```bash
-    yarn add posthog-node
+    yarn add posthog-node@5
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add posthog-node
+    pnpm add posthog-node@5
     ```
 
     ### Bun
 
     ```bash
-    bun add posthog-node
+    bun add posthog-node@5
     ```
 
 2.  2

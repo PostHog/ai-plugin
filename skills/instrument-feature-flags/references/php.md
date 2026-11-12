@@ -29,7 +29,7 @@ Canonical URL: https://posthog.com/docs/feature-flags/installation/php
     Terminal
 
     ```bash
-    composer require posthog/posthog-php
+    composer require "posthog/posthog-php:^4.0"
     ```
 
 2.  2

@@ -43,7 +43,7 @@ Or set it up manually by following the rest of this guide.
 Add this to your `Gemfile`:
 
 ```bash
-gem "posthog-ruby"
+gem "posthog-ruby", "~> 3.0"
 ```
 
 In your app, set your API key **before** making any calls. If setting a custom `host`, make sure to include the protocol (e.g. `https://`).

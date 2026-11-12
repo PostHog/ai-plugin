@@ -32,25 +32,25 @@ This guide walks you through setting up PostHog for React Router V7 in declarati
     ### npm
 
     ```bash
-    npm install --save posthog-js @posthog/react
+    npm install --save posthog-js@1 @posthog/react@1
     ```
 
     ### Yarn
 
     ```bash
-    yarn add posthog-js @posthog/react
+    yarn add posthog-js@1 @posthog/react@1
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add posthog-js @posthog/react
+    pnpm add posthog-js@1 @posthog/react@1
     ```
 
     ### Bun
 
     ```bash
-    bun add posthog-js @posthog/react
+    bun add posthog-js@1 @posthog/react@1
     ```
 
     > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:

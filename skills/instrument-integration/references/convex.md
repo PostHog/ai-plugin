@@ -49,25 +49,25 @@ Requires Convex 1.39 or newer.
 ### npm
 
 ```bash
-npm install @posthog/convex
+npm install @posthog/convex@2
 ```
 
 ### Yarn
 
 ```bash
-yarn add @posthog/convex
+yarn add @posthog/convex@2
 ```
 
 ### pnpm
 
 ```bash
-pnpm add @posthog/convex
+pnpm add @posthog/convex@2
 ```
 
 ### Bun
 
 ```bash
-bun add @posthog/convex
+bun add @posthog/convex@2
 ```
 
 Register it in `convex/convex.config.ts` and forward your credentials from the app down to the component:
@@ -260,25 +260,25 @@ Install [`posthog-js`](https://posthog.com/docs/libraries/js.md) and [`@posthog/
 ### npm
 
 ```bash
-npm install posthog-js @posthog/react
+npm install posthog-js@1 @posthog/react@1
 ```
 
 ### Yarn
 
 ```bash
-yarn add posthog-js @posthog/react
+yarn add posthog-js@1 @posthog/react@1
 ```
 
 ### pnpm
 
 ```bash
-pnpm add posthog-js @posthog/react
+pnpm add posthog-js@1 @posthog/react@1
 ```
 
 ### Bun
 
 ```bash
-bun add posthog-js @posthog/react
+bun add posthog-js@1 @posthog/react@1
 ```
 
 Initialize PostHog at the root of your app, the same way you would in any React project:

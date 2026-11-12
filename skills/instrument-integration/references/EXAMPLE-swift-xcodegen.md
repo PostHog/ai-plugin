@@ -198,8 +198,8 @@ options:
   deploymentTarget:
     iOS: "16.0"
 
-# PostHog is declared here (not in Xcode's package UI). Check
-# https://github.com/PostHog/posthog-ios/releases for the latest version.
+# PostHog is declared here (not in Xcode's package UI). Take the
+# version from the iOS docs; `from:` resolves the newest release of that major.
 packages:
   PostHog:
     url: https://github.com/PostHog/posthog-ios

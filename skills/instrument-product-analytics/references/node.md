@@ -18,6 +18,7 @@ Canonical URL: https://posthog.com/docs/libraries/node
 - [Contexts](#contexts)
 - [Add request context to Express](#add-request-context-to-express)
 - [Add request context and error capture to Fastify](#add-request-context-and-error-capture-to-fastify)
+- [Metrics](#metrics)
 - [Distributed tracing](#distributed-tracing)
 - [Feature flags](#feature-flags)
 - [Experiments (A/B tests)](#experiments-ab-tests)
@@ -48,25 +49,25 @@ Run either `npm` or `yarn` in terminal to add it to your project:
 ### npm
 
 ```bash
-npm install posthog-node --save
+npm install posthog-node@5 --save
 ```
 
 ### Yarn
 
 ```bash
-yarn add posthog-node
+yarn add posthog-node@5
 ```
 
 ### pnpm
 
 ```bash
-pnpm add posthog-node
+pnpm add posthog-node@5
 ```
 
 ### Bun
 
 ```bash
-bun add posthog-node
+bun add posthog-node@5
 ```
 
 In your app, set your project token **before** making any calls.
@@ -424,6 +425,31 @@ If you're using [PostHog JS](https://posthog.com/docs/libraries/js.md) on the fr
 ## Add request context and error capture to Fastify
 
 See the [Fastify guide](https://posthog.com/docs/libraries/fastify.md) for installation, request context, event capture, error handling, and shutdown.
+
+## Metrics
+
+> Requires `posthog-node` version >= 5.43.0.
+
+`posthog.metrics` records counters, gauges, and histograms with no OpenTelemetry dependency. See [Node.js metrics installation](https://posthog.com/docs/metrics/installation/nodejs.md) for setup and [Query what you send](https://posthog.com/docs/metrics/query-what-you-send.md) for how the data reads back. Pass options in the `metrics` client option:
+
+```typescript
+const posthog = new PostHog('<ph_project_token>', {
+  host: 'https://us.i.posthog.com',
+  metrics: { serviceName: 'billing-worker', environment: 'production' },
+})
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `serviceName` | `unknown_service` | Sent as the `service.name` resource attribute |
+| `serviceVersion` | – | Sent as `service.version` |
+| `environment` | – | Sent as `deployment.environment` |
+| `resourceAttributes` | – | Extra resource attributes attached to every batch. Takes precedence over the fields above |
+| `flushIntervalMs` | `10000` | How often the aggregated window is flushed |
+| `maxSeriesPerFlush` | `1000` | Maximum distinct series per window. Samples for series beyond the cap are dropped with one warning |
+| `beforeSend` | – | Edit or drop each sample before it's aggregated. Return `null` to drop it. Accepts a function or an array run left to right |
+
+`metrics.histogram()` also accepts a `bounds` option for the bucket boundaries (from `posthog-node` 5.63.0). The types `MetricsConfig` and `TracesConfig` come from `@posthog/core`, and `posthog-node` re-exports `MetricsConfig`.
 
 ## Distributed tracing
 

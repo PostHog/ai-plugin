@@ -33,7 +33,7 @@ Or set it up manually by following the rest of this guide.
 Install the required packages:
 
 ```bash
-npm install @posthog/react posthog-node
+npm install @posthog/react@1 posthog-node@5
 ```
 
 -   `@posthog/react` - React package for our [JS Web SDK](https://posthog.com/docs/libraries/js.md) for client-side usage
