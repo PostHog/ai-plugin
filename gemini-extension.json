@@ -9,7 +9,7 @@
         "mcp-remote@latest",
         "${POSTHOG_MCP_URL:-https://mcp.posthog.com/mcp}",
         "--header",
-        "x-posthog-mcp-consumer:plugin"
+        "x-posthog-mcp-consumer:plugin-learn"
       ]
     }
   },

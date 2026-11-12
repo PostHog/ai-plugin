@@ -7,6 +7,8 @@ without updating a manifest is therefore silent until a session ends.
 
 import json
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -165,17 +167,56 @@ def test_marketplace_versions_match_manifests():
         )
 
 
+# The consumer value every client sends. The MCP server keys `learn` on it.
+CONSUMER_HEADERS = {"x-posthog-mcp-consumer": "plugin-learn"}
+
+# Claude Code keys a saved MCP sign-in on the server's type, url and static headers, so changing any of
+# them signs every Claude Code user out. These are the bytes on main before plugin-learn; the new value
+# comes from `headersHelper`, which is not part of that key and overrides a static header of the same name.
+CLAUDE_CODE_SIGN_IN_FIELDS = """      "type": "http",
+      "url": "https://mcp.posthog.com/mcp",
+      "headers": {
+        "x-posthog-mcp-consumer": "plugin"
+      }"""
+
+
+def _claude_code_server():
+    return json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
+
+
+def test_claude_code_sign_in_fields_are_unchanged():
+    assert CLAUDE_CODE_SIGN_IN_FIELDS in (REPO_ROOT / ".mcp.json").read_text(), (
+        ".mcp.json no longer has the type, url and headers block from main. Changing them signs every "
+        "Claude Code user out; change the header through headersHelper instead."
+    )
+
+
+def _helper_output(*shell):
+    result = subprocess.run([*shell, _claude_code_server()["headersHelper"]], capture_output=True, text=True, timeout=10)
+    assert result.returncode == 0, result.stderr
+    return json.loads(result.stdout)
+
+
+def test_claude_code_headers_helper_sends_the_consumer_value():
+    # Claude Code runs the helper with `sh -c` on macOS and Linux and through Git Bash on Windows.
+    assert _helper_output("sh", "-c") == CONSUMER_HEADERS
+
+
+@pytest.mark.skipif(shutil.which("pwsh") is None, reason="pwsh is not installed")
+def test_claude_code_headers_helper_works_in_powershell():
+    # Claude Code falls back to PowerShell on Windows when Git Bash is not installed.
+    assert _helper_output("pwsh", "-NoProfile", "-Command") == CONSUMER_HEADERS
+
+
 def test_antigravity_mcp_server_matches_claude_code():
     # Antigravity reads mcp_config.json and names the URL field serverUrl, so it is a second copy of .mcp.json.
-    claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
     antigravity = json.loads((REPO_ROOT / "mcp_config.json").read_text())["mcpServers"]["posthog"]
-    assert (antigravity["serverUrl"], antigravity["headers"]) == (claude_code["url"], claude_code["headers"])
+    assert (antigravity["serverUrl"], antigravity["headers"]) == (_claude_code_server()["url"], CONSUMER_HEADERS)
 
 
 def test_cursor_mcp_server_matches_claude_code():
-    claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
     cursor = json.loads((REPO_ROOT / "mcp.json").read_text())["mcpServers"]["posthog"]
-    assert (cursor["url"], cursor["headers"]) == (claude_code["url"], claude_code["headers"])
+    assert (cursor["url"], cursor["headers"]) == (_claude_code_server()["url"], CONSUMER_HEADERS)
 
 
 def test_cursor_mcp_server_is_hosted():
@@ -188,15 +229,20 @@ def test_codex_mcp_server_matches_claude_code():
     # Codex reads codex-mcp.json, a copy of .mcp.json plus the approval mode its exec gate relies on.
     # Codex's server config only reads `http_headers`; it silently drops `headers`.
     # `render-ui` only tells the host to mount a view, and the exec gate never sees it, so it skips the prompt.
-    claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
     codex = json.loads((REPO_ROOT / "codex-mcp.json").read_text())["mcpServers"]["posthog"]
-    expected = {k: v for k, v in claude_code.items() if k != "headers"}
+    expected = {k: v for k, v in _claude_code_server().items() if k not in ("headers", "headersHelper")}
     expected |= {
-        "http_headers": claude_code["headers"],
+        "http_headers": CONSUMER_HEADERS,
         "default_tools_approval_mode": "prompt",
         "tools": {"render-ui": {"approval_mode": "approve"}},
     }
     assert codex == expected
+
+
+def test_gemini_mcp_server_sends_the_consumer_value():
+    args = json.loads((REPO_ROOT / "gemini-extension.json").read_text())["mcpServers"]["posthog"]["args"]
+    ((name, value),) = CONSUMER_HEADERS.items()
+    assert args[args.index("--header") + 1] == f"{name}:{value}"
 
 
 # Cursor runs hooks/hooks.json, but the gate never matches its `MCP:exec` tool name, Cursor does not

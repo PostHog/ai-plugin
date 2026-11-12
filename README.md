@@ -149,6 +149,8 @@ This plugin connects your AI client to the PostHog MCP server, which covers:
 - **Documentation** - Search PostHog docs
 - And more
 
+The plugin bundles no skills. The PostHog MCP server provides them, and your agent loads one when it needs it through the server's `learn` command.
+
 ## Example usage
 
 ```

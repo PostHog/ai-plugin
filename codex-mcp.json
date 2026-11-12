@@ -4,7 +4,7 @@
       "type": "http",
       "url": "https://mcp.posthog.com/mcp",
       "http_headers": {
-        "x-posthog-mcp-consumer": "plugin"
+        "x-posthog-mcp-consumer": "plugin-learn"
       },
       "default_tools_approval_mode": "prompt",
       "tools": {
