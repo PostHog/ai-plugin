@@ -216,6 +216,25 @@ def test_codex_gets_only_its_exec_gate():
 
 def test_cursor_manifest_paths_exist():
     manifest = json.loads((REPO_ROOT / ".cursor-plugin" / "plugin.json").read_text())
-    paths = [manifest[key] for key in ("skills", "agents", "hooks", "mcpServers")]
+    paths = [manifest[key] for key in ("agents", "hooks", "mcpServers")]
     missing = [path for path in paths if not (REPO_ROOT / path).exists()]
     assert missing == []
+
+
+PLUGIN_MANIFESTS = [
+    ".claude-plugin/plugin.json",
+    ".cursor-plugin/plugin.json",
+    ".codex-plugin/plugin.json",
+    ".antigravity-plugin/plugin.json",
+    "gemini-extension.json",
+    "telemetry/.claude-plugin/plugin.json",
+]
+
+
+def test_plugin_ships_no_skills():
+    # Skills come from the PostHog MCP server, not from this repo. Some clients load a plugin's skills/
+    # folder with no manifest field naming it, so the folder itself must not exist either.
+    for name, plugin_root in PLUGIN_ROOTS:
+        assert not (plugin_root / "skills").exists(), f"{name}: {plugin_root / 'skills'} would ship bundled skills"
+    declaring = [path for path in PLUGIN_MANIFESTS if "skills" in json.loads((REPO_ROOT / path).read_text())]
+    assert declaring == [], f"{declaring} declare a skills path"

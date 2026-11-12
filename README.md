@@ -43,7 +43,7 @@ Official PostHog plugin for AI clients. Access PostHog products directly from yo
 
 #### Session capture without the rest of the plugin
 
-To send Claude Code sessions to PostHog LLM analytics without the skills, the slash commands, or the MCP server, install the capture plugin on its own:
+To send Claude Code sessions to PostHog LLM analytics without the slash commands or the MCP server, install the capture plugin on its own:
 
 ```bash
 claude plugin marketplace add PostHog/ai-plugin
@@ -58,7 +58,7 @@ Install it instead of the `posthog` plugin, not alongside it. Both register the 
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add manually in Cursor Settings > Plugins.
 
-The plugin installs the PostHog skills and the MCP server. Claude Code's session capture and the write-command gate don't run in Cursor.
+The plugin installs the PostHog MCP server. Claude Code's session capture and the write-command gate don't run in Cursor.
 
 In Cursor IDE, the MCP connection runs through Cursor's hosted service, so Cursor holds your PostHog sign-in and you may need to sign in again after updating the plugin.
 
@@ -95,7 +95,7 @@ Grok Bot (desktop and mobile) lists the same plugin from the Cursor Marketplace.
 
 2. Authenticate via OAuth: run `/mcp`, select `posthog_posthog`, and choose **Authenticate**. Open the link it shows, log into PostHog, and paste the authorization code back into Antigravity.
 
-The plugin installs the PostHog skills and the MCP server. Claude Code's session capture and the write-command gate don't run in Antigravity.
+The plugin installs the PostHog MCP server. Claude Code's session capture and the write-command gate don't run in Antigravity.
 
 ### Gemini CLI
 
@@ -138,7 +138,7 @@ gemini extensions install https://github.com/PostHog/ai-plugin
 
 ## Features
 
-This plugin provides access to 27+ PostHog tools across these categories:
+This plugin connects your AI client to the PostHog MCP server, which covers:
 
 - **Feature flags** - Create, update, and manage feature flags
 - **Experiments** - Run and analyze A/B tests
@@ -148,10 +148,6 @@ This plugin provides access to 27+ PostHog tools across these categories:
 - **LLM analytics** - Track AI/LLM costs and usage
 - **Documentation** - Search PostHog docs
 - And more
-
-### Bundled skills
-
-The plugin also ships 30+ task-specific skills that your AI client loads on demand to follow PostHog best practices — covering HogQL query patterns, experiment creation and lifecycle, feature flags, data warehouse setup and troubleshooting, LLM analytics exploration, session replay diagnostics, and SDK instrumentation. Skills activate automatically when their description matches your request (e.g. "create an experiment", "why isn't my Stripe sync working?", "audit my feature flags"), so you generally don't need to invoke them by name.
 
 ## Example usage
 
@@ -177,31 +173,6 @@ The plugin also ships 30+ task-specific skills that your AI client loads on dema
 > What's my most triggered event?
 > Show me the top 10 pages by pageviews
 ```
-
-## Plugin usage telemetry
-
-In Claude Code, the plugin sends one anonymous `plugin skill invoked` event to PostHog Cloud each time one of this plugin's skills runs, whether Claude invokes it or you type `/posthog:<skill>`. Skills from other plugins and your own skills aren't counted. Each event contains only:
-
-- `skill`: the skill's name, such as `querying-posthog-data`
-- `invocation`: `model` when Claude invoked the skill, `user` when you typed it as a slash command
-- `args_present`: whether the skill was invoked with arguments, never the arguments themselves
-- `plugin_version`: the installed plugin version
-- `permission_mode`: Claude Code's permission mode, such as `default` or `plan`
-- `os`: the operating system name from `uname -s`, such as `Darwin` or `Linux`
-- `distinct_id`: a random UUID generated once per install and stored in the plugin's data directory
-- `$lib`: always `posthog-ai-plugin`
-- `$process_person_profile`, `$geoip_disable`, and `$ip`: fixed values (`false`, `true`, and `127.0.0.1`) so PostHog creates no person profile and runs no GeoIP lookup, and the stored event carries no client IP address. The request still reaches PostHog's capture endpoint from your IP, as any HTTPS request does
-
-No event is sent when `POSTHOG_MCP_URL` or `POSTHOG_HOST` points anywhere other than `posthog.com`, so self-hosted users don't report to PostHog Cloud. Like Claude Code's own telemetry, it's also off when Claude Code runs on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or Claude Platform on AWS (`CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`, or `CLAUDE_CODE_USE_ANTHROPIC_AWS` set to `1`, `true`, `yes`, or `on`). To turn it off, set any of these in your shell or the `env` block of `~/.claude/settings.json`:
-
-```bash
-export DO_NOT_TRACK=1
-export POSTHOG_PLUGIN_TELEMETRY_DISABLED=1
-export DISABLE_TELEMETRY=1
-export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
-```
-
-`DO_NOT_TRACK` and `DISABLE_TELEMETRY` turn off Claude Code's own telemetry too, and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` turns off all of Claude Code's nonessential traffic. `POSTHOG_PLUGIN_TELEMETRY_DISABLED` turns off only this plugin's telemetry.
 
 ## Self-hosted
 

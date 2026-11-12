@@ -20,7 +20,6 @@
     "dashboards",
     "llm-analytics"
   ],
-  "skills": "./skills/",
   "mcpServers": "./codex-mcp.json",
   "hooks": "./hooks/codex-hooks.json",
   "interface": {
