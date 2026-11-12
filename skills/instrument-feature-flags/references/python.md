@@ -38,7 +38,7 @@ Or set it up manually by following the rest of this guide.
     Terminal
 
     ```bash
-    pip install posthog
+    pip install "posthog<8"
     ```
 
 2.  2

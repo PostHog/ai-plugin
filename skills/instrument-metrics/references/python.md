@@ -27,10 +27,10 @@ The [posthog-python](https://posthog.com/docs/libraries/python.md) SDK includes 
     Required
 
     ```bash
-    pip install posthog
+    pip install "posthog<8"
     ```
 
-    Metrics requires an up-to-date SDK version, so upgrade if you're on an older release.
+    Metrics requires `posthog` 7.23.0 or later, so upgrade if you're on an older release.
 
 2.  2
 

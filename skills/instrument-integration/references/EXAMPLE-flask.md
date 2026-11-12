@@ -1193,7 +1193,7 @@ Flask>=3.1.0
 Flask-Login>=0.6.3
 Flask-SQLAlchemy>=3.1.0
 python-dotenv>=1.0.0
-posthog>=3.0.0
+posthog>=7,<8
 Werkzeug>=3.0.0
 
 ```

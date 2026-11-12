@@ -39,25 +39,25 @@ Or set it up manually by following the rest of this guide.
     ### npm
 
     ```bash
-    npm install posthog-js
+    npm install posthog-js@1
     ```
 
     ### yarn
 
     ```bash
-    yarn add posthog-js
+    yarn add posthog-js@1
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add posthog-js
+    pnpm add posthog-js@1
     ```
 
     ### bun
 
     ```bash
-    bun add posthog-js
+    bun add posthog-js@1
     ```
 
 2.  2
@@ -363,25 +363,25 @@ Or set it up manually by following the rest of this guide.
     ### npm
 
     ```bash
-    npm install @posthog/next posthog-node
+    npm install @posthog/next@0.11 posthog-node@5
     ```
 
     ### yarn
 
     ```bash
-    yarn add @posthog/next posthog-node
+    yarn add @posthog/next@0.11 posthog-node@5
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add @posthog/next posthog-node
+    pnpm add @posthog/next@0.11 posthog-node@5
     ```
 
     ### bun
 
     ```bash
-    bun add @posthog/next posthog-node
+    bun add @posthog/next@0.11 posthog-node@5
     ```
 
     Then create a `lib/posthog-server.js` file that initializes PostHog from `posthog-node`. With `enableExceptionAutocapture`, it captures uncaught exceptions and unhandled promise rejections. Turn it on for the Node.js runtime only: the edge runtime cannot register process listeners, so the client would fail to start there.

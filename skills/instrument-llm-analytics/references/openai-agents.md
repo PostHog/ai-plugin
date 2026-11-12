@@ -39,7 +39,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     Setting up analytics starts with installing the PostHog Python SDK.
 
     ```bash
-    pip install posthog
+    pip install "posthog<8"
     ```
 
 2.  2

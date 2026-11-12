@@ -18,7 +18,7 @@ Canonical URL: https://posthog.com/docs/logs/start-here
 
 ## Use your logging client
 
-PostHog Logs works with any OpenTelemetry client. No PostHog-specific packages required. Use the OTel SDKs you already have, point them at PostHog's HTTP endpoint, and drop in your project token.
+PostHog Logs works with any OpenTelemetry client. Use the OTel SDKs you already have, point them at PostHog's HTTP endpoint, and drop in your project token.
 
 On the frontend, our [JavaScript web SDK](https://posthog.com/docs/logs/installation/javascript.md), [React Native SDK](https://posthog.com/docs/logs/installation/react-native.md), [iOS SDK](https://posthog.com/docs/logs/installation/ios.md), and [Android SDK](https://posthog.com/docs/logs/installation/android.md) include first-class logging support.
 

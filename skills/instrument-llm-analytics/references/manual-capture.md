@@ -68,7 +68,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     ### 1\. Install
 
     ```bash
-    npm install posthog-node
+    npm install posthog-node@5
     ```
 
     ### 2\. Initialize PostHog
@@ -112,7 +112,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     ### 1\. Install
 
     ```bash
-    pip install posthog
+    pip install "posthog<8"
     ```
 
     ### 2\. Initialize PostHog
@@ -235,7 +235,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     ### 1\. Install
 
     ```bash
-    composer require posthog/posthog-php
+    composer require "posthog/posthog-php:^4.0"
     ```
 
     ### 2\. Initialize PostHog

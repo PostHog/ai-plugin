@@ -38,7 +38,7 @@ Or set it up manually by following the rest of this guide.
     Gemfile
 
     ```ruby
-    gem "posthog-ruby"
+    gem "posthog-ruby", "~> 3.0"
     ```
 
 2.  2

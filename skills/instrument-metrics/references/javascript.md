@@ -24,7 +24,7 @@ If [posthog-js](https://posthog.com/docs/libraries/js.md) is already running on 
 
     Required
 
-    If you haven't already, [install posthog-js](https://posthog.com/docs/libraries/js.md#installation) via the snippet or npm and initialize it with your project token. Metrics requires an up-to-date SDK version, so upgrade if you're on an older release.
+    If you haven't already, [install posthog-js](https://posthog.com/docs/libraries/js.md#installation) via the snippet or npm and initialize it with your project token. Metrics requires `posthog-js@1.399.0` or later, so upgrade if you're on an older release.
 
     There is no metrics-specific setup required: the metrics API authenticates with the same project token the SDK already uses. Optionally, set a service name so your metrics are easy to find and filter:
 

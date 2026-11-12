@@ -42,7 +42,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     Install the OpenTelemetry SDK and Pydantic AI.
 
     ```bash
-    pip install "pydantic-ai[openai]" opentelemetry-sdk "posthog[otel]"
+    pip install "pydantic-ai[openai]" opentelemetry-sdk "posthog[otel]<8"
     ```
 
 2.  2

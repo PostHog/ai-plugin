@@ -50,7 +50,7 @@ Or set it up manually by following the rest of this guide.
 ## Installation
 
 ```bash
-pip install posthog
+pip install "posthog<8"
 ```
 
 **Upgrading to v6**
@@ -74,7 +74,7 @@ You can find your project token and instance address in the [project settings](h
 The Python SDK includes an asyncio-native client in version `7.45.0` and later. Continue to use `Posthog` in synchronous apps. For an asyncio app, install the optional async dependencies:
 
 ```bash
-pip install "posthog[async]>=7.45.0"
+pip install "posthog[async]>=7.45.0,<8"
 ```
 
 Import `AsyncPosthog`, the customer-facing name for `AsyncClient`. Both names provide the same async context manager and lifecycle methods. Keep one client for the lifetime of your app. For example, use a FastAPI lifespan handler:

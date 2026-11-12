@@ -1178,7 +1178,7 @@ application = get_wsgi_application()
 
 ```txt
 Django>=4.2,<5.0
-posthog  # Always use latest version
+posthog>=7,<8
 python-dotenv>=1.0.0
 
 ```

@@ -42,7 +42,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     Install the OpenTelemetry SDK, the OpenAI instrumentation, and Semantic Kernel.
 
     ```bash
-    pip install semantic-kernel openai opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-openai-v2
+    pip install semantic-kernel openai opentelemetry-sdk "posthog[otel]<8" opentelemetry-instrumentation-openai-v2
     ```
 
 2.  2

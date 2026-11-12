@@ -42,7 +42,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     Install LlamaIndex, OpenAI, and the OpenTelemetry SDK with the LlamaIndex instrumentation.
 
     ```bash
-    pip install llama-index llama-index-llms-openai opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-openai-v2
+    pip install llama-index llama-index-llms-openai opentelemetry-sdk "posthog[otel]<8" opentelemetry-instrumentation-openai-v2
     ```
 
 2.  2

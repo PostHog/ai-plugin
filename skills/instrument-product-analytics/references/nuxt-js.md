@@ -49,25 +49,25 @@ Install the PostHog Nuxt module using your package manager:
 ### npm
 
 ```bash
-npm install @posthog/nuxt
+npm install @posthog/nuxt@1
 ```
 
 ### Yarn
 
 ```bash
-yarn add @posthog/nuxt
+yarn add @posthog/nuxt@1
 ```
 
 ### pnpm
 
 ```bash
-pnpm add @posthog/nuxt
+pnpm add @posthog/nuxt@1
 ```
 
 ### Bun
 
 ```bash
-bun add @posthog/nuxt
+bun add @posthog/nuxt@1
 ```
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:

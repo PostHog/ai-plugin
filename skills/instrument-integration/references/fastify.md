@@ -24,7 +24,7 @@ Use the [PostHog Node.js SDK](https://posthog.com/docs/libraries/node.md) to cap
 Install the SDK in your Fastify app:
 
 ```bash
-pnpm add posthog-node
+pnpm add posthog-node@5
 ```
 
 This guide uses Fastify 5 and `posthog-node` 5.52.1 on Node.js. Get your project token and API host from your [project settings](https://us.posthog.com/settings/project).

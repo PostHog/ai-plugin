@@ -21,7 +21,7 @@ PostHog makes it easy to capture data from your Capacitor app, no matter the pla
 Run the following command to install the package:
 
 ```bash
-npm install @capawesome/capacitor-posthog posthog-js
+npm install @capawesome/capacitor-posthog posthog-js@1
 ```
 
 After installing the package, you need to update your Capacitor project:

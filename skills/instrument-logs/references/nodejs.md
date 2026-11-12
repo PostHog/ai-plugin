@@ -15,6 +15,8 @@ Canonical URL: https://posthog.com/docs/logs/installation/nodejs
 - [Test your setup](#test-your-setup)
 - [Next steps](#next-steps)
 
+> **Note:** `posthog-node` doesn't have a logs API, so Node.js logs go through OpenTelemetry. (Node.js [tracing](https://posthog.com/docs/distributed-tracing/installation/nodejs.md) and [metrics](https://posthog.com/docs/metrics/installation/nodejs.md) have native `posthog-node` APIs.) See the [SDK support table](https://posthog.com/docs/logs/installation.md#sdk-support-by-signal).
+
 > **Note:** If you use Pino or Winston, follow the [Pino](https://posthog.com/docs/logs/installation/pino.md) or [Winston](https://posthog.com/docs/logs/installation/winston.md) guide instead. It sends your existing logs without changes to your logger calls.
 
 1.  1

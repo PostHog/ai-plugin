@@ -223,6 +223,7 @@ experiment-calculate-running-time
 experiment-cleanup-task
 experiment-get
 experiment-get-by-flag-key
+experiment-health-get
 experiment-holdouts-list
 experiment-holdouts-retrieve
 experiment-list
@@ -258,6 +259,7 @@ external-data-sync-logs
 feature-flag-get-all
 feature-flag-get-definition
 feature-flag-get-definition-by-key
+feature-flag-get-version
 feature-flags-activity-retrieve
 feature-flags-bulk-keys-retrieve
 feature-flags-copy-dependencies-check
@@ -291,7 +293,9 @@ identity-provider-configs-list
 identity-provider-configs-partial-update-prepare
 identity-provider-configs-retrieve
 identity-provider-configs-scim-token-create-prepare
+inbox-my-settings-get
 inbox-ranking-outcomes-list
+inbox-repo-routing-rules-list
 inbox-report-actions-list
 inbox-report-artefacts-list
 inbox-report-artefacts-retrieve
@@ -661,6 +665,7 @@ workflows-sending-rules-get
 workflows-setup-status
 workflows-show-email-template
 workflows-stats
+workflows-transactional-email-activity
 workflows-transactional-email-get
 workflows-transactional-email-results
 workflows-transactional-email-stats

@@ -29,25 +29,25 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/nuxt-3-6
     ### npm
 
     ```bash
-    npm install posthog-js
+    npm install posthog-js@1
     ```
 
     ### yarn
 
     ```bash
-    yarn add posthog-js
+    yarn add posthog-js@1
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add posthog-js
+    pnpm add posthog-js@1
     ```
 
     ### bun
 
     ```bash
-    bun add posthog-js
+    bun add posthog-js@1
     ```
 
     **Nuxt version**
@@ -119,25 +119,25 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/nuxt-3-6
     ### npm
 
     ```bash
-    npm install posthog-node
+    npm install posthog-node@5
     ```
 
     ### yarn
 
     ```bash
-    yarn add posthog-node
+    yarn add posthog-node@5
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add posthog-node
+    pnpm add posthog-node@5
     ```
 
     ### bun
 
     ```bash
-    bun add posthog-node
+    bun add posthog-node@5
     ```
 
     server/api/example.js

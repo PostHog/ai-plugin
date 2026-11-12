@@ -42,7 +42,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
     Install the OpenTelemetry SDK, the OpenAI instrumentation, and smolagents.
 
     ```bash
-    pip install smolagents openai opentelemetry-sdk "posthog[otel]" opentelemetry-instrumentation-openai-v2
+    pip install smolagents openai opentelemetry-sdk "posthog[otel]<8" opentelemetry-instrumentation-openai-v2
     ```
 
 2.  2

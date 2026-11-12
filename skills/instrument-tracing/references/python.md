@@ -36,7 +36,7 @@ Both routes send OTLP spans to the same endpoint, so you can start with one and 
     Required
 
     ```bash
-    pip install "posthog>=7.58.0"
+    pip install "posthog>=7.58.0,<8"
     ```
 
 2.  2

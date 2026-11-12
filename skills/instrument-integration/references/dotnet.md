@@ -22,6 +22,7 @@ Canonical URL: https://posthog.com/docs/libraries/dotnet
 - [Group analytics](#group-analytics)
 - [Feature flags](#feature-flags)
 - [Experiments (A/B tests)](#experiments-ab-tests)
+- [Prompt management](#prompt-management)
 - [AI observability](#ai-observability)
 - [GeoIP properties](#geoip-properties)
 - [Serverless environments (Azure Functions/Render/Lambda/...)](#serverless-environments-azure-functionsrenderlambda)
@@ -37,7 +38,7 @@ The `PostHog` package supports any .NET platform that targets .NET Standard 2.1 
 > **Not supported:** Classic UWP (requires .NET Standard 2.0 only). Microsoft has [deprecated UWP](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/migrate-to-windows-app-sdk/migrate-to-windows-app-sdk-ovw) in favor of the Windows App SDK. For Unity projects, see our dedicated [Unity SDK](https://posthog.com/docs/libraries/unity.md).
 
 ```bash
-dotnet add package PostHog.AspNetCore
+dotnet add package PostHog.AspNetCore --version 2.9.12
 ```
 
 In your `Program.cs` (or `Startup.cs` for ASP.NET Core 2.x) file, add the following code:
@@ -152,7 +153,7 @@ public class NewFeatureController : Controller
 If you're not using ASP.NET Core (for example, in a console application, MAUI app, or Blazor WebAssembly), install the `PostHog` package instead of `PostHog.AspNetCore`. This package has no ASP.NET Core dependencies and can be used in any .NET project targeting .NET Standard 2.1 or .NET 8+.
 
 ```bash
-dotnet add package PostHog
+dotnet add package PostHog --version 2.21.2
 ```
 
 The `PostHogClient` class must be implemented as a singleton in your project. For `PostHog.AspNetCore`, this is handled by the `builder.AddPostHog();` method. For the `PostHog` package, you can do the following if you're using dependency injection:
@@ -642,6 +643,22 @@ if (variant == "variant-name")
 ```
 
 It's also possible to [run experiments without using feature flags](https://posthog.com/docs/experiments/running-experiments-without-feature-flags.md).
+
+## Prompt management
+
+Fetch [managed prompts](https://posthog.com/docs/prompt-management.md) at runtime from the core package, with caching and a fallback. `SecretKey` must be a personal API key or a project secret API key with the `llm_prompt:read` scope.
+
+```csharp
+var prompt = await posthog.Prompts.GetAsync("support-system-prompt", new GetPromptOptions
+{
+    Label = "production",
+    Fallback = "You are a helpful assistant.",
+});
+
+var systemPrompt = prompt.Compile(new Dictionary<string, object> { ["company"] = "Acme Corp" });
+```
+
+See [using prompts in .NET](https://posthog.com/docs/prompt-management.md#net) for versions, labels, caching, and linking prompts to traces.
 
 ## AI observability
 
