@@ -7,8 +7,8 @@ without updating a manifest is therefore silent until a session ends.
 
 import json
 import re
-import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -202,7 +202,7 @@ def test_claude_code_headers_helper_sends_the_consumer_value():
     assert _helper_output("sh", "-c") == CONSUMER_HEADERS
 
 
-@pytest.mark.skipif(shutil.which("pwsh") is None, reason="pwsh is not installed")
+@pytest.mark.skipif(sys.platform != "win32", reason="Claude Code only uses PowerShell on Windows")
 def test_claude_code_headers_helper_works_in_powershell():
     # Claude Code falls back to PowerShell on Windows when Git Bash is not installed.
     assert _helper_output("pwsh", "-NoProfile", "-Command") == CONSUMER_HEADERS
