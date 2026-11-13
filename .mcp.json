@@ -5,7 +5,8 @@
       "url": "https://mcp.posthog.com/mcp",
       "headers": {
         "x-posthog-mcp-consumer": "plugin"
-      }
+      },
+      "headersHelper": "cat claude-code-headers.json || type claude-code-headers.json"
     }
   }
 }

@@ -1,0 +1,136 @@
+name: Sync plugin files
+
+on:
+  schedule:
+    - cron: '0 12 * * *' # Daily at midday UTC
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch to sync into'
+        required: false
+        default: ''
+
+# Default-deny on the implicit GITHUB_TOKEN. Commits, PR creation, and
+# auto-merge use the GH App token; the job grants the implicit token only
+# pull-requests: write so a different identity can approve the App's PR.
+permissions: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
+        with:
+          app-id: ${{ secrets.GH_APP_AI_PLUGIN_RELEASER_APP_ID }}
+          private-key: ${{ secrets.GH_APP_AI_PLUGIN_RELEASER_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      # A refused or failed regeneration keeps the committed list, lets the
+      # rest of the job go ahead, and fails it at the end so the run shows red.
+      - name: Regenerate MCP read-tool list
+        id: read_tools
+        run: |
+          bash scripts/generate-read-tools.sh || echo "failed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Check for changes and bump version
+        id: check
+        run: |
+          git add -A commands/*.toml gemini-extension.json hooks/read-tools.txt
+          if git diff --cached --quiet; then
+            echo "No changes detected."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+          # Bump patch version in plugin manifests
+          for f in .claude-plugin/plugin.json .cursor-plugin/plugin.json .codex-plugin/plugin.json gemini-extension.json telemetry/.claude-plugin/plugin.json; do
+            if [ -f "$f" ]; then
+              jq '.version |= (split(".") | .[2] = (.[2] | tonumber + 1 | tostring) | join("."))' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+            fi
+          done
+
+          # Keep marketplace.json in sync with the plugin manifests. Match each
+          # entry by name: an install pins the version, so an entry that misses
+          # a bump never reaches the people who already installed it.
+          m=.claude-plugin/marketplace.json
+          if [ -f "$m" ]; then
+            jq --arg v "$(jq -r .version .claude-plugin/plugin.json)" \
+              '(.plugins[] | select(.name == "posthog") | .version) = $v' "$m" > "$m.tmp" && mv "$m.tmp" "$m"
+            if [ -f telemetry/.claude-plugin/plugin.json ]; then
+              jq --arg v "$(jq -r .version telemetry/.claude-plugin/plugin.json)" \
+                '(.plugins[] | select(.name == "posthog-telemetry") | .version) = $v' "$m" > "$m.tmp" && mv "$m.tmp" "$m"
+            fi
+          fi
+
+          # Regenerate Gemini TOML command files from MD sources
+          if [ -x scripts/generate-gemini-commands.sh ]; then
+            bash scripts/generate-gemini-commands.sh
+          fi
+
+          echo "commit_message=chore: sync plugin files" >> "$GITHUB_OUTPUT"
+
+      - name: Create sync branch
+        if: steps.check.outputs.has_changes == 'true'
+        id: branch
+        run: |
+          BRANCH="chore/sync-plugin-files-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+          git push origin "$BRANCH"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "base=$BASE_REF" >> "$GITHUB_OUTPUT"
+        env:
+          BASE_REF: ${{ github.event.inputs.ref || github.ref_name }}
+
+      - name: Commit and push
+        if: steps.check.outputs.has_changes == 'true'
+        uses: planetscale/ghcommit-action@25309d8005ac7c3bcd61d3fe19b69e0fe47dbdde # v0.2.20
+        with:
+          commit_message: ${{ steps.check.outputs.commit_message }}
+          repo: ${{ github.repository }}
+          branch: ${{ steps.branch.outputs.branch }}
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Create and approve PR with auto-merge
+        if: steps.check.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_APPROVAL_TOKEN: ${{ github.token }}
+          COMMIT_MESSAGE: ${{ steps.check.outputs.commit_message }}
+          BASE_REF: ${{ steps.branch.outputs.base }}
+          HEAD_REF: ${{ steps.branch.outputs.branch }}
+        run: |
+          BODY="Automated sync of the MCP read-tool list and generated plugin files."
+          READ_TOOL_CHANGES=$(git diff HEAD -U0 -- hooks/read-tools.txt | grep -E '^[+-][a-z0-9]' || true)
+          if [ -n "$READ_TOOL_CHANGES" ]; then
+            BODY="$BODY
+
+          The MCP read-tool list changed. The exec write gate now treats added (+) tools as reads and removed (-) ones as writes:
+
+          \`\`\`diff
+          $READ_TOOL_CHANGES
+          \`\`\`"
+          fi
+          PR_URL=$(gh pr create \
+            --base "$BASE_REF" \
+            --head "$HEAD_REF" \
+            --title "$COMMIT_MESSAGE" \
+            --body "$BODY")
+          GH_TOKEN="$GH_APPROVAL_TOKEN" gh pr review "$PR_URL" --approve
+          gh pr merge "$PR_URL" --auto --squash
+
+      - name: Fail if the read-tool list was not regenerated
+        if: steps.read_tools.outputs.failed == 'true'
+        run: |
+          echo "::error::hooks/read-tools.txt was not regenerated; the committed list was kept. See the 'Regenerate MCP read-tool list' step."
+          exit 1

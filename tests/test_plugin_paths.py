@@ -165,17 +165,44 @@ def test_marketplace_versions_match_manifests():
         )
 
 
+# The consumer value every client sends. The MCP server keys `learn` on it.
+CONSUMER_HEADERS = {"x-posthog-mcp-consumer": "plugin-learn"}
+
+# Claude Code keys a saved MCP sign-in on the server's type, url and static headers, so changing any of
+# them signs every Claude Code user out. These are the bytes on main before plugin-learn; the new value
+# comes from `headersHelper`, which is not part of that key and overrides a static header of the same name.
+CLAUDE_CODE_SIGN_IN_FIELDS = """      "type": "http",
+      "url": "https://mcp.posthog.com/mcp",
+      "headers": {
+        "x-posthog-mcp-consumer": "plugin"
+      }"""
+
+
+def _claude_code_server():
+    return json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
+
+
+def test_claude_code_sign_in_fields_are_unchanged():
+    assert CLAUDE_CODE_SIGN_IN_FIELDS in (REPO_ROOT / ".mcp.json").read_text(), (
+        ".mcp.json no longer has the type, url and headers block from main. Changing them signs every "
+        "Claude Code user out; change the header through headersHelper instead."
+    )
+
+
+def test_claude_code_headers_file_carries_the_consumer_value():
+    # `headersHelper` prints this file. tests/test_claude_code_plugin.py runs the helper with the real CLI.
+    assert json.loads((REPO_ROOT / "claude-code-headers.json").read_text()) == CONSUMER_HEADERS
+
+
 def test_antigravity_mcp_server_matches_claude_code():
     # Antigravity reads mcp_config.json and names the URL field serverUrl, so it is a second copy of .mcp.json.
-    claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
     antigravity = json.loads((REPO_ROOT / "mcp_config.json").read_text())["mcpServers"]["posthog"]
-    assert (antigravity["serverUrl"], antigravity["headers"]) == (claude_code["url"], claude_code["headers"])
+    assert (antigravity["serverUrl"], antigravity["headers"]) == (_claude_code_server()["url"], CONSUMER_HEADERS)
 
 
 def test_cursor_mcp_server_matches_claude_code():
-    claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
     cursor = json.loads((REPO_ROOT / "mcp.json").read_text())["mcpServers"]["posthog"]
-    assert (cursor["url"], cursor["headers"]) == (claude_code["url"], claude_code["headers"])
+    assert (cursor["url"], cursor["headers"]) == (_claude_code_server()["url"], CONSUMER_HEADERS)
 
 
 def test_cursor_mcp_server_is_hosted():
@@ -188,15 +215,20 @@ def test_codex_mcp_server_matches_claude_code():
     # Codex reads codex-mcp.json, a copy of .mcp.json plus the approval mode its exec gate relies on.
     # Codex's server config only reads `http_headers`; it silently drops `headers`.
     # `render-ui` only tells the host to mount a view, and the exec gate never sees it, so it skips the prompt.
-    claude_code = json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
     codex = json.loads((REPO_ROOT / "codex-mcp.json").read_text())["mcpServers"]["posthog"]
-    expected = {k: v for k, v in claude_code.items() if k != "headers"}
+    expected = {k: v for k, v in _claude_code_server().items() if k not in ("headers", "headersHelper")}
     expected |= {
-        "http_headers": claude_code["headers"],
+        "http_headers": CONSUMER_HEADERS,
         "default_tools_approval_mode": "prompt",
         "tools": {"render-ui": {"approval_mode": "approve"}},
     }
     assert codex == expected
+
+
+def test_gemini_mcp_server_sends_the_consumer_value():
+    args = json.loads((REPO_ROOT / "gemini-extension.json").read_text())["mcpServers"]["posthog"]["args"]
+    ((name, value),) = CONSUMER_HEADERS.items()
+    assert args[args.index("--header") + 1] == f"{name}:{value}"
 
 
 # Cursor runs hooks/hooks.json, but the gate never matches its `MCP:exec` tool name, Cursor does not
@@ -216,6 +248,25 @@ def test_codex_gets_only_its_exec_gate():
 
 def test_cursor_manifest_paths_exist():
     manifest = json.loads((REPO_ROOT / ".cursor-plugin" / "plugin.json").read_text())
-    paths = [manifest[key] for key in ("skills", "agents", "hooks", "mcpServers")]
+    paths = [manifest[key] for key in ("agents", "hooks", "mcpServers")]
     missing = [path for path in paths if not (REPO_ROOT / path).exists()]
     assert missing == []
+
+
+PLUGIN_MANIFESTS = [
+    ".claude-plugin/plugin.json",
+    ".cursor-plugin/plugin.json",
+    ".codex-plugin/plugin.json",
+    ".antigravity-plugin/plugin.json",
+    "gemini-extension.json",
+    "telemetry/.claude-plugin/plugin.json",
+]
+
+
+def test_plugin_ships_no_skills():
+    # Skills come from the PostHog MCP server, not from this repo. Some clients load a plugin's skills/
+    # folder with no manifest field naming it, so the folder itself must not exist either.
+    for name, plugin_root in PLUGIN_ROOTS:
+        assert not (plugin_root / "skills").exists(), f"{name}: {plugin_root / 'skills'} would ship bundled skills"
+    declaring = [path for path in PLUGIN_MANIFESTS if "skills" in json.loads((REPO_ROOT / path).read_text())]
+    assert declaring == [], f"{declaring} declare a skills path"
