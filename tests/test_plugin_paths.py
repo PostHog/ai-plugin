@@ -7,8 +7,6 @@ without updating a manifest is therefore silent until a session ends.
 
 import json
 import re
-import subprocess
-import sys
 from pathlib import Path
 
 import pytest
@@ -191,21 +189,9 @@ def test_claude_code_sign_in_fields_are_unchanged():
     )
 
 
-def _helper_output(*shell):
-    result = subprocess.run([*shell, _claude_code_server()["headersHelper"]], capture_output=True, text=True, timeout=10)
-    assert result.returncode == 0, result.stderr
-    return json.loads(result.stdout)
-
-
-def test_claude_code_headers_helper_sends_the_consumer_value():
-    # Claude Code runs the helper with `sh -c` on macOS and Linux and through Git Bash on Windows.
-    assert _helper_output("sh", "-c") == CONSUMER_HEADERS
-
-
-@pytest.mark.skipif(sys.platform != "win32", reason="Claude Code only uses PowerShell on Windows")
-def test_claude_code_headers_helper_works_in_powershell():
-    # Claude Code falls back to PowerShell on Windows when Git Bash is not installed.
-    assert _helper_output("pwsh", "-NoProfile", "-Command") == CONSUMER_HEADERS
+def test_claude_code_headers_file_carries_the_consumer_value():
+    # `headersHelper` prints this file. tests/test_claude_code_plugin.py runs the helper with the real CLI.
+    assert json.loads((REPO_ROOT / "claude-code-headers.json").read_text()) == CONSUMER_HEADERS
 
 
 def test_antigravity_mcp_server_matches_claude_code():

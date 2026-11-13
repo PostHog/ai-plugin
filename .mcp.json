@@ -6,7 +6,7 @@
       "headers": {
         "x-posthog-mcp-consumer": "plugin"
       },
-      "headersHelper": "echo '{\"x-posthog-mcp-consumer\":\"plugin-learn\"}'"
+      "headersHelper": "cat claude-code-headers.json || type claude-code-headers.json"
     }
   }
 }
