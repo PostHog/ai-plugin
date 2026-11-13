@@ -31,13 +31,23 @@ advanced-activity-logs-filters
 advanced-activity-logs-list
 aeo-brands-get
 aeo-brands-list
+aeo-engines-list
+aeo-keywords-get
+aeo-keywords-list
+aeo-keywords-modifiers-get
+aeo-keywords-report-get
+aeo-keywords-suggestion-get
 aeo-prompts-checks-list
 aeo-prompts-get
 aeo-prompts-list
 aeo-prompts-overview-get
+aeo-prompts-rankings-get
 aeo-prompts-stats-get
+aeo-prompts-suggestion-get
 aeo-prompts-topics-list
 aeo-prompts-versions-list
+aeo-setup-context-get
+aeo-setup-get
 agent-feedback
 alert-get
 alerts-list
@@ -246,6 +256,7 @@ external-data-schemas-destinations-retrieve
 external-data-schemas-incremental-fields-create
 external-data-schemas-list
 external-data-schemas-retrieve
+external-data-sources-cdc-status-retrieve
 external-data-sources-check-cdc-prerequisites-create
 external-data-sources-connections-list
 external-data-sources-db-schema
@@ -278,6 +289,7 @@ field-notes-get
 field-notes-list
 file-download-batch-exports-count-rows-create
 file-download-batch-exports-retrieve
+file-system-list
 generate-app-url
 get-llm-total-costs-for-project
 health-issues-get
@@ -369,6 +381,7 @@ llma-review-queue-item-list
 llma-review-queue-list
 llma-score-definition-get
 llma-score-definition-list
+llma-score-definition-validate
 llma-score-definition-version-get
 llma-score-definition-version-list
 llma-skill-file-get
@@ -386,6 +399,7 @@ logs-anomalies-scan
 logs-anomalies-series-bands
 logs-attribute-values-list
 logs-attributes-list
+logs-context
 logs-count
 logs-count-ranges
 logs-facet-values-create
@@ -428,7 +442,6 @@ notebooks-compute-options
 notebooks-get
 notebooks-list
 notebooks-list-frames
-notebooks-retrieve
 notebooks-run-cell-result
 notebooks-widget-status
 opt-outs-list
@@ -445,6 +458,8 @@ persons-cohorts-retrieve
 persons-list
 persons-retrieve
 persons-values-retrieve
+platform-alerts-list
+platform-alerts-retrieve
 pr-lifecycle
 project-get
 projects-get
@@ -509,6 +524,7 @@ scout-notes-list
 scout-project-profile-get
 scout-report-check-list
 scout-report-checks-list
+scout-report-discussions-list
 scout-rubric-get
 scout-runs-emission-reports
 scout-runs-emissions-list
@@ -629,6 +645,7 @@ visual-review-runs-retrieve
 visual-review-runs-snapshot-history-list
 visual-review-runs-snapshots-list
 visual-review-runs-tolerated-hashes-list
+warehouse-alerts-destinations-list
 warehouse-column-annotations-list
 warehouse-migration-connect-link
 warehouse-migration-get
