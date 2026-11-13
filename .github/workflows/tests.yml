@@ -33,6 +33,19 @@ jobs:
       - name: Validate the Cursor manifest against Cursor's plugin schema
         run: pipx run check-jsonschema==0.38.2 --schemafile https://raw.githubusercontent.com/cursor/plugins/5229aad76c37451561c5b81a9b5072ae1c549a5b/schemas/plugin.schema.json .cursor-plugin/plugin.json
 
+  claude-code-headers-helper-windows:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install pytest
+        run: python -m pip install pytest
+
+      - name: Run the Claude Code headers helper in Git Bash and PowerShell
+        run: python -m pytest -rs tests/test_plugin_paths.py -k headers_helper
+
   antigravity:
     runs-on: ubuntu-latest
     timeout-minutes: 10
