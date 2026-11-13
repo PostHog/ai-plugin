@@ -38,25 +38,25 @@ Or set it up manually by following the rest of this guide.
     ### npm
 
     ```bash
-    npm install posthog-node
+    npm install posthog-node@5
     ```
 
     ### yarn
 
     ```bash
-    yarn add posthog-node
+    yarn add posthog-node@5
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add posthog-node
+    pnpm add posthog-node@5
     ```
 
     ### bun
 
     ```bash
-    bun add posthog-node
+    bun add posthog-node@5
     ```
 
 2.  2
@@ -99,6 +99,11 @@ Or set it up manually by following the rest of this guide.
             property2: 'value',
         },
     })
+    
+    // The client sends events in batches. Call shutdown() before the process
+    // exits so that queued events are sent. In a long-running server, call it
+    // once when the server stops.
+    await client.shutdown()
     ```
 
 4.  4

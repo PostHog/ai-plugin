@@ -30,7 +30,7 @@ The `@posthog/nuxt` module provides:
 -   Automatic exception capture for error tracking
 -   Source map configuration and upload for error tracking
 
-For server-side event capture beyond error tracking, use the `posthog-node` SDK directly.
+For server-side event capture, reuse the module's Node client as shown below.
 
 > **Using an older version?** See our docs for [Nuxt 3.0-3.6](https://posthog.com/docs/libraries/nuxt-js-3-6.md) or [Nuxt 2.x](https://posthog.com/docs/libraries/nuxt-js-2.md).
 
@@ -49,25 +49,25 @@ Install the PostHog Nuxt module using your package manager:
 ### npm
 
 ```bash
-npm install @posthog/nuxt
+npm install @posthog/nuxt@1
 ```
 
 ### Yarn
 
 ```bash
-yarn add @posthog/nuxt
+yarn add @posthog/nuxt@1
 ```
 
 ### pnpm
 
 ```bash
-pnpm add @posthog/nuxt
+pnpm add @posthog/nuxt@1
 ```
 
 ### Bun
 
 ```bash
-bun add @posthog/nuxt
+bun add @posthog/nuxt@1
 ```
 
 > **If your site sets a Content-Security-Policy**, it needs to allow PostHog. This applies to the snippet and to package installs alike: the SDK lazy-loads extra bundles (session replay, surveys) from PostHog's CDN, and sends events to the ingestion host. PostHog serves from subdomains of `posthog.com` that change over time, so allow the wildcard:
@@ -159,26 +159,17 @@ posthog?.capture('button_clicked', { button_name: 'signup' })
 
 ## Usage on the server side
 
-The `@posthog/nuxt` module initializes a server-side client for error tracking only. For general event capture in Nitro routes, create your own `posthog-node` SDK client.
-
-The `@posthog/nuxt` module makes your config available at `runtimeConfig.public.posthog`.
-
-First, create a server utility to reuse the PostHog client across requests:
+Reuse the server client initialized by the module. The Node-only `@posthog/nuxt/server` accessor returns that client after its Nitro plugin starts and returns `undefined` before startup or after shutdown:
 
 server/utils/posthog.ts
 
 ```typescript
-import { PostHog } from 'posthog-node'
-
-let client: PostHog | null = null
+import type { PostHog } from 'posthog-node'
+import { getPostHogServerClient } from '@posthog/nuxt/server'
 
 export function useServerPostHog(): PostHog {
-  if (!client) {
-    const config = useRuntimeConfig()
-    client = new PostHog(config.public.posthog.publicKey, {
-      host: config.public.posthog.host,
-    })
-  }
+  const client = getPostHogServerClient()
+  if (!client) throw new Error('PostHog server client is not initialized')
   return client
 }
 ```
@@ -200,6 +191,41 @@ export default defineEventHandler((event) => {
 })
 ```
 
+### Request and span context
+
+This setup requires the Nuxt module release with `requestContext` and `getPostHogServerClient()`, plus the Node SDK release with the shared context bridge. Add the opt-in to your existing Nuxt configuration:
+
+nuxt.config.ts
+
+```typescript
+export default defineNuxtConfig({
+  posthogConfig: {
+    serverConfig: { requestContext: true },
+  },
+})
+```
+
+The module reads `X-PostHog-Distinct-ID` and `X-PostHog-Session-ID` as fallback analytics context. It preserves application identity, removes control characters, trims values, limits IDs to 1,000 characters, and omits missing IDs. These headers must not authorize access. Analytics context works without OpenTelemetry.
+
+For application-owned OpenTelemetry spans, add a processor using the same client inside your existing tracing plugin:
+
+server/utils/posthog-tracing.ts
+
+```typescript
+import { PostHogContextSpanProcessor } from 'posthog-node/otel'
+import { useServerPostHog } from './posthog'
+
+export function createPostHogSpanProcessor() {
+  return new PostHogContextSpanProcessor(useServerPostHog())
+}
+```
+
+Call `createPostHogSpanProcessor()` from your existing tracing plugin after the PostHog module's Nitro plugin starts and before requests begin. Add it to your existing provider's processors. Keep the provider, exporters, sampler, and other processors. See the [Node.js tracing guide](https://posthog.com/docs/distributed-tracing/installation/nodejs.md#with-opentelemetry) for setup. The module does not create spans or install OpenTelemetry.
+
+The handler scope fills missing `posthogDistinctId` and `sessionId` attributes on an existing recording span. The processor handles new child spans and verified recording server ancestors. Explicit attributes stay unchanged. If a sampler drops an intermediate span, the earlier server ancestor stays unchanged.
+
+The Node setup covers Nitro 2's H3 handler and Nitro 3's fetch handler. Work that the handler starts, including detached tasks, keeps the request IDs after the handler returns or throws. The existing error hook uses the saved two-ID request snapshot; background errors keep anonymous identity. Give separate jobs that need their own IDs an explicit context. The module owns client shutdown; do not close it after each request.
+
 **Set up a reverse proxy (recommended)**
 
 We recommend [setting up a reverse proxy](https://posthog.com/docs/advanced/proxy.md), so that events are less likely to be intercepted by tracking blockers.
@@ -218,9 +244,9 @@ This makes it possible to track users across their entire journey (e.g. from vis
 
 For certain features like [heatmaps](https://posthog.com/docs/toolbar/heatmaps.md), your Web Application Firewall (WAF) may be blocking PostHog's requests to your site. Add these IP addresses to your WAF allowlist or rules to let PostHog access your site.
 
-**EU**: `3.75.65.221`, `18.197.246.42`, `3.120.223.253`
+**EU**: `3.75.65.221`, `18.197.246.42`, `3.120.223.253`, `3.40.9.80/28`
 
-**US**: `44.205.89.55`, `52.4.194.122`, `44.208.188.173`
+**US**: `44.205.89.55`, `52.4.194.122`, `44.208.188.173`, `3.41.215.48/28`
 
 These are public, stable IPs used by PostHog services.
 

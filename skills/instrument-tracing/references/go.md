@@ -12,6 +12,7 @@ Canonical URL: https://posthog.com/docs/distributed-tracing/installation/go
 - [Get your project token](#get-your-project-token)
 - [Configure the SDK](#configure-the-sdk)
 - [Create spans](#create-spans)
+- [Link spans to people and sessions](#link-spans-to-people-and-sessions)
 - [Test your setup](#test-your-setup)
 - [Next steps](#next-steps)
 
@@ -133,6 +134,33 @@ Canonical URL: https://posthog.com/docs/distributed-tracing/installation/go
 
 5.  5
 
+    ## Link spans to people and sessions
+
+    Recommended
+
+    Install the optional PostHog OpenTelemetry module:
+
+    ```bash
+    go get github.com/posthog/posthog-go/otel
+    ```
+
+    Register the context processor on your existing provider before requests start, then wrap your HTTP handler:
+
+    ```go
+    import posthogotel "github.com/posthog/posthog-go/otel"
+    
+    tp.RegisterSpanProcessor(posthogotel.NewContextSpanProcessor(client))
+    handler := posthogotel.NewRequestContextMiddleware(client, existingHandler)
+    ```
+
+    The wrapper accepts the [core request middleware options](https://posthog.com/docs/libraries/go.md#request-context). Configure [`tracing_headers`](https://posthog.com/docs/libraries/js/config.md#tracing-headers) for your backend hostname in the browser SDK. Put OpenTelemetry HTTP middleware outside the PostHog wrapper to enrich its existing request span. Create child spans with `r.Context()` so the processor can read the request IDs.
+
+    The bridge adds missing `sessionId` and `posthogDistinctId` attributes. Existing `sessionId` and `posthogDistinctId` attributes take precedence. Set authenticated application identity with `posthogDistinctId`. Missing IDs stay absent. The optional module keeps your existing provider, exporter, and sampler. It does not change the core SDK dependencies.
+
+    Request context expires when the handler returns or panics. Spans that already started keep their attributes. New spans from an ended request context omit its IDs. For a separate background job, start from a fresh context, such as `context.Background()` with `posthog.WithFreshRequestContext`, and set the job's IDs explicitly. Manual `WithRequestContext` use has no automatic HTTP lifetime management.
+
+6.  6
+
     ## Test your setup
 
     Recommended
@@ -145,7 +173,7 @@ Canonical URL: https://posthog.com/docs/distributed-tracing/installation/go
 
     [View your traces in PostHog](https://app.posthog.com/tracing)
 
-7.  ## Next steps
+8.  ## Next steps
 
     Checkpoint
 

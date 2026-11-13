@@ -10,7 +10,6 @@ Each active trace can have at most one active review at a time.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Review UUID.
-`team_id` | Integer | NOT NULL |
 `trace_id` | String | NOT NULL | LLM trace that was reviewed.
 `created_by_id` | Integer | NULL | User who created the review record.
 `reviewed_by_id` | Integer | NULL | User who performed the review.
@@ -37,7 +36,6 @@ Each row captures one scorer definition and exactly one value type.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Score UUID.
-`team_id` | Integer | NOT NULL |
 `review_id` | UUID | NOT NULL | Review this score belongs to; joins to trace_reviews.id.
 `definition_id` | UUID | NOT NULL | Score definition scored against; joins to score_definitions.id.
 `definition_version` | UUID | NOT NULL | Specific version of the score definition used.
@@ -66,7 +64,6 @@ Review queues are named buckets used to route traces that still need review.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Queue UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Queue name.
 `created_by_id` | Integer | NULL | User who created the queue.
 `created_at` | DateTime | NOT NULL | When the queue was created.
@@ -90,7 +87,6 @@ An active trace can only be pending in one queue at a time.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Queue item UUID.
-`team_id` | Integer | NOT NULL |
 `queue_id` | UUID | NOT NULL | Queue this item belongs to; joins to review_queues.id.
 `trace_id` | String | NOT NULL | LLM trace queued for review.
 `created_by_id` | Integer | NULL | User who added the item to the queue.
@@ -116,7 +112,6 @@ Each scorer has a stable identity but config is versioned and immutable — bump
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | UUID | NOT NULL | Score definition UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Score definition name.
 `description` | String | NOT NULL | What the score measures.
 `kind` | String | NOT NULL | Score value type, e.g. 'categorical', 'numeric', 'boolean'.

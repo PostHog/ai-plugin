@@ -9,7 +9,6 @@ Dashboards are collections of insights that provide a unified view of analytics 
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | Integer | NOT NULL | Dashboard id.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Dashboard name.
 `description` | String | NOT NULL | Dashboard description.
 `created_by_id` | Integer | NULL | User who created the dashboard.
@@ -35,7 +34,6 @@ Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | Integer | NOT NULL | Insight id.
 `short_id` | String | NOT NULL | Short URL-safe id used in insight links.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Insight name.
 `description` | String | NOT NULL | Insight description.
 `filters` | JSON | NOT NULL | Legacy JSON filter-based insight definition.

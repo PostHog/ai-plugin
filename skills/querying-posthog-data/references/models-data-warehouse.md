@@ -2,14 +2,13 @@
 
 ## External Data Source (`system.data_warehouse_sources`)
 
-External data sources represent connections to third-party data providers (Stripe, Hubspot, Postgres, etc.) that sync data into PostHog.
+External data sources connect providers, databases, and files to PostHog's data warehouse.
 
 ### Columns
 
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Source UUID. Pass it as a query's connection id to live-query a direct connection.
-`team_id` | Integer | NOT NULL |
 `source_type` | String | NOT NULL | Source connector type, e.g. 'Stripe', 'Postgres', 'Hubspot'.
 `status` | String | NOT NULL | Legacy source-level status, deprecated in favour of per-schema status in source_schemas.status; may be stale.
 `access_method` | String | NOT NULL | 'direct' for a live-query connection (nothing is synced; its tables exist only when queried through the connection), or 'warehouse' for a source synced into PostHog.
@@ -33,7 +32,11 @@ Common source types include:
 - `MySQL` - MySQL databases
 - `Snowflake` - Snowflake data warehouse
 - `BigQuery` - Google BigQuery
-- `S3` - Amazon S3 files
+- `AmazonS3` - Amazon S3 files
+- `GoogleCloudStorage` - Google Cloud Storage files
+- `AzureBlob` - Azure Blob files
+- `CloudflareR2` - Cloudflare R2 files
+- `FileUpload` - Files uploaded through the PostHog app
 - `Zendesk` - Customer support data
 - `Salesforce` - CRM data
 
@@ -45,14 +48,13 @@ Common source types include:
 
 ## Data Warehouse Table (`system.data_warehouse_tables`)
 
-Individual tables synced from external sources or manually uploaded. Each table contains columns with their types and metadata.
+Individual tables imported from external sources or uploaded files. Each table contains columns with their types and metadata.
 
 ### Columns
 
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Warehouse table UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Warehouse table name (includes the source prefix).
 `columns` | JSON | NOT NULL | JSON schema of the table's columns.
 `row_count` | Integer | NOT NULL | Approximate number of rows in the table.
@@ -97,7 +99,7 @@ The `columns` field contains column definitions with their types:
 - The `columns` field is synced from the actual data schema
 - `valid: false` columns may have type mismatches or other issues
 - Tables with `external_data_source_id` are managed by the sync system
-- Tables without a source are user-uploaded or manually created
+- An uploaded file gets a `FileUpload` source. A missing source can indicate a legacy table awaiting migration or its first sync.
 
 ---
 
@@ -111,7 +113,6 @@ Each schema represents one table or entity being synced from an external source.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Schema UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Name of the table/endpoint in the external source.
 `source_id` | String | NOT NULL | Parent source; joins to data_warehouse_sources.id.
 `table_id` | String | NOT NULL | Resulting warehouse table; joins to data_warehouse_tables.id.
@@ -157,7 +158,6 @@ Each job tracks the status, row count, and timing of a single sync operation.
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Sync job UUID.
-`team_id` | Integer | NOT NULL |
 `pipeline_id` | String | NOT NULL | Source whose pipeline ran; joins to data_warehouse_sources.id.
 `schema_id` | String | NOT NULL | Source schema being synced; joins to source_schemas.id.
 `status` | String | NOT NULL | Job status, e.g. Running, Completed, Failed.

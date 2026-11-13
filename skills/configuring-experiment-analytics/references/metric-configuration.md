@@ -5,7 +5,7 @@ All metrics use `kind: "ExperimentMetric"`. Legacy kinds (`ExperimentTrendsQuery
 The full Pydantic schema below is rendered from `posthog/schema.py` at build
 time — if a field is missing here, fix the model. It is the `ExperimentMetric`
 discriminated union: pick the variant matching your `metric_type` (`mean`,
-`funnel`, `ratio`, `retention`) under `$defs`, and read that variant's
+`funnel`, `ratio`, `retention`, `quantile`) under `$defs`, and read that variant's
 `required` array for the mandatory fields. The shared event-source building
 blocks (`EventsNode`, `ActionsNode`, `ExperimentDataWarehouseNode`) and the
 property-filter types are defined once under `$defs` and referenced by `$ref`.
@@ -18,6 +18,7 @@ The schema is authoritative; the prose and examples below are guidance.
 - Funnel metric
 - Ratio metric
 - Retention metric
+- Quantile (percentile) metric
 - Adding metrics to an experiment
 - Property filters
 
@@ -2598,6 +2599,18 @@ The schema is authoritative; the prose and examples below are guidance.
           "default": null,
           "title": "Uuid"
         },
+        "value_format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentMetricValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How results show the value of the metric. Metrics that report a share of users (funnel, retention, mean with a threshold) ignore it."
+        },
         "version": {
           "anyOf": [
             {
@@ -2832,6 +2845,18 @@ The schema is authoritative; the prose and examples below are guidance.
           "default": null,
           "title": "Uuid"
         },
+        "value_format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentMetricValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How results show the value of the metric. Metrics that report a share of users (funnel, retention, mean with a threshold) ignore it."
+        },
         "version": {
           "anyOf": [
             {
@@ -2922,6 +2947,222 @@ The schema is authoritative; the prose and examples below are guidance.
         }
       },
       "title": "ExperimentMetricOutlierHandling",
+      "type": "object"
+    },
+    "ExperimentMetricValueFormat": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/ExperimentMetricValueFormatType"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "ExperimentMetricValueFormat",
+      "type": "object"
+    },
+    "ExperimentMetricValueFormatType": {
+      "enum": [
+        "currency",
+        "duration",
+        "duration_ms",
+        "percentage",
+        "percentage_scaled"
+      ],
+      "title": "ExperimentMetricValueFormatType",
+      "type": "string"
+    },
+    "ExperimentQuantileMetric": {
+      "additionalProperties": false,
+      "properties": {
+        "breakdownFilter": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BreakdownFilter"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "conversion_window": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Conversion Window"
+        },
+        "conversion_window_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FunnelConversionWindowTimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "fingerprint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fingerprint"
+        },
+        "goal": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentMetricGoal"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "isSharedMetric": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Issharedmetric"
+        },
+        "kind": {
+          "const": "ExperimentMetric",
+          "default": "ExperimentMetric",
+          "title": "Kind",
+          "type": "string"
+        },
+        "metric_type": {
+          "const": "quantile",
+          "default": "quantile",
+          "title": "Metric Type",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "quantile": {
+          "description": "Quantile level, for example 0.9 for p90.",
+          "maximum": 0.99,
+          "minimum": 0.01,
+          "title": "Quantile",
+          "type": "number"
+        },
+        "response": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Response"
+        },
+        "sharedMetricId": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sharedmetricid"
+        },
+        "source": {
+          "description": "Must set `math_property`, the numeric property to take the quantile of. `math` is ignored.",
+          "discriminator": {
+            "mapping": {
+              "ActionsNode": "#/$defs/ActionsNode",
+              "EventsNode": "#/$defs/EventsNode"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/EventsNode"
+            },
+            {
+              "$ref": "#/$defs/ActionsNode"
+            }
+          ],
+          "title": "Source"
+        },
+        "uuid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uuid"
+        },
+        "value_format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentMetricValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How results show the value of the metric. Metrics that report a share of users (funnel, retention, mean with a threshold) ignore it."
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "version of the node, used for schema migrations",
+          "title": "Version"
+        }
+      },
+      "required": [
+        "quantile",
+        "source"
+      ],
+      "title": "ExperimentQuantileMetric",
       "type": "object"
     },
     "ExperimentRatioMetric": {
@@ -3130,6 +3371,18 @@ The schema is authoritative; the prose and examples below are guidance.
           ],
           "default": null,
           "title": "Uuid"
+        },
+        "value_format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentMetricValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How results show the value of the metric. Metrics that report a share of users (funnel, retention, mean with a threshold) ignore it."
         },
         "version": {
           "anyOf": [
@@ -3347,6 +3600,18 @@ The schema is authoritative; the prose and examples below are guidance.
           "default": null,
           "title": "Uuid"
         },
+        "value_format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentMetricValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How results show the value of the metric. Metrics that report a share of users (funnel, retention, mean with a threshold) ignore it."
+        },
         "version": {
           "anyOf": [
             {
@@ -3449,6 +3714,9 @@ The schema is authoritative; the prose and examples below are guidance.
           "default": null,
           "title": "Response"
         },
+        "unit": {
+          "$ref": "#/$defs/ExperimentWarehouseNativeUnitBinding"
+        },
         "version": {
           "anyOf": [
             {
@@ -3465,9 +3733,31 @@ The schema is authoritative; the prose and examples below are guidance.
       },
       "required": [
         "connection_id",
-        "query"
+        "query",
+        "unit"
       ],
       "title": "ExperimentWarehouseNativeNode",
+      "type": "object"
+    },
+    "ExperimentWarehouseNativeUnitBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "id_namespace": {
+          "description": "Which ids represent that unit, such as `billing_customer_id`.",
+          "title": "Id Namespace",
+          "type": "string"
+        },
+        "unit_type": {
+          "description": "What was randomized, as a stable project-scoped label such as `customer` or `account`.",
+          "title": "Unit Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id_namespace",
+        "unit_type"
+      ],
+      "title": "ExperimentWarehouseNativeUnitBinding",
       "type": "object"
     },
     "FeaturePropertyFilter": {
@@ -4679,6 +4969,7 @@ The schema is authoritative; the prose and examples below are guidance.
     "mapping": {
       "funnel": "#/$defs/ExperimentFunnelMetric",
       "mean": "#/$defs/ExperimentMeanMetric",
+      "quantile": "#/$defs/ExperimentQuantileMetric",
       "ratio": "#/$defs/ExperimentRatioMetric",
       "retention": "#/$defs/ExperimentRetentionMetric"
     },
@@ -4696,6 +4987,9 @@ The schema is authoritative; the prose and examples below are guidance.
     },
     {
       "$ref": "#/$defs/ExperimentRetentionMetric"
+    },
+    {
+      "$ref": "#/$defs/ExperimentQuantileMetric"
     }
   ],
   "title": "ExperimentMetric"
@@ -4923,6 +5217,60 @@ counted as not retained.
 
 Pydantic rejects the payload with a missing-field error. Both fields are
 required on every retention metric — the schema is the source of truth.
+
+## Quantile (percentile) metric
+
+A percentile of a numeric event property, taken over all qualifying events of a
+variant and pooled across users. The UI calls it "Percentile". Use it for
+latency, load times and other durations where the slow tail matters more than
+the average. For an average per user, use a mean metric with `math: "avg"`
+instead.
+
+`source` is one `EventsNode` or `ActionsNode` with `math_property` set to the
+numeric property. `math` is ignored. `quantile` is the level, from `0.01` to
+`0.99`. Events without a numeric value for the property don't count.
+
+With breakdowns, each breakdown gets the percentile of its own events, and the
+overall result keeps the percentile of all events of the variant.
+
+Not supported: data warehouse sources, CUPED and timeseries.
+Sequential testing works, and its tuning parameter counts exposed users, not
+events, as it does for every other metric.
+
+### Right — p90 page load time
+
+```json
+{
+  "kind": "ExperimentMetric",
+  "metric_type": "quantile",
+  "name": "p90 page load time",
+  "goal": "decrease",
+  "quantile": 0.9,
+  "source": {
+    "kind": "EventsNode",
+    "event": "$pageview",
+    "math_property": "load_time_ms"
+  }
+}
+```
+
+### Wrong — percentile as a mean metric
+
+```json
+{
+  "kind": "ExperimentMetric",
+  "metric_type": "mean",
+  "source": {
+    "kind": "EventsNode",
+    "event": "$pageview",
+    "math": "hogql",
+    "math_hogql": "quantile(0.9)(properties.load_time_ms)"
+  }
+}
+```
+
+This takes each user's p90 and then averages over users, which is not the p90
+of all page loads. Use `metric_type: "quantile"`.
 
 ## Adding metrics to an experiment
 

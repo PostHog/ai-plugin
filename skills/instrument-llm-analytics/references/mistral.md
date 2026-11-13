@@ -44,13 +44,13 @@ Skip the manual setup — run this in your project and the wizard installs the S
     ### Python
 
     ```bash
-    pip install posthog openai
+    pip install "posthog<8" openai
     ```
 
     ### Node
 
     ```bash
-    npm install @posthog/ai posthog-node openai
+    npm install @posthog/ai@8 posthog-node@5 openai
     ```
 
     ### Go

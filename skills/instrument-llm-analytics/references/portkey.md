@@ -44,13 +44,13 @@ Skip the manual setup — run this in your project and the wizard installs the S
     ### Python
 
     ```bash
-    pip install posthog openai portkey-ai
+    pip install "posthog<8" openai portkey-ai
     ```
 
     ### Node
 
     ```bash
-    npm install @posthog/ai posthog-node openai portkey-ai
+    npm install @posthog/ai@8 posthog-node@5 openai portkey-ai
     ```
 
 2.  2

@@ -46,13 +46,13 @@ Skip the manual setup — run this in your project and the wizard installs the S
     ### Python
 
     ```bash
-    pip install posthog openai
+    pip install "posthog<8" openai
     ```
 
     ### Node
 
     ```bash
-    npm install @posthog/ai posthog-node openai
+    npm install @posthog/ai@8 posthog-node@5 openai
     ```
 
     ### Go
@@ -278,7 +278,7 @@ Skip the manual setup — run this in your project and the wizard installs the S
 Install the package:
 
 ```bash
-dotnet add package PostHog.AI
+dotnet add package PostHog.AI --version 0.1.10
 ```
 
 When using dependency injection, register PostHog first, then register an OpenAI client with the PostHog handler:

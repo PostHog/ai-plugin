@@ -66,13 +66,13 @@ Click the map
     ### Python
 
     ```bash
-    pip install "posthog[otel]"
+    pip install "posthog[otel]<8"
     ```
 
     ### Node
 
     ```bash
-    npm install @posthog/ai @opentelemetry/sdk-trace-node @opentelemetry/resources @opentelemetry/exporter-trace-otlp-http
+    npm install @posthog/ai@8 @opentelemetry/sdk-trace-node @opentelemetry/resources @opentelemetry/exporter-trace-otlp-http
     ```
 
     ### Go
@@ -525,13 +525,13 @@ Skip the manual setup — run this in your project and the wizard installs the S
     ### Python
 
     ```bash
-    pip install posthog anthropic
+    pip install "posthog<8" anthropic
     ```
 
     ### Node
 
     ```bash
-    npm install @posthog/ai posthog-node @anthropic-ai/sdk
+    npm install @posthog/ai@8 posthog-node@5 @anthropic-ai/sdk
     ```
 
     ### Go

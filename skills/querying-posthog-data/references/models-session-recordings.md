@@ -10,7 +10,6 @@ Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Recording row UUID.
 `session_id` | String | NOT NULL | Session identifier; matches events.$session_id.
-`team_id` | Integer | NOT NULL |
 `distinct_id` | String | NOT NULL | Distinct id of the user/device recorded.
 `duration` | Integer | NOT NULL | Total recording length in seconds (active + inactive).
 `active_seconds` | Integer | NOT NULL | Seconds of active user engagement.

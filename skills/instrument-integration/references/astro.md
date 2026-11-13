@@ -10,6 +10,7 @@ Canonical URL: https://posthog.com/docs/libraries/astro
 
 - [Install with the wizard](#install-with-the-wizard)
 - [Installation](#installation)
+- [Node.js server context and traces](#nodejs-server-context-and-traces)
 - [Identifying users](#identifying-users)
 - [Next steps](#next-steps)
 
@@ -31,7 +32,7 @@ In your `src/components` folder, create a `posthog.astro` file:
 
 ```bash
 cd ./src/components
-# or 'cd ./src && mkdir components && cd ./components' if your components folder doesnt exist
+# or 'cd ./src && mkdir components && cd ./components' if your components folder doesn't exist
 touch posthog.astro
 ```
 
@@ -126,6 +127,64 @@ import PostHogLayout from '../layouts/PostHogLayout.astro';
 </PostHogLayout>
 ```
 
+## Node.js server context and traces
+
+For on-demand rendering with `@astrojs/node` in middleware mode, use the shared Node SDK on your Express server. The browser setup above does not add server context.
+
+Reuse one server `posthog-node` client. Add `PostHogContextSpanProcessor` from `posthog-node/otel` to your application's existing OpenTelemetry provider. Keep your exporter, sampler, and other processors. Load your tracing setup, including HTTP and Express instrumentation, before importing the server modules below.
+
+Configure the Node adapter for middleware mode:
+
+```javascript
+import { defineConfig } from 'astro/config'
+import node from '@astrojs/node'
+
+export default defineConfig({
+    output: 'server',
+    adapter: node({ mode: 'middleware' }),
+})
+```
+
+Place the request middleware before the generated Astro handler. Pass the same client through the adapter's public `locals` argument so pages, endpoints, actions, and Astro middleware can reuse it:
+
+```javascript
+import express from 'express'
+import { handler as ssrHandler } from './dist/server/entry.mjs'
+import { setupExpressRequestContext } from 'posthog-node'
+import posthog from './posthog.server.mjs'
+
+const app = express()
+app.use(express.static('dist/client'))
+setupExpressRequestContext(posthog, app)
+app.use((req, res, next) => ssrHandler(req, res, next, { posthog }))
+app.listen(4321)
+```
+
+The middleware reads PostHog tracing headers. An existing application identity takes precedence over the browser fallback. The headers are untrusted analytics context and must not be used for authentication or authorization. Only requests that carry the headers receive browser IDs; standard browser document navigations do not gain fetch/XHR-added tracing headers.
+
+The optional processor adds `sessionId` and `posthogDistinctId` to recording application spans. Explicit canonical attributes keep their values. At request entry, it also fills missing IDs on the nearest recording HTTP server ancestor through parent objects it has observed. A sampler-dropped intermediate span breaks that verified chain, so the earlier server span stays unchanged. New recording spans inside the request still receive context.
+
+Express owns the request context. It stays active for work that the request starts, including while a response body streams and after the response ends. A background job that needs its own IDs must use a new explicit context.
+
+Astro can handle errors before they reach Express's error middleware. To capture errors thrown by `next()`, use the same client from your existing Astro middleware chain:
+
+```javascript
+import { defineMiddleware } from 'astro:middleware'
+
+export const onRequest = defineMiddleware(async ({ locals }, next) => {
+    try {
+        return await next()
+    } catch (error) {
+        locals.posthog.captureException(error)
+        throw error
+    }
+})
+```
+
+Keep your other middleware when adding error capture. Capture errors from later streaming work where they occur, because `next()` may already have returned.
+
+This setup covers the Node adapter's middleware mode. Prerendered pages and static assets use the browser integration; standalone and edge deployments need their own verified context and response lifetime setup. See [Astro's Node adapter guide](https://docs.astro.build/en/guides/integrations-guide/node/#middleware) and the [Node.js tracing guide](https://posthog.com/docs/distributed-tracing/installation/nodejs.md).
+
 ## Identifying users
 
 > **Identifying users is required.** Call `posthog.identify('your-user-id')` after login to link events to a known user. This is what connects frontend event captures, [session replays](https://posthog.com/docs/session-replay.md), [LLM traces](https://posthog.com/docs/ai-engineering.md), and [error tracking](https://posthog.com/docs/error-tracking.md) to the same person — and lets backend events link back too.
@@ -168,9 +227,9 @@ This makes it possible to track users across their entire journey (e.g. from vis
 
 For certain features like [heatmaps](https://posthog.com/docs/toolbar/heatmaps.md), your Web Application Firewall (WAF) may be blocking PostHog's requests to your site. Add these IP addresses to your WAF allowlist or rules to let PostHog access your site.
 
-**EU**: `3.75.65.221`, `18.197.246.42`, `3.120.223.253`
+**EU**: `3.75.65.221`, `18.197.246.42`, `3.120.223.253`, `3.40.9.80/28`
 
-**US**: `44.205.89.55`, `52.4.194.122`, `44.208.188.173`
+**US**: `44.205.89.55`, `52.4.194.122`, `44.208.188.173`, `3.41.215.48/28`
 
 These are public, stable IPs used by PostHog services.
 

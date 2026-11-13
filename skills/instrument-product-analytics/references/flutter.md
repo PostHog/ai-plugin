@@ -44,6 +44,15 @@ Or set it up manually by following the rest of this guide.
 
 ## Installation
 
+> **CocoaPods is becoming read-only.** [CocoaPods has announced](https://blog.cocoapods.org/CocoaPods-Specs-Repo/) the following schedule for its public specs repository:
+>
+> -   November 2–6, 2026: A read-only dry run will prevent us from publishing new PostHog iOS SDK versions to CocoaPods.
+> -   December 2, 2026 onward: The repository will be permanently read-only. New PostHog iOS SDK versions will only be available through Swift Package Manager (SPM).
+>
+> Existing native SDK versions will remain available through CocoaPods. To keep receiving native SDK updates on iOS and macOS, migrate your Flutter app to SPM. The `posthog_flutter` package supports SPM, and Flutter 3.44 and later enable it by default. On earlier Flutter versions that support SPM, or if you disabled it, run `flutter config --enable-swift-package-manager`, then rebuild your app. Follow [Flutter's SPM migration guide](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-app-developers) for project setup and troubleshooting.
+>
+> This change does not affect `posthog_flutter` releases on pub.dev, Android, or web.
+
 PostHog is available for install via [Pub](https://pub.dev/packages/posthog_flutter).
 
 ### Configuration
@@ -357,12 +366,14 @@ await Posthog().capture(
 
 PostHog autocapture automatically tracks the following events for you:
 
--   **Application Opened** - when the app is opened from a closed state or when the app comes to the foreground (e.g. from the app switcher)
--   **Application Backgrounded** - when the app is sent to the background by the user
--   **Application Installed** - when the app is installed.
--   **Application Updated** - when the app is updated.
--   **$screen** - when the user navigates, once you add the `PosthogObserver`
--   **$exception** - when the app throws exceptions.
+-   **Application Opened** – when the app is opened from a closed state or when the app comes to the foreground (e.g. from the app switcher)
+-   **Application Backgrounded** – when the app is sent to the background by the user
+-   **Application Installed** – when the app is installed.
+-   **Application Updated** – when the app is updated.
+-   **$screen** – when the user navigates, once you add the `PosthogObserver`
+-   **$exception** – when the app throws exceptions.
+-   **$autocapture** – when the user interacts with elements on Flutter Web, captured by posthog-js (see [Interaction autocapture](#interaction-autocapture))
+-   **$rageclick** – when the user rapidly taps in the same area (iOS/macCatalyst by default, Flutter Web via posthog-js)
 
 ### Capturing screen views
 
@@ -447,6 +458,48 @@ GoRoute(
 ...
 ```
 
+### Interaction autocapture
+
+The Flutter SDK doesn't autocapture taps or other widget interactions on iOS or Android. On Flutter Web, interaction autocapture and rage clicks come from [posthog-js](https://posthog.com/docs/libraries/js.md), which you configure in the `posthog.init` call in your `web/index.html`. The Flutter SDK doesn't call `posthog.init` itself, so these options don't go in `PostHogConfig`.
+
+### Rage click autocapture
+
+> **Note:** On iOS and macCatalyst, the native SDK captures `$rageclick` by default through `PostHogConfig.rageClickConfig`. These events don't name the widget. Android doesn't support rage clicks. See the [iOS rage click configuration](https://posthog.com/docs/libraries/ios/configuration.md#autocapture-configuration) for the thresholds.
+
+On Flutter Web, a `$rageclick` event names the widget a user tapped, but only after you enable autocapture in posthog-js and semantics in Flutter. Without both, you either get no rage clicks or rage clicks that only report `flutter-view`.
+
+1.  **Enable autocapture and rage clicks in `web/index.html`.** posthog-js detects rage clicks inside its autocapture click handler, so `$rageclick` doesn't fire while `autocapture` is off.
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://us.i.posthog.com',
+      autocapture: true,
+      rageclick: true,
+    })
+    ```
+
+    If you want to limit autocapture to tappable widgets, use `css_selector_allowlist: ['[role="button"]']`. Don't use `element_allowlist: ['button']` – Flutter's semantics nodes are `flt-semantics` elements, not `<button>` elements, so that allowlist matches nothing. Rage clicks go through the same allowlist check as `$autocapture`, so an allowlist that matches no semantics node drops rage clicks too.
+
+2.  **Enable semantics in `main.dart`.** Flutter Web draws your app into a single canvas, so by default every click targets the `flutter-view` element and `$rageclick` has no `$el_text`. With semantics on, Flutter places a `flt-semantics` node over each widget and tappable nodes receive the click. `$rageclick` then includes the widget label and `role` in `$elements_chain`. Which field carries the label depends on how Flutter renders the semantics node: a leaf button puts the label in DOM text, which fills `$el_text`, while a node with children puts it in `aria-label`.
+
+    ```dart
+    import 'package:flutter/semantics.dart';
+    
+    void main() {
+      WidgetsFlutterBinding.ensureInitialized();
+      SemanticsBinding.instance.ensureSemantics();
+      runApp(const MyApp());
+    }
+    ```
+
+    Semantics also changes how Flutter Web delivers taps. On a tappable widget, the engine sends a semantic tap action instead of raw pointer events. `onPressed` and `onTap` keep working, but code that relies on `Listener`, `onTapDown`/`onTapUp`, custom gesture recognizers, or drags that start on a button needs testing. Flutter already turns semantics on when a screen reader is active, so assistive-technology users get this behavior today. A custom Dart rage click detector built on raw pointer events can't coexist with semantics on the same widgets, so choose one approach.
+
+3.  **Optional: give key widgets a stable identifier.** Wrap a widget in `Semantics(identifier: 'cashier_deposit', child: ...)` and the identifier appears in `$elements_chain` as `attr__flt-semantics-identifier`. Flutter puts the identifier on a parent `group` node rather than on the button node itself, so filter with **Elements chain contains** `cashier_deposit` instead of matching the clicked element.
+
+Semantics adds per-frame work on web. If a screen has many widgets, profile it before and after you turn semantics on.
+
+These steps work with Flutter 3.44.8 and posthog-js 1.438.0.
+
 ## Identifying users
 
 > We highly recommend reading our section on [Identifying users](https://posthog.com/docs/integrate/identifying-users.md) to better understand how to correctly use this method.
@@ -517,7 +570,7 @@ Under the hood, the key difference between identified and anonymous events is th
 
 ### How to capture anonymous events
 
-The Flutter SDK captures anonymous events by default. However, this may change depending on your `personProfiles` [config](https://posthog.com/docs/libraries/flutter.md#person-profiles-anonymous-vs-identified-persons) when initializing PostHog:
+The Flutter SDK captures anonymous events by default. However, this may change depending on your `personProfiles` [config](https://posthog.com/docs/libraries/flutter.md#anonymous-vs-identified-events) when initializing PostHog:
 
 1.  `personProfiles: PostHogPersonProfiles.identifiedOnly` *(recommended)* *(default)* - Anonymous events are captured by default. PostHog only captures identified events for users where [person profiles](https://posthog.com/docs/data/persons.md) have already been created.
 
@@ -535,7 +588,7 @@ config.personProfiles = PostHogPersonProfiles.identifiedOnly;
 
 ### How to capture identified events
 
-If you've set the [`personProfiles` config](https://posthog.com/docs/libraries/flutter.md#person-profiles-anonymous-vs-identified-persons) to `PostHogPersonProfiles.identifiedOnly` (the default option), anonymous events are captured by default. Then, to capture identified events, call any of the following functions:
+If you've set the [`personProfiles` config](https://posthog.com/docs/libraries/flutter.md#anonymous-vs-identified-events) to `PostHogPersonProfiles.identifiedOnly` (the default option), anonymous events are captured by default. Then, to capture identified events, call any of the following functions:
 
 -   [`identify()`](https://posthog.com/docs/product-analytics/identify.md)
 -   [`alias()`](https://posthog.com/docs/product-analytics/identify.md#alias-assigning-multiple-distinct-ids-to-the-same-user)
@@ -561,7 +614,7 @@ await Posthog().register("team_id", 22);
 
 The call above ensures that every event sent by the user will include `"team_id": 22`. This way, if you filtered events by property using `team_id = 22`, it would display all events captured on that user after the `Posthog().register` call, since they all include the specified super property.
 
-However, please note that this does not store properties against the User, only against their events. To store properties against the User object, you should use `Posthog().identify`. More information on this can be found on the [Sending User Information section](#sending-user-information).
+However, please note that this does not store properties against the User, only against their events. To store properties against the User object, you should use `Posthog().identify`. More information on this can be found on the [Sending User Information section](#identifying-users).
 
 ### Removing stored super properties
 

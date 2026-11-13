@@ -23,12 +23,14 @@ Canonical URL: https://posthog.com/docs/libraries/php
 
 This is an optional library you can install if you're working with PHP. It uses an internal queue to batch requests, flushes at the end of the request, and optionally does so in an async manner.
 
+Using Laravel? See our [Laravel guide](https://posthog.com/docs/libraries/laravel.md) for the experimental Laravel SDK or [manual integration with the PHP SDK](https://posthog.com/docs/libraries/laravel.md#manual-setup-with-the-php-sdk). Using the PHP SDK directly with your own instrumentation remains supported.
+
 ## Installation
 
 Install the package with Composer:
 
 ```bash
-composer require posthog/posthog-php
+composer require "posthog/posthog-php:^4.0"
 ```
 
 In your app, set your project token before making any calls.
@@ -39,7 +41,7 @@ PostHog\PostHog::init("<ph_project_token>",
 );
 ```
 
-> **Note:** As a rule of thumb, we do not recommend having API keys or tokens in plaintext. Setting them as environment variables is best. The PHP SDK reads `POSTHOG_API_KEY` and `POSTHOG_HOST` when you omit the project token or host.
+> **Note:** As a rule of thumb, we do not recommend having API keys or tokens in plaintext. Setting them as environment variables is best. The PHP SDK reads `POSTHOG_PROJECT_TOKEN` and `POSTHOG_HOST` when you omit the project token or host. If `POSTHOG_PROJECT_TOKEN` is not set, it reads `POSTHOG_API_KEY`. SDK versions before 4.23.0 read only `POSTHOG_API_KEY`.
 
 You can find your project token and instance address in the [project settings](https://app.posthog.com/project/settings) page in PostHog.
 

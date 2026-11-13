@@ -39,25 +39,25 @@ Or set it up manually by following the rest of this guide.
     ### npm
 
     ```bash
-    npm install posthog-js @posthog/react
+    npm install posthog-js@1 @posthog/react@1
     ```
 
     ### yarn
 
     ```bash
-    yarn add posthog-js @posthog/react
+    yarn add posthog-js@1 @posthog/react@1
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add posthog-js @posthog/react
+    pnpm add posthog-js@1 @posthog/react@1
     ```
 
     ### bun
 
     ```bash
-    bun add posthog-js @posthog/react
+    bun add posthog-js@1 @posthog/react@1
     ```
 
 2.  2

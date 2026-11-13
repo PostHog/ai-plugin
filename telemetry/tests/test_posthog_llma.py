@@ -177,6 +177,25 @@ class TestBuildAiSpan:
         assert ev["properties"]["$ai_input_state"] is None
         assert ev["properties"]["$ai_output_state"] is None
 
+    def test_privacy_mode_redacts_error(self):
+        ev = build_ai_span(
+            span_name="Bash", trace_id="t", session_id="s",
+            is_error=True,
+            error_message="SECRET=abc",
+            privacy_mode=True,
+        )
+        assert ev["properties"]["$ai_error"] is None
+        assert ev["properties"]["$ai_is_error"] is True
+        assert "SECRET=abc" not in str(ev)
+
+    def test_error_message_kept_without_privacy_mode(self):
+        ev = build_ai_span(
+            span_name="Bash", trace_id="t", session_id="s",
+            is_error=True,
+            error_message="SECRET=abc",
+        )
+        assert ev["properties"]["$ai_error"] == "SECRET=abc"
+
     def test_truncation(self):
         ev = build_ai_span(
             span_name="Bash", trace_id="t", session_id="s",
@@ -363,10 +382,10 @@ class TestStatusFile:
             sender_mod.STATUS_FILE = original
             os.unlink(tmp_path)
 
-    def test_read_missing_file(self):
+    def test_read_missing_file(self, tmp_path):
         import posthog_llma.sender as sender_mod
         original = sender_mod.STATUS_FILE
-        sender_mod.STATUS_FILE = "/tmp/nonexistent-posthog-llma-test.json"
+        sender_mod.STATUS_FILE = str(tmp_path / "missing.json")
         try:
             assert read_status() is None
         finally:

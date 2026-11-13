@@ -71,6 +71,9 @@ Canonical URL: https://posthog.com/docs/logs/installation/python
     
     # Attach the OpenTelemetry handler to the root logger
     logging.getLogger().addHandler(LoggingHandler(logger_provider=logger_provider))
+    
+    # Let INFO logs through (Python's root logger defaults to WARNING)
+    logging.getLogger().setLevel(logging.INFO)
     ```
 
     Alternatively, you can pass the API key as a query parameter:
@@ -91,8 +94,6 @@ Canonical URL: https://posthog.com/docs/logs/installation/python
 
     ```python
     import logging
-    
-    logging.basicConfig(level=logging.INFO)
     
     # Use standard Python logging
     logger = logging.getLogger("my-app")

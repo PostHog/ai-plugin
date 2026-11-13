@@ -9,7 +9,6 @@ Hog flows are automated user journeys — multi-step workflows that trigger acti
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Flow UUID.
-`team_id` | Integer | NOT NULL |
 `name` | String | NOT NULL | Flow name.
 `description` | String | NOT NULL | Flow description.
 `status` | String | NOT NULL | Flow status, e.g. 'active', 'draft', 'archived'.

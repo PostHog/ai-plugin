@@ -12,6 +12,7 @@ Canonical URL: https://posthog.com/docs/distributed-tracing/installation/dotnet
 - [Get your project token](#get-your-project-token)
 - [Configure the SDK](#configure-the-sdk)
 - [Create spans](#create-spans)
+- [Link spans to people and sessions](#link-spans-to-people-and-sessions)
 - [Test your setup](#test-your-setup)
 - [Next steps](#next-steps)
 
@@ -107,6 +108,27 @@ Canonical URL: https://posthog.com/docs/distributed-tracing/installation/dotnet
 
 5.  5
 
+    ## Link spans to people and sessions
+
+    Recommended
+
+    For ASP.NET Core on .NET 8 or later, use the [PostHog request-context integration](https://posthog.com/docs/libraries/dotnet.md#request-context). Add PostHog to your existing host builder and put the middleware before your routes:
+
+    ```csharp
+    builder.AddPostHog();
+    
+    var app = builder.Build();
+    app.UsePostHogRequestContext();
+    ```
+
+    Configure [`tracing_headers`](https://posthog.com/docs/libraries/js/config.md#tracing-headers) for your backend hostname in the browser SDK. The middleware adds missing `sessionId` and `posthogDistinctId` tags to the active request `Activity`. The host-owned listener adds those tags to child activities when they start. Keep your existing OpenTelemetry provider, exporter, and sampling configuration.
+
+    Existing `sessionId` and `posthogDistinctId` tags take precedence. Set authenticated application identity with `posthogDistinctId`. Missing IDs stay absent. Tracing headers are untrusted analytics context. Use authenticated application identity for access decisions.
+
+    Activities that already started keep their tags after the request ends. New activities in detached work do not receive the ended request's IDs. Background jobs need their own context transfer. The core PostHog SDK does not provide a native span API or a trace exporter.
+
+6.  6
+
     ## Test your setup
 
     Recommended
@@ -119,7 +141,7 @@ Canonical URL: https://posthog.com/docs/distributed-tracing/installation/dotnet
 
     [View your traces in PostHog](https://app.posthog.com/tracing)
 
-7.  ## Next steps
+8.  ## Next steps
 
     Checkpoint
 

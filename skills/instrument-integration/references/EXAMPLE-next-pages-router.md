@@ -39,7 +39,7 @@ NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=your_posthog_project_token
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
-Get your PostHog project token from your [PostHog project settings](https://app.posthog.com/project/settings).
+Get your PostHog project token from your [PostHog project settings](https://app.posthog.com/project/settings). `.env.example` lists the variable names. If the token is missing, the app still builds and runs, and logs a warning in development instead of initializing PostHog.
 
 ### 3. Run the Development Server
 
@@ -83,13 +83,19 @@ instrumentation-client.ts    # Client-side PostHog initialization
 ```typescript
 import posthog from "posthog-js"
 
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
-  api_host: "/ingest",
-  ui_host: "https://us.posthog.com",
-  defaults: '2026-01-30',
-  capture_exceptions: true,
-  debug: process.env.NODE_ENV === "development",
-});
+const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+
+if (token) {
+  posthog.init(token, {
+    api_host: "/ingest",
+    ui_host: process.env.NEXT_PUBLIC_POSTHOG_HOST?.includes("eu.") ? "https://eu.posthog.com" : "https://us.posthog.com",
+    defaults: '2026-08-30',
+    capture_exceptions: true,
+    debug: process.env.NODE_ENV === "development",
+  });
+} else if (process.env.NODE_ENV === "development") {
+  console.warn("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN is not set. PostHog is disabled.")
+}
 ```
 
 ### User identification (AuthContext.tsx)
@@ -119,12 +125,18 @@ posthog.captureException(error);
 
 ```typescript
 const posthog = getPostHogClient();
-posthog.capture({
+posthog?.capture({
   distinctId: username,
   event: 'server_login',
   properties: { ... }
 });
 ```
+
+## Reverse proxy
+
+Ad blockers drop events sent to PostHog's domain. This example sends events through your own domain instead. `next.config.ts` rewrites `/ingest/static/*` and `/ingest/array/*` to PostHog's assets host and every other `/ingest/*` request to PostHog's ingestion host. `instrumentation-client.ts` sets `api_host: "/ingest"` so the SDK uses that path, and `ui_host` keeps toolbar links pointing at PostHog. `skipTrailingSlashRedirect` stops Next.js from redirecting PostHog's trailing-slash API paths.
+
+The proxy follows the region in `NEXT_PUBLIC_POSTHOG_HOST`: `https://us.i.posthog.com` or `https://eu.i.posthog.com`. It derives the ingestion host, the assets host (`-assets.i.posthog.com`), and `ui_host` (`https://us.posthog.com` or `https://eu.posthog.com`) from that one value, so an EU project only needs to set `NEXT_PUBLIC_POSTHOG_HOST`. Pick a proxy path unique to your app rather than a common name such as `/analytics` or `/telemetry`. If your host doesn't support rewrites, use the [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy).
 
 ## Pages router differences from app router
 
@@ -151,23 +163,43 @@ Check out the [Next.js deployment documentation](https://nextjs.org/docs/pages/b
 
 ---
 
+## .env.example
+
+```example
+# PostHog Configuration
+# Get your PostHog project token from: https://app.posthog.com/project/settings
+NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=your_posthog_project_token_here
+# NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+
+```
+
+---
+
 ## instrumentation-client.ts
 
 ```ts
 import posthog from "posthog-js"
 
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
-  api_host: "/ingest",
-  ui_host: "https://us.posthog.com",
-  // Include the defaults option as required by PostHog
-  defaults: '2026-01-30',
-  // Enables capturing unhandled exceptions via Error Tracking
-  capture_exceptions: true,
-  // Turn on debug in development mode
-  debug: process.env.NODE_ENV === "development",
-});
+const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+
+if (token) {
+  posthog.init(token, {
+    api_host: "/ingest",
+    ui_host: process.env.NEXT_PUBLIC_POSTHOG_HOST?.includes("eu.") ? "https://eu.posthog.com" : "https://us.posthog.com", // The PostHog app for your region
+    // Include the defaults option as required by PostHog
+    defaults: '2026-08-30',
+    // Enables capturing unhandled exceptions via Error Tracking
+    capture_exceptions: true,
+    // Turn on debug in development mode
+    debug: process.env.NODE_ENV === "development",
+  });
+} else if (process.env.NODE_ENV === "development") {
+  console.warn("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN is not set. PostHog is disabled.")
+}
 
 //IMPORTANT: Never combine this approach with other client-side PostHog initialization approaches, especially components like a PostHogProvider. instrumentation-client.ts is the correct solution for initializating client-side PostHog in Next.js 15.3+ apps.
+
 ```
 
 ---
@@ -177,6 +209,10 @@ posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
 ```ts
 import type { NextConfig } from "next";
 
+// Proxy to the region in NEXT_PUBLIC_POSTHOG_HOST: us.i.posthog.com or eu.i.posthog.com
+const apiHost = new URL(process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com").hostname;
+const assetHost = apiHost.replace(".i.posthog.com", "-assets.i.posthog.com");
+
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
@@ -184,15 +220,15 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/ingest/static/:path*",
-        destination: "https://us-assets.i.posthog.com/static/:path*",
+        destination: `https://${assetHost}/static/:path*`,
       },
       {
         source: "/ingest/array/:path*",
-        destination: "https://us-assets.i.posthog.com/array/:path*",
+        destination: `https://${assetHost}/array/:path*`,
       },
       {
         source: "/ingest/:path*",
-        destination: "https://us.i.posthog.com/:path*",
+        destination: `https://${apiHost}/:path*`,
       },
     ];
   },
@@ -369,15 +405,19 @@ import { PostHog } from 'posthog-node';
 let posthogClient: PostHog | null = null;
 
 export function getPostHogClient() {
+  const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
+  if (!token) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN is not set. Server-side PostHog is disabled.');
+    }
+    return null;
+  }
   if (!posthogClient) {
-    posthogClient = new PostHog(
-      process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!,
-      {
-        host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-        flushAt: 1,
-        flushInterval: 0
-      }
-    );
+    posthogClient = new PostHog(token, {
+      host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+      flushAt: 1,
+      flushInterval: 0
+    });
   }
   return posthogClient;
 }
@@ -464,7 +504,7 @@ export default async function handler(
 
   // Capture server-side login event
   const posthog = getPostHogClient();
-  posthog.capture({
+  posthog?.capture({
     distinctId: username,
     event: 'server_login',
     properties: {
@@ -474,7 +514,7 @@ export default async function handler(
   });
 
   // Identify user on server side
-  posthog.identify({
+  posthog?.identify({
     distinctId: username,
     properties: {
       username: username,
@@ -483,7 +523,7 @@ export default async function handler(
   });
 
   // This handler is short-lived; flush so the enqueued events send before it returns
-  await posthog.flush();
+  await posthog?.flush();
 
   return res.status(200).json({ success: true, user });
 }
@@ -516,7 +556,7 @@ export default function handler(
 ## src/pages/burrito.tsx
 
 ```tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import posthog from 'posthog-js';
@@ -529,8 +569,13 @@ export default function BurritoPage() {
   const [hasConsidered, setHasConsidered] = useState(false);
 
   // Redirect to home if not logged in
+  useEffect(() => {
+    if (!user) {
+      router.push('/');
+    }
+  }, [user, router]);
+
   if (!user) {
-    router.push('/');
     return null;
   }
 
@@ -690,6 +735,7 @@ export default function Home() {
 ## src/pages/profile.tsx
 
 ```tsx
+import { useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import posthog from 'posthog-js';
@@ -701,8 +747,13 @@ export default function ProfilePage() {
   const router = useRouter();
 
   // Redirect to home if not logged in
+  useEffect(() => {
+    if (!user) {
+      router.push('/');
+    }
+  }, [user, router]);
+
   if (!user) {
-    router.push('/');
     return null;
   }
 

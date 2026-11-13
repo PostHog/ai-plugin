@@ -20,7 +20,7 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
 
 > **JavaScript layer only.** Logs are captured from the JavaScript side of your app. Native logs from your iOS or Android code (e.g. `os_log`, `Log.d`) are not collected.
 
-> **Minimum version:** `posthog-react-native@4.44.0` or later. Run `npx expo install posthog-react-native` (Expo) or your package manager's equivalent to update.
+> **Minimum version:** `posthog-react-native@4.44.0` or later. Run `npx expo install posthog-react-native@4` (Expo) or your package manager's equivalent to update.
 
 1.  1
 
@@ -37,15 +37,15 @@ PostHog's React Native SDK has built-in support for capturing structured logs. U
     #### Expo apps
 
     ```bash
-    npx expo install posthog-react-native expo-file-system expo-application expo-device expo-localization
+    npx expo install posthog-react-native@4 expo-file-system expo-application expo-device expo-localization
     ```
 
     #### React Native apps
 
     ```bash
-    yarn add posthog-react-native @react-native-async-storage/async-storage react-native-device-info react-native-localize
+    yarn add posthog-react-native@4 @react-native-async-storage/async-storage react-native-device-info react-native-localize
     # or
-    npm i -s posthog-react-native @react-native-async-storage/async-storage react-native-device-info react-native-localize
+    npm i -s posthog-react-native@4 @react-native-async-storage/async-storage react-native-device-info react-native-localize
     ```
 
     #### React Native Web and macOS

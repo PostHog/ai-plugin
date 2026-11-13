@@ -11,11 +11,11 @@ Activity logs track user and system actions across PostHog entities, providing a
 Column | Type | Nullable | Description
 --- | --- | --- | ---
 `id` | String | NOT NULL | Activity log entry UUID.
-`team_id` | Integer | NOT NULL |
 `activity` | String | NOT NULL | Action performed, e.g. 'created', 'updated', 'deleted'.
 `item_id` | String | NOT NULL | Id of the object the activity is about.
 `scope` | String | NOT NULL | Type of object affected, e.g. 'Insight', 'FeatureFlag', 'Dashboard'.
 `detail` | JSON | NOT NULL | JSON detail of what changed (field-level diffs, context).
+`credential_type` | String | NULL | Kind of credential that authenticated the request that made the change, e.g. 'session', 'personal_api_key', 'oauth'. 'unattributed' means the request recorded no credential. Null for changes made outside a request, such as background jobs, and for entries recorded before the credential was stored.
 `created_at` | DateTime | NOT NULL | When the activity occurred.
 
 ### Detail JSON Structure

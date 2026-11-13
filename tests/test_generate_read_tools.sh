@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for scripts/generate-read-tools.sh against a stubbed registry.
+# Tests for scripts/generate-read-tools.sh against stubbed tool definition files.
 #
 # Requires curl and jq, like the generator. Run from anywhere:
 #
@@ -41,16 +41,29 @@ registry() {
     }
 }
 
-# Args: case name, expected outcome ("accept" or "refuse"), registry JSON or
-# "-" for an unreachable registry, "none" to start without a committed list.
+# The hand-written definitions file always holds one read tool, so a list that
+# merged both files contains it.
+HAND_WRITTEN='{"hand-read":{"annotations":{"readOnlyHint":true}}}'
+
+# Args: case name, expected outcome ("accept" or "refuse"), generated
+# definitions JSON or "-" for an unreachable registry, "none" to start without
+# a committed list, "no-hand-written" to leave out the hand-written file or
+# "empty-hand-written" to make it an empty object.
 run_case() {
-    local name="$1" expected="$2" registry_json="$3" committed="${4:-}"
+    local name="$1" expected="$2" registry_json="$3" committed="${4:-}" files="${5:-}"
     local dir status before after ok=1
     dir="$(mktemp -d)"
-    mkdir -p "$dir/scripts" "$dir/hooks"
+    mkdir -p "$dir/scripts" "$dir/hooks" "$dir/schema"
     cp "$GENERATOR" "$dir/scripts/"
     [[ "$committed" == none ]] || committed_list > "$dir/hooks/read-tools.txt"
-    [[ "$registry_json" == - ]] || printf '%s' "$registry_json" > "$dir/registry.json"
+    if [[ "$registry_json" != - ]]; then
+        printf '%s' "$registry_json" > "$dir/schema/generated-tool-definitions.json"
+        case "$files" in
+            no-hand-written) ;;
+            empty-hand-written) printf '{}' > "$dir/schema/tool-definitions.json" ;;
+            *) printf '%s' "$HAND_WRITTEN" > "$dir/schema/tool-definitions.json" ;;
+        esac
+    fi
     before="$(cat "$dir/hooks/read-tools.txt" 2>/dev/null)"
 
     # curl reads one default config file: .curlrc from CURL_HOME, curlrc from
@@ -62,13 +75,13 @@ run_case() {
     # (https://www.gnu.org/software/bash/manual/bash.html#Bash-Startup-Files).
     # HOME points at the temp dir, with an empty .curlrc, so the lookup stops there.
     : > "$dir/.curlrc"
-    env -i PATH="$PATH" HOME="$dir" REGISTRY_URL="file://$dir/registry.json" \
+    env -i PATH="$PATH" HOME="$dir" REGISTRY_BASE_URL="file://$dir/schema" \
         bash "$dir/scripts/generate-read-tools.sh" >/dev/null 2>&1
     status=$?
     after="$(cat "$dir/hooks/read-tools.txt" 2>/dev/null)"
 
     if [[ "$expected" == accept ]]; then
-        [[ $status -eq 0 && "$after" != "$before" ]] || ok=0
+        [[ $status -eq 0 && "$after" != "$before" && "$after" == *$'\nhand-read\n'* ]] || ok=0
     else
         [[ $status -ne 0 && "$after" == "$before" ]] || ok=0
     fi
@@ -88,8 +101,9 @@ echo "Running generate-read-tools.sh tests..."
 run_case "accepts one new read tool" accept "$(registry 21 10)"
 run_case "accepts one removed read tool" accept "$(registry 19 10)"
 run_case "accepts a large change" accept "$(registry 40 10 'write-00 write-01 write-02')"
-run_case "refuses an empty registry" refuse '{}'
+run_case "refuses an empty registry" refuse '{}' "" empty-hand-written
 run_case "refuses an unreachable registry" refuse -
+run_case "refuses when the hand-written file is missing" refuse "$(registry 21 10)" "" no-hand-written
 run_case "accepts any list when none is committed" accept "$(registry 23 10)" none
 
 echo

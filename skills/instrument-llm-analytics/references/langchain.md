@@ -43,13 +43,13 @@ Skip the manual setup — run this in your project and the wizard installs the S
     ### Python
 
     ```bash
-    pip install posthog "langchain>=1.0" langchain-core langchain-openai
+    pip install "posthog<8" "langchain>=1.0" langchain-core langchain-openai
     ```
 
     ### Node
 
     ```bash
-    npm install posthog-node @posthog/ai langchain@^1.0 @langchain/core @langchain/openai zod
+    npm install posthog-node@5 @posthog/ai@8 langchain@^1.0 @langchain/core @langchain/openai zod
     ```
 
 2.  2

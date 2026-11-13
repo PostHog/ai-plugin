@@ -652,6 +652,7 @@ protocol
 quantile
 quantileExact
 quantiles
+quantilesExact
 quantilesMerge
 quantilesState
 queryString
@@ -782,12 +783,19 @@ toDayOfWeek
 toDayOfYear
 toDecimal
 toFloat
+toFloat64
+toFloat64OrDefault
 toFloat64OrNull
+toFloat64OrZero
 toFloatOrDefault
 toFloatOrNull
 toFloatOrZero
 toHour
 toInt
+toInt64
+toInt64OrDefault
+toInt64OrNull
+toInt64OrZero
 toIntervalDay
 toIntervalHour
 toIntervalMinute
@@ -797,6 +805,7 @@ toIntervalSecond
 toIntervalWeek
 toIntervalYear
 toIntOrDefault
+toIntOrNull
 toIntOrZero
 toIPv4
 toIPv4OrDefault

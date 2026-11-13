@@ -30,6 +30,15 @@ The PostHog Flutter SDK has built-in support for capturing structured Logs from 
 
     If you haven't installed `posthog_flutter` yet, follow the steps below. For full details, see the [Flutter SDK guide](https://posthog.com/docs/libraries/flutter.md).
 
+    > **CocoaPods is becoming read-only.** [CocoaPods has announced](https://blog.cocoapods.org/CocoaPods-Specs-Repo/) the following schedule for its public specs repository:
+    >
+    > -   November 2–6, 2026: A read-only dry run will prevent us from publishing new PostHog iOS SDK versions to CocoaPods.
+    > -   December 2, 2026 onward: The repository will be permanently read-only. New PostHog iOS SDK versions will only be available through Swift Package Manager (SPM).
+    >
+    > Existing native SDK versions will remain available through CocoaPods. To keep receiving native SDK updates on iOS and macOS, migrate your Flutter app to SPM. The `posthog_flutter` package supports SPM, and Flutter 3.44 and later enable it by default. On earlier Flutter versions that support SPM, or if you disabled it, run `flutter config --enable-swift-package-manager`, then rebuild your app. Follow [Flutter's SPM migration guide](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-app-developers) for project setup and troubleshooting.
+    >
+    > This change does not affect `posthog_flutter` releases on pub.dev, Android, or web.
+
     PostHog is available for install via [Pub](https://pub.dev/packages/posthog_flutter).
 
     ### Configuration

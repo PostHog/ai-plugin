@@ -46,25 +46,25 @@ Canonical URL: https://posthog.com/docs/error-tracking/installation/web
     ### npm
 
     ```bash
-    npm install posthog-js
+    npm install posthog-js@1
     ```
 
     ### yarn
 
     ```bash
-    yarn add posthog-js
+    yarn add posthog-js@1
     ```
 
     ### pnpm
 
     ```bash
-    pnpm add posthog-js
+    pnpm add posthog-js@1
     ```
 
     ### bun
 
     ```bash
-    bun add posthog-js
+    bun add posthog-js@1
     ```
 
     JavaScript

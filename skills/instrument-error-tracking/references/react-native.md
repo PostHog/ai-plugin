@@ -153,7 +153,7 @@ Or set it up manually by following the rest of this guide.
 
     `nativeCrashes` captures native iOS and Android crashes that the JavaScript layer can't see. Beyond the config above, it needs:
 
-    1.  The optional native plugin installed — `npx expo install @posthog/react-native-plugin` (Expo) or `npm i @posthog/react-native-plugin` (bare React Native). If it's missing, native capture is a no-op and your JS-level autocapture is unaffected.
+    1.  The optional native plugin installed — `npx expo install @posthog/react-native-plugin@2` (Expo) or `npm i @posthog/react-native-plugin@2` (bare React Native). If it's missing, native capture is a no-op and your JS-level autocapture is unaffected.
     2.  Your project's **Enable exception autocapture** setting enabled in [error tracking settings](https://app.posthog.com/settings/project-error-tracking#exception-autocapture) — the same server-side setting that gates JavaScript autocapture.
     3.  Native debug symbols uploaded at build time, so crash stack traces are readable. See [native crash symbolication](https://posthog.com/docs/error-tracking/upload-source-maps/react-native.md#native-crash-symbolication).
 
@@ -260,6 +260,15 @@ Or set it up manually by following the rest of this guide.
     [Upload source maps & native symbols](https://posthog.com/docs/error-tracking/upload-source-maps/react-native.md)
 
 ## iOS dependency resolution for native crash capture
+
+> **CocoaPods is becoming read-only.** [CocoaPods has announced](https://blog.cocoapods.org/CocoaPods-Specs-Repo/) the following schedule for its public specs repository:
+>
+> -   November 2–6, 2026: A read-only dry run will prevent us from publishing new PostHog iOS SDK versions to CocoaPods.
+> -   December 2, 2026 onward: The repository will be permanently read-only. New PostHog iOS SDK versions will only be available through Swift Package Manager (SPM).
+>
+> Existing iOS SDK versions will remain available through CocoaPods. To keep receiving iOS SDK updates, migrate the native plugin's `posthog-ios` dependency to SPM using the [hybrid CocoaPods and SPM setup](https://posthog.com/docs/libraries/react-native.md#cocoapods-with-posthog-ios-through-swift-package-manager), or use [full SPM integration](https://posthog.com/docs/libraries/react-native.md#full-swift-package-manager) if your app supports it. The hybrid path keeps CocoaPods for the plugin and other React Native dependencies.
+>
+> This change does not affect `@posthog/react-native-plugin` releases on npm or Android.
 
 The `@posthog/react-native-plugin` package supports CocoaPods, the hybrid CocoaPods and Swift Package Manager path, and React Native's full Swift Package Manager integration. PostHog verifies the full path with an iOS-only React Native 0.87.1 app and React Native Community CLI 20.2.0. This path requires `@posthog/react-native-plugin` 2.4.0 or later, Xcode 16 or later, and an iOS 15.1 or later app deployment target.
 
