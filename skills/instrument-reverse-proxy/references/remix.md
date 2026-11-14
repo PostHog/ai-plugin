@@ -1,0 +1,260 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
+# Remix reverse proxy
+
+Canonical URL: https://posthog.com/docs/advanced/proxy/remix
+
+## On this page
+
+- [How it works](#how-it-works)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Create the resource route](#create-the-resource-route)
+- [Update your PostHog SDK](#update-your-posthog-sdk)
+- [Deploy your changes](#deploy-your-changes)
+- [Verify your setup](#verify-your-setup)
+- [Troubleshooting](#troubleshooting)
+
+**Before you start**
+
+-   If you use a self-hosted proxy, PostHog can't help troubleshoot. Use [our managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) if you want support.
+-   Use domains matching your PostHog region: `us.i.posthog.com` for US, `eu.i.posthog.com` for EU.
+-   Don't use obvious path names like `/analytics`, `/tracking`, `/telemetry`, or `/posthog`. Blockers will catch them. Use something unique to your app instead.
+
+**Data transfer costs**
+
+Resource routes run on the server, so all PostHog traffic – events, session recordings, feature flag polls, and SDK assets – passes through your Remix deployment. Costs depend on where it's hosted: serverless platforms like Vercel or Netlify bill this as bandwidth and function invocations, which can add up on high-traffic sites, especially because session recordings are often 1–5 MB each.
+
+To avoid these costs, use the [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) (free for PostHog Cloud users) or a provider without egress fees like [Cloudflare Workers](https://posthog.com/docs/advanced/proxy/cloudflare.md).
+
+This guide shows you how to use [Remix resource routes](https://remix.run/docs/en/main/guides/resource-routes) as a reverse proxy for PostHog.
+
+## How it works
+
+Remix resource routes are server-side endpoints that can handle any HTTP method. When a request matches your proxy path, the route fetches the response from PostHog and returns it under your domain.
+
+Here's the request flow:
+
+1.  User triggers an event in your app
+2.  Request goes to your domain (e.g., `yourdomain.com/yourpath/e`)
+3.  Remix's resource route intercepts requests matching your proxy path
+4.  The route fetches the response from PostHog's servers
+5.  PostHog's response is returned to the user under your domain
+
+This works because the route runs server-side, so the browser only sees requests to your domain. Ad blockers that filter by domain won't block these requests.
+
+**Why splat routes?** The `$` in the filename creates a [splat route](https://remix.run/docs/en/main/file-conventions/routes#splat-routes) that matches any path after your prefix. This lets a single route handle all PostHog endpoints like `/yourpath/e`, `/yourpath/decide`, and `/yourpath/static/array.js`.
+
+## Prerequisites
+
+This guide requires a Remix project with a server runtime (Node.js, Deno, or Cloudflare Workers).
+
+## Setup
+
+1.  1
+
+    ## Create the resource route
+
+    Create a file at `app/routes/yourpath.$.tsx`:
+
+    ### US
+
+    ```jsx
+    import type { ActionFunction, LoaderFunction } from "@remix-run/node"
+    
+    const API_HOST = "us.i.posthog.com"
+    const ASSET_HOST = "us-assets.i.posthog.com"
+    
+    const posthogProxy = async (request: Request) => {
+      const url = new URL(request.url)
+      const pathname = url.pathname
+      const useAssetHost = pathname.startsWith("/yourpath/static/") || pathname.startsWith("/yourpath/array/")
+      const hostname = useAssetHost ? ASSET_HOST : API_HOST
+    
+      const newUrl = new URL(url)
+      newUrl.protocol = "https"
+      newUrl.hostname = hostname
+      newUrl.port = "443"
+      newUrl.pathname = newUrl.pathname.replace(/^\/yourpath/, "")
+    
+      const headers = new Headers(request.headers)
+      headers.set("host", hostname)
+      // Remove cookies before forwarding to PostHog
+      headers.delete("cookie")
+      // Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+      // To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+      if (!/^Bearer ph[csx]_/.test(headers.get("authorization") ?? "")) {
+        headers.delete("authorization")
+      }
+      headers.delete("accept-encoding")
+    
+      const response = await fetch(newUrl, {
+        method: request.method,
+        headers,
+        body: request.body,
+        // @ts-ignore - duplex is required for streaming request bodies
+        duplex: 'half',
+      })
+    
+      const responseHeaders = new Headers(response.headers)
+      responseHeaders.delete("content-encoding")
+      responseHeaders.delete("content-length")
+    
+      const data = await response.arrayBuffer()
+    
+      return new Response(data, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+      })
+    }
+    
+    export const loader: LoaderFunction = async ({ request }) =>
+      posthogProxy(request)
+    
+    export const action: ActionFunction = async ({ request }) =>
+      posthogProxy(request)
+    ```
+
+    ### EU
+
+    ```jsx
+    import type { ActionFunction, LoaderFunction } from "@remix-run/node"
+    
+    const API_HOST = "eu.i.posthog.com"
+    const ASSET_HOST = "eu-assets.i.posthog.com"
+    
+    const posthogProxy = async (request: Request) => {
+      const url = new URL(request.url)
+      const pathname = url.pathname
+      const useAssetHost = pathname.startsWith("/yourpath/static/") || pathname.startsWith("/yourpath/array/")
+      const hostname = useAssetHost ? ASSET_HOST : API_HOST
+    
+      const newUrl = new URL(url)
+      newUrl.protocol = "https"
+      newUrl.hostname = hostname
+      newUrl.port = "443"
+      newUrl.pathname = newUrl.pathname.replace(/^\/yourpath/, "")
+    
+      const headers = new Headers(request.headers)
+      headers.set("host", hostname)
+      // Remove cookies before forwarding to PostHog
+      headers.delete("cookie")
+      // Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+      // To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+      if (!/^Bearer ph[csx]_/.test(headers.get("authorization") ?? "")) {
+        headers.delete("authorization")
+      }
+      headers.delete("accept-encoding")
+    
+      const response = await fetch(newUrl, {
+        method: request.method,
+        headers,
+        body: request.body,
+        // @ts-ignore - duplex is required for streaming request bodies
+        duplex: 'half',
+      })
+    
+      const responseHeaders = new Headers(response.headers)
+      responseHeaders.delete("content-encoding")
+      responseHeaders.delete("content-length")
+    
+      const data = await response.arrayBuffer()
+    
+      return new Response(data, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+      })
+    }
+    
+    export const loader: LoaderFunction = async ({ request }) =>
+      posthogProxy(request)
+    
+    export const action: ActionFunction = async ({ request }) =>
+      posthogProxy(request)
+    ```
+
+    Here's what the code does:
+
+    -   Routes `/static/*` and `/array/*` requests to PostHog's asset server and everything else to the main API
+    -   Sets the `host` header so PostHog can route the request correctly
+    -   Removes `accept-encoding` from the request and `content-encoding` from the response to avoid issues with compressed content
+    -   Uses `arrayBuffer()` to properly handle binary content like fonts or images
+    -   Exports both `loader` (for GET requests) and `action` (for POST/PUT/etc.) to handle all HTTP methods
+
+    The `@ts-ignore` comment is needed because TypeScript's fetch types don't include the `duplex` option yet, but it's required for streaming request bodies in Node.js.
+
+2.  2
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: '/yourpath',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: '/yourpath',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    The `api_host` tells the SDK where to send events. Using a relative path ensures requests go to your domain. The `ui_host` must point to PostHog's actual domain so features like the toolbar link correctly.
+
+3.  3
+
+    ## Deploy your changes
+
+    Commit and push your changes. The resource route will be active once deployed.
+
+    In development, restart your dev server after creating the route file.
+
+4.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your proxy:
+
+    1.  Open your browser's developer tools and go to the **Network** tab
+    2.  Navigate to your site or trigger an event
+    3.  Look for requests to your domain with your proxy path (e.g., `yourdomain.com/yourpath`)
+    4.  Verify the response status is `200 OK`
+    5.  Check the [PostHog app](https://app.posthog.com) to confirm events appear in your activity feed
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Troubleshooting
+
+### Route not matching requests
+
+If requests to your proxy path return 404:
+
+1.  Verify your file is at `app/routes/yourpath.$.tsx` (the `$` is important)
+2.  Check the file extension matches your project (`.tsx` for TypeScript, `.jsx` for JavaScript)
+3.  Restart your dev server after creating the file
+
+### Config file appears truncated
+
+If PostHog's `config.js` file loads partially or appears cut off, verify you're deleting both `content-encoding` and `content-length` headers from the response. The original `content-length` reflects the compressed size, which causes browsers to stop reading early when the content is decompressed.
+
+### Content decoding errors
+
+If you see `ERR_CONTENT_DECODING_FAILED` errors, the proxy is forwarding compressed responses incorrectly. The code handles this by:
+
+1.  Deleting `accept-encoding` from the request so PostHog sends uncompressed data
+2.  Deleting `content-encoding` and `content-length` from the response
+3.  Reading the response as `arrayBuffer` to handle binary content properly
+
+### TypeScript error on duplex property
+
+The `duplex: 'half'` property shows a TypeScript error because it's a newer fetch API feature not yet in TypeScript's types. The `@ts-ignore` comment suppresses this. The code works correctly at runtime.

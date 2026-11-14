@@ -12,6 +12,8 @@ Canonical URL: https://posthog.com/docs/libraries/gatsby
 - [How to use](#how-to-use)
 - [Identifying users](#identifying-users)
 
+> **Deprecated:** The `gatsby-plugin-posthog` plugin is deprecated and no longer maintained. Use the [JavaScript Web SDK](https://posthog.com/docs/libraries/js.md) instead. The instructions below are retained for existing integrations.
+
 > This [library](https://github.com/posthog/gatsby-plugin-posthog) was built by the community. Thanks to [Ritesh Kadmawala](https://github.com/kgritesh) for building it.
 
 Gatsby behaves like a single-page app which means to track `$pageview` events special care is needed. This integration takes care of that.

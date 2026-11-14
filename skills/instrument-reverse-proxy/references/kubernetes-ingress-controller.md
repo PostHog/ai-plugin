@@ -1,0 +1,744 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
+# Kubernetes reverse proxy
+
+Canonical URL: https://posthog.com/docs/advanced/proxy/kubernetes-ingress-controller
+
+## On this page
+
+- [How it works](#how-it-works)
+- [Prerequisites](#prerequisites)
+- [Choose your setup option](#choose-your-setup-option)
+- [Option 1: ingress-nginx](#option-1-ingress-nginx)
+- [Create the upstream CA secret](#create-the-upstream-ca-secret)
+- [Create a configuration file](#create-a-configuration-file)
+- [Apply the configuration](#apply-the-configuration)
+- [Update your PostHog SDK](#update-your-posthog-sdk)
+- [Verify your setup](#verify-your-setup)
+- [Option 2: Traefik, HAProxy, or other controllers](#option-2-traefik-haproxy-or-other-controllers)
+- [Find your controller's annotations](#find-your-controllers-annotations)
+- [Create your configuration file](#create-your-configuration-file)
+- [Apply the configuration](#apply-the-configuration-1)
+- [Update your PostHog SDK](#update-your-posthog-sdk-1)
+- [Verify your setup](#verify-your-setup-1)
+- [Option 3: Istio service mesh](#option-3-istio-service-mesh)
+- [Create Istio configuration](#create-istio-configuration)
+- [Apply the configuration](#apply-the-configuration-2)
+- [Update your PostHog SDK](#update-your-posthog-sdk-2)
+- [Verify your setup](#verify-your-setup-2)
+- [Troubleshooting](#troubleshooting)
+
+**Before you start**
+
+-   If you use a self-hosted proxy, PostHog can't help troubleshoot. Use [our managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) if you want support.
+-   Use domains matching your PostHog region: `us.i.posthog.com` for US, `eu.i.posthog.com` for EU.
+-   Don't use obvious path names like `/analytics`, `/tracking`, `/telemetry`, or `/posthog`. Blockers will catch them. Use something unique to your app instead.
+
+This guide shows you how to use a Kubernetes Ingress Controller to proxy PostHog.
+
+If your team already uses Kubernetes, this method lets you set up a reverse proxy using Kubernetes resources instead of deploying a separate tool like Caddy or Nginx.
+
+## How it works
+
+Kubernetes Ingress Controllers can proxy traffic to external domains, not just internal services. You'll use ExternalName services to tell Kubernetes about PostHog's domains, then create an Ingress that routes traffic through those services.
+
+Here's the request flow:
+
+1.  User triggers an event in your app
+2.  Request goes to your subdomain (e.g., `e.yourdomain.com`)
+3.  Your Ingress Controller receives the request
+4.  Ingress routes the request to an ExternalName service
+5.  ExternalName service resolves PostHog's domain (e.g., `us.i.posthog.com`)
+6.  Ingress Controller proxies the request to PostHog with correct headers
+7.  PostHog processes the event and returns a response
+
+**Why two services?** PostHog uses separate domains for API requests and static assets. You need two ExternalName services:
+
+-   **Main service:** Points to `us.i.posthog.com` or `eu.i.posthog.com` for event capture, feature flags, and API calls
+-   **Assets service:** Points to `us-assets.i.posthog.com` or `eu-assets.i.posthog.com` for the JavaScript SDK, remote config, and other static files
+
+**What's an ExternalName service?** It's a Kubernetes service type that maps a service name to an external DNS name. When your Ingress references the service, Kubernetes resolves the external domain and the Ingress Controller proxies to it.
+
+This approach works because Ingress Controllers handle TLS termination, header manipulation, and upstream SSL connections to external domains.
+
+## Prerequisites
+
+-   A Kubernetes cluster with an Ingress Controller installed, such as ingress-nginx, Traefik, or HAProxy
+-   `kubectl` configured to access your cluster
+-   A domain with DNS records pointing to your Ingress Controller's load balancer
+-   A TLS certificate stored as a Kubernetes Secret (or cert-manager configured to provision one)
+
+## Choose your setup option
+
+All three options accomplish the same goal of routing PostHog through your domain. Choose based on your existing Kubernetes infrastructure:
+
+-   [Option 1: ingress-nginx](#option-1-ingress-nginx): The most common Ingress Controller with complete configuration. Use this if you're using nginx-based ingress or starting fresh.
+-   [Option 2: Traefik, HAProxy, or other controllers](#option-2-traefik-haproxy-or-other-controllers): Uses the same approach as Option 1 with controller-specific annotations. Use this if you're already running a different Ingress Controller.
+-   [Option 3: Istio service mesh](#option-3-istio-service-mesh): For teams using Istio who want path-based routing (e.g., `yourdomain.com/posthog`). More complex but integrates with existing service mesh.
+
+## Option 1: ingress-nginx
+
+This setup works with the ingress-nginx controller, the most widely used Ingress Controller in Kubernetes.
+
+1.  1
+
+    ## Create the upstream CA secret
+
+    Download the Mozilla CA bundle, then create a Secret from it so ingress-nginx can verify PostHog's upstream certificates:
+
+    ```bash
+    curl --fail --location https://curl.se/ca/cacert.pem --output ca-certificates.crt
+    ```
+
+    ```bash
+    kubectl create secret generic posthog-upstream-ca \
+      --from-file=ca.crt=ca-certificates.crt
+    ```
+
+    If you already have a CA bundle locally, you can use its path instead of downloading this file. The Secret and Ingress resources must use the same namespace. The example below uses the `default` namespace.
+
+2.  2
+
+    ## Create a configuration file
+
+    Create a file named `posthog-proxy.yaml`:
+
+    ```yaml
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: posthog-assets-proxy
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/upstream-vhost: us-assets.i.posthog.com
+        nginx.ingress.kubernetes.io/backend-protocol: https
+        nginx.ingress.kubernetes.io/proxy-ssl-secret: default/posthog-upstream-ca
+        nginx.ingress.kubernetes.io/proxy-ssl-verify: "on"
+        nginx.ingress.kubernetes.io/proxy-ssl-server-name: "on"
+        nginx.ingress.kubernetes.io/proxy-ssl-name: us-assets.i.posthog.com
+        nginx.ingress.kubernetes.io/configuration-snippet: |
+          proxy_set_header Cookie "";
+          proxy_set_header Authorization "";
+    spec:
+      tls:
+      - hosts:
+        - e.yourdomain.com
+        secretName: your-tls-secret
+      rules:
+      - host: e.yourdomain.com
+        http:
+          paths:
+          - pathType: Prefix
+            path: /static
+            backend:
+              service:
+                name: posthog-assets-proxy
+                port:
+                  name: https
+          - pathType: Prefix
+            path: /array
+            backend:
+              service:
+                name: posthog-assets-proxy
+                port:
+                  name: https
+    
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: posthog-proxy
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/upstream-vhost: us.i.posthog.com
+        nginx.ingress.kubernetes.io/backend-protocol: https
+        nginx.ingress.kubernetes.io/proxy-ssl-secret: default/posthog-upstream-ca
+        nginx.ingress.kubernetes.io/proxy-ssl-verify: "on"
+        nginx.ingress.kubernetes.io/proxy-ssl-server-name: "on"
+        nginx.ingress.kubernetes.io/proxy-ssl-name: us.i.posthog.com
+        nginx.ingress.kubernetes.io/proxy-body-size: 64m
+        nginx.ingress.kubernetes.io/configuration-snippet: |
+          proxy_set_header Cookie "";
+          # Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+          # To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+          set $posthog_authorization "";
+          if ($http_authorization ~ "^Bearer ph[csx]_") {
+            set $posthog_authorization $http_authorization;
+          }
+          proxy_set_header Authorization $posthog_authorization;
+    spec:
+      tls:
+      - hosts:
+        - e.yourdomain.com
+        secretName: your-tls-secret
+      rules:
+      - host: e.yourdomain.com
+        http:
+          paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: posthog-proxy
+                port:
+                  name: https
+    
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: posthog-proxy
+    spec:
+      type: ExternalName
+      externalName: us.i.posthog.com
+      ports:
+      - name: https
+        protocol: TCP
+        port: 443
+    
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: posthog-assets-proxy
+    spec:
+      type: ExternalName
+      externalName: us-assets.i.posthog.com
+      ports:
+      - name: https
+        protocol: TCP
+        port: 443
+    ```
+
+    Replace these values:
+
+    -   `e.yourdomain.com`: Your subdomain for the proxy
+    -   `your-tls-secret`: Your Kubernetes TLS secret name
+    -   `us.i.posthog.com` and `us-assets.i.posthog.com`: Change to `eu.i.posthog.com` and `eu-assets.i.posthog.com` for EU region
+
+    The annotations in the Ingress configuration above do the following:
+
+    -   `upstream-vhost` sets the Host header sent to PostHog. Without this, PostHog receives your subdomain as the Host header and can't route the request, causing 401 errors.
+    -   `backend-protocol` tells the Ingress Controller to use HTTPS when connecting to PostHog's domains.
+    -   `proxy-ssl-secret` supplies the trusted certificate authorities used for upstream verification.
+    -   `proxy-ssl-verify` requires a valid certificate from the upstream.
+    -   `proxy-ssl-server-name` and `proxy-ssl-name` send and verify the correct hostname during the TLS handshake.
+    -   `proxy-body-size` allows large event batches and session recordings. ingress-nginx returns `413` for bodies over its limit, and capture v1 SDKs drop a request that gets a `413`.
+    -   `configuration-snippet` removes browser cookies before sending requests to PostHog. On the API Ingress, it forwards the `Authorization` header only when its value starts with `Bearer phc_`, `Bearer phs_` or `Bearer phx_`, because capture v1 SDKs send the project token as `Authorization: Bearer <token>`. Keys created before these prefixes need their exact `Bearer <key>` value allowed too. nginx does not send a header whose value is empty, so other credentials never reach PostHog. On the assets Ingress, it always clears the header.
+
+    The API and asset paths use separate Ingress resources because each upstream needs its own Host header and verified TLS hostname. The ExternalName services keep the upstreams as DNS names, allowing ingress-nginx to re-resolve them when their DNS records change.
+
+3.  3
+
+    ## Apply the configuration
+
+    Deploy the resources to your cluster:
+
+    ```bash
+    kubectl apply -f posthog-proxy.yaml
+    ```
+
+    Verify the resources were created:
+
+    ```bash
+    kubectl get ingress posthog-proxy posthog-assets-proxy
+    kubectl get service posthog-proxy posthog-assets-proxy
+    ```
+
+    The Ingress should show your subdomain in the HOSTS column. The services should show the PostHog domains in the EXTERNAL-NAME column.
+
+4.  4
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization to use your proxy subdomain:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://e.yourdomain.com',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://e.yourdomain.com',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    Replace `e.yourdomain.com` with your actual subdomain.
+
+    The `ui_host` must point to PostHog's actual domain so features like the toolbar link correctly.
+
+5.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your proxy:
+
+    1.  Check that your Ingress has an IP address assigned:
+
+    ```bash
+    kubectl get ingress posthog-proxy
+    ```
+
+    2.  Test connectivity from within your cluster:
+
+    ```bash
+    kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -I https://e.yourdomain.com
+    ```
+
+    You should see a `200 OK` response.
+
+    3.  In your application, open your browser's developer tools and go to the Network tab
+    4.  Trigger an event, like a page view
+    5.  Look for a request to your subdomain (e.g., `e.yourdomain.com`)
+    6.  Verify the response is `200 OK`
+    7.  Check the [PostHog app](https://app.posthog.com) to confirm events appear
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Option 2: Traefik, HAProxy, or other controllers
+
+If you're using a different Ingress Controller, use the same resource structure as Option 1 but with controller-specific annotations.
+
+1.  1
+
+    ## Find your controller's annotations
+
+    Each Ingress Controller uses different annotations for upstream configuration. Consult your controller's documentation:
+
+    -   [ingress-nginx annotations](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/)
+    -   [Traefik annotations](https://doc.traefik.io/traefik/providers/kubernetes-ingress/)
+    -   [HAProxy annotations](https://haproxy-ingress.github.io/docs/configuration/keys/)
+
+    You need annotations that handle:
+
+    -   Setting the Host header for upstream requests
+    -   Using HTTPS for backend connections
+    -   Configuring SSL/TLS for upstream connections
+
+2.  2
+
+    ## Create your configuration file
+
+    Here's a Traefik example. Create `posthog-proxy.yaml`:
+
+    ```yaml
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: posthog-proxy
+      annotations:
+        kubernetes.io/ingress.class: traefik
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    spec:
+      tls:
+      - hosts:
+        - e.yourdomain.com
+        secretName: your-tls-secret
+      rules:
+      - host: e.yourdomain.com
+        http:
+          paths:
+          - pathType: Prefix
+            path: /static
+            backend:
+              service:
+                name: posthog-assets-proxy
+                port:
+                  name: https
+          - pathType: Prefix
+            path: /array
+            backend:
+              service:
+                name: posthog-assets-proxy
+                port:
+                  name: https
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: posthog-proxy
+                port:
+                  name: https
+    
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: posthog-proxy
+    spec:
+      type: ExternalName
+      externalName: us.i.posthog.com
+      ports:
+      - name: https
+        protocol: TCP
+        port: 443
+    
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: posthog-assets-proxy
+    spec:
+      type: ExternalName
+      externalName: us-assets.i.posthog.com
+      ports:
+      - name: https
+        protocol: TCP
+        port: 443
+    ```
+
+    The ExternalName services are identical across all Ingress Controllers. Only the Ingress annotations change.
+
+3.  3
+
+    ## Apply the configuration
+
+    Deploy the resources:
+
+    ```bash
+    kubectl apply -f posthog-proxy.yaml
+    ```
+
+    Verify the resources were created:
+
+    ```bash
+    kubectl get ingress posthog-proxy
+    kubectl get service posthog-proxy posthog-assets-proxy
+    ```
+
+4.  4
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://e.yourdomain.com',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://e.yourdomain.com',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    Replace `e.yourdomain.com` with your actual subdomain.
+
+5.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your proxy:
+
+    1.  Check that your Ingress has an IP address assigned:
+
+    ```bash
+    kubectl get ingress posthog-proxy
+    ```
+
+    2.  Test connectivity from within your cluster:
+
+    ```bash
+    kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -I https://e.yourdomain.com
+    ```
+
+    You should see a `200 OK` response.
+
+    3.  In your application, open your browser's developer tools and go to the Network tab
+    4.  Trigger an event, like a page view
+    5.  Look for a request to your subdomain
+    6.  Verify the response is `200 OK`
+    7.  Check the [PostHog app](https://app.posthog.com) to confirm events appear
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Option 3: Istio service mesh
+
+If you're using Istio, you can set up path-based routing to proxy PostHog through a subpath on your domain (e.g., `yourdomain.com/posthog`).
+
+This option is more complex and assumes you're already familiar with Istio concepts like VirtualServices, ServiceEntries, and DestinationRules.
+
+1.  1
+
+    ## Create Istio configuration
+
+    Create a file named `posthog-istio.yaml`:
+
+    ```yaml
+    apiVersion: networking.istio.io/v1
+    kind: VirtualService
+    metadata:
+      name: posthog-proxy-vs
+      namespace: your-namespace
+    spec:
+      gateways:
+      - your-gateway
+      hosts:
+      - yourdomain.com
+      http:
+      - name: posthog-proxy
+        match:
+        - uri:
+            prefix: /posthog/
+        rewrite:
+          uri: /
+        route:
+        - destination:
+            host: us-proxy-direct.i.posthog.com
+            port:
+              number: 443
+          headers:
+            request:
+              set:
+                Host: us-proxy-direct.i.posthog.com
+    ---
+    apiVersion: networking.istio.io/v1alpha3
+    kind: ServiceEntry
+    metadata:
+      name: posthog-proxy
+      namespace: your-namespace
+    spec:
+      hosts:
+      - us-proxy-direct.i.posthog.com
+      ports:
+      - number: 443
+        name: https
+        protocol: HTTPS
+      resolution: DNS
+      location: MESH_EXTERNAL
+      exportTo:
+      - '*'
+    ---
+    apiVersion: networking.istio.io/v1alpha3
+    kind: DestinationRule
+    metadata:
+      name: posthog-proxy-tls
+      namespace: your-namespace
+    spec:
+      host: us-proxy-direct.i.posthog.com
+      trafficPolicy:
+        tls:
+          mode: SIMPLE
+          sni: us-proxy-direct.i.posthog.com
+    ```
+
+    Replace these values:
+
+    -   `your-namespace`: Your Kubernetes namespace
+    -   `your-gateway`: Your Istio Gateway name
+    -   `yourdomain.com`: Your domain
+    -   `/posthog/`: Your desired subpath
+    -   `us-proxy-direct.i.posthog.com`: Change to `eu-proxy-direct.i.posthog.com` for EU region
+
+    The VirtualService matches requests to `/posthog/`, rewrites the URI to `/`, and routes to PostHog with the correct Host header.
+
+2.  2
+
+    ## Apply the configuration
+
+    Deploy the Istio resources:
+
+    ```bash
+    kubectl apply -f posthog-istio.yaml
+    ```
+
+    Verify the resources were created:
+
+    ```bash
+    kubectl get virtualservice posthog-proxy-vs -n your-namespace
+    kubectl get serviceentry posthog-proxy -n your-namespace
+    kubectl get destinationrule posthog-proxy-tls -n your-namespace
+    ```
+
+3.  3
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization to use your subpath:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://yourdomain.com/posthog',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://yourdomain.com/posthog',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    Replace `yourdomain.com/posthog` with your actual domain and subpath.
+
+4.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your proxy:
+
+    1.  Check your VirtualService status:
+
+    ```bash
+    kubectl get virtualservice posthog-proxy-vs -n your-namespace -o yaml
+    ```
+
+    2.  Test connectivity from within your mesh:
+
+    ```bash
+    kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -I https://yourdomain.com/posthog
+    ```
+
+    You should see a `200 OK` response.
+
+    3.  In your application, open your browser's developer tools and go to the Network tab
+    4.  Trigger an event, like a page view
+    5.  Look for a request to your domain with `/posthog` path
+    6.  Verify the response is `200 OK`
+    7.  Check the [PostHog app](https://app.posthog.com) to confirm events appear
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Troubleshooting
+
+### Ingress shows no address
+
+If your Ingress doesn't have an address assigned:
+
+```bash
+kubectl get ingress posthog-proxy
+```
+
+Check that your Ingress Controller is running:
+
+```bash
+# For ingress-nginx
+kubectl get pods -n ingress-nginx
+
+# For Traefik
+kubectl get pods -n traefik
+```
+
+If the controller isn't running, you need to install it first. See your controller's installation guide.
+
+### 502 Bad Gateway errors
+
+If you see `502 Bad Gateway` responses, your Ingress Controller can't reach PostHog's domains. This usually means:
+
+1.  **DNS resolution failing:** Check that your cluster can resolve PostHog's domains:
+
+```bash
+kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- nslookup us.i.posthog.com
+```
+
+2.  **Network policies blocking egress:** Check if network policies prevent external traffic:
+
+```bash
+kubectl get networkpolicy
+```
+
+You may need to create a policy allowing egress to PostHog's domains.
+
+3.  **Wrong PostHog region:** Verify you're using the correct region (`us` or `eu`) matching your PostHog project.
+
+### 401 Unauthorized errors
+
+If PostHog returns `401 Unauthorized`:
+
+1.  Verify the `upstream-vhost` annotation (or equivalent) is set to PostHog's domain
+2.  Check that your PostHog region matches in all places
+3.  Confirm your project token is correct in the SDK initialization
+
+The Host header must be set to PostHog's domain (e.g., `us.i.posthog.com`), not your subdomain. Without this, PostHog can't authenticate your requests.
+
+### TLS certificate errors
+
+If you see TLS errors like "certificate signed by unknown authority":
+
+1.  Verify your TLS secret exists:
+
+```bash
+kubectl get secret your-tls-secret
+```
+
+2.  Check that the secret contains valid certificate data:
+
+```bash
+kubectl describe secret your-tls-secret
+```
+
+3.  If using cert-manager, check the certificate status:
+
+```bash
+kubectl get certificate
+   kubectl describe certificate your-certificate-name
+```
+
+### Static assets return 404
+
+If the PostHog SDK fails to load or you see 404 errors for `/static/*` or `/array/*` requests:
+
+1.  Verify you created the `posthog-assets-proxy` service:
+
+```bash
+kubectl get service posthog-assets-proxy
+```
+
+2.  Check that the service points to the correct assets domain:
+
+```bash
+kubectl describe service posthog-assets-proxy
+```
+
+3.  Verify your Ingress has `/static` and `/array` path rules before the catch-all `/` rule. Ingress path matching is order-dependent.
+
+### Events aren't reaching PostHog
+
+If events don't appear in PostHog:
+
+1.  Check Ingress Controller logs for errors:
+
+```bash
+# For ingress-nginx
+   kubectl logs -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx --tail=100
+```
+
+2.  Verify your ExternalName services resolve correctly:
+
+```bash
+kubectl get service posthog-proxy -o yaml
+```
+
+3.  Test the proxy from within your cluster:
+
+```bash
+kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
+     curl -X POST https://e.yourdomain.com/e/ \
+     -H "Content-Type: application/json" \
+     -d '{"api_key": "your-project-token", "event": "test_event", "distinct_id": "test_user"}'
+```
+
+4.  Check your application's network tab for the actual error response from PostHog

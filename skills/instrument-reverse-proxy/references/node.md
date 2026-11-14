@@ -1,0 +1,388 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
+# Node reverse proxy
+
+Canonical URL: https://posthog.com/docs/advanced/proxy/node
+
+## On this page
+
+- [How it works](#how-it-works)
+- [When to use this](#when-to-use-this)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Create the proxy module](#create-the-proxy-module)
+- [Create the server](#create-the-server)
+- [Install dependencies](#install-dependencies)
+- [Start the server](#start-the-server)
+- [Update your PostHog SDK](#update-your-posthog-sdk)
+- [Verify your setup](#verify-your-setup)
+- [Production considerations](#production-considerations)
+- [Troubleshooting](#troubleshooting)
+
+**Before you start**
+
+-   If you use a self-hosted proxy, PostHog can't help troubleshoot. Use [our managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) if you want support.
+-   Use domains matching your PostHog region: `us.i.posthog.com` for US, `eu.i.posthog.com` for EU.
+-   Don't use obvious path names like `/analytics`, `/tracking`, `/telemetry`, or `/posthog`. Blockers will catch them. Use something unique to your app instead.
+
+This guide shows you how to use Node.js as a reverse proxy for PostHog using the built-in [fetch API](https://nodejs.org/dist/latest-v18.x/docs/api/globals.html#fetch) and [http module](https://nodejs.org/api/http.html).
+
+## How it works
+
+This proxy uses Node.js as a lightweight server that intercepts requests to your proxy path and forwards them to PostHog. It's useful when you're already running a Node.js server and don't want to add a separate proxy tool.
+
+Here's the request flow:
+
+1.  User triggers an event in your app
+2.  Request goes to your Node.js server (e.g., `yourdomain.com/yourpath`)
+3.  The proxy middleware intercepts requests matching your prefix
+4.  It rewrites headers and forwards the request to PostHog using `fetch`
+5.  PostHog's response is returned to the user under your domain
+
+The proxy preserves the user's real IP address by setting `X-Forwarded-For` headers, ensuring accurate geolocation data in PostHog.
+
+## When to use this
+
+Use a Node.js proxy when:
+
+-   You're already running a Node.js server and want to add proxying without additional infrastructure
+-   You need custom logic like header modification, logging, or request filtering
+-   You want a simple setup for development or low-traffic production sites
+
+For high-traffic production sites, consider a dedicated reverse proxy like [nginx](https://posthog.com/docs/advanced/proxy/nginx.md) or [Caddy](https://posthog.com/docs/advanced/proxy/caddy.md), which handle concurrent connections more efficiently.
+
+## Prerequisites
+
+-   Node.js 18 or later (for native fetch support)
+-   An existing Node.js server or willingness to run one
+
+## Setup
+
+1.  1
+
+    ## Create the proxy module
+
+    Create a file named `proxy.js`:
+
+    ### US
+
+    ```javascript
+    const API_HOST = 'us.i.posthog.com'
+    const ASSET_HOST = 'us-assets.i.posthog.com'
+    
+    const toHeaders = (headers) =>
+      Object.entries(headers).reduce((acc, [name, values]) => {
+        values?.forEach((value) => acc.append(name, value))
+        return acc
+      }, new Headers())
+    
+    const fromHeaders = (headers) =>
+      [...headers].reduce((acc, [name, value]) => {
+        if (acc[name]) {
+          acc[name] = [...acc[name], value]
+        } else {
+          acc[name] = [value]
+        }
+        return acc
+      }, {})
+    
+    export default function proxy({ prefix }) {
+      return (request, response, next) => {
+        if (!request.url?.startsWith(prefix)) {
+          next()
+          return
+        }
+    
+        const pathname = (request.url ?? '').slice(prefix.length)
+        const useAssetHost = pathname.startsWith('/static/') || pathname.startsWith('/array/')
+        const posthogHost = useAssetHost ? ASSET_HOST : API_HOST
+    
+        const headers = toHeaders(request.headersDistinct)
+        headers.set('host', posthogHost)
+    
+        if (request.headers.host) {
+          headers.set('X-Forwarded-Host', request.headers.host)
+        }
+        if (request.socket.remoteAddress) {
+          headers.set('X-Real-IP', request.socket.remoteAddress)
+          headers.set('X-Forwarded-For', request.socket.remoteAddress)
+        }
+    
+        headers.delete('cookie')
+        // Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+        // To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+        if (!/^Bearer ph[csx]_/.test(headers.get('authorization') ?? '')) {
+          headers.delete('authorization')
+        }
+        headers.delete('connection')
+    
+        fetch(new URL(pathname, `https://${posthogHost}`), {
+          method: request.method ?? '',
+          headers,
+          ...(!['HEAD', 'GET'].includes(request.method ?? '')
+            ? { body: request, duplex: 'half' }
+            : {}),
+        })
+          .then(async (res) => {
+            const headers = new Headers(res.headers)
+            const body = await res.text()
+    
+            if (headers.has('content-encoding')) {
+              headers.delete('content-encoding')
+              headers.delete('content-length')
+            }
+    
+            response.writeHead(res.status, fromHeaders(headers))
+            response.end(body)
+          })
+          .catch((e) => {
+            next(new Error('Bad gateway', { cause: e }))
+          })
+      }
+    }
+    ```
+
+    ### EU
+
+    ```javascript
+    const API_HOST = 'eu.i.posthog.com'
+    const ASSET_HOST = 'eu-assets.i.posthog.com'
+    
+    const toHeaders = (headers) =>
+      Object.entries(headers).reduce((acc, [name, values]) => {
+        values?.forEach((value) => acc.append(name, value))
+        return acc
+      }, new Headers())
+    
+    const fromHeaders = (headers) =>
+      [...headers].reduce((acc, [name, value]) => {
+        if (acc[name]) {
+          acc[name] = [...acc[name], value]
+        } else {
+          acc[name] = [value]
+        }
+        return acc
+      }, {})
+    
+    export default function proxy({ prefix }) {
+      return (request, response, next) => {
+        if (!request.url?.startsWith(prefix)) {
+          next()
+          return
+        }
+    
+        const pathname = (request.url ?? '').slice(prefix.length)
+        const useAssetHost = pathname.startsWith('/static/') || pathname.startsWith('/array/')
+        const posthogHost = useAssetHost ? ASSET_HOST : API_HOST
+    
+        const headers = toHeaders(request.headersDistinct)
+        headers.set('host', posthogHost)
+    
+        if (request.headers.host) {
+          headers.set('X-Forwarded-Host', request.headers.host)
+        }
+        if (request.socket.remoteAddress) {
+          headers.set('X-Real-IP', request.socket.remoteAddress)
+          headers.set('X-Forwarded-For', request.socket.remoteAddress)
+        }
+    
+        headers.delete('cookie')
+        // Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+        // To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+        if (!/^Bearer ph[csx]_/.test(headers.get('authorization') ?? '')) {
+          headers.delete('authorization')
+        }
+        headers.delete('connection')
+    
+        fetch(new URL(pathname, `https://${posthogHost}`), {
+          method: request.method ?? '',
+          headers,
+          ...(!['HEAD', 'GET'].includes(request.method ?? '')
+            ? { body: request, duplex: 'half' }
+            : {}),
+        })
+          .then(async (res) => {
+            const headers = new Headers(res.headers)
+            const body = await res.text()
+    
+            if (headers.has('content-encoding')) {
+              headers.delete('content-encoding')
+              headers.delete('content-length')
+            }
+    
+            response.writeHead(res.status, fromHeaders(headers))
+            response.end(body)
+          })
+          .catch((e) => {
+            next(new Error('Bad gateway', { cause: e }))
+          })
+      }
+    }
+    ```
+
+    This module exports middleware that:
+
+    -   Routes `/static/*` and `/array/*` requests to PostHog's asset server and everything else to the main API
+    -   Sets the `host` header so PostHog can route the request correctly
+    -   Preserves the client's real IP address using `X-Forwarded-For` and `X-Real-IP` headers
+    -   Removes cookies, connection headers, and any `Authorization` header that isn't a PostHog key (`Bearer phc_`, `phs_` or `phx_`). Capture v1 SDKs send the project token as `Authorization: Bearer <token>`, so the middleware forwards that header. Keys created before these prefixes need their exact `Bearer <key>` value allowed too.
+    -   Handles compressed responses by removing encoding headers
+
+2.  2
+
+    ## Create the server
+
+    Create a file named `server.js`:
+
+    ```javascript
+    import http from 'node:http'
+    import cors from 'cors'
+    import proxy from './proxy.js'
+    
+    const corsMiddleware = cors({ origin: 'https://yourdomain.com' })
+    const posthogMiddleware = proxy({ prefix: '/yourpath' })
+    
+    const server = http.createServer((req, res) => {
+      corsMiddleware(req, res, (err) => {
+        if (err) {
+          res.writeHead(500)
+          res.end('CORS error')
+          return
+        }
+    
+        posthogMiddleware(req, res, (err) => {
+          if (err) {
+            res.writeHead(502)
+            res.end('Proxy error')
+            return
+          }
+    
+          // Your other routes here
+          res.writeHead(200)
+          res.end('OK')
+        })
+      })
+    })
+    
+    const PORT = process.env.PORT || 3000
+    server.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`)
+    })
+    ```
+
+    Replace `https://yourdomain.com` with your domain for CORS configuration.
+
+3.  3
+
+    ## Install dependencies
+
+    Install the CORS package:
+
+    ```bash
+    npm install cors
+    ```
+
+4.  4
+
+    ## Start the server
+
+    Run your server:
+
+    ```bash
+    node server.js
+    ```
+
+5.  5
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'http://localhost:3000/yourpath',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'http://localhost:3000/yourpath',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    Replace `localhost:3000` with your actual server address in production.
+
+6.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your proxy:
+
+    1.  Test the proxy directly:
+
+        ```bash
+        curl -I http://localhost:3000/yourpath/flags?v=2
+        ```
+
+        You should see a `200 OK` response.
+
+    2.  Open your browser's developer tools and go to the **Network** tab
+
+    3.  Trigger an event in your app
+
+    4.  Look for requests to your proxy path
+
+    5.  Verify the response status is `200 OK`
+
+    6.  Check the [PostHog app](https://app.posthog.com) to confirm events appear
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Production considerations
+
+For production deployments:
+
+1.  **Use a process manager:** Tools like [PM2](https://pm2.keymetrics.io/) keep your server running and restart it on crashes
+2.  **Add rate limiting:** Prevent abuse by limiting requests per IP using packages like `express-rate-limit`
+3.  **Implement logging:** Log proxy errors for debugging with structured logging
+4.  **Consider a reverse proxy:** Put nginx or Caddy in front of Node.js for better performance with high traffic
+5.  **Add health checks:** Create a `/health` endpoint for monitoring
+
+## Troubleshooting
+
+### CORS errors
+
+If you see `Access-Control-Allow-Origin` errors:
+
+1.  Verify the `origin` in `cors()` matches your website's domain exactly
+2.  For multiple origins, use an array: `cors({ origin: ['https://yourdomain.com', 'http://localhost:3000'] })`
+3.  For development, you can use `cors({ origin: '*' })` but don't do this in production
+
+### 502 Bad Gateway errors
+
+If the proxy returns 502 errors:
+
+1.  Verify your server can reach PostHog domains:
+
+    ```bash
+    curl -I https://us.i.posthog.com/flags?v=2
+    ```
+
+2.  Check that the `API_HOST` and `ASSET_HOST` values match your PostHog region
+3.  Ensure no firewall is blocking outbound HTTPS traffic
+
+### All users show same location
+
+If geolocation data is wrong or all users appear in the same location:
+
+1.  Verify the `X-Forwarded-For` and `X-Real-IP` headers are being set in `proxy.js`
+2.  If you're behind another proxy (like nginx), ensure it's passing the original client IP
+3.  Check that your hosting platform isn't stripping these headers
+
+> **Note:** This implementation is based on work by [SimonSimCity](https://github.com/SimonSimCity).

@@ -13,7 +13,7 @@ On Node.js and Python, the PostHog SDK can also create and export spans on its o
 | SDK | Logs | Traces | Metrics |
 | --- | --- | --- | --- |
 | [JavaScript web](https://posthog.com/docs/libraries/js.md) (`posthog-js`) | Native, `1.368.0`+ | OpenTelemetry. `posthog-js` doesn't create spans. Use `tracing_headers` to [link requests to sessions](https://posthog.com/docs/libraries/js/config.md#tracing-headers). | Native `posthog.metrics`, `1.399.0`+ |
-| [Node.js](https://posthog.com/docs/libraries/node.md) (`posthog-node`) | OpenTelemetry. `posthog-node` has no logs API. | Native, `5.52.0`\+ (experimental), or OpenTelemetry | Native `posthog.metrics`, `5.43.0`+ |
+| [Node.js](https://posthog.com/docs/libraries/node.md) (`posthog-node`) | Native `posthog.logger`, `5.65.0`+, or OpenTelemetry | Native, `5.52.0`\+ (experimental), or OpenTelemetry | Native `posthog.metrics`, `5.43.0`+ |
 | [Python](https://posthog.com/docs/libraries/python.md) (`posthog`) | OpenTelemetry | Native, `7.58.0`+, or OpenTelemetry | Native `posthog.metrics`, `7.23.0`+ |
 | [React Native](https://posthog.com/docs/libraries/react-native.md) | Native, `posthog-react-native@4.44.0`+ | OpenTelemetry | OpenTelemetry |
 | [iOS](https://posthog.com/docs/libraries/ios.md) | Native, `posthog-ios@3.58.0`+ | OpenTelemetry | OpenTelemetry |

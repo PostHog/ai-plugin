@@ -1,0 +1,143 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
+# Self-hosted proxy reference
+
+Canonical URL: https://posthog.com/docs/advanced/proxy/proxy-reference
+
+## On this page
+
+- [Requirements](#requirements)
+- [Troubleshooting](#troubleshooting)
+- [Still having issues?](#still-having-issues)
+
+This page covers requirements and troubleshooting for self-hosted reverse proxies. For platform-specific setup, see the individual proxy guides.
+
+## Requirements
+
+Your proxy must route requests to these PostHog domains:
+
+| Region | Static assets `/static/*` and config `/array/*` | Everything else |
+| --- | --- | --- |
+| US | `us-assets.i.posthog.com` | `us.i.posthog.com` |
+| EU | `eu-assets.i.posthog.com` | `eu.i.posthog.com` |
+
+Check your project URL in the [PostHog app](https://app.posthog.com) to confirm your region.
+
+### Checklist
+
+-   Set the `Host` header to the PostHog domain (e.g., `Host: us.i.posthog.com`). Without this, you'll get 401 errors.
+-   Forward the `Authorization` header when its value starts with `Bearer phc_`, `Bearer phs_` or `Bearer phx_`. Capture v1 SDKs send the project token (`phc_`) there, and server SDKs send a project secret key (`phs_`) or personal API key (`phx_`) for local feature flag evaluation and remote config. Strip any other `Authorization` value, such as session tokens your app adds to its own requests. Keys created before these prefixes need their exact `Bearer <key>` value allowed too.
+-   Forward every `PostHog-*` header, plus `Content-Type`, `Content-Encoding`, and `User-Agent`, unchanged. Capture v1 SDKs need them, and their request bodies can be compressed with `gzip`, `deflate`, `br`, or `zstd`.
+-   Route `/i/v1/*` paths to the regional ingestion host, `us.i.posthog.com` or `eu.i.posthog.com`.
+-   Allow `GET` and `POST`\*\* on all paths.
+-   Support 64MB request bodies, session recordings can be large.
+-   Forward `X-Forwarded-For` to preserve client IPs for geolocation.
+-   Avoid obvious paths like `/analytics`, `/posthog`, or `/ph`. Use `/e` or `/ingest` instead.
+
+### SDK configuration
+
+When using a proxy, set both `api_host` and `ui_host`:
+
+### US
+
+```javascript
+posthog.init('<ph_project_token>', {
+  api_host: 'https://e.yourdomain.com',
+  ui_host: 'https://us.posthog.com'
+})
+```
+
+### EU
+
+```javascript
+posthog.init('<ph_project_token>', {
+  api_host: 'https://e.yourdomain.com',
+  ui_host: 'https://eu.posthog.com'
+})
+```
+
+Without `ui_host`, the toolbar and session recordings player won't work correctly.
+
+#### Configure custom request paths
+
+The JavaScript Web SDK can expose custom paths with `rewriteRequestPath`. Keep `api_host` and `ui_host` configured as shown above. The path option does not replace either host option.
+
+Your proxy routes must match every rewritten path and restore the standard PostHog path. Preserve query parameters when you forward requests. Route rewritten `/array/*` and `/static/*` paths to the regional asset host. Route rewritten API and Feature Flags paths to the regional ingestion host. See [customize reverse proxy request paths](https://posthog.com/docs/libraries/js/config.md#customize-reverse-proxy-request-paths) for an SDK example.
+
+## Troubleshooting
+
+### 401 Unauthorized
+
+PostHog rejected the request. Check:
+
+1.  **Host header**: Must match the PostHog domain you're proxying to
+2.  **Region**: Proxy must point to same region as your project
+3.  **Project token**: Legacy SDKs send it in the request body, which some platforms strip. Capture v1 SDKs send it as `Authorization: Bearer <token>`. If the response's `error` field is `missing_authorization`, your proxy dropped that header. A proxy that keeps only `Bearer phc_`, `phs_` and `phx_` values drops an older key without one of these prefixes.
+
+### 400 Bad Request
+
+If a capture v1 SDK gets a `400` response whose `error` field is `missing_required_headers`, your proxy dropped a header that capture v1 requires. Forward `PostHog-Sdk-Info`, `PostHog-Attempt`, `PostHog-Request-Id`, `PostHog-Request-Timestamp`, `Content-Type`, and `User-Agent` unchanged.
+
+### 405 Method Not Allowed
+
+Your proxy is blocking the HTTP method. Ensure both `GET` and `POST` are allowed.
+
+### 502 Bad Gateway
+
+Your proxy can't reach PostHog. Test connectivity:
+
+```bash
+curl -I https://us.i.posthog.com/flags?v=2
+```
+
+If this fails, check DNS, firewall rules (port 443), and internet access. For SSL errors, enable SNI in your proxy settings.
+
+### CORS errors
+
+Use a relative path to avoid cross-origin issues:
+
+### US
+
+```javascript
+posthog.init('<ph_project_token>', {
+  api_host: '/ingest',
+  ui_host: 'https://us.posthog.com'
+})
+```
+
+### EU
+
+```javascript
+posthog.init('<ph_project_token>', {
+  api_host: '/ingest',
+  ui_host: 'https://eu.posthog.com'
+})
+```
+
+### Events not appearing
+
+1.  **Check your token**: Find it in [project settings](https://us.posthog.com/settings/project#variables). Use the project token, not a personal key.
+2.  **Verify the region**: Must match your PostHog project.
+3.  **Wait a few minutes**: Check the [activity feed](https://us.posthog.com/activity/explore) before assuming it's broken.
+
+### Wrong geolocation / same location for all users
+
+Your proxy isn't forwarding client IPs. Set the `X-Forwarded-For` header to the original client IP. If behind multiple proxies (e.g., Cloudflare + your proxy), ensure you're forwarding the original IP, not an intermediate one.
+
+### Large recordings failing
+
+Check body size limits in your:
+
+-   Web server (nginx: `client_max_body_size`, Apache: `LimitRequestBody`)
+-   CDN or WAF
+-   Serverless function (if applicable)
+
+PostHog needs up to 64MB per message for session recordings.
+
+### Toolbar or recordings player not working
+
+You're missing `ui_host` in your SDK config. See [SDK configuration](#sdk-configuration) above.
+
+## Still having issues?
+
+For self-hosted proxies, check your proxy's logs and documentation, or ask in the [PostHog community](https://posthog.com/community.md). If you're using the [managed reverse proxy](https://posthog.com/docs/advanced/proxy.md), [contact support](https://app.posthog.com/home#supportModal).

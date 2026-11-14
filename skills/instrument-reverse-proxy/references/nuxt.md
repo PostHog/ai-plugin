@@ -1,0 +1,329 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
+# Nuxt reverse proxy
+
+Canonical URL: https://posthog.com/docs/advanced/proxy/nuxt
+
+## On this page
+
+- [How it works](#how-it-works)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Create the server route](#create-the-server-route)
+- [Update your PostHog SDK](#update-your-posthog-sdk)
+- [Deploy your changes](#deploy-your-changes)
+- [Verify your setup](#verify-your-setup)
+- [Troubleshooting](#troubleshooting)
+
+**Before you start**
+
+-   If you use a self-hosted proxy, PostHog can't help troubleshoot. Use [our managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) if you want support.
+-   Use domains matching your PostHog region: `us.i.posthog.com` for US, `eu.i.posthog.com` for EU.
+-   Don't use obvious path names like `/analytics`, `/tracking`, `/telemetry`, or `/posthog`. Blockers will catch them. Use something unique to your app instead.
+
+**Data transfer costs**
+
+Server routes run on the server, so all PostHog traffic – events, session recordings, feature flag polls, and SDK assets – passes through your Nuxt deployment. Costs depend on where it's hosted: serverless platforms like Vercel or Netlify bill this as bandwidth and function invocations, which can add up on high-traffic sites, especially because session recordings are often 1–5 MB each.
+
+To avoid these costs, use the [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) (free for PostHog Cloud users) or a provider without egress fees like [Cloudflare Workers](https://posthog.com/docs/advanced/proxy/cloudflare.md).
+
+This guide shows you how to use [Nuxt server routes](https://nuxt.com/docs/guide/directory-structure/server) as a reverse proxy for PostHog.
+
+## How it works
+
+Nuxt server routes run on the server and can intercept requests before they reach the client. When a request matches your proxy path, the server route fetches the response from PostHog and returns it under your domain.
+
+Here's the request flow:
+
+1.  User triggers an event in your app
+2.  Request goes to your domain (e.g., `yourdomain.com/yourpath/e`)
+3.  Nuxt's server middleware intercepts requests matching your proxy path
+4.  The server route fetches the response from PostHog's servers
+5.  PostHog's response is returned to the user under your domain
+
+This works because the proxy runs server-side, so the browser only sees requests to your domain. Ad blockers that filter by domain won't block these requests.
+
+## Prerequisites
+
+This guide requires a Nuxt 3 project with server-side rendering enabled (the default).
+
+## Setup
+
+1.  1
+
+    ## Create the server route
+
+    Create a file at `server/routes/yourpath/[...path].ts`:
+
+    ### US
+
+    ```typescript
+    export default defineEventHandler(async (event) => {
+      const path = event.context.params?.path || ''
+      const url = getRequestURL(event)
+      const search = url.search || ''
+    
+      const useAssetHost = path.startsWith('static/') || path.startsWith('array/')
+      const hostname = useAssetHost
+        ? 'us-assets.i.posthog.com'
+        : 'us.i.posthog.com'
+    
+      const targetUrl = `https://${hostname}/${path}${search}`
+    
+      // Forward headers, excluding ones that shouldn't be proxied
+      const headers = new Headers()
+      const excludedHeaders = ['host', 'connection', 'content-length', 'transfer-encoding', 'accept-encoding', 'cookie']
+    
+      const requestHeaders = getRequestHeaders(event)
+      for (const [key, value] of Object.entries(requestHeaders)) {
+        const name = key.toLowerCase()
+        // Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+        // To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+        const isNonBearerAuth = name === 'authorization' && !/^Bearer ph[csx]_/.test(value ?? '')
+        if (value && !excludedHeaders.includes(name) && !isNonBearerAuth) {
+          headers.set(key, value)
+        }
+      }
+    
+      headers.set('host', hostname)
+    
+      // Forward client IP for geolocation
+      const clientIp = getHeader(event, 'x-forwarded-for') || getRequestIP(event)
+      if (clientIp) {
+        headers.set('x-forwarded-for', clientIp)
+      }
+    
+      // Read body as binary buffer to preserve gzip compression
+      const body = event.method !== 'GET' && event.method !== 'HEAD'
+        ? await readRawBody(event, false)
+        : undefined
+    
+      const response = await fetch(targetUrl, {
+        method: event.method,
+        headers,
+        body,
+      })
+    
+      // Copy response headers, excluding problematic ones
+      for (const [key, value] of response.headers.entries()) {
+        if (!['content-encoding', 'content-length', 'transfer-encoding'].includes(key.toLowerCase())) {
+          setResponseHeader(event, key, value)
+        }
+      }
+    
+      setResponseStatus(event, response.status)
+    
+      // Return binary response
+      const arrayBuffer = await response.arrayBuffer()
+      return Buffer.from(arrayBuffer)
+    })
+    ```
+
+    ### EU
+
+    ```typescript
+    export default defineEventHandler(async (event) => {
+      const path = event.context.params?.path || ''
+      const url = getRequestURL(event)
+      const search = url.search || ''
+    
+      const useAssetHost = path.startsWith('static/') || path.startsWith('array/')
+      const hostname = useAssetHost
+        ? 'eu-assets.i.posthog.com'
+        : 'eu.i.posthog.com'
+    
+      const targetUrl = `https://${hostname}/${path}${search}`
+    
+      // Forward headers, excluding ones that shouldn't be proxied
+      const headers = new Headers()
+      const excludedHeaders = ['host', 'connection', 'content-length', 'transfer-encoding', 'accept-encoding', 'cookie']
+    
+      const requestHeaders = getRequestHeaders(event)
+      for (const [key, value] of Object.entries(requestHeaders)) {
+        const name = key.toLowerCase()
+        // Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+        // To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+        const isNonBearerAuth = name === 'authorization' && !/^Bearer ph[csx]_/.test(value ?? '')
+        if (value && !excludedHeaders.includes(name) && !isNonBearerAuth) {
+          headers.set(key, value)
+        }
+      }
+    
+      headers.set('host', hostname)
+    
+      // Forward client IP for geolocation
+      const clientIp = getHeader(event, 'x-forwarded-for') || getRequestIP(event)
+      if (clientIp) {
+        headers.set('x-forwarded-for', clientIp)
+      }
+    
+      // Read body as binary buffer to preserve gzip compression
+      const body = event.method !== 'GET' && event.method !== 'HEAD'
+        ? await readRawBody(event, false)
+        : undefined
+    
+      const response = await fetch(targetUrl, {
+        method: event.method,
+        headers,
+        body,
+      })
+    
+      // Copy response headers, excluding problematic ones
+      for (const [key, value] of response.headers.entries()) {
+        if (!['content-encoding', 'content-length', 'transfer-encoding'].includes(key.toLowerCase())) {
+          setResponseHeader(event, key, value)
+        }
+      }
+    
+      setResponseStatus(event, response.status)
+    
+      // Return binary response
+      const arrayBuffer = await response.arrayBuffer()
+      return Buffer.from(arrayBuffer)
+    })
+    ```
+
+    The `[...path]` in the filename is a Nuxt [catch-all route](https://nuxt.com/docs/guide/directory-structure/server#catch-all-route) that matches any path after `/yourpath/`. This handles all PostHog endpoints like `/yourpath/e`, `/yourpath/decide`, and `/yourpath/static/array.js`.
+
+    Here's what the code does:
+
+    -   Routes `/static/*` and `/array/*` requests to PostHog's asset server and everything else to the main API
+    -   Preserves query parameters (like `?compression=gzip-js`) required for compressed requests
+    -   Forwards relevant headers while excluding ones that shouldn't be proxied, such as cookies and any `Authorization` header that isn't a PostHog key (`Bearer phc_`, `phs_` or `phx_`). Capture v1 SDKs send the project token as `Authorization: Bearer <token>`, so the handler forwards that header. Keys created before these prefixes need their exact `Bearer <key>` value allowed too.
+    -   Reads the request body as binary to preserve gzip-compressed data
+    -   Forwards the client's IP address for accurate geolocation
+    -   Returns the response as binary data to handle all content types correctly
+
+2.  2
+
+    ## Update your PostHog SDK
+
+    Update your PostHog configuration to use your proxy path.
+
+    ### Using @posthog/nuxt (Nuxt 3.7+)
+
+    If you're using the `@posthog/nuxt` module, update your `nuxt.config.ts`:
+
+    ### US
+
+    ```typescript
+    // nuxt.config.ts
+    export default defineNuxtConfig({
+      modules: ['@posthog/nuxt'],
+      posthogConfig: {
+        publicKey: '<ph_project_token>',
+        clientConfig: {
+          api_host: '/yourpath',
+          ui_host: 'https://us.posthog.com'
+        }
+      }
+    })
+    ```
+
+    ### EU
+
+    ```typescript
+    // nuxt.config.ts
+    export default defineNuxtConfig({
+      modules: ['@posthog/nuxt'],
+      posthogConfig: {
+        publicKey: '<ph_project_token>',
+        clientConfig: {
+          api_host: '/yourpath',
+          ui_host: 'https://eu.posthog.com'
+        }
+      }
+    })
+    ```
+
+    ### Using posthog-js plugin (Nuxt 3.0-3.6)
+
+    If you're using the `posthog-js` library directly with a plugin:
+
+    ### US
+
+    ```typescript
+    // plugins/posthog.client.ts
+    import { defineNuxtPlugin } from '#app'
+    import posthog from 'posthog-js'
+    
+    export default defineNuxtPlugin(() => {
+      const runtimeConfig = useRuntimeConfig()
+    
+      posthog.init(runtimeConfig.public.posthogKey, {
+        api_host: '/yourpath',
+        ui_host: 'https://us.posthog.com'
+      })
+    
+      return {
+        provide: {
+          posthog
+        }
+      }
+    })
+    ```
+
+    ### EU
+
+    ```typescript
+    // plugins/posthog.client.ts
+    import { defineNuxtPlugin } from '#app'
+    import posthog from 'posthog-js'
+    
+    export default defineNuxtPlugin(() => {
+      const runtimeConfig = useRuntimeConfig()
+    
+      posthog.init(runtimeConfig.public.posthogKey, {
+        api_host: '/yourpath',
+        ui_host: 'https://eu.posthog.com'
+      })
+    
+      return {
+        provide: {
+          posthog
+        }
+      }
+    })
+    ```
+
+    The `api_host` tells the SDK where to send events. Using a relative path ensures requests go to your domain. The `ui_host` must point to PostHog's actual domain so features like the toolbar link correctly.
+
+3.  3
+
+    ## Deploy your changes
+
+    Commit and push your changes. The server route will be active once deployed.
+
+    In development, restart your dev server after creating the server route.
+
+4.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your proxy:
+
+    1.  Open your browser's developer tools and go to the **Network** tab
+    2.  Navigate to your site or trigger an event
+    3.  Look for requests to your domain with your proxy path (e.g., `yourdomain.com/yourpath`)
+    4.  Verify the response status is `200 OK`
+    5.  Check the [PostHog app](https://app.posthog.com) to confirm events appear in your activity feed
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Troubleshooting
+
+### Server route not matching
+
+If requests to your proxy path return 404:
+
+1.  Verify the file is at `server/routes/yourpath/[...path].ts` (not `server/api/`)
+2.  Check the file extension is `.ts` not `.js` if you're using TypeScript
+3.  Restart your dev server after creating the file
+
+### Static site generation
+
+If you're using `nuxt generate` for static site generation, server routes won't be available. Use a CDN-level proxy like [Cloudflare Workers](https://posthog.com/docs/advanced/proxy/cloudflare.md) or a platform-specific option like [Netlify redirects](https://posthog.com/docs/advanced/proxy/netlify.md) or [Vercel rewrites](https://posthog.com/docs/advanced/proxy/vercel.md) instead.
+
+### All users show same location
+
+If geolocation data is wrong or all users appear in the same location, verify the `x-forwarded-for` header is being set correctly. If you're behind multiple proxies, you may need to adjust which header value is forwarded.

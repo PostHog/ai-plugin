@@ -1,0 +1,341 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
+# Netlify reverse proxy
+
+Canonical URL: https://posthog.com/docs/advanced/proxy/netlify
+
+## On this page
+
+- [How it works](#how-it-works)
+- [Prerequisites](#prerequisites)
+- [Choose your setup option](#choose-your-setup-option)
+- [Option 1: netlify.toml](#option-1-netlifytoml)
+- [Add redirects to netlify.toml](#add-redirects-to-netlifytoml)
+- [Deploy your changes](#deploy-your-changes)
+- [Update your PostHog SDK](#update-your-posthog-sdk)
+- [Verify your setup](#verify-your-setup)
+- [Option 2: Redirects file](#option-2-redirects-file)
+- [Create a redirects file](#create-a-redirects-file)
+- [Ensure the file is deployed](#ensure-the-file-is-deployed)
+- [Deploy your changes](#deploy-your-changes-1)
+- [Update your PostHog SDK](#update-your-posthog-sdk-1)
+- [Verify your setup](#verify-your-setup-1)
+- [Troubleshooting](#troubleshooting)
+
+**Before you start**
+
+-   If you use a self-hosted proxy, PostHog can't help troubleshoot. Use [our managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) if you want support.
+-   Use domains matching your PostHog region: `us.i.posthog.com` for US, `eu.i.posthog.com` for EU.
+-   Don't use obvious path names like `/analytics`, `/tracking`, `/telemetry`, or `/posthog`. Blockers will catch them. Use something unique to your app instead.
+
+**Data transfer costs**
+
+Proxying routes all PostHog traffic – events, session recordings, feature flag polls, and SDK assets – through Netlify, which bills it against your plan's [bandwidth quota with overage fees](https://www.netlify.com/pricing/). Session recordings are the biggest driver (often 1–5 MB per session) and can consume a plan quickly on high-traffic sites.
+
+To avoid these costs, use the [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) (free for PostHog Cloud users) or a provider without egress fees like [Cloudflare Workers](https://posthog.com/docs/advanced/proxy/cloudflare.md).
+
+This guide shows you how to use [Netlify redirects](https://docs.netlify.com/routing/redirects/) as a reverse proxy for PostHog.
+
+## How it works
+
+Netlify's redirect rules can function as a reverse proxy by returning a `200` status code instead of a `301` or `302`. When a request hits your Netlify site, Netlify fetches the content from the target URL and returns it to the user while keeping your domain in the browser's address bar.
+
+Here's the request flow:
+
+1.  User triggers an event in your app
+2.  Request goes to your domain (e.g., `yourdomain.com/yourpath`)
+3.  Netlify intercepts the request and matches it against your redirect rules
+4.  Netlify fetches the response from PostHog's servers
+5.  Netlify returns PostHog's response to the user under your domain
+
+This works because ad blockers see requests going to your domain, not PostHog's. The redirect happens server-side, so the browser never sees the PostHog domain.
+
+**Why multiple redirect rules?** PostHog uses separate domains for API requests and static assets. The assets domain (`us-assets.i.posthog.com` or `eu-assets.i.posthog.com`) returns proper `cache-control` headers, while the events domain strips them. You need specific rules for asset paths before the catch-all:
+
+-   **Static assets:** Routes `/static/*` to the assets origin for the JavaScript SDK and other static files
+-   **Remote config:** Routes `/array/*` to the assets origin for remote config files (e.g., `/array/{token}/config.js`) that benefit from proper cache headers
+-   **API requests:** Routes everything else to `us.i.posthog.com` or `eu.i.posthog.com` for event capture, feature flags, and API calls
+
+**Custom domains only**
+
+Netlify modifies the `Content-Encoding` header when using redirects on `.netlify.app` domains, which causes PostHog to fail parsing requests. You must use a custom domain for this proxy to work.
+
+## Prerequisites
+
+-   A Netlify site with a custom domain configured
+-   Access to your project's `netlify.toml` file or ability to create a `_redirects` file
+
+## Choose your setup option
+
+Both options accomplish the same goal. Choose based on your project setup:
+
+-   [**netlify.toml:**](#option-1-netlifytoml) The standard approach for most Netlify projects. Configuration lives alongside your other Netlify settings.
+-   [**Redirects file:**](#option-2-redirects-file) Required for SvelteKit projects because Netlify [doesn't support](https://docs.netlify.com/frameworks/sveltekit/#limitations) redirects in `netlify.toml` for SvelteKit. Also useful if you prefer a standalone redirects file.
+
+## Option 1: netlify.toml
+
+This is the standard approach for most Netlify projects.
+
+1.  1
+
+    ## Add redirects to netlify.toml
+
+    In your project root, add these redirects to your `netlify.toml` file:
+
+    ```toml
+    [[redirects]]
+      from = "/yourpath/static/*"
+      to = "https://us-assets.i.posthog.com/static/:splat"
+      host = "us-assets.i.posthog.com"
+      status = 200
+      force = true
+    
+    [[redirects]]
+      from = "/yourpath/array/*"
+      to = "https://us-assets.i.posthog.com/array/:splat"
+      host = "us-assets.i.posthog.com"
+      status = 200
+      force = true
+    
+    [[redirects]]
+      from = "/yourpath/*"
+      to = "https://us.i.posthog.com/:splat"
+      host = "us.i.posthog.com"
+      status = 200
+      force = true
+    ```
+
+    Replace `us` with `eu` for EU region.
+
+    Here's what each directive does:
+
+    -   `from`: The path pattern on your domain to match. The `*` captures everything after the path, and `:splat` inserts it into the target URL.
+    -   `to`: The PostHog URL to fetch content from. The `:splat` placeholder is replaced with whatever the `*` captured.
+    -   `host`: Sets the `Host` header sent to PostHog. Without this, PostHog receives your domain as the Host header and can't route the request, causing 401 errors.
+    -   `status = 200`: Makes this a proxy (returns content) rather than a redirect (returns a redirect response). This is what makes the browser see your domain instead of PostHog's.
+    -   `force = true`: Applies this rule even if a file exists at that path. Without this, Netlify might serve a local file instead of proxying to PostHog.
+
+    The static assets and remote config rules must come before the catch-all because Netlify evaluates rules in order. If the catch-all rule came first, it would match `/yourpath/static/*` and `/yourpath/array/*` requests before the specific rules could route them to the assets origin.
+
+    See [Netlify's redirects documentation](https://docs.netlify.com/routing/redirects/) for more details.
+
+2.  2
+
+    ## Deploy your changes
+
+    Commit and push your changes to trigger a Netlify deploy. The redirects become active once the deploy completes.
+
+    You can verify the redirects were processed by checking your deploy logs in the Netlify dashboard. Look for `Processed X redirect rules` in the output.
+
+3.  3
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization to use your proxy path:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://yourdomain.com/yourpath',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://yourdomain.com/yourpath',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    Replace `yourdomain.com` with your custom domain.
+
+    The `api_host` tells the SDK where to send events. The `ui_host` must point to PostHog's actual domain so features like the toolbar and session recordings link correctly.
+
+    You can also use a relative path if you prefer:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: '/yourpath',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: '/yourpath',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    Using a relative path avoids CORS issues when your primary domain differs from the one you're using in the SDK (e.g., `mydomain.com` vs `www.mydomain.com`).
+
+4.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your proxy:
+
+    1.  Open your browser's developer tools and go to the **Network** tab
+    2.  Navigate to your site or trigger an event in your app
+    3.  Look for requests to your domain with your proxy path (e.g., `yourdomain.com/yourpath`)
+    4.  Verify the response status is `200 OK`
+    5.  Check the [PostHog app](https://app.posthog.com) to confirm events appear in your activity feed
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Option 2: Redirects file
+
+Use this approach for SvelteKit projects or if you prefer a standalone redirects file.
+
+1.  1
+
+    ## Create a redirects file
+
+    Create a file named `_redirects` in the directory that gets deployed to Netlify. For most projects, this is your project root or build output directory.
+
+    Add this content:
+
+    ```
+    /yourpath/static/*  https://us-assets.i.posthog.com/static/:splat  200!
+    /yourpath/array/*   https://us-assets.i.posthog.com/array/:splat   200!
+    /yourpath/*         https://us.i.posthog.com/:splat                200!
+    ```
+
+    Replace `us` with `eu` for EU region.
+
+    The format is `source destination status`. The `!` after `200` is equivalent to `force = true` in `netlify.toml` and ensures the redirect applies even if a file exists at that path.
+
+    The static assets and remote config rules must come before the catch-all because Netlify evaluates rules in order.
+
+    See [Netlify's redirects file documentation](https://docs.netlify.com/routing/redirects/#syntax-for-the-redirects-file) for more details.
+
+2.  2
+
+    ## Ensure the file is deployed
+
+    The redirects file must end up in your publish directory after the build. How you achieve this depends on your framework:
+
+    -   **SvelteKit:** Place the file in your `static` directory. SvelteKit copies static files to the build output.
+    -   **Other frameworks:** Check your framework's documentation for how to include static files in the build output.
+
+    If the file isn't in the publish directory, Netlify won't process the redirects.
+
+3.  3
+
+    ## Deploy your changes
+
+    Commit and push your changes to trigger a Netlify deploy. The redirects become active once the deploy completes.
+
+    You can verify the redirects were processed by checking your deploy logs in the Netlify dashboard. Look for `Processed X redirect rules` in the output.
+
+4.  4
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization to use your proxy path:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://yourdomain.com/yourpath',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://yourdomain.com/yourpath',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    Replace `yourdomain.com` with your custom domain.
+
+    The `api_host` tells the SDK where to send events. The `ui_host` must point to PostHog's actual domain so features like the toolbar and session recordings link correctly.
+
+    You can also use a relative path:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: '/yourpath',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: '/yourpath',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    Using a relative path avoids CORS issues when your primary domain differs from the one you're using in the SDK.
+
+5.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your proxy:
+
+    1.  Open your browser's developer tools and go to the **Network** tab
+    2.  Navigate to your site or trigger an event in your app
+    3.  Look for requests to your domain with your proxy path (e.g., `yourdomain.com/yourpath`)
+    4.  Verify the response status is `200 OK`
+    5.  Check the [PostHog app](https://app.posthog.com) to confirm events appear in your activity feed
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Troubleshooting
+
+### 404 errors on proxy path
+
+If requests to your proxy path return 404:
+
+1.  Check that your `netlify.toml` or `_redirects` file is in the correct location and being deployed
+2.  Look at your Netlify deploy logs to confirm the redirects were processed
+3.  Verify the path in your redirect rule matches the path in your SDK configuration
+
+For redirects files, make sure the file is in your publish directory after the build, not just in your source directory.
+
+### CORS errors
+
+If you see CORS errors about a missing `Access-Control-Allow-Origin` header, try using a relative path instead of the full URL:
+
+### US
+
+```javascript
+posthog.init('<ph_project_token>', {
+  api_host: '/yourpath',
+  ui_host: 'https://us.posthog.com'
+})
+```
+
+### EU
+
+```javascript
+posthog.init('<ph_project_token>', {
+  api_host: '/yourpath',
+  ui_host: 'https://eu.posthog.com'
+})
+```
+
+This often happens when your primary Netlify domain differs from the one in `api_host`. For example, if your primary domain is `mydomain.com` but you set `api_host` to `https://www.mydomain.com/yourpath`, browsers will treat this as a cross-origin request.
+
+### Redirects not working in SvelteKit
+
+Netlify [doesn't support](https://docs.netlify.com/frameworks/sveltekit/#limitations) `netlify.toml` redirects for SvelteKit projects. Use a `_redirects` file in your `static` directory instead.
