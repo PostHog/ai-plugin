@@ -7,6 +7,7 @@ hooks/ and scripts/ directories.
 
 from posthog_llma.events import build_ai_generation, build_ai_span, build_ai_trace
 from posthog_llma.sender import DEFAULT_HOST, send_batch, write_status, read_status, STATUS_FILE
+from posthog_llma.sent_events import send_new_events
 from posthog_llma.config import load_config
 from posthog_llma.parser import parse_session, find_session_log
 from posthog_llma.trace_naming import find_trace_name, clean_trace_name
@@ -17,6 +18,7 @@ __all__ = [
     "build_ai_span",
     "build_ai_trace",
     "send_batch",
+    "send_new_events",
     "write_status",
     "read_status",
     "STATUS_FILE",
