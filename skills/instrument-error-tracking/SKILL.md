@@ -37,7 +37,7 @@ STEP 3: Install and initialize the PostHog SDK. (Skip if PostHog is already set 
   - If the project keeps more than one lockfile for the same manifest, such as a second Gemfile lock for another bundle, update each one.
   - Follow the framework reference for where and how to initialize.
   - For posthog-js, set `defaults` to the preset the framework docs reference shows. The example projects can show an older preset.
-  - For posthog-js, if the framework reference documents a reverse proxy for this framework, set it up as part of this change. Otherwise, suggest one in your final message: a reverse proxy keeps ad blockers from dropping events (https://posthog.com/docs/advanced/proxy.md).
+  - For posthog-js, if the framework reference documents a reverse proxy for this framework, set it up as part of this change. Otherwise, suggest one in your final message: a reverse proxy keeps ad blockers from dropping events, and the `instrument-reverse-proxy` skill sets one up (https://posthog.com/docs/advanced/proxy.md).
 
 STEP 4: Enable exception autocapture.
   - Follow the platform reference to enable exception autocapture. This automatically captures unhandled exceptions without additional code.

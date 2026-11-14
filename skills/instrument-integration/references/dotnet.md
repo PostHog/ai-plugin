@@ -38,7 +38,7 @@ The `PostHog` package supports any .NET platform that targets .NET Standard 2.1 
 > **Not supported:** Classic UWP (requires .NET Standard 2.0 only). Microsoft has [deprecated UWP](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/migrate-to-windows-app-sdk/migrate-to-windows-app-sdk-ovw) in favor of the Windows App SDK. For Unity projects, see our dedicated [Unity SDK](https://posthog.com/docs/libraries/unity.md).
 
 ```bash
-dotnet add package PostHog.AspNetCore --version 2.9.12
+dotnet add package PostHog.AspNetCore --version 2.10.0
 ```
 
 In your `Program.cs` (or `Startup.cs` for ASP.NET Core 2.x) file, add the following code:
@@ -153,7 +153,7 @@ public class NewFeatureController : Controller
 If you're not using ASP.NET Core (for example, in a console application, MAUI app, or Blazor WebAssembly), install the `PostHog` package instead of `PostHog.AspNetCore`. This package has no ASP.NET Core dependencies and can be used in any .NET project targeting .NET Standard 2.1 or .NET 8+.
 
 ```bash
-dotnet add package PostHog --version 2.21.2
+dotnet add package PostHog --version 2.23.0
 ```
 
 The `PostHogClient` class must be implemented as a singleton in your project. For `PostHog.AspNetCore`, this is handled by the `builder.AddPostHog();` method. For the `PostHog` package, you can do the following if you're using dependency injection:
@@ -316,9 +316,19 @@ posthog.CaptureException(
 );
 ```
 
-For the full setup guide, see the [.NET error tracking installation docs](https://posthog.com/docs/error-tracking/installation/dotnet.md).
+The SDK can also capture exceptions automatically. Both options are off by default:
 
-Automatic exception capture is not available in the .NET SDK yet.
+-   `CaptureExceptions` on the ASP.NET Core request context middleware captures exceptions from your request pipeline.
+-   `CaptureUnhandledExceptions` on `PostHogOptions` captures unhandled runtime exceptions and unobserved task exceptions. It requires `PostHog` version 2.23.0 or later.
+
+```csharp
+app.UsePostHogRequestContext(options =>
+{
+    options.CaptureExceptions = true;
+});
+```
+
+For the full setup guide, see the [.NET error tracking installation docs](https://posthog.com/docs/error-tracking/installation/dotnet.md).
 
 ## Logs
 

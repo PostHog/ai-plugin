@@ -1,0 +1,766 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
+# Caddy reverse proxy
+
+Canonical URL: https://posthog.com/docs/advanced/proxy/caddy
+
+## On this page
+
+- [Prerequisites](#prerequisites)
+- [Choose your setup option](#choose-your-setup-option)
+- [Option 1: Basic setup](#option-1-basic-setup)
+- [Create a Caddyfile](#create-a-caddyfile)
+- [Start Caddy](#start-caddy)
+- [Update your PostHog SDK](#update-your-posthog-sdk)
+- [Verify your setup](#verify-your-setup)
+- [Option 2: Subpath routing](#option-2-subpath-routing)
+- [Create a Caddyfile with subpath routing](#create-a-caddyfile-with-subpath-routing)
+- [Create a test HTML file](#create-a-test-html-file)
+- [Start Caddy and test locally](#start-caddy-and-test-locally)
+- [Update your PostHog SDK](#update-your-posthog-sdk-1)
+- [Verify your setup](#verify-your-setup-1)
+- [Option 3: Docker deployment](#option-3-docker-deployment)
+- [Create your Caddyfile](#create-your-caddyfile)
+- [Start the Caddy container](#start-the-caddy-container)
+- [Update your PostHog SDK](#update-your-posthog-sdk-2)
+- [Verify your setup](#verify-your-setup-2)
+- [Troubleshooting](#troubleshooting)
+
+**Before you start**
+
+-   If you use a self-hosted proxy, PostHog can't help troubleshoot. Use [our managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) if you want support.
+-   Use domains matching your PostHog region: `us.i.posthog.com` for US, `eu.i.posthog.com` for EU.
+-   Don't use obvious path names like `/analytics`, `/tracking`, `/telemetry`, or `/posthog`. Blockers will catch them. Use something unique to your app instead.
+
+This guide shows you how to configure [Caddy](https://caddyserver.com/) as a reverse proxy for PostHog.
+
+Caddy automatically handles TLS certificates via Let's Encrypt, making setup simple compared to other web servers. You don't need to manually configure SSL - Caddy provisions and renews certificates for you.
+
+## Prerequisites
+
+-   [Caddy installed](https://caddyserver.com/docs/install) on your server or Docker
+-   A domain with DNS records pointing to your server
+-   Ports 80 and 443 open if using a public subdomain
+
+## Choose your setup option
+
+All three options accomplish the same goal of routing PostHog through your domain to bypass ad blockers. Choose the one that fits your infrastructure:
+
+-   [Option 1: Basic setup](#option-1-basic-setup): Routes all PostHog traffic through a dedicated subdomain like `e.yourdomain.com`. Use this for production deployments where you want a clean, simple proxy.
+-   [Option 2: Subpath routing](#option-2-subpath-routing): Routes PostHog through a path on an existing domain like `yourdomain.com/yourpath-proxy`. Use this when you're running multiple services on the same domain or for local development and testing.
+-   [Option 3: Docker deployment](#option-3-docker-deployment): Same as Option 1, but runs Caddy in a Docker container. Use this if your infrastructure is containerized or you prefer container management.
+
+## Option 1: Basic setup
+
+This setup proxies all PostHog requests through a dedicated subdomain.
+
+1.  1
+
+    ## Create a Caddyfile
+
+    In your working directory, create a file named `Caddyfile`:
+
+    ### US
+
+    ```caddy
+    e.yourdomain.com {
+      handle /static/* {
+        reverse_proxy https://us-assets.i.posthog.com:443 {
+          header_up Host us-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+      handle /array/* {
+        reverse_proxy https://us-assets.i.posthog.com:443 {
+          header_up Host us-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+      handle {
+        # Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+        # To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+        @non_bearer {
+            not header Authorization "Bearer phc_*"
+            not header Authorization "Bearer phs_*"
+            not header Authorization "Bearer phx_*"
+        }
+        request_header @non_bearer -Authorization
+        reverse_proxy https://us.i.posthog.com:443 {
+          header_up Host us.i.posthog.com
+          header_up -Cookie
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+    }
+    ```
+
+    ### EU
+
+    ```caddy
+    e.yourdomain.com {
+      handle /static/* {
+        reverse_proxy https://eu-assets.i.posthog.com:443 {
+          header_up Host eu-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+      handle /array/* {
+        reverse_proxy https://eu-assets.i.posthog.com:443 {
+          header_up Host eu-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+      handle {
+        # Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+        # To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+        @non_bearer {
+            not header Authorization "Bearer phc_*"
+            not header Authorization "Bearer phs_*"
+            not header Authorization "Bearer phx_*"
+        }
+        request_header @non_bearer -Authorization
+        reverse_proxy https://eu.i.posthog.com:443 {
+          header_up Host eu.i.posthog.com
+          header_up -Cookie
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+    }
+    ```
+
+    Replace `e.yourdomain.com` with your chosen subdomain.
+
+    The `header_up Host` directive tells PostHog which domain the request is for. Without this, PostHog won't know how to route your request and you'll get 401 errors.
+
+    The `header_up -Cookie` directive removes the browser's cookies before the request goes to PostHog. PostHog does not need them.
+
+    The `@non_bearer` matcher and `request_header` directive forward the `Authorization` header only when its value starts with `Bearer phc_`, `Bearer phs_` or `Bearer phx_`, and remove any other value, such as session tokens your app adds to its own requests. Capture v1 SDKs send the project token as `Authorization: Bearer <token>`. Keys created before these prefixes need their exact `Bearer <key>` value allowed too. The asset routes always remove the header with `header_up -Authorization`, because asset requests don't need it.
+
+    The `header_down -Access-Control-Allow-Origin` directive removes CORS headers from PostHog's response. This prevents conflicts with your own CORS configuration.
+
+2.  2
+
+    ## Start Caddy
+
+    Run this command from the same directory as your `Caddyfile`:
+
+    ```bash
+    caddy start
+    ```
+
+    Caddy will automatically request a TLS certificate from [Let's Encrypt](https://letsencrypt.org) for your subdomain. The first start may take a minute while it provisions the certificate.
+
+    See [Caddy's quick start guide](https://caddyserver.com/docs/quick-starts/reverse-proxy) for more details.
+
+3.  3
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization to use your tracking subdomain:
+
+    ### US
+
+    ```javascript
+    posthog.init("<ph_project_token>", {
+      api_host: "https://e.yourdomain.com",
+      ui_host: "https://us.posthog.com",
+    });
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init("<ph_project_token>", {
+      api_host: "https://e.yourdomain.com",
+      ui_host: "https://eu.posthog.com",
+    });
+    ```
+
+    Replace `e.yourdomain.com` with your actual subdomain.
+
+    The `ui_host` must point to PostHog's actual domain so features like the toolbar link correctly.
+
+4.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your proxy:
+
+    1.  Open your browser's developer tools and go to the Network tab
+    2.  Trigger an event in your app, like a page view
+    3.  Look for a request to your subdomain (e.g., `e.yourdomain.com`)
+    4.  Verify the response is `200 OK`
+    5.  Check the [PostHog app](https://app.posthog.com) to confirm events appear
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Option 2: Subpath routing
+
+If you're running other services on the same domain or testing locally, you can proxy PostHog through a subpath like `/yourpath-proxy`.
+
+1.  1
+
+    ## Create a Caddyfile with subpath routing
+
+    In your working directory, create a file named `Caddyfile`:
+
+    ### US
+
+    ```caddy
+    :2015 {
+      handle_path /yourpath-proxy/static* {
+        rewrite * /static/{path}
+        reverse_proxy https://us-assets.i.posthog.com:443 {
+          header_up Host us-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+    
+      handle_path /yourpath-proxy/array* {
+        rewrite * /array/{path}
+        reverse_proxy https://us-assets.i.posthog.com:443 {
+          header_up Host us-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+    
+      handle_path /yourpath-proxy* {
+        rewrite * {path}
+        # Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+        # To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+        @non_bearer {
+            not header Authorization "Bearer phc_*"
+            not header Authorization "Bearer phs_*"
+            not header Authorization "Bearer phx_*"
+        }
+        request_header @non_bearer -Authorization
+        reverse_proxy https://us.i.posthog.com:443 {
+          header_up Host us.i.posthog.com
+          header_up -Cookie
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+    
+      file_server browse
+    }
+    ```
+
+    ### EU
+
+    ```caddy
+    :2015 {
+      handle_path /yourpath-proxy/static* {
+        rewrite * /static/{path}
+        reverse_proxy https://eu-assets.i.posthog.com:443 {
+          header_up Host eu-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+    
+      handle_path /yourpath-proxy/array* {
+        rewrite * /array/{path}
+        reverse_proxy https://eu-assets.i.posthog.com:443 {
+          header_up Host eu-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+    
+      handle_path /yourpath-proxy* {
+        rewrite * {path}
+        # Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+        # To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+        @non_bearer {
+            not header Authorization "Bearer phc_*"
+            not header Authorization "Bearer phs_*"
+            not header Authorization "Bearer phx_*"
+        }
+        request_header @non_bearer -Authorization
+        reverse_proxy https://eu.i.posthog.com:443 {
+          header_up Host eu.i.posthog.com
+          header_up -Cookie
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+    
+      file_server browse
+    }
+    ```
+
+    This configuration:
+
+    -   Listens on port 2015 for local testing (no TLS certificate needed)
+    -   Routes requests from `/yourpath-proxy` to PostHog
+    -   Uses `handle_path` to strip the `/yourpath-proxy` prefix before forwarding
+    -   Uses `rewrite` to reconstruct the correct path for PostHog
+    -   Serves local files from the same directory for testing
+
+    The `rewrite` directive is necessary because PostHog expects requests like `/static/array.js` and `/array/{token}/config.js`, not `/yourpath-proxy/static/array.js`. The `handle_path` directive strips the prefix, then `rewrite` reconstructs the path.
+
+2.  2
+
+    ## Create a test HTML file
+
+    Optional
+
+    If you want to test your proxy locally, create a file named `home.html` in the same directory:
+
+    ```html
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Test PostHog Proxy</title>
+      </head>
+      <body>
+        <h1>Test home page</h1>
+    
+        <script>
+          !(function (t, e) {
+            var o, n, p, r;
+            e.__SV ||
+              ((window.posthog = e),
+              (e._i = []),
+              (e.init = function (i, s, a) {
+                function g(t, e) {
+                  var o = e.split(".");
+                  (2 == o.length && ((t = t[o[0]]), (e = o[1])),
+                    (t[e] = function () {
+                      t.push([e].concat(Array.prototype.slice.call(arguments, 0)));
+                    }));
+                }
+                (((p = t.createElement("script")).type = "text/javascript"),
+                  (p.crossOrigin = "anonymous"),
+                  (p.async = !0),
+                  (p.src = s.api_host + "/static/array.js"),
+                  (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r));
+                var u = e;
+                for (
+                  void 0 !== a ? (u = e[a] = []) : (a = "posthog"),
+                    u.people = u.people || [],
+                    Object.defineProperty(u, "toString", {
+                      configurable: !0,
+                      enumerable: !0,
+                      writable: !0,
+                      value: function (t) {
+                        var e = "posthog";
+                        return ("posthog" !== a && (e += "." + a), t || (e += " (stub)"), e);
+                      },
+                    }),
+                    Object.defineProperty(u.people, "toString", {
+                      configurable: !0,
+                      enumerable: !0,
+                      writable: !0,
+                      value: function () {
+                        return u.toString(1) + ".people (stub)";
+                      },
+                    }),
+                    o =
+                      "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagResult reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(
+                        " ",
+                      ),
+                    n = 0;
+                  n < o.length;
+                  n++
+                )
+                  g(u, o[n]);
+                e._i.push([i, s, a]);
+              }),
+              (e.__SV = 1));
+          })(document, window.posthog || []);
+    
+          posthog.init("<ph_project_token>", {
+            api_host: "http://localhost:2015/yourpath-proxy",
+            ui_host: "https://us.posthog.com", // US, or https://eu.posthog.com for EU
+          });
+        </script>
+      </body>
+    </html>
+    ```
+
+    This file includes the PostHog snippet configured to use your local proxy. You'll use it to verify the proxy works before deploying to production.
+
+3.  3
+
+    ## Start Caddy and test locally
+
+    Start Caddy from your working directory:
+
+    ```bash
+    caddy start
+    ```
+
+    Open `http://localhost:2015/home.html` in your browser. Check the **Network** tab to verify requests go to `localhost:2015/yourpath-proxy`. You should see `200 OK` responses.
+
+4.  4
+
+    ## Update your PostHog SDK
+
+    For production deployment, update your application code to use your proxy path:
+
+    ### US
+
+    ```javascript
+    posthog.init("<ph_project_token>", {
+      api_host: "https://yourdomain.com/yourpath-proxy",
+      ui_host: "https://us.posthog.com",
+    });
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init("<ph_project_token>", {
+      api_host: "https://yourdomain.com/yourpath-proxy",
+      ui_host: "https://eu.posthog.com",
+    });
+    ```
+
+    Replace `yourdomain.com` with your actual domain and adjust the Caddyfile to listen on ports 80/443 instead of 2015.
+
+5.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your proxy:
+
+    1.  Open your browser's developer tools and go to the Network tab
+    2.  Trigger an event in your app, like a page view
+    3.  Look for a request to your domain with `/yourpath-proxy` path
+    4.  Verify the response is `200 OK`
+    5.  Check the [PostHog app](https://app.posthog.com) to confirm events appear
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Option 3: Docker deployment
+
+If you prefer containerized deployments, you can run Caddy in Docker with the same configuration as option 1.
+
+1.  1
+
+    ## Create your Caddyfile
+
+    On your server, create a file named `Caddyfile` in a directory like `/etc/caddy`:
+
+    ### US
+
+    ```caddy
+    e.yourdomain.com {
+      header {
+        Access-Control-Allow-Origin https://yourdomain.com
+      }
+    
+      handle /static/* {
+        reverse_proxy https://us-assets.i.posthog.com:443 {
+          header_up Host us-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+      handle /array/* {
+        reverse_proxy https://us-assets.i.posthog.com:443 {
+          header_up Host us-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+      handle {
+        # Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+        # To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+        @non_bearer {
+            not header Authorization "Bearer phc_*"
+            not header Authorization "Bearer phs_*"
+            not header Authorization "Bearer phx_*"
+        }
+        request_header @non_bearer -Authorization
+        reverse_proxy https://us.i.posthog.com:443 {
+          header_up Host us.i.posthog.com
+          header_up -Cookie
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+    }
+    ```
+
+    ### EU
+
+    ```caddy
+    e.yourdomain.com {
+      header {
+        Access-Control-Allow-Origin https://yourdomain.com
+      }
+    
+      handle /static/* {
+        reverse_proxy https://eu-assets.i.posthog.com:443 {
+          header_up Host eu-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+      handle /array/* {
+        reverse_proxy https://eu-assets.i.posthog.com:443 {
+          header_up Host eu-assets.i.posthog.com
+          header_up -Cookie
+          header_up -Authorization
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+      handle {
+        # Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+        # To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+        @non_bearer {
+            not header Authorization "Bearer phc_*"
+            not header Authorization "Bearer phs_*"
+            not header Authorization "Bearer phx_*"
+        }
+        request_header @non_bearer -Authorization
+        reverse_proxy https://eu.i.posthog.com:443 {
+          header_up Host eu.i.posthog.com
+          header_up -Cookie
+          header_down -Access-Control-Allow-Origin
+        }
+      }
+    }
+    ```
+
+    Replace `e.yourdomain.com` with your subdomain and `yourdomain.com` with your application domain.
+
+    The `Access-Control-Allow-Origin` header allows your application domain to make requests to the proxy. Adjust this if you need to allow requests from multiple domains or `localhost` for testing.
+
+2.  2
+
+    ## Start the Caddy container
+
+    Run this command to start Caddy with Docker:
+
+    ```bash
+    docker run -p 80:80 -p 443:443 \
+      -v $PWD/Caddyfile:/etc/caddy/Caddyfile \
+      -v caddy_data:/data \
+      caddy
+    ```
+
+    This command:
+
+    -   Mounts your Caddyfile into the container
+    -   Persists Caddy's data (including TLS certificates) in a Docker volume named `caddy_data`
+
+    The volume persistence is critical. Without it, Caddy will request new certificates every time the container restarts, which can hit [Let's Encrypt's](https://letsencrypt.org) rate limits and cause your proxy to fail.
+
+    See the [Caddy Docker documentation](https://hub.docker.com/_/caddy) for more details.
+
+3.  3
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization to use your tracking subdomain:
+
+    ### US
+
+    ```javascript
+    posthog.init("<ph_project_token>", {
+      api_host: "https://e.yourdomain.com",
+      ui_host: "https://us.posthog.com",
+    });
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init("<ph_project_token>", {
+      api_host: "https://e.yourdomain.com",
+      ui_host: "https://eu.posthog.com",
+    });
+    ```
+
+    Replace `e.yourdomain.com` with your actual subdomain.
+
+4.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your proxy:
+
+    1.  Open your browser's developer tools and go to the Network tab
+    2.  Trigger an event in your app, like a page view
+    3.  Look for a request to your subdomain (e.g., `e.yourdomain.com`)
+    4.  Verify the response is `200 OK`
+    5.  Check the [PostHog app](https://app.posthog.com) to confirm events appear
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Troubleshooting
+
+### TLS certificate provisioning fails
+
+If Caddy can't obtain a TLS certificate:
+
+1.  Verify your DNS records point to your server's IP address
+2.  Check that ports 80 and 443 are open and accessible from the internet
+3.  Ensure no other service is using ports 80 or 443
+4.  Check Caddy's logs with `caddy logs` for specific errors
+
+Caddy needs port 80 temporarily during certificate provisioning, even if you only serve traffic on 443. Let's Encrypt uses HTTP-01 challenges to verify domain ownership.
+
+If you hit Let's Encrypt's rate limits of 5 failed attempts per hour, wait an hour and try again. Using a Docker volume prevents this by persisting certificates.
+
+### 401 Unauthorized errors
+
+If PostHog returns `401 Unauthorized` when capturing events:
+
+1.  Verify you set `header_up Host` to the correct PostHog domain
+2.  Check that your PostHog region matches
+3.  Confirm your project token is correct in the SDK initialization
+
+The `header_up Host` directive is essential. PostHog uses the Host header to identify which project the request belongs to. Without it, PostHog can't authenticate your events.
+
+### CORS errors in browser console
+
+If you see `No 'Access-Control-Allow-Origin' header` errors:
+
+Add explicit CORS headers to your Caddyfile:
+
+### US
+
+```caddy
+e.yourdomain.com {
+  @options method OPTIONS
+  handle @options {
+    header Access-Control-Allow-Origin "https://yourdomain.com"
+    header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    header Access-Control-Allow-Headers "*"
+    respond 204
+  }
+
+  header {
+    Access-Control-Allow-Origin "https://yourdomain.com"
+    Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers "*"
+  }
+
+  handle /static/* {
+    reverse_proxy https://us-assets.i.posthog.com:443 {
+      header_up Host us-assets.i.posthog.com
+      header_up -Cookie
+      header_up -Authorization
+      header_down -Access-Control-Allow-Origin
+    }
+  }
+  handle /array/* {
+    reverse_proxy https://us-assets.i.posthog.com:443 {
+      header_up Host us-assets.i.posthog.com
+      header_up -Cookie
+      header_up -Authorization
+      header_down -Access-Control-Allow-Origin
+    }
+  }
+  handle {
+    # Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+    # To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+    @non_bearer {
+        not header Authorization "Bearer phc_*"
+        not header Authorization "Bearer phs_*"
+        not header Authorization "Bearer phx_*"
+    }
+    request_header @non_bearer -Authorization
+    reverse_proxy https://us.i.posthog.com:443 {
+      header_up Host us.i.posthog.com
+      header_up -Cookie
+      header_down -Access-Control-Allow-Origin
+    }
+  }
+}
+```
+
+### EU
+
+```caddy
+e.yourdomain.com {
+  @options method OPTIONS
+  handle @options {
+    header Access-Control-Allow-Origin "https://yourdomain.com"
+    header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    header Access-Control-Allow-Headers "*"
+    respond 204
+  }
+
+  header {
+    Access-Control-Allow-Origin "https://yourdomain.com"
+    Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers "*"
+  }
+
+  handle /static/* {
+    reverse_proxy https://eu-assets.i.posthog.com:443 {
+      header_up Host eu-assets.i.posthog.com
+      header_up -Cookie
+      header_up -Authorization
+      header_down -Access-Control-Allow-Origin
+    }
+  }
+  handle /array/* {
+    reverse_proxy https://eu-assets.i.posthog.com:443 {
+      header_up Host eu-assets.i.posthog.com
+      header_up -Cookie
+      header_up -Authorization
+      header_down -Access-Control-Allow-Origin
+    }
+  }
+  handle {
+    # Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+    # To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+    @non_bearer {
+        not header Authorization "Bearer phc_*"
+        not header Authorization "Bearer phs_*"
+        not header Authorization "Bearer phx_*"
+    }
+    request_header @non_bearer -Authorization
+    reverse_proxy https://eu.i.posthog.com:443 {
+      header_up Host eu.i.posthog.com
+      header_up -Cookie
+      header_down -Access-Control-Allow-Origin
+    }
+  }
+}
+```
+
+Replace `https://yourdomain.com` with your application's origin. For multiple origins or testing, use `*` instead, but be aware this is less secure.
+
+### Static assets or remote config return 404
+
+If the PostHog SDK fails to load or you see 404 errors for `/static/*` or `/array/*` requests:
+
+1.  Verify your Caddyfile has both `handle /static/*` and `handle /array/*` blocks
+2.  Check that they point to the correct assets domain, `us-assets.i.posthog.com` or `eu-assets.i.posthog.com`
+3.  Confirm the assets domain matches your PostHog region
+
+The `/static/*` and `/array/*` routes must be defined before the catch-all `handle` block. Caddy evaluates handlers in order, so place specific paths before generic ones.
+
+The `/array/*` route serves PostHog's remote config (e.g., `/array/{token}/config.js`). Routing it through the assets origin ensures proper `cache-control` headers are preserved. Without this, browsers may use heuristic caching and serve stale SDK config for hours or days, causing Feature flags, session recording conditions, and sampling rates to stop updating.
+
+### Port conflicts
+
+If Caddy fails to start with "address already in use":
+
+1.  Check what's using ports 80 and 443: `sudo lsof -i :80 -i :443`
+2.  Stop the conflicting service or configure Caddy to use different ports
+3.  If using different ports, you'll need to include the port in your `api_host` (e.g., `https://e.yourdomain.com:8443`)
+
+Common conflicts include Apache, Nginx, or other Caddy instances.

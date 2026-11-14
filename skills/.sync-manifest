@@ -90,6 +90,7 @@ instrument-llm-analytics
 instrument-logs
 instrument-metrics
 instrument-product-analytics
+instrument-reverse-proxy
 instrument-tracing
 investigate-metric
 investigating-ci-failures
@@ -106,6 +107,7 @@ managing-reminders
 managing-self-driving-spend
 managing-streamlit-apps
 managing-subscriptions
+measuring-email-performance
 migrating-from-customer-io
 migrating-from-fivetran
 modeling-activation-metrics

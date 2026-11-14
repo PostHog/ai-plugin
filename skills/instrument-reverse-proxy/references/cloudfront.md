@@ -1,0 +1,303 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
+# AWS CloudFront reverse proxy
+
+Canonical URL: https://posthog.com/docs/advanced/proxy/cloudfront
+
+## On this page
+
+- [Why CloudFront needs custom configuration](#why-cloudfront-needs-custom-configuration)
+- [Architecture overview](#architecture-overview)
+- [Set up your CloudFront proxy](#set-up-your-cloudfront-proxy)
+- [Create a CloudFront distribution](#create-a-cloudfront-distribution)
+- [Create a custom cache policy](#create-a-custom-cache-policy)
+- [Create a custom origin request policy](#create-a-custom-origin-request-policy)
+- [Create a function that keeps only PostHog keys](#create-a-function-that-keeps-only-posthog-keys)
+- [Apply your custom policies](#apply-your-custom-policies)
+- [Add a second origin for static assets](#add-a-second-origin-for-static-assets)
+- [Create cache behaviors for static assets and config](#create-cache-behaviors-for-static-assets-and-config)
+- [Update your PostHog SDK](#update-your-posthog-sdk)
+- [Verify your setup](#verify-your-setup)
+- [Troubleshooting](#troubleshooting)
+
+**Before you start**
+
+-   If you use a self-hosted proxy, PostHog can't help troubleshoot. Use [our managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) if you want support.
+-   Use domains matching your PostHog region: `us.i.posthog.com` for US, `eu.i.posthog.com` for EU.
+-   Don't use obvious path names like `/analytics`, `/tracking`, `/telemetry`, or `/posthog`. Blockers will catch them. Use something unique to your app instead.
+
+**Data transfer costs**
+
+Proxying routes all PostHog traffic – events, session recordings, feature flag polls, and SDK assets – through CloudFront, which bills both [per-GB data transfer out and per-request](https://aws.amazon.com/cloudfront/pricing/). Session recordings are the biggest driver (often 1–5 MB per session) and can make CloudFront costs significant on high-traffic sites.
+
+To avoid these costs, use the [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) (free for PostHog Cloud users) or a provider without egress fees like [Cloudflare Workers](https://posthog.com/docs/advanced/proxy/cloudflare.md).
+
+This guide shows you how to configure [AWS CloudFront](https://docs.aws.amazon.com/cloudfront/) as a reverse proxy for PostHog.
+
+## Why CloudFront needs custom configuration
+
+CloudFront's default settings don't forward the headers and query parameters PostHog needs to function. Without custom cache and origin request policies:
+
+-   Events will fail to authenticate due to missing `Authorization` headers
+-   Capture v1 SDK requests will be rejected due to missing `PostHog-*`, `Content-Encoding`, and `User-Agent` headers
+-   CORS requests will be blocked due to missing `Origin` headers
+-   Feature flags and session recording won't work correctly due to stripped query parameters
+
+You'll need to create custom policies to ensure CloudFront passes everything through to PostHog.
+
+## Architecture overview
+
+Your CloudFront distribution will route two types of requests:
+
+-   **Event and API requests:** Routes to your main origin, `us.i.posthog.com` or `eu.i.posthog.com`. This handles event capture, feature flags, session recordings, and all PostHog API calls.
+-   **Static assets:** Routes to your assets origin, `us-assets.i.posthog.com` or `eu-assets.i.posthog.com`. This serves PostHog's JavaScript SDK and other static files.
+
+CloudFront uses "behaviors" to route requests. The `/static/*` and `/array/*` behaviors route to your assets origin, while the default behavior routes everything else to your main origin.
+
+## Set up your CloudFront proxy
+
+1.  1
+
+    ## Create a CloudFront distribution
+
+    In the CloudFront console, follow AWS's guide to [create a CloudFront distribution](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-creating-console.html).
+
+    Configure these CloudFront settings for your origin:
+
+    Origin settings:
+
+    -   **Origin domain:** `us.i.posthog.com` or `eu.i.posthog.com`
+    -   **Protocol:** HTTPS only
+
+    This tells CloudFront to forward requests to PostHog's ingestion endpoint. HTTPS only ensures all traffic is encrypted.
+
+    Default cache behavior:
+
+    -   **Allowed HTTP methods:** `GET`, `HEAD`, `OPTIONS`, `PUT`, `POST`, `PATCH`, `DELETE`
+    -   **Cache HTTP methods:** Check `OPTIONS`
+
+    PostHog needs all HTTP methods because you'll capture events (`POST`), retrieve feature flags (`GET`), and handle CORS preflight requests (`OPTIONS`).
+
+2.  2
+
+    ## Create a custom cache policy
+
+    In the CloudFront console, follow AWS's guide to [create a cache policy](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy).
+
+    Configure this custom policy:
+
+    -   **Name:** `posthog-cache-policy` or any name you prefer
+    -   **Headers:** Include `Origin` and `Authorization`
+    -   **Cookies:** None
+    -   **Query strings:** All
+
+    This policy tells CloudFront to include these values when caching responses. Without this, CloudFront would strip authentication headers and break event capture.
+
+    Leave cookies set to **None**. PostHog does not need them, because ingestion authenticates with the project token. Legacy SDKs send the token in the request body, and capture v1 SDKs send it as `Authorization: Bearer <token>`.
+
+3.  3
+
+    ## Create a custom origin request policy
+
+    In the CloudFront console, follow AWS's guide to [create an origin request policy](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy).
+
+    Configure this custom policy:
+
+    -   **Name:** `posthog-origin-request-policy` or any name you prefer
+    -   **Headers:** All viewer headers except `Host`
+    -   **Cookies:** None
+    -   **Query strings:** All
+
+    Origin request policies control what CloudFront sends to your origin, regardless of caching. This ensures PostHog receives all headers and query parameters it needs.
+
+    Unless a policy forwards them, CloudFront drops custom headers and replaces `User-Agent` with its own value. Capture v1 SDKs send `PostHog-*` headers, `Content-Encoding`, and `User-Agent`, and PostHog rejects requests without them. Excluding `Host` lets CloudFront set it to the PostHog origin domain. Cookies stay set to **None**, so CloudFront doesn't forward your site's cookies.
+
+4.  4
+
+    ## Create a function that keeps only PostHog keys
+
+    The origin request policy forwards every `Authorization` value. Capture v1 SDKs send the project token as `Authorization: Bearer phc_...`, and server SDKs send a project secret key (`phs_`) or personal API key (`phx_`) for local feature flag evaluation and remote config. Your app may also add its own session token to requests on the same domain. A CloudFront Function removes any other value before the request leaves CloudFront.
+
+    In the CloudFront console, follow AWS's guide to [create a function](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/create-function.html) named `posthog-authorization` with the `cloudfront-js-2.0` runtime and this code:
+
+    ```javascript
+    function handler(event) {
+      var request = event.request
+      var authorization = request.headers.authorization
+      // Keep PostHog keys (Bearer phc_, phs_ or phx_). Strip any other credentials.
+      // To allow an older key without one of these prefixes, also keep its exact 'Bearer <key>' value.
+      if (authorization && !/^Bearer ph[csx]_/.test(authorization.value)) {
+        delete request.headers.authorization
+      }
+      return request
+    }
+    ```
+
+    Publish the function.
+
+5.  5
+
+    ## Apply your custom policies
+
+    In the CloudFront console, edit your distribution's default cache behavior.
+
+    Apply these CloudFront policies:
+
+    -   **Cache policy:** Your custom `posthog-cache-policy` from step 2
+    -   **Origin request policy:** Your custom `posthog-origin-request-policy` from step 3
+    -   **Function associations:** Viewer request, CloudFront Functions, `posthog-authorization` from step 4
+
+    The origin request policy also forwards the `Origin` header for CORS requests, so you don't need the managed `CORS-CustomOrigin` policy.
+
+    Leave AWS WAF disabled for now. If you enable it later, make sure its size limit is at least 1MB for events and 64MB for session recordings. AWS WAF defaults to 8KB, which will block PostHog traffic.
+
+6.  6
+
+    ## Add a second origin for static assets
+
+    In the CloudFront console, add a second origin to your distribution.
+
+    Configure this origin:
+
+    -   **Origin domain:** `us-assets.i.posthog.com` or `eu-assets.i.posthog.com`
+
+    This origin serves PostHog's JavaScript SDK and other static files. Separating static assets from API requests allows different caching strategies.
+
+7.  7
+
+    ## Create cache behaviors for static assets and config
+
+    In the CloudFront console, add two new cache behaviors to your distribution.
+
+    **Behavior 1: Static assets**
+
+    -   **Path pattern:** `/static/*`
+    -   **Origin:** Your assets origin, `us-assets.i.posthog.com` or `eu-assets.i.posthog.com`
+    -   **Cache policy:** Your custom `posthog-cache-policy` from step 2
+    -   **Origin request policy:** Your custom `posthog-origin-request-policy` from step 3
+    -   **Function associations:** Viewer request, CloudFront Functions, `posthog-authorization` from step 4
+    -   **Response headers policy:** `CORS-with-preflight-and-SecurityHeadersPolicy`
+
+    This behavior routes requests to `/static/*` to your assets origin instead of the main origin. The response headers policy is built into AWS and adds CORS headers to responses.
+
+    **Behavior 2: Remote config**
+
+    -   **Path pattern:** `/array/*`
+    -   **Origin:** Your assets origin, `us-assets.i.posthog.com` or `eu-assets.i.posthog.com`
+    -   **Cache policy:** Your custom `posthog-cache-policy` from step 2
+    -   **Origin request policy:** Your custom `posthog-origin-request-policy` from step 3
+    -   **Function associations:** Viewer request, CloudFront Functions, `posthog-authorization` from step 4
+    -   **Response headers policy:** `CORS-with-preflight-and-SecurityHeadersPolicy`
+
+    This behavior routes requests to `/array/*` to your assets origin. The `/array` path serves PostHog's remote configuration, which controls Feature flags, session recording settings, and other SDK behavior. Routing this through the assets origin ensures proper cache-control headers are preserved, allowing the SDK to refresh its configuration correctly.
+
+    **Route /array/\* to the assets origin**
+
+    If `/array/*` routes through the main origin instead, config requests will still succeed but cache-control headers will be stripped. Without these headers, browsers fall back to heuristic caching and may cache stale configuration for hours or days. This can cause session recording conditions, feature flags, and other SDK settings to stop updating.
+
+    If you encounter CORS errors after setup, you may need to create a custom response headers policy with `Access-Control-Allow-Headers` set to `*` for all headers. See [AWS's CORS troubleshooting guide](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/header-caching.html#header-caching-web-cors) for details.
+
+8.  8
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization to use your CloudFront distribution domain:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://d111111abcdef8.cloudfront.net',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://d111111abcdef8.cloudfront.net',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    Replace `d111111abcdef8.cloudfront.net` with your actual CloudFront distribution domain. Find this in the CloudFront console under **distribution domain name**.
+
+    The `ui_host` must point to PostHog's actual domain so features like the toolbar link correctly.
+
+9.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through CloudFront:
+
+    1.  Open your browser's developer tools and go to the Network tab
+    2.  Trigger an event in your app, like a page view
+    3.  Look for a request to your CloudFront domain
+    4.  Verify the response is `200 OK`, not `403 Forbidden` or `400 Bad Request`
+    5.  Check the [PostHog app](https://app.posthog.com) to confirm events appear
+
+    If you see `403` errors, your cache or origin request policies aren't forwarding required headers. Double-check your policy configurations.
+
+## Troubleshooting
+
+### 403 Forbidden errors
+
+If CloudFront returns `403 Forbidden` when capturing events:
+
+1.  Verify your cache policy includes `Authorization` and `Origin` headers
+2.  Check that your origin request policy forwards all query strings
+3.  Confirm your default behavior uses your custom `posthog-origin-request-policy`
+
+CloudFront blocks requests when required headers are missing. The `Authorization` header is essential for PostHog to authenticate your events.
+
+### 400 or 401 errors from server or mobile SDKs
+
+If capture v1 SDKs get `400` with `missing_required_headers` or `401` with `missing_authorization`:
+
+1.  Confirm your default behavior uses your custom `posthog-origin-request-policy`
+2.  Verify that policy forwards all viewer headers except `Host`
+3.  Verify your cache policy includes the `Authorization` header
+4.  If your key was created before the `phc_`, `phs_` and `phx_` prefixes, edit the `posthog-authorization` function to also keep its exact `Bearer <key>` value
+
+Capture v1 SDKs send the project token as `Authorization: Bearer <token>`, along with `PostHog-*` headers that PostHog requires. If CloudFront drops any of them, PostHog rejects the request.
+
+### CORS errors in browser console
+
+If you see CORS errors like `No 'Access-Control-Allow-Origin' header`:
+
+1.  Verify you applied the `CORS-with-preflight-and-SecurityHeadersPolicy` response headers policy to your `/static/*` behavior
+2.  Check that your cache policy includes the `Origin` header
+3.  If errors persist, create a custom response headers policy with `Access-Control-Allow-Headers` set to `*`
+
+See [AWS's CORS troubleshooting guide](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/header-caching.html#header-caching-web-cors) for more details.
+
+### Events or recordings are being truncated
+
+If large events or session recordings aren't reaching PostHog:
+
+1.  Check if you enabled AWS WAF on your distribution
+2.  If enabled, verify the WAF body size limit is at least 64MB
+3.  AWS WAF defaults to 8KB, which will block PostHog traffic
+
+PostHog events can be up to 1MB, AI events up to 8MB, and session recordings up to 64MB per message. Any size limit below these values will silently drop data.
+
+### Static assets aren't loading
+
+If the PostHog SDK fails to load or you see 404 errors for `/static/*` requests:
+
+1.  Verify you created a second origin pointing to `us-assets.i.posthog.com` or `eu-assets.i.posthog.com`
+2.  Confirm you created a cache behavior with path pattern `/static/*` pointing to this origin
+3.  Check that the assets origin matches your PostHog region (US or EU)
+
+Without the `/static/*` behavior, CloudFront tries to serve static files from your main origin, which will fail.
+
+### Session recording conditions or Feature flags not updating
+
+If session recording ignores your configured conditions (e.g., records everything despite having event triggers or sampling), or Feature flags seem stuck on old values:
+
+1.  Verify you created a cache behavior with path pattern `/array/*` pointing to your assets origin (`us-assets.i.posthog.com` or `eu-assets.i.posthog.com`)
+2.  Check the response headers for `/array/<your-token>/config.js` by curling your proxy URL — you should see `cache-control: max-age=300` in the response
+3.  If `cache-control` is missing, the `/array/*` path is routing through your main origin instead of the assets origin
+
+Without the `/array/*` behavior, config requests route through the main origin. This silently works (returns valid config) but strips cache-control headers. Browsers then fall back to heuristic caching based on `Last-Modified`, which can cache stale configuration for hours or days. This means SDK configuration changes (recording conditions, Feature flags, sampling rates) won't reach users until their browser cache expires.

@@ -1,0 +1,432 @@
+> AI agents: this is one page from PostHog's docs. Full index of Markdown docs for LLMs: https://posthog.com/llms.txt
+
+# Cloudflare reverse proxy
+
+Canonical URL: https://posthog.com/docs/advanced/proxy/cloudflare
+
+## On this page
+
+- [Prerequisites](#prerequisites)
+- [Choose your setup option](#choose-your-setup-option)
+- [Option 1: Cloudflare Workers](#option-1-cloudflare-workers)
+- [Create a Cloudflare Worker](#create-a-cloudflare-worker)
+- [Add the proxy code](#add-the-proxy-code)
+- [Add a custom domain to your worker](#add-a-custom-domain-to-your-worker)
+- [Update your PostHog SDK](#update-your-posthog-sdk)
+- [Verify your setup](#verify-your-setup)
+- [Option 2: DNS and Page Rules](#option-2-dns-and-page-rules)
+- [Create a DNS CNAME record](#create-a-dns-cname-record)
+- [Create Page Rules to rewrite the Host header](#create-page-rules-to-rewrite-the-host-header)
+- [Update your PostHog SDK](#update-your-posthog-sdk-1)
+- [Verify your setup](#verify-your-setup-1)
+- [Troubleshooting](#troubleshooting)
+
+**Before you start**
+
+-   If you use a self-hosted proxy, PostHog can't help troubleshoot. Use [our managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy.md) if you want support.
+-   Use domains matching your PostHog region: `us.i.posthog.com` for US, `eu.i.posthog.com` for EU.
+-   Don't use obvious path names like `/analytics`, `/tracking`, `/telemetry`, or `/posthog`. Blockers will catch them. Use something unique to your app instead.
+
+**Data transfer costs**
+
+Cloudflare Workers has no egress fees and includes a generous free tier (100,000 requests/day), which makes it one of the cheaper self-hosted options for proxying PostHog. Every proxied event, session recording chunk, feature flag poll, and SDK asset request counts toward your [Workers request quota](https://developers.cloudflare.com/workers/platform/pricing/), so monitor usage if you expect to exceed the free tier on high-traffic sites.
+
+This guide shows you how to use [Cloudflare](https://www.cloudflare.com/) as a reverse proxy for PostHog.
+
+## Prerequisites
+
+-   A Cloudflare account
+-   A domain managed by Cloudflare
+-   For option 2: Cloudflare Enterprise plan
+
+## Choose your setup option
+
+Cloudflare sits between your users and PostHog. When a user triggers an event, the request goes to Cloudflare first, then Cloudflare forwards it to PostHog. This hides PostHog's domains from ad blockers.
+
+Cloudflare offers two approaches for proxying. Choose based on your Cloudflare plan and technical preferences:
+
+-   [Option 1: Cloudflare Workers](#option-1-cloudflare-workers): Runs serverless JavaScript on Cloudflare's edge network to intercept and forward requests. You write code that handles routing logic, header manipulation, and caching. This gives you full control but requires maintaining code. Works on all Cloudflare plans including free.
+-   [Option 2: DNS and Page Rules](#option-2-dns-and-page-rules): Uses Cloudflare's DNS to route traffic and Page Rules to rewrite headers. Simpler configuration with no code to maintain, but requires an Enterprise plan and has less flexibility.
+
+## Option 1: Cloudflare Workers
+
+This method uses Cloudflare's serverless platform to run code that proxies requests to PostHog.
+
+1.  1
+
+    ## Create a Cloudflare Worker
+
+    Open your Cloudflare dashboard and follow [Cloudflare's Workers guide](https://developers.cloudflare.com/workers/get-started/guide/) to create a new worker.
+
+    Cloudflare Workers are serverless functions that run on Cloudflare's edge network. Your worker will intercept requests to your subdomain and forward them to PostHog with the correct headers.
+
+2.  2
+
+    ## Add the proxy code
+
+    Replace the default worker code with this:
+
+    ### US
+
+    ```javascript
+    const API_HOST = "us.i.posthog.com"
+    const ASSET_HOST = "us-assets.i.posthog.com"
+    
+    async function handleRequest(request, ctx) {
+      const url = new URL(request.url)
+      const pathname = url.pathname
+      const search = url.search
+      const pathWithParams = pathname + search
+    
+      if (pathname.startsWith("/static/") || pathname.startsWith("/array/")) {
+        return retrieveAsset(request, pathWithParams, ctx)
+      } else {
+        return forwardRequest(request, pathWithParams)
+      }
+    }
+    
+    async function retrieveAsset(request, pathname, ctx) {
+      let response = await caches.default.match(request)
+      if (!response) {
+        response = await fetch(`https://${ASSET_HOST}${pathname}`)
+        ctx.waitUntil(caches.default.put(request, response.clone()))
+      }
+      return response
+    }
+    
+    async function forwardRequest(request, pathWithSearch) {
+      const ip = request.headers.get("CF-Connecting-IP") || ""
+      const originHeaders = new Headers(request.headers)
+      originHeaders.delete("cookie")
+      // Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+      // To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+      if (!/^Bearer ph[csx]_/.test(originHeaders.get("authorization") ?? "")) {
+        originHeaders.delete("authorization")
+      }
+      originHeaders.set("X-Forwarded-For", ip)
+    
+      const originRequest = new Request(`https://${API_HOST}${pathWithSearch}`, {
+        method: request.method,
+        headers: originHeaders,
+        body: request.method !== "GET" && request.method !== "HEAD" ? await request.arrayBuffer() : null,
+        redirect: request.redirect
+      })
+    
+      return await fetch(originRequest)
+    }
+    
+    export default {
+      async fetch(request, env, ctx) {
+        return handleRequest(request, ctx);
+      }
+    };
+    ```
+
+    ### EU
+
+    ```javascript
+    const API_HOST = "eu.i.posthog.com"
+    const ASSET_HOST = "eu-assets.i.posthog.com"
+    
+    async function handleRequest(request, ctx) {
+      const url = new URL(request.url)
+      const pathname = url.pathname
+      const search = url.search
+      const pathWithParams = pathname + search
+    
+      if (pathname.startsWith("/static/") || pathname.startsWith("/array/")) {
+        return retrieveAsset(request, pathWithParams, ctx)
+      } else {
+        return forwardRequest(request, pathWithParams)
+      }
+    }
+    
+    async function retrieveAsset(request, pathname, ctx) {
+      let response = await caches.default.match(request)
+      if (!response) {
+        response = await fetch(`https://${ASSET_HOST}${pathname}`)
+        ctx.waitUntil(caches.default.put(request, response.clone()))
+      }
+      return response
+    }
+    
+    async function forwardRequest(request, pathWithSearch) {
+      const ip = request.headers.get("CF-Connecting-IP") || ""
+      const originHeaders = new Headers(request.headers)
+      originHeaders.delete("cookie")
+      // Forward PostHog keys (Bearer phc_, phs_ or phx_), which the SDKs need. Strip any other credentials.
+      // To allow an older key without one of these prefixes, also match its exact 'Bearer <key>' value.
+      if (!/^Bearer ph[csx]_/.test(originHeaders.get("authorization") ?? "")) {
+        originHeaders.delete("authorization")
+      }
+      originHeaders.set("X-Forwarded-For", ip)
+    
+      const originRequest = new Request(`https://${API_HOST}${pathWithSearch}`, {
+        method: request.method,
+        headers: originHeaders,
+        body: request.method !== "GET" && request.method !== "HEAD" ? await request.arrayBuffer() : null,
+        redirect: request.redirect
+      })
+    
+      return await fetch(originRequest)
+    }
+    
+    export default {
+      async fetch(request, env, ctx) {
+        return handleRequest(request, ctx);
+      }
+    };
+    ```
+
+    This code does three things:
+
+    -   **Routes requests:** The `handleRequest` function checks if the request is for static assets (`/static/*`) or remote config (`/array/*`), routing them to PostHog's asset server. Everything else goes to the main API.
+    -   **Caches assets:** The `retrieveAsset` function caches PostHog's JavaScript SDK, remote config, and other static files in Cloudflare's cache. This improves performance and preserves correct `cache-control` headers that the asset server provides.
+    -   **Preserves user location:** The `forwardRequest` function captures the real user IP from Cloudflare's `CF-Connecting-IP` header and sets it as `X-Forwarded-For`. This ensures PostHog records accurate user locations instead of showing all users at Cloudflare's data center locations. For privacy, it also removes cookies and any `Authorization` header that isn't a `Bearer` token. Capture v1 SDKs send the project token as `Authorization: Bearer <token>`, so the worker forwards that header.
+
+3.  3
+
+    ## Add a custom domain to your worker
+
+    In the Cloudflare dashboard, follow [Cloudflare's custom domains guide](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/) to add a subdomain like `e.yourdomain.com` to your worker.
+
+    Using your own domain instead of the default `*.workers.dev` domain makes the proxy less likely to be blocked. Ad blockers recognize and block `*.workers.dev` patterns.
+
+    Avoid obvious terms like `tracking`, `analytics`, `posthog`, `telemetry`, or `ph` in your subdomain name. Use something unrelated to tracking or analytics instead.
+
+4.  4
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization to use your worker's domain:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://e.yourdomain.com',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://e.yourdomain.com',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    Replace `e.yourdomain.com` with your actual subdomain.
+
+    The `ui_host` must point to PostHog's actual domain so features like the toolbar link correctly.
+
+5.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your worker:
+
+    1.  Open your browser's developer tools and go to the Network tab
+    2.  Trigger an event in your app, like a page view
+    3.  Look for a request to your worker subdomain (e.g., `e.yourdomain.com`)
+    4.  Verify the response is `200 OK`
+    5.  Check the [PostHog app](https://app.posthog.com) to confirm events appear
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Option 2: DNS and Page Rules
+
+This method uses Cloudflare's DNS and Page Rules to route traffic without writing code. It requires a Cloudflare Enterprise plan.
+
+1.  1
+
+    ## Create a DNS CNAME record
+
+    Open your Cloudflare dashboard and follow [Cloudflare's DNS records guide](https://developers.cloudflare.com/dns/manage-dns-records/how-to/create-dns-records/) to create a CNAME record.
+
+    Configure the record:
+
+    -   **Name:** Your subdomain, like `e`
+    -   **Target:** `us-proxy-direct.i.posthog.com` or `eu-proxy-direct.i.posthog.com` for EU region
+    -   **Proxy status:** Proxied (configure by clicking the orange cloud icon)
+
+    The CNAME points your subdomain to PostHog's proxy endpoint. The orange cloud means Cloudflare will proxy the traffic instead of just doing DNS resolution.
+
+    Avoid obvious terms like `tracking`, `analytics`, `posthog`, `telemetry`, or `ph` in your subdomain. Use something unique to your app instead.
+
+2.  2
+
+    ## Create Page Rules to rewrite the Host header
+
+    In the Cloudflare dashboard, follow [Cloudflare's Page Rules guide](https://support.cloudflare.com/hc/en-us/articles/206652947) to create three rules. Page Rules are evaluated in order, so create them in this order:
+
+    **Rule 1: Static assets**
+
+    -   **URL pattern:** `e.yourdomain.com/static/*`
+    -   **Setting:** Host Header Override
+    -   **Value:** `us-assets.i.posthog.com` or `eu-assets.i.posthog.com`
+
+    **Rule 2: Remote config**
+
+    -   **URL pattern:** `e.yourdomain.com/array/*`
+    -   **Setting:** Host Header Override
+    -   **Value:** `us-assets.i.posthog.com` or `eu-assets.i.posthog.com`
+
+    **Rule 3: Everything else**
+
+    -   **URL pattern:** `e.yourdomain.com/*`
+    -   **Setting:** Host Header Override
+    -   **Value:** `us-proxy-direct.i.posthog.com` or `eu-proxy-direct.i.posthog.com`
+
+    Replace `e.yourdomain.com` with your actual subdomain.
+
+    The Host Header Override tells PostHog which domain the request is for. Without this, PostHog rejects the request with a 403 error. The static and config rules must come before the catch-all rule so that `/static/*` and `/array/*` requests are routed to the assets origin, which returns proper cache-control headers for SDK configuration.
+
+3.  3
+
+    ## Update your PostHog SDK
+
+    In your application code, update your PostHog initialization to use your CNAME domain:
+
+    ### US
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://e.yourdomain.com',
+      ui_host: 'https://us.posthog.com'
+    })
+    ```
+
+    ### EU
+
+    ```javascript
+    posthog.init('<ph_project_token>', {
+      api_host: 'https://e.yourdomain.com',
+      ui_host: 'https://eu.posthog.com'
+    })
+    ```
+
+    Replace `e.yourdomain.com` with your actual subdomain.
+
+    The `ui_host` must point to PostHog's actual domain so features like the toolbar link correctly.
+
+4.  ## Verify your setup
+
+    Checkpoint
+
+    Confirm events are flowing through your DNS proxy:
+
+    1.  Open your browser's developer tools and go to the Network tab
+    2.  Trigger an event in your app, like a page view
+    3.  Look for a request to your subdomain (e.g., `e.yourdomain.com`)
+    4.  Verify the response is `200 OK`
+    5.  Check the [PostHog app](https://app.posthog.com) to confirm events appear
+
+    If you see errors, check [troubleshooting](#troubleshooting) below.
+
+## Troubleshooting
+
+### Worker size limits exceeded
+
+Cloudflare Workers have request and response size limits:
+
+-   **Free plan:** 10MB request, 50MB response
+-   **Paid plans:** Higher limits available
+
+PostHog events can be up to 1MB, AI events up to 8MB, and session recordings up to 64MB per message. On the free plan, very large recordings might hit the response limit.
+
+If you see errors about size limits, upgrade to a paid Cloudflare plan or contact Cloudflare support about increasing limits.
+
+### User locations show as Cloudflare data center locations
+
+If all your users appear to be in the same location, your Worker code is missing the IP forwarding logic.
+
+The worker code in [step 2](#option-1-cloudflare-workers) includes `X-Forwarded-For` header handling to preserve real user IPs. If you're using older worker code, update it to include this line in the `forwardRequest` function:
+
+```javascript
+originHeaders.set("X-Forwarded-For", request.headers.get("CF-Connecting-IP") || "")
+```
+
+### CORS errors in browser console
+
+If you see `No 'Access-Control-Allow-Origin' header` errors:
+
+**For Workers:** Add CORS headers to your worker code. Insert this before the `export default` line:
+
+```javascript
+function addCorsHeaders(response) {
+  const newHeaders = new Headers(response.headers)
+  newHeaders.set("Access-Control-Allow-Origin", "*")
+  newHeaders.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+  newHeaders.set("Access-Control-Allow-Headers", "*")
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: newHeaders
+  })
+}
+```
+
+Then modify your `handleRequest` to use it:
+
+```javascript
+const response = (pathname.startsWith("/static/") || pathname.startsWith("/array/"))
+  ? await retrieveAsset(request, pathWithParams, ctx)
+  : await forwardRequest(request, pathWithParams)
+return addCorsHeaders(response)
+```
+
+**For Page Rules:** Add these settings to your Page Rule:
+
+-   **Disable Security:** On
+-   **SSL:** Full
+-   **Disable Web Application Firewall:** On
+
+> **Warning:** Be aware that disabling security features creates vulnerabilities. Only do this if CORS errors persist after trying other solutions.
+
+### 301 redirects causing failures
+
+If you see `301 Moved Permanently` responses that cause CORS errors, your Cloudflare SSL mode is likely set to **flexible**.
+
+PostHog requires HTTPS. When SSL is flexible, Cloudflare makes HTTP requests to the origin, which redirects to HTTPS. This redirect breaks CORS.
+
+To fix this:
+
+1.  In the Cloudflare dashboard, go to **SSL/TLS**
+2.  Change the SSL mode to **Full** or **Full (strict)**
+
+### Unexpected token 'export' error in Worker
+
+If your worker fails with `Unexpected token 'export'`, you're using the wrong module format.
+
+When creating a worker, Cloudflare offers two formats:
+
+-   **Service Worker** (older format)
+-   **ES Modules** (newer format, required for the code above)
+
+The worker code in this guide uses ES Modules syntax. When creating your worker, make sure you select the **ES Modules** format, not Service Worker.
+
+### Custom events or POST requests not reaching PostHog
+
+If page views work but custom events (like `posthog.capture()`) are missing, your Worker code may not be forwarding request bodies correctly.
+
+The `request.body` in Cloudflare Workers is a `ReadableStream` that can cause issues when forwarded directly with encoded payloads. Update your `forwardRequest` function to explicitly read the body:
+
+```javascript
+body: request.method !== "GET" && request.method !== "HEAD" ? await request.arrayBuffer() : null,
+```
+
+This buffers the request body as binary data before forwarding, ensuring POST requests with event data are transmitted correctly.
+
+### Page Rules not taking effect
+
+If events aren't reaching PostHog with [DNS and Page Rules](#option-2-dns-and-page-rules):
+
+1.  Verify your Page Rule URL pattern matches your subdomain exactly
+2.  Check that the Host Header Override value matches PostHog's proxy domain, `us-proxy-direct.i.posthog.com` or `eu-proxy-direct.i.posthog.com`
+3.  Confirm your DNS record's proxy status is set to **proxied** (orange cloud), not **DNS only** (gray cloud)
+4.  Check that your CNAME target matches your PostHog region
+
+Page Rules apply in order. If you have multiple rules, make sure the PostHog rule has priority.

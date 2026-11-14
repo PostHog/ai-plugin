@@ -38,7 +38,7 @@ STEP 3: Install the PostHog SDK. (Skip if PostHog is already set up.)
 STEP 4: Initialize PostHog. (Skip if PostHog is already set up.)
   - Follow the framework reference for where and how to initialize. This varies significantly by framework (e.g., instrumentation-client.ts for Next.js 15.3+, AppConfig.ready() for Django, create_app() for Flask).
   - For posthog-js, set `defaults` to the preset the framework docs reference shows. The example projects can show an older preset.
-  - For posthog-js, if the framework reference documents a reverse proxy for this framework, set it up as part of this change. Otherwise, suggest one in your final message: a reverse proxy keeps ad blockers from dropping events (https://posthog.com/docs/advanced/proxy.md).
+  - For posthog-js, if the framework reference documents a reverse proxy for this framework, set it up as part of this change. Otherwise, suggest one in your final message: a reverse proxy keeps ad blockers from dropping events, and the `instrument-reverse-proxy` skill sets one up (https://posthog.com/docs/advanced/proxy.md).
 
 STEP 5: Plan event tracking.
   - From the project's file list, select between 10 and 15 files that might have interesting business value for event tracking, especially conversion and churn events.
