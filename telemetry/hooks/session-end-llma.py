@@ -21,7 +21,7 @@ from posthog_llma import (  # noqa: E402
     find_session_log,
     parse_session,
     build_events,
-    send_batch,
+    send_new_events,
     write_status,
 )
 
@@ -77,8 +77,9 @@ def _run():
     if not distinct_id:
         distinct_id = f"claude-code:{session_id}"
 
-    result = send_batch(
+    result = send_new_events(
         events,
+        session_id=session_id,
         api_key=config["api_key"],
         host=config["host"],
         distinct_id=distinct_id,
