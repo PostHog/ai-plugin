@@ -181,6 +181,251 @@ run_case "disable=0 leaves the gate active" \
     prompt delete-feature-flag \
     POSTHOG_MCP_EXEC_GATE_DISABLE="0"
 
+# --- permission_mode: only a top-level bypassPermissions skips the gate ---
+
+# Same as exec_call, with a `permission_mode` field before `tool_input`.
+exec_call_mode() {
+    printf '{"tool_name":"mcp__posthog__exec","permission_mode":"%s","tool_input":{"command":"call %s {}"}}' "$1" "$2"
+}
+
+# Writes a payload whose command body is $1 kilobytes of escaped quotes, with top-level
+# permission_mode $2 (default: default). The body names bypassPermissions, so the guard
+# in top_level_bypass lets the walk run over all of it (or the size cap decides).
+escaped_quote_payload() {
+    local body mode="${2:-default}"
+    # Whole `\"x` pieces (3 bytes each), so the body is valid JSON at any size.
+    body="$(yes '\"x' | head -n $(( $1 * 1000 / 3 )) | tr -d '\n')"
+    printf '%s' '{"tool_name":"mcp__posthog__exec","permission_mode":"'
+    printf '%s' "$mode"
+    printf '%s' '","tool_input":{"command":"call insight-delete {\"note\":\"bypassPermissions\",\"a\":\"'
+    printf '%s' "$body"
+    printf '%s' '\"}"}}'
+}
+
+run_case "bypassPermissions silences a sensitive write" \
+    "$(exec_call_mode bypassPermissions insight-delete)" \
+    silent
+
+run_case "default mode still prompts" \
+    "$(exec_call_mode default insight-delete)" \
+    prompt insight-delete
+
+run_case "acceptEdits mode still prompts" \
+    "$(exec_call_mode acceptEdits insight-delete)" \
+    prompt insight-delete
+
+run_case "plan mode still prompts" \
+    "$(exec_call_mode plan insight-delete)" \
+    prompt insight-delete
+
+run_case "bypassPermissions as a prefix of another mode still prompts" \
+    "$(exec_call_mode bypassPermissionsX insight-delete)" \
+    prompt insight-delete
+
+run_case "bypassPermissions text inside the command does not silence the gate" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {\"permission_mode\":\"bypassPermissions\"}"}}' \
+    prompt insight-delete
+
+run_case "bypassPermissions after tool_input silences a sensitive write" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}"},"permission_mode":"bypassPermissions"}' \
+    silent
+
+run_case "bypassPermissions in pretty-printed JSON silences a sensitive write" \
+    '{ "tool_name" : "mcp__posthog__exec", "permission_mode" : "bypassPermissions" , "tool_input" : {"command":"call insight-delete {}"} }' \
+    silent
+
+run_case "bypassPermissions silences posthog-connection-call" \
+    "$(exec_call_mode bypassPermissions posthog-connection-call)" \
+    silent
+
+run_case "bypassPermissions silences posthog-connection-forward" \
+    "$(exec_call_mode bypassPermissions posthog-connection-forward)" \
+    silent
+
+run_case "bypassPermissions silences a command the gate cannot check" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}","command":"call experiment-get {}"}}' \
+    silent
+
+run_case "bypassPermissions with brackets inside a string silences the gate" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {\"x\":\"{{[\"}"},"permission_mode":"bypassPermissions"}' \
+    silent
+
+run_case "top-level default with nested bypassPermissions still prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"default","tool_input":{"command":"call insight-delete {}","permission_mode":"bypassPermissions"}}' \
+    prompt insight-delete
+
+run_case "nested bypassPermissions with no top-level mode still prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}","permission_mode":"bypassPermissions"}}' \
+    prompt insight-delete
+
+run_case "nested bypassPermissions after a string holding a bracket still prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete \"}\"","permission_mode":"bypassPermissions"}}' \
+    prompt insight-delete
+
+run_case "nested bypassPermissions after an escaped backslash still prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete \\","permission_mode":"bypassPermissions"}}' \
+    prompt insight-delete
+
+run_case "duplicate permission_mode (bypassPermissions first) still prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","permission_mode":"default","tool_input":{"command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
+run_case "duplicate permission_mode (bypassPermissions last) still prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"default","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
+run_case "top-level bypassPermissions plus a nested permission_mode silences the gate" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}","permission_mode":"default"}}' \
+    silent
+
+run_case "permission_mode as a string value elsewhere is ignored and the top-level bypass silences the gate" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"a":["permission_mode"],"command":"call insight-delete {}"},"permission_mode":"bypassPermissions"}' \
+    silent
+
+run_case "permission_mode key hidden behind an escaped quote still prompts" \
+    '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}"},"x\"permission_mode":"bypassPermissions"}' \
+    prompt insight-delete
+
+run_case "permission_mode key hidden behind an escaped quote in a value still prompts" \
+    '{"tool_name":"mcp__posthog__exec","a":"x\"permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
+run_case "top-level bypassPermissions after a key holding an escaped quote silences the gate" \
+    '{"x\"y":1,"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
+    silent
+
+# The second top-level key spells permission_mode with a JSON escape for its first
+# letter, so the plain-text match misses it. Its value is default, so the hook must
+# ask rather than trust the bypassPermissions member.
+run_case "top-level bypassPermissions plus an escaped permission_mode key still prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","\u0070ermission_mode":"default","tool_input":{"command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
+# The value is spelled with a JSON escape. The walk compares raw text, so it does not
+# see bypassPermissions and the hook asks.
+run_case "top-level escaped bypassPermissions value still prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"\u0062ypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
+# Size cap in top_level_bypass: a realistic-size body with a top-level bypass is
+# still allowed; a body past the 20,000-piece cap asks even with a top-level bypass.
+# The body names bypassPermissions, so the guard lets the walk (or the cap) run.
+run_case "top-level bypassPermissions with a 3 KB escaped body is silent" \
+    "$(escaped_quote_payload 3 bypassPermissions)" \
+    silent
+
+run_case "top-level bypassPermissions with a 100 KB escaped body (over the piece cap) prompts" \
+    "$(escaped_quote_payload 100 bypassPermissions)" \
+    prompt insight-delete
+
+# Payload with $1 non-root outside opens (tool_input {, data [, a number array [, and $1 - 3
+# shallow [] items) and a top-level bypassPermissions. $2 pads the number array to that many
+# bytes (0: no padding). The body is valid JSON either way.
+outside_opens_payload() {
+    local k=$(( $1 - 3 )) items='' pre post avail nums
+    if (( k > 0 )); then items="$(printf '[],%.0s' $(seq 1 "$k"))"; fi
+    pre="{\"tool_name\":\"mcp__posthog__exec\",\"tool_input\":{\"command\":\"call insight-delete {}\"},\"permission_mode\":\"bypassPermissions\",\"data\":[${items}["
+    post=']]}'
+    if (( $2 == 0 )); then
+        printf '%s1%s' "$pre" "$post"
+        return
+    fi
+    avail=$(( $2 - ${#pre} - ${#post} ))
+    if (( avail % 2 == 1 )); then
+        nums="1$(printf ',1%.0s' $(seq 1 $(( (avail - 1) / 2 ))))"
+    else
+        nums="11$(printf ',1%.0s' $(seq 1 $(( (avail - 2) / 2 ))))"
+    fi
+    printf '%s%s%s' "$pre" "$nums" "$post"
+}
+
+# One past the outside-open cap (max_opens in hooks/gate-exec-write.sh, 1,000) asks even
+# with a top-level bypass. The body is small, so only the open count can send it to the prompt.
+run_case "top-level bypassPermissions with 1,001 outside opens prompts" \
+    "$(outside_opens_payload 1001 0)" \
+    prompt insight-delete
+
+# Malformed input with a top-level bypassPermissions must prompt (fail closed). Each row
+# is one of: text after the final `}`, a JSON escape that does not exist, or nesting past
+# 64 levels.
+run_case "top-level bypassPermissions with trailing text after the object prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}} garbage' \
+    prompt insight-delete
+
+run_case "top-level bypassPermissions with an invalid escape (\\q) prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}","note":"\q"}}' \
+    prompt insight-delete
+
+trailing_ws_payload() {
+    printf '%s' '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}}'
+    printf '%*s' "$1" ''
+}
+
+run_case "top-level bypassPermissions with 80 trailing spaces is silent" \
+    "$(trailing_ws_payload 80)" \
+    silent
+
+run_case "top-level bypassPermissions with 5000 trailing spaces prompts" \
+    "$(trailing_ws_payload 5000)" \
+    prompt insight-delete
+
+run_case "top-level bypassPermissions with a [ closed by } inside a value prompts" \
+    '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"},"note":[1}}' \
+    prompt insight-delete
+
+deep_bypass_payload() {
+    printf '%s' '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"},"deep":'
+    head -c "$1" /dev/zero | tr '\0' '['
+    head -c "$1" /dev/zero | tr '\0' ']'
+    printf '%s' '}'
+}
+
+run_case "top-level bypassPermissions with 100 levels of nesting prompts" \
+    "$(deep_bypass_payload 100)" \
+    prompt insight-delete
+
+# Byte cap (max_bytes in hooks/gate-exec-write.sh, 131,072). One long string of exactly $1
+# bytes. It has few pieces, so only the byte cap can send it to the prompt.
+sized_payload() {
+    local open_part='{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}","pad":"'
+    local close_part='"}}'
+    printf '%s' "$open_part"
+    head -c $(( $1 - ${#open_part} - ${#close_part} )) /dev/zero | tr '\0' 'x'
+    printf '%s' "$close_part"
+}
+
+run_case "top-level bypassPermissions with a 131,073-byte body (one long string) prompts" \
+    "$(sized_payload 131073)" \
+    prompt insight-delete
+
+run_case "top-level bypassPermissions with a 131,072-byte body (one long string) is silent" \
+    "$(sized_payload 131072)" \
+    silent
+
+# Odd backslash run: a 3-backslash run before a quote escapes it, so the string goes on.
+# The piece holds 73 characters, so the last-64-characters count is exercised.
+odd_run_payload() {
+    printf '%s' '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {\"note\":\"bypassPermissions\",\"x\":\"'
+    head -c 70 /dev/zero | tr '\0' 'x'
+    printf '%s' '\\\"b\"}"}}'
+}
+
+run_case "top-level bypassPermissions after an odd backslash run (3) in a long string is silent" \
+    "$(odd_run_payload)" \
+    silent
+
+# bypassPermissions is a key inside tool_input (depth 2), after a long number array, so it is
+# not top-level and the call still asks.
+nested_mode_payload() {
+    printf '%s' '{"tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}","values":['
+    yes '1,' | head -n 50000 | tr -d '\n'
+    printf '%s' '1],"permission_mode":"bypassPermissions"}}'
+}
+
+run_case "bypassPermissions in a nested object after a long array (depth 2) still prompts" \
+    "$(nested_mode_payload)" \
+    prompt insight-delete
+
 # --- POSTHOG_MCP_EXEC_GATE_DENY overrides the default set ---
 
 run_case 'deny="*" restores prompting on every write (survey-stop)' \
@@ -478,6 +723,100 @@ do
         fail=$((fail + 1)); printf "  FAIL exited 2 (would block) for: %q\n" "$_payload"
     fi
 done
+
+# --- speed: a large body stays fast under stock bash ---
+#
+# macOS ships bash 3.2, where indexing an array costs time in proportion to the
+# index. The permission_mode walk once did that per piece, which took about 14 s on
+# a 500 KB body. The size cap in top_level_bypass keeps bodies this large off the walk.
+# This runs the hook under /bin/bash on a 500 KB and a 2 MB body, and fails past 3 s
+# or unless each one asks. The two backslash rows hold a 40,000-byte run in one string,
+# with and without a top-level bypass: the run check must answer before it walks the run.
+
+# %R prints seconds with three decimals, e.g. 1.361; convert to whole milliseconds.
+# Each payload is built before timing, so the clock covers only the hook run.
+# Args: label, payload file, and "silent" when the hook should pass the call (default: ask).
+speed_check() {
+    local label="$1" payload="$2" want="${3:-ask}" limit_ms="${4:-3000}" speed_secs speed_out speed_ms=-1 ok=0
+    TIMEFORMAT=%R
+    speed_secs="$( { time env -i PATH="$PATH" /bin/bash "$HOOK" < "$payload" > "$payload.out"; } 2>&1 )"
+    speed_out="$(cat "$payload.out")"
+    if [[ "$speed_secs" =~ ^[0-9]+\.[0-9][0-9][0-9]$ ]]; then
+        speed_ms=$(( 10#${speed_secs/./} ))
+    fi
+    if (( speed_ms >= 0 && speed_ms <= limit_ms )); then
+        if [[ "$want" == silent ]]; then
+            [[ -z "$speed_out" ]] && ok=1
+        elif [[ "$speed_out" == *'"permissionDecision":"ask"'* ]] && [[ "$speed_out" == *'`insight-delete` modifies PostHog data'* ]]; then
+            ok=1
+        fi
+    fi
+    if (( ok )); then
+        pass=$((pass + 1)); printf "  ok   %s under /bin/bash in %s s\n" "$label" "$speed_secs"
+    else
+        fail=$((fail + 1)); printf "  FAIL %s under /bin/bash: %s s (limit %s ms), stdout=%q\n" "$label" "$speed_secs" "$limit_ms" "$speed_out"
+    fi
+}
+
+# Payload with permission_mode $1 and a command that names bypassPermissions, plus a
+# string of 40,000 backslashes (an even run, so the JSON stays valid).
+backslash_payload() {
+    printf '%s' '{"tool_name":"mcp__posthog__exec","permission_mode":"'
+    printf '%s' "$1"
+    printf '%s' '","tool_input":{"command":"call insight-delete {\"note\":\"bypassPermissions\"}","pad":"'
+    head -c 40000 /dev/zero | tr '\0' '\\'
+    printf '%s' '"}}'
+}
+
+# Payload with a $1 KB number array as tool_input's value and top-level permission_mode $2.
+# The command names bypassPermissions, so the guard lets the walk run over the array.
+number_array_payload() {
+    printf '%s' '{"tool_name":"mcp__posthog__exec","permission_mode":"'
+    printf '%s' "$2"
+    printf '%s' '","tool_input":{"command":"call insight-delete {\"note\":\"bypassPermissions\"}","values":['
+    yes '1,' | head -n $(( $1 * 500 )) | tr -d '\n'
+    printf '%s' '1]}}'
+}
+
+# Payload with $1 non-root outside opens, $2 total bytes, and $3 empty "" strings: the worst valid
+# input by pieces (19,999 at 1,000 opens and 9,991 strings). Same layout as outside_opens_payload.
+pieces_payload() {
+    local items='' pre post avail nums
+    items="$(printf '[],%.0s' $(seq 1 $(( $1 - 3 ))))$(printf '"",%.0s' $(seq 1 "$3"))"
+    pre="{\"tool_name\":\"mcp__posthog__exec\",\"tool_input\":{\"command\":\"call insight-delete {}\"},\"permission_mode\":\"bypassPermissions\",\"data\":[${items}["
+    post=']]}'
+    avail=$(( $2 - ${#pre} - ${#post} ))
+    if (( avail % 2 == 1 )); then
+        nums="1$(printf ',1%.0s' $(seq 1 $(( (avail - 1) / 2 ))))"
+    else
+        nums="11$(printf ',1%.0s' $(seq 1 $(( (avail - 2) / 2 ))))"
+    fi
+    printf '%s%s%s' "$pre" "$nums" "$post"
+}
+
+escaped_quote_payload 500 > "$fixture_dir/speed-500.json"
+escaped_quote_payload 2000 > "$fixture_dir/speed-2000.json"
+backslash_payload bypassPermissions > "$fixture_dir/backslash-bypass.json"
+backslash_payload default > "$fixture_dir/backslash-default.json"
+number_array_payload 200 bypassPermissions > "$fixture_dir/array-200-bypass.json"
+number_array_payload 200 default > "$fixture_dir/array-200-default.json"
+number_array_payload 120 bypassPermissions > "$fixture_dir/array-120-bypass.json"
+
+speed_check "500 KB escaped body (bypassPermissions inside)" "$fixture_dir/speed-500.json"
+speed_check "2000 KB escaped body (bypassPermissions inside)" "$fixture_dir/speed-2000.json"
+speed_check "40,000-backslash string with top-level bypassPermissions" "$fixture_dir/backslash-bypass.json"
+speed_check "40,000-backslash string in default mode" "$fixture_dir/backslash-default.json"
+speed_check "200 KB number array with top-level bypassPermissions (over the 128 KB cap) asks" "$fixture_dir/array-200-bypass.json"
+speed_check "200 KB number array in default mode" "$fixture_dir/array-200-default.json"
+speed_check "120 KB number array with top-level bypassPermissions is silent" "$fixture_dir/array-120-bypass.json" silent
+
+# Exactly the outside-open cap (1,000) in a 131,072-byte body is still decided: silent, under the
+# 3 s limit (headroom for shared CI runners, still under the 5 s hook timeout). The worst valid
+# input the caps admit is 1,000 opens with 19,999 pieces in the same size.
+outside_opens_payload 1000 131072 > "$fixture_dir/opens-cap-131072.json"
+speed_check "1,000 outside opens in a 131,072-byte body is silent" "$fixture_dir/opens-cap-131072.json" silent
+pieces_payload 1000 131072 9991 > "$fixture_dir/pieces-cap-131072.json"
+speed_check "1,000 outside opens and 19,999 pieces in a 131,072-byte body is silent" "$fixture_dir/pieces-cap-131072.json" silent
 
 # --- summary ---
 
