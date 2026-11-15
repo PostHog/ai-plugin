@@ -38,6 +38,7 @@ aeo-keywords-modifiers-get
 aeo-keywords-report-get
 aeo-keywords-suggestion-get
 aeo-prompts-checks-list
+aeo-prompts-citations-list
 aeo-prompts-get
 aeo-prompts-list
 aeo-prompts-overview-get
