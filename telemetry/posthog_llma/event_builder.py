@@ -144,6 +144,15 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
     all_generations = parsed["generations"]
     all_tool_uses = parsed["tool_uses"]
 
+    # The parser gives each generation a fresh random span_id on every
+    # parse. Derive a stable ID from the message ID instead. Then a
+    # generation and its tool spans carry the same IDs in every send.
+    # The sender relies on this to skip the events it already sent.
+    span_ids = {
+        gen["span_id"]: _insert_id("cc-gen-span", session_id, gen["msg_id"]) if gen.get("msg_id") else gen["span_id"]
+        for gen in all_generations
+    }
+
     # In message mode, if prompt_id is missing we need a stable fallback
     # so a generation and its tool spans share the same trace_id.
     # Use span_id as the fallback — it's unique per generation but stable
@@ -152,6 +161,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
 
     # -- $ai_generation events --
     for gen in all_generations:
+        span_id = span_ids[gen["span_id"]]
         if trace_grouping == "session":
             trace_id = session_trace_id
         else:
@@ -160,7 +170,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
                 trace_id = prompt_id
             else:
                 # Use span_id as deterministic fallback
-                trace_id = gen["span_id"]
+                trace_id = span_id
                 fallback_trace_ids[gen["span_id"]] = trace_id
 
         output_choices = None
@@ -194,7 +204,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
             error_message=gen.get("error_message"),
             trace_id=trace_id,
             parent_id=trace_id,
-            span_id=gen["span_id"],
+            span_id=span_id,
             session_id=session_id,
             input_messages=input_messages,
             output_choices=output_choices,
@@ -236,10 +246,17 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
             else:
                 output_state = result
 
+        span_key = (
+            session_id,
+            tu.get("tool_use_id") or "",
+            tu.get("name") or "",
+            tu.get("timestamp") or "",
+        )
         events.append(build_ai_span(
             span_name=tu["name"],
             trace_id=trace_id,
-            parent_span_id=tu.get("generation_span_id"),
+            parent_span_id=span_ids.get(tu.get("generation_span_id"), tu.get("generation_span_id")),
+            span_id=_insert_id("cc-span-id", *span_key),
             session_id=session_id,
             input_state=tu.get("input") if not privacy_mode else None,
             output_state=output_state if not privacy_mode else None,
@@ -251,12 +268,7 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
             max_attribute_length=config.get("max_attribute_length", 12000),
             extra_properties=custom_properties,
             timestamp=tu.get("timestamp"),
-            insert_id=_insert_id(
-                "cc-span", session_id,
-                tu.get("tool_use_id") or "",
-                tu.get("name") or "",
-                tu.get("timestamp") or "",
-            ),
+            insert_id=_insert_id("cc-span", *span_key),
         ))
 
     # -- $ai_trace events --

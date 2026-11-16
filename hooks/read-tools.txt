@@ -38,6 +38,7 @@ aeo-keywords-modifiers-get
 aeo-keywords-report-get
 aeo-keywords-suggestion-get
 aeo-prompts-checks-list
+aeo-prompts-citations-list
 aeo-prompts-get
 aeo-prompts-list
 aeo-prompts-overview-get
@@ -215,6 +216,7 @@ error-tracking-alerts-list
 error-tracking-assignment-rules-list
 error-tracking-bypass-rules-list
 error-tracking-grouping-rules-list
+error-tracking-issues-tag-definitions-retrieve
 error-tracking-recommendations-list
 error-tracking-settings-get
 error-tracking-severity-rules-list
@@ -536,6 +538,7 @@ scout-trial-get
 scout-trial-list
 scout-trial-report
 scout-trial-setup
+self-driving-status-get
 session-recording-console-logs-list
 session-recording-get
 session-recording-playlist-get
