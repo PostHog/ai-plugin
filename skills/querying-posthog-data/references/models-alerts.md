@@ -8,7 +8,7 @@ Alerts monitor insight values and notify subscribed users when thresholds are br
 
 Column | Type | Nullable | Description
 --- | --- | --- | ---
-`id` | String | NOT NULL | Alert UUID.
+`id` | String | NOT NULL | Alert UUID: the insight alert's id, or the platform alert's id for an alert created on the platform.
 `name` | String | NOT NULL | User-given name of the alert.
 `insight_id` | Integer | NOT NULL | Insight the alert watches; joins to insights.id.
 `enabled` | Boolean | NOT NULL | Whether the alert is active.
@@ -16,9 +16,9 @@ Column | Type | Nullable | Description
 `calculation_interval` | String | NOT NULL | How often the alert is evaluated, e.g. 'daily'.
 `condition` | JSON | NOT NULL | JSON definition of the threshold/condition to check.
 `config` | JSON | NOT NULL | JSON alert configuration (series, comparison settings, etc.).
-`created_at` | DateTime | NOT NULL | When the alert was created.
+`created_at` | DateTime | NOT NULL | When the alert was created. For an alert moved to the alerts platform, when it moved.
 `last_notified_at` | DateTime | NOT NULL | When a notification was last sent.
-`last_checked_at` | DateTime | NOT NULL | When the alert was last evaluated.
+`last_checked_at` | DateTime | NOT NULL | When the alert was last evaluated. NULL for an alert the alerts platform evaluates.
 `next_check_at` | DateTime | NOT NULL | When the alert is next scheduled to be evaluated.
 `snoozed_until` | DateTime | NOT NULL | Alert is snoozed (no notifications) until this time.
 `skip_weekend` | Boolean | NOT NULL | Whether evaluation is skipped on weekends.
