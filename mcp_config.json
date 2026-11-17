@@ -3,7 +3,7 @@
     "posthog": {
       "serverUrl": "https://mcp.posthog.com/mcp",
       "headers": {
-        "x-posthog-mcp-consumer": "plugin"
+        "x-posthog-mcp-consumer": "plugin-learn"
       }
     }
   }

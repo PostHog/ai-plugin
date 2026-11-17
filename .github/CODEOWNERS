@@ -1,7 +1,6 @@
 * @PostHog/team-context-and-mcp
 
-# Unowned so the auto-merged skill sync (.github/workflows/sync-skills.yml) requests no review; keep in sync with the files it writes.
-/skills/
+# Unowned so the auto-merged plugin file sync (.github/workflows/sync-plugin-files.yml) requests no review; keep in sync with the files it writes.
 /commands/*.toml
 /hooks/read-tools.txt
 /gemini-extension.json
