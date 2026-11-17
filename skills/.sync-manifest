@@ -51,6 +51,8 @@ diagnosing-endpoint-performance
 diagnosing-experiment-health
 diagnosing-failed-warehouse-syncs
 diagnosing-missing-recordings
+diagnosing-replay-capture-gaps
+diagnosing-replay-rendering
 diagnosing-sdk-health
 diagnosing-stacktrace-symbolication
 downloading-batch-export-files

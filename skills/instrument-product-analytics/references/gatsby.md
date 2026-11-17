@@ -4,21 +4,61 @@
 
 Canonical URL: https://posthog.com/docs/libraries/gatsby
 
-> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host).
+> **Cloud region:** This page uses US Cloud hosts. For an EU Cloud project, use `https://eu.i.posthog.com` instead of `https://us.i.posthog.com` (ingestion host), and use `https://eu.posthog.com` instead of `https://app.posthog.com` (app host for links).
 
 ## On this page
 
-- [Install](#install)
-- [How to use](#how-to-use)
+- [Use the JavaScript Web SDK](#use-the-javascript-web-sdk)
+- [Deprecated plugin](#deprecated-plugin)
 - [Identifying users](#identifying-users)
 
-> **Deprecated:** The `gatsby-plugin-posthog` plugin is deprecated and no longer maintained. Use the [JavaScript Web SDK](https://posthog.com/docs/libraries/js.md) instead. The instructions below are retained for existing integrations.
+> **Deprecated:** The `gatsby-plugin-posthog` plugin is deprecated and no longer maintained. Use the [JavaScript Web SDK](https://posthog.com/docs/libraries/js.md) instead. The plugin instructions below are retained for existing integrations.
+
+## Use the JavaScript Web SDK
+
+If you're migrating from the plugin, remove `gatsby-plugin-posthog` from your `gatsby-config.js` plugins array and uninstall it:
+
+```bash
+pnpm remove gatsby-plugin-posthog
+```
+
+If your code uses `window.posthog`, add `import posthog from "posthog-js"` to those modules and replace `window.posthog` calls with `posthog` calls. The npm SDK doesn't create the plugin's `window.posthog` global.
+
+Remove any manual `posthog.capture("$pageview")` calls in `onRouteUpdate`. The SDK captures pageviews automatically with the configuration below. Running both methods can cause duplicate pageviews.
+
+Install the SDK:
+
+```bash
+pnpm add posthog-js
+```
+
+In your project's root `gatsby-browser.js` file, initialize PostHog in Gatsby's `onClientEntry` hook. If the file already exports `onClientEntry`, add the initialization to that function.
+
+```javascript
+import posthog from "posthog-js"
+
+export const onClientEntry = () => {
+    posthog.init("<ph_project_token>", {
+        api_host: "https://us.i.posthog.com",
+        defaults: "2026-08-30",
+        capture_pageview: "history_change",
+    })
+}
+```
+
+Find your project token and API host in your [project settings](https://app.posthog.com/settings/project).
+
+Setting `capture_pageview: "history_change"` captures the initial pageview and subsequent path changes through the browser history API, including Gatsby navigation. You don't need an `onRouteUpdate` hook for pageview tracking.
+
+With `defaults: "2025-05-24"` or later, `capture_pageview` already defaults to `"history_change"`, so you can omit the explicit setting. See the [JavaScript SDK configuration](https://posthog.com/docs/libraries/js/config.md) and [single-page app pageview guide](https://posthog.com/tutorials/single-page-app-pageviews.md) for more details.
+
+## Deprecated plugin
 
 > This [library](https://github.com/posthog/gatsby-plugin-posthog) was built by the community. Thanks to [Ritesh Kadmawala](https://github.com/kgritesh) for building it.
 
 Gatsby behaves like a single-page app which means to track `$pageview` events special care is needed. This integration takes care of that.
 
-## Install
+### Install
 
 ```bash
 yarn add gatsby-plugin-posthog
@@ -40,7 +80,7 @@ npm install --save gatsby-plugin-posthog
 >
 > `script-src` covers the snippet and the lazy-loaded bundles, `connect-src` covers event ingestion and feature flags, and `worker-src` covers session replay. The [toolbar needs a few more](https://posthog.com/docs/advanced/content-security-policy.md), or use a [reverse proxy](https://posthog.com/docs/advanced/proxy.md) so everything is first-party. Failing to do so causes silent failures where `capture` and `identify` calls never send, so the integration looks complete while zero events arrive. Remember `connect-src` falls back to `default-src`, so `default-src 'self'` blocks event delivery even when the script itself is bundled.
 
-## How to use
+### How to use
 
 ```javascript
 // In your gatsby-config.js

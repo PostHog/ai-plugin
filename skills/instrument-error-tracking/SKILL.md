@@ -55,8 +55,8 @@ STEP 6: Upload source maps (frontend/mobile only).
 STEP 7: Set up environment variables.
   - Check if the project already has PostHog environment variables configured (e.g. in `.env`, `.env.local`, or framework-specific env files). If valid values already exist, skip this step.
   - If the PostHog project token is missing, use the project token that the tool or CLI which started this setup already gave you (for example in its output or instructions).
-  - If it gave you none, use the PostHog MCP server's `projects-get` tool to retrieve the project's `api_token`. If multiple projects are returned, ask the user which project to use. If the MCP server is not connected or not authenticated, ask the user for their PostHog project token instead.
-  - For the PostHog host URL: use the host that the tool or CLI which started this setup already gave you. If it gave you none, check the `projects-get` MCP response for a `region` field — `US` maps to `https://us.i.posthog.com`, `EU` maps to `https://eu.i.posthog.com`. If you still have no host from the calling tool, the MCP response, or existing project configuration, ask the user: "Are you on PostHog US Cloud or EU Cloud?" Do not assume US Cloud.
+  - If it gave you none, call the PostHog MCP server's `projects-get` tool to list the projects. If more than one comes back, ask the user which project to use. Then call `project-get` with that project's `id` and read its `api_token`. Before you write the token, tell the user the project's `name` and confirm it is the one this app should send to. If the MCP server is not connected or not authenticated, ask the user for their PostHog project token instead.
+  - For the PostHog host URL: use the host that the tool or CLI which started this setup already gave you. If it gave you none, use the `api_host` field of the `project-get` response. If you still have no host from the calling tool, the MCP response, or existing project configuration, ask the user: "Are you on PostHog US Cloud or EU Cloud?" Do not assume US Cloud.
   - Write these values to the appropriate env file using the framework's naming convention.
   - Reference these environment variables in code instead of hardcoding them.
   - List the key names in `.env.example`, or the env template the project already uses, with placeholder values, so the next developer knows what to set. Create `.env.example` if the project has none. Never put real values in it.
@@ -79,11 +79,11 @@ STEP 8: Verify and clean up.
 - `references/php.md` - Php error tracking installation
 - `references/laravel.md` - Laravel
 - `references/ruby.md` - Ruby error tracking installation
-- `references/ruby-on-rails.md` - Ruby on rails error tracking installation
-- `references/ruby-on-rails.md` - Ruby on rails
+- `references/installation-ruby-on-rails.md` - Ruby on rails error tracking installation
+- `references/libraries-ruby-on-rails.md` - Ruby on rails
 - `references/go.md` - Go error tracking installation
-- `references/dotnet.md` - .net error tracking installation
-- `references/dotnet.md` - .net
+- `references/installation-dotnet.md` - .net error tracking installation
+- `references/libraries-dotnet.md` - .net
 - `references/elixir.md` - Elixir error tracking installation
 - `references/angular.md` - Angular error tracking installation
 - `references/svelte.md` - Sveltekit error tracking installation
