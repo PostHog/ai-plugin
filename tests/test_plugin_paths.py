@@ -253,6 +253,32 @@ def test_cursor_manifest_paths_exist():
     assert missing == []
 
 
+LISTING_IMAGES = [
+    (".claude-plugin/plugin.json", ("icon",)),
+    (".cursor-plugin/plugin.json", ("logo",)),
+    (".codex-plugin/plugin.json", ("interface", "logo")),
+    (".codex-plugin/plugin.json", ("interface", "composerIcon")),
+    (".antigravity-plugin/plugin.json", ("logo",)),
+]
+
+
+@pytest.mark.parametrize("manifest,keys", LISTING_IMAGES, ids=[f"{m}:{'.'.join(k)}" for m, k in LISTING_IMAGES])
+def test_listing_image_exists(manifest, keys):
+    value = json.loads((REPO_ROOT / manifest).read_text())
+    for key in keys:
+        value = value[key]
+    assert (REPO_ROOT / value).is_file()
+
+
+def test_codex_images_are_square():
+    # OpenAI's plugin validation requires a square logo and composer icon.
+    interface = json.loads((REPO_ROOT / ".codex-plugin" / "plugin.json").read_text())["interface"]
+    for key in ("logo", "composerIcon"):
+        svg = (REPO_ROOT / interface[key]).read_text()
+        width, height = re.search(r'viewBox="\S+ \S+ (\S+) (\S+)"', svg).groups()
+        assert width == height, f"{key}: {interface[key]} is {width} by {height}"
+
+
 PLUGIN_MANIFESTS = [
     ".claude-plugin/plugin.json",
     ".cursor-plugin/plugin.json",
