@@ -136,6 +136,15 @@ gemini extensions install https://github.com/PostHog/ai-plugin
     ```
     Then follow the browser prompts to log into PostHog.
 
+3. Run the tests:
+    ```bash
+    python3 -m pytest tests/test_plugin_paths.py
+    ```
+
+## Releasing
+
+A merge to `main` does not reach every client. [RELEASING.md](RELEASING.md) says which copies need a person, with a runbook for each. [.github/PLUGIN_SYNC.md](.github/PLUGIN_SYNC.md) covers the daily sync job that bumps versions.
+
 ## Features
 
 This plugin connects your AI client to the PostHog MCP server, which covers:
@@ -178,11 +187,13 @@ The plugin bundles no skills. The PostHog MCP server provides them, and your age
 
 ## Self-hosted
 
-For self-hosted PostHog instances, set the `POSTHOG_MCP_URL` environment variable to point to your instance:
+The Gemini CLI extension can point at a self-hosted PostHog instance. Set the `POSTHOG_MCP_URL` environment variable, or the extension's "PostHog MCP URL" setting:
 
 ```bash
 export POSTHOG_MCP_URL="https://mcp.your-posthog-instance.com/mcp"
 ```
+
+The other clients' configs in this repo connect to `https://mcp.posthog.com/mcp` and do not read this variable.
 
 ## Documentation
 
