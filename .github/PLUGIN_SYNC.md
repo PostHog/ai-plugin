@@ -6,6 +6,8 @@ PR creation and auto-merge use the `releaser-ai-plugin` GitHub App.
 
 GitHub Actions supplies the approval using `GITHUB_TOKEN`.
 
+For how a release reaches each client after the sync, see [RELEASING.md](../RELEASING.md).
+
 ## Repository setup
 
 An administrator must configure these settings before enabling auto-approval:

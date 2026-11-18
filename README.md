@@ -136,6 +136,10 @@ gemini extensions install https://github.com/PostHog/ai-plugin
     ```
     Then follow the browser prompts to log into PostHog.
 
+## Releasing
+
+See [RELEASING.md](RELEASING.md) for how a change reaches each AI client, and [.github/PLUGIN_SYNC.md](.github/PLUGIN_SYNC.md) for the daily sync job.
+
 ## Features
 
 This plugin connects your AI client to the PostHog MCP server, which covers:
