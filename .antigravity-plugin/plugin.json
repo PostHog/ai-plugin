@@ -1,5 +1,6 @@
 {
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "posthog",
-  "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from Antigravity"
+  "description": "Access PostHog analytics, feature flags, experiments, error tracking, and insights directly from Antigravity",
+  "logo": "./assets/posthog-logomark-square.svg"
 }
