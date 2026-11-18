@@ -7,7 +7,6 @@ Merging to `main` is not always enough. Some AI clients install the plugin strai
 | People who installed from this repo with the README's commands (Claude Code, Claude Cowork, Codex CLI, Gemini CLI, Antigravity, Grok) | Yes | Nothing |
 | People who installed from Anthropic's plugin directory (`claude plugin install posthog`) | No | [Ask Anthropic](#anthropic) |
 | People who installed from the Cursor Marketplace | No | [Email Cursor](#cursor) |
-| People who installed from OpenAI's plugin directory (ChatGPT and Codex) | No | [Upload a new zip](#openai-chatgpt-and-codex) |
 
 ## Changing the plugin
 
@@ -35,14 +34,18 @@ The Cursor Marketplace serves its own copy and re-indexes it on request.
 1. Email `marketplace-publishing@cursor.com` with the plugin name (PostHog), the repo (`PostHog/ai-plugin`) and the commit. Ask for a re-index.
 2. Done when they confirm.
 
-Ask for real releases, not for every patch bump.
+To do: we are asking Cursor whether the listing can update automatically. Not decided yet.
 
-## OpenAI (ChatGPT and Codex)
+## Not this plugin: the PostHog listing in ChatGPT and Codex
 
-The plugin in OpenAI's directory is a zip uploaded on OpenAI's platform. It is not built from this repo, so a merge here does not change it. Questions go to `#ext-posthog-openai` (PostHog Slack).
+OpenAI's plugin directory also lists PostHog. That listing is not this plugin. It is a small bundle that points ChatGPT and Codex at the PostHog MCP server, uploaded by hand on OpenAI's platform. Nothing in this repo feeds it, and a merge here never changes it.
+
+Codex users who follow the README install this plugin from this repo. That is a different thing from the directory listing.
+
+The steps are here because the listing has no repo of its own. Use them only when the listing itself changes, such as its description, logo or MCP server URL. Questions go to `#ext-posthog-openai` (PostHog Slack).
 
 1. On OpenAI's platform, open Plugins, then PostHog, and download the zip of the published version.
-2. Unzip it, make the change, and raise `version` in `.codex-plugin/plugin.json`.
+2. Unzip it, make the change, and raise `version` in the zip's own `.codex-plugin/plugin.json`. Do not copy files from this repo into it.
 3. Zip it from a terminal so the hidden files are included: `zip -r posthog-<version>.zip .codex-plugin .mcp.json assets`.
 4. Select "Create draft from ZIP" and upload it.
 5. Select "Submit for review" and wait for "Approved". Version 2.0.3 took one night.
