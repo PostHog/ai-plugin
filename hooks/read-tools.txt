@@ -461,6 +461,7 @@ notebooks-list
 notebooks-list-frames
 notebooks-run-cell-result
 notebooks-widget-status
+oauth-applications-list
 opt-outs-list
 org-member-get-github-login
 org-members-list
