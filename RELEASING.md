@@ -10,7 +10,7 @@ How a change in this repo reaches people, and what to do by hand. Written after 
 
 ## Where each client gets the plugin
 
-Merging to `main` is not a release for everyone. Three listings hold their own copy.
+Merging to `main` is not a release for everyone. Four listings hold their own copy.
 
 | Client | Source | How a release reaches it |
 | --- | --- | --- |
