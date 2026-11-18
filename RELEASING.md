@@ -5,8 +5,7 @@ Merging to `main` is not always enough. Some AI clients install the plugin strai
 | Who | What they run | After a merge |
 | --- | --- | --- |
 | People who installed from this repo with the README's commands (Claude Code, Claude Cowork, Codex CLI, Gemini CLI, Antigravity, Grok) | This repo. They get a change when their client next updates the plugin. | Nothing |
-| People who installed `posthog@claude-plugins-official` in Claude Code | A commit of this repo that Anthropic pins | [Ask Anthropic](#anthropics-claude-code-marketplace) |
-| People who installed from Anthropic's directory on claude.ai | A commit of this repo that Anthropic reviewed | [Ask Anthropic](#anthropics-directory-on-claudeai) |
+| People who installed from Anthropic (the Claude Code marketplace or the directory on claude.ai) | A commit of this repo that Anthropic chose | [Ask Anthropic](#anthropic) |
 | People who installed from the Cursor Marketplace | Cursor's copy | [Email Cursor](#cursor) |
 
 ## Changing the plugin
@@ -19,23 +18,19 @@ Merging to `main` is not always enough. Some AI clients install the plugin strai
 4. Run `python3 -m pytest tests/test_plugin_paths.py`.
 5. Merge, then update each copy below that needs the change.
 
-## Anthropic's Claude Code marketplace
+## Anthropic
 
-[`anthropics/claude-plugins-official`](https://github.com/anthropics/claude-plugins-official) pins the plugin to one commit of this repo. Their bot opens a PR to move the pin, and their staff merge it. PostHog cannot open or merge that PR.
+Anthropic manages its listings of the plugin. PostHog cannot change them. To get a new version out, ask in `#ext-posthog-anthropic` (PostHog Slack).
+
+There are two listings, and they can be on different versions:
+
+- The Claude Code marketplace, [`anthropics/claude-plugins-official`](https://github.com/anthropics/claude-plugins-official). It pins the plugin to one commit of this repo. Their bot opens a PR to move the pin, and their staff merge it.
+- The directory on claude.ai, which also serves Claude Cowork. It has its own commit and does not follow the pin.
 
 1. Check [the pin](https://github.com/anthropics/claude-plugins-official/blob/main/.claude-plugin/marketplace.json) (search for `posthog`) and any [open bump PR](https://github.com/anthropics/claude-plugins-official/pulls?q=is%3Apr+is%3Aopen+posthog).
-2. If the pin is behind, ask in `#ext-posthog-anthropic` (PostHog Slack). Give the commit you want.
+2. Ask in the channel. Give the commit you want, and ask for both listings.
 3. If an old bump PR is still open, ask them to close it. Their bot does not open a new one while an old one is open.
-4. Done when the pin shows your commit.
-
-## Anthropic's directory on claude.ai
-
-The directory on claude.ai is a second, separate listing. It serves claude.ai and Claude Cowork, and reaches Claude Code through account sync. It has its own reviewed commit, which does not follow the marketplace pin above.
-
-1. Check the version on the plugin's page in claude.ai.
-2. If it is behind, ask in `#ext-posthog-anthropic` (PostHog Slack).
-
-To do: Anthropic's docs describe a [developer portal](https://claude.com/docs/plugins/submit) where the owner of a listing publishes new versions from a branch. Find out whether PostHog can manage this listing there.
+4. Done when the pin shows your commit and the plugin's page on claude.ai shows the new version.
 
 ## Cursor
 
