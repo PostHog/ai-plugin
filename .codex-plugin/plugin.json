@@ -41,7 +41,7 @@
       "How many users signed up this week?"
     ],
     "brandColor": "#F9BD2B",
-    "composerIcon": "./assets/icon.svg",
-    "logo": "./assets/icon.svg"
+    "composerIcon": "./assets/posthog-logomark-square.svg",
+    "logo": "./assets/posthog-logomark-square.svg"
   }
 }

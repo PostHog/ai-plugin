@@ -136,6 +136,8 @@ gemini extensions install https://github.com/PostHog/ai-plugin
     ```
     Then follow the browser prompts to log into PostHog.
 
+Logos in `assets/` come from https://brand.posthog.com/logo. Refresh them from there.
+
 ## Features
 
 This plugin connects your AI client to the PostHog MCP server, which covers:
