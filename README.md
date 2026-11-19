@@ -57,7 +57,7 @@ Both lists take comma-separated shell globs, such as `annotation-*`.
 
 Known reads pass through, and cross-project calls prompt while the gate is on.
 
-If the PostHog MCP server lists `exec-read` and `exec-write` instead of `exec`, `exec-read` calls pass through because the server refuses writes there. Every `exec-write` call prompts, whatever tool it runs. Only `POSTHOG_MCP_EXEC_GATE_ALLOW`, `POSTHOG_MCP_EXEC_GATE_DISABLE` and `bypassPermissions` mode skip that prompt.
+A PostHog MCP connection you add yourself with `split_writes=true` lists `exec-read` and `exec-write` instead of `exec`. The plugin's own connection keeps `exec`. `exec-read` calls pass through because the server refuses writes there. Every `exec-write` call prompts, whatever tool it runs. `POSTHOG_MCP_EXEC_GATE_ALLOW`, `POSTHOG_MCP_EXEC_GATE_DISABLE` and `bypassPermissions` mode skip that prompt, but only the last two skip it for cross-project calls.
 
 #### Session capture without the rest of the plugin
 
