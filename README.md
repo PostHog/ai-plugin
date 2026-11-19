@@ -57,6 +57,8 @@ Both lists take comma-separated shell globs, such as `annotation-*`.
 
 Known reads pass through, and cross-project calls prompt while the gate is on.
 
+If the PostHog MCP server lists `exec-read` and `exec-write` instead of `exec`, `exec-read` calls pass through because the server refuses writes there. Every `exec-write` call prompts, whatever tool it runs. Only `POSTHOG_MCP_EXEC_GATE_ALLOW`, `POSTHOG_MCP_EXEC_GATE_DISABLE` and `bypassPermissions` mode skip that prompt.
+
 #### Session capture without the rest of the plugin
 
 To send Claude Code sessions to PostHog LLM analytics without the slash commands or the MCP server, install the capture plugin on its own:
@@ -94,7 +96,7 @@ Grok Bot (desktop and mobile) lists the same plugin from the Cursor Marketplace.
     /plugins
     ```
 
-3. Trust the plugin's hook when Codex asks you to review it at startup, or later from `/hooks`. The hook approves known PostHog reads (`tools`, `search`, `info` and the other read-only `exec` commands, and calls to tools on `hooks/read-tools.txt`) so they run without a prompt. Every other call, including every write, gets Codex's own approval prompt. The `POSTHOG_MCP_EXEC_GATE_*` variables don't apply on Codex. Codex asks before every PostHog call until you trust the hook, and again after each plugin update until you re-trust it. The one exception is `render-ui`, which shows a PostHog chart or view in the conversation and never changes data, so it always runs without a prompt.
+3. Trust the plugin's hook when Codex asks you to review it at startup, or later from `/hooks`. The hook approves known PostHog reads (`tools`, `search`, `info` and the other read-only `exec` commands, and calls to tools on `hooks/read-tools.txt`, and every `exec-read` call, which the server keeps read-only) so they run without a prompt. Every other call, including every write, gets Codex's own approval prompt. The `POSTHOG_MCP_EXEC_GATE_*` variables don't apply on Codex. Codex asks before every PostHog call until you trust the hook, and again after each plugin update until you re-trust it. The one exception is `render-ui`, which shows a PostHog chart or view in the conversation and never changes data, so it always runs without a prompt.
 
     A few Codex settings change this:
 

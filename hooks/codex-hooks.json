@@ -2,7 +2,7 @@
   "hooks": {
     "PermissionRequest": [
       {
-        "matcher": "^mcp__posthog__exec$",
+        "matcher": "^mcp__posthog__exec(-read|-write)?$",
         "hooks": [
           {
             "type": "command",

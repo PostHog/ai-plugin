@@ -92,6 +92,17 @@ run_case "gateway tool prompts" prompt "$(exec_payload 'call linear__list_issues
 run_case "bypassPermissions mode does not approve a sensitive write" prompt \
     "$(exec_payload 'call delete-feature-flag {}' | sed 's/"permission_mode":"default"/"permission_mode":"bypassPermissions"/')"
 
+# --- exec-read and exec-write ---
+
+run_case "exec-read call to a write is allowed (the server refuses writes there)" allow \
+    "$(exec_payload 'call delete-feature-flag {}' | sed 's/__exec"/__exec-read"/')"
+run_case "exec-read with a second tool_name prompts" prompt \
+    '{"hook_event_name":"PermissionRequest","tool_name":"mcp__posthog__exec-read","tool_input":{"tool_name":"x","command":"call delete-feature-flag {}"}}'
+run_case "exec-write call to a listed read prompts" prompt \
+    "$(exec_payload 'call persons-list {}' | sed 's/__exec"/__exec-write"/')"
+run_case "exec-write discovery verb prompts" prompt \
+    "$(exec_payload 'tools' | sed 's/__exec"/__exec-write"/')"
+
 # --- commands the gate cannot classify prompt ---
 
 run_case "leading space before a write prompts" prompt "$(exec_payload '  call delete-feature-flag {}')"

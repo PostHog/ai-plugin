@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PreToolUse gate for the PostHog MCP `exec` tool.
+# PreToolUse gate for the PostHog MCP `exec`, `exec-read` and `exec-write` tools.
 #
 # The PostHog MCP exposes a single `exec` tool that dispatches subcommands like
 # `tools | search | info | schema | call <tool_name> [json]`. Once the user
@@ -15,6 +15,11 @@
 # a write, so tools added after the list was generated still reach the gate.
 # Third-party tools proxied through the MCP gateway (`<server>__<tool>`) are
 # left alone too.
+#
+# A connection can list `exec-read` and `exec-write` in place of `exec`. The
+# server refuses every write on `exec-read`, so the gate passes it. Every
+# `exec-write` command prompts, whatever tool it calls: the read list and DENY
+# don't apply there, while ALLOW, DISABLE and bypass mode still silence it.
 #
 # By default the prompt fires only for a curated "sensitive" subset of write
 # tools — feature-flag writes and any delete/destroy — rather than every write.
@@ -301,10 +306,23 @@ if [[ "$input" =~ \"tool_name\"[[:space:]]*:[[:space:]]*\"([^\"]+)\" ]]; then
     tool_name="${BASH_REMATCH[1]}"
 fi
 
-# Match any MCP tool whose name ends in `__exec` regardless of plugin/server
-# namespacing (bare `mcp__posthog__exec` or plugin-prefixed variants like
-# `mcp__posthog_posthog__exec`).
-[[ "$tool_name" =~ __exec$ ]] || not_a_known_read
+# Match any MCP tool whose name ends in `__exec`, `__exec-read` or `__exec-write`
+# regardless of plugin/server namespacing (bare `mcp__posthog__exec` or
+# plugin-prefixed variants like `mcp__posthog_posthog__exec`).
+[[ "$tool_name" =~ __exec(-read|-write)?$ ]] || not_a_known_read
+exec_variant="${BASH_REMATCH[1]}"
+
+if [[ "$exec_variant" == -read ]]; then
+    # Only the first `tool_name` is read, so a second one could pass off an
+    # `exec-write` call as `exec-read`.
+    if [[ "$input" =~ \"tool_name\"[[:space:]]*:.*\"tool_name\"[[:space:]]*: ]]; then
+        ask "The PostHog exec input has more than one tool name — approve to run."
+    fi
+    exit 0
+fi
+exec_write=0
+[[ "$exec_variant" == -write ]] && exec_write=1
+(( exec_write && fail_closed )) && not_a_known_read
 
 # Extract the PostHog tool name from `"command":"call [--flag ...] <tool>..."`.
 # The server trims the command with JavaScript's trim() and skips any number of
@@ -346,6 +364,9 @@ if [[ -z "$posthog_tool" ]] && (( fail_closed )); then
     read_verb_re="\"command\"[[:space:]]*:[[:space:]]*\"${ws}*(help|learn|tools|search|info|schema)( |\")"
     [[ "$input" =~ $read_verb_re ]] || not_a_known_read
 fi
+if [[ -z "$posthog_tool" ]] && (( exec_write )); then
+    ask "\`exec-write\` runs any PostHog command — approve to run."
+fi
 [[ -n "$posthog_tool" ]] || exit 0
 
 # These run any tool, deletes included, in another project, so they always prompt.
@@ -355,10 +376,10 @@ fi
 
 # Third-party tools reached through the MCP gateway are named `<server>__<tool>`
 # (PostHog tool names never contain `__`) and follow their server's own policy.
-[[ "$posthog_tool" == *__* ]] && not_a_known_read
+[[ "$posthog_tool" == *__* ]] && (( ! exec_write )) && not_a_known_read
 
 read_tools_file="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/read-tools.txt"
-if [[ -r "$read_tools_file" ]]; then
+if [[ -r "$read_tools_file" ]] && (( ! exec_write )); then
     read_tools=$'\n'"$(<"$read_tools_file")"$'\n'
     [[ "$read_tools" == *$'\n'"$posthog_tool"$'\n'* ]] && exit 0
 fi
@@ -387,6 +408,10 @@ shopt -s nocasematch
 # POSTHOG_MCP_EXEC_GATE_ALLOW. Patterns use bash glob syntax (`*`, `?`).
 if [[ -n "${POSTHOG_MCP_EXEC_GATE_ALLOW:-}" ]]; then
     matches_any_glob "$posthog_tool" "$POSTHOG_MCP_EXEC_GATE_ALLOW" && exit 0
+fi
+
+if (( exec_write )); then
+    ask "\`$posthog_tool\` runs through exec-write, which can change PostHog data — approve to run."
 fi
 
 # Denylist selects which writes actually prompt. POSTHOG_MCP_EXEC_GATE_DENY
