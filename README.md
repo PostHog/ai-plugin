@@ -41,6 +41,22 @@ Official PostHog plugin for AI clients. Access PostHog products directly from yo
 
     Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Sessions are sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content. Add custom properties to all events with `POSTHOG_LLMA_CUSTOM_PROPERTIES` (JSON string, e.g. `'{"ai_product": "my-app"}'`). Set `POSTHOG_AI_PURPOSE` to declare what the session is doing relative to the repo — documented values are `authoring` and `review`, emitted as `$ai_purpose`. Useful when a harness wraps an agent it can't modify (e.g. a CI job running Claude Code as a reviewer); left unset the property is omitted.
 
+#### Write approval
+
+The plugin asks before sensitive PostHog writes, such as deletions.
+
+In Claude Code's `bypassPermissions` mode, the hook skips its prompt.
+
+Install `python3` to skip prompts for large or complex inputs.
+
+- `POSTHOG_MCP_EXEC_GATE_DISABLE=1` turns off the gate.
+- `POSTHOG_MCP_EXEC_GATE_DENY` replaces the default set. Use `*` for all writes.
+- `POSTHOG_MCP_EXEC_GATE_ALLOW` exempts matching tools and takes precedence.
+
+Both lists take comma-separated shell globs, such as `annotation-*`.
+
+Known reads pass through, and cross-project calls prompt while the gate is on.
+
 #### Session capture without the rest of the plugin
 
 To send Claude Code sessions to PostHog LLM analytics without the slash commands or the MCP server, install the capture plugin on its own:

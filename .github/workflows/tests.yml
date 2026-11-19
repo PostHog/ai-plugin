@@ -33,6 +33,18 @@ jobs:
       - name: Validate the Cursor manifest against Cursor's plugin schema
         run: pipx run check-jsonschema==0.38.2 --schemafile https://raw.githubusercontent.com/cursor/plugins/5229aad76c37451561c5b81a9b5072ae1c549a5b/schemas/plugin.schema.json .cursor-plugin/plugin.json
 
+  tests-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run gate-exec-write hook tests
+        run: /bin/bash ./tests/test_gate_exec_write.sh
+
+      - name: Run gate-exec-write hook tests without Python
+        run: POSTHOG_TEST_BASH_FALLBACK=1 /bin/bash ./tests/test_gate_exec_write.sh
+
   claude-code:
     strategy:
       fail-fast: false
