@@ -38,6 +38,7 @@ aeo-keywords-modifiers-get
 aeo-keywords-report-get
 aeo-keywords-suggestion-get
 aeo-prompts-checks-list
+aeo-prompts-citations-list
 aeo-prompts-get
 aeo-prompts-list
 aeo-prompts-overview-get
@@ -139,6 +140,18 @@ channel-instructions-retrieve
 channel-list
 channel-retrieve
 characterize-metric-anomaly
+code-review-approvals-digests-list
+code-review-approvals-pull-requests-get
+code-review-approvals-pull-requests-list
+code-review-approvals-repositories-get
+code-review-approvals-repositories-list
+code-review-approvals-reviewer-routing-get
+code-review-approvals-reviewer-routing-list
+code-review-approvals-runs-get
+code-review-approvals-runs-list
+code-review-reviews-get
+code-review-reviews-list
+code-review-reviews-pr-status
 cohorts-list
 cohorts-retrieve
 comment-count
@@ -215,6 +228,7 @@ error-tracking-alerts-list
 error-tracking-assignment-rules-list
 error-tracking-bypass-rules-list
 error-tracking-grouping-rules-list
+error-tracking-issues-tag-definitions-retrieve
 error-tracking-recommendations-list
 error-tracking-settings-get
 error-tracking-severity-rules-list
@@ -250,6 +264,7 @@ experiments-session-event-deltas-create
 explain-chart
 external-data-destinations-connect-link
 external-data-destinations-connect-link-status
+external-data-destinations-delivery-failures
 external-data-destinations-list
 external-data-destinations-retrieve
 external-data-schemas-destinations-retrieve
@@ -321,6 +336,8 @@ inbox-reviewer-exclusions-get
 inbox-reviewer-exclusions-list
 inbox-source-configs-list
 inbox-source-configs-retrieve
+inbox-source-filter-catalogs-list
+inbox-source-filter-preview
 inbox-steering-instructions-get
 inbox-usage-get
 insight-get
@@ -463,6 +480,9 @@ platform-alerts-retrieve
 pr-lifecycle
 project-get
 projects-get
+provider-imports-get
+provider-imports-list
+provider-imports-providers
 proxy-diagnose
 proxy-get
 proxy-list
@@ -507,9 +527,6 @@ reminder-get
 reminders-list
 reusable-widgets-list
 reusable-widgets-retrieve
-review-hog-reviews-get
-review-hog-reviews-list
-review-hog-reviews-pr-status
 role-get
 role-members-list
 roles-list
@@ -536,6 +553,7 @@ scout-trial-get
 scout-trial-list
 scout-trial-report
 scout-trial-setup
+self-driving-status-get
 session-recording-console-logs-list
 session-recording-get
 session-recording-playlist-get
@@ -552,15 +570,6 @@ signals-scout-scratchpad-search
 skill-file-get
 skill-get
 skill-list
-stamphog-digest-runs-list
-stamphog-pull-requests-get
-stamphog-pull-requests-list
-stamphog-repo-configs-get
-stamphog-repo-configs-list
-stamphog-review-runs-get
-stamphog-review-runs-list
-stamphog-routing-runs-get
-stamphog-routing-runs-list
 streamlit-apps-get
 streamlit-apps-get-source
 streamlit-apps-list
@@ -572,6 +581,7 @@ subscriptions-list
 subscriptions-retrieve
 subscriptions-summaries-list
 supabase-auth-emails-settings-get
+suppressions-list
 survey-get
 survey-stats
 surveys-get-all
@@ -678,6 +688,7 @@ workflows-logs
 workflows-make-email-template-transactional-prepare
 workflows-reputation-get
 workflows-send-email-prepare
+workflows-send-email-template-prepare
 workflows-sending-rules-get
 workflows-setup-status
 workflows-show-email-template

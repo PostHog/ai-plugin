@@ -47,14 +47,11 @@
 # (a missing or null `command`, a non-`call` verb, a payload whose `tool_name`
 # can't be read) exit 0 silently.
 #
-# The gate stays silent for everything when the PreToolUse input reports
-# `permission_mode` as `bypassPermissions` (a field Claude Code documents at
-# https://code.claude.com/docs/en/hooks, "Common input fields"). Only the
-# top-level field counts, and only up to the size cap: see `top_level_bypass`.
+# The gate stays silent when Claude Code reports a top-level
+# `permission_mode` of `bypassPermissions`. The Bash fallback limits input size.
 #
-# Pure bash; no jq or other third-party tools required. Relies on the fact
-# that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
-# the raw JSON payload is safe.
+# Tool matching uses bash and relies on PostHog tool names being kebab-case
+# alphanumerics, so a narrow regex on the raw JSON payload is safe.
 
 # `--fail-closed` is for hooks/codex-gate-exec-write.sh, which approves every
 # call this script passes silently. In that mode the script passes only known
@@ -91,25 +88,23 @@ ask() {
 # `tool_input` is ignored. Escaped quotes stay inside strings (RFC 8259 section 7). Malformed input (trailing
 # text, bad escapes, mismatched brackets, nesting past 64 levels, a repeated key) fails.
 #
-# Size caps fail closed (the call prompts and the walk never runs): over `max_pieces` (20,000) pieces,
-# over `max_opens` (1,000) non-root outside opens, or over `max_bytes` (131,072 bytes, 128 KB). A piece
-# ending in 64 or more backslashes also fails.
-top_level_bypass() {
+# Stock macOS Bash has a five-second hook budget, so the fallback limits the
+# input size, number of string pieces, bracket count, and nesting depth.
+bash_top_level_bypass() {
+    local max_pieces=4000 max_opens=1000 max_bytes=65536
     [[ "$input" == *'"permission_mode"'* ]] || return 1
-    # The walk compares raw text and never decodes a JSON escape, so it can succeed
-    # only when the literal bypassPermissions is in the input. A \u-escaped spelling
-    # fails here and keeps the prompt.
-    [[ "$input" == *bypassPermissions* ]] || return 1
+    (( ${#input} <= max_bytes )) || return 1
     # A backslash must start a JSON escape: \" \\ \/ \b \f \n \r \t or \uXXXX. The left
     # anchor takes the whole backslash run, so an even run (\\) passes and \q fails. A
     # regex that does not compile (status 2) asks too.
     local esc_re='(^|[^\\])(\\\\)*\\([^"\\/bfnrtu]|u[0-9a-fA-F]{0,3}([^0-9a-fA-F]|$))' esc_rc=0
-    [[ "$input" =~ $esc_re ]]; esc_rc=$?
-    if (( esc_rc != 1 )); then return 1; fi
+    if [[ "$input" == *\\* ]]; then
+        [[ "$input" =~ $esc_re ]]; esc_rc=$?
+        if (( esc_rc != 1 )); then return 1; fi
+    fi
     # Depth above this many open brackets fails: the walk asks rather than tracking it.
     local max_depth=64
     local -a p
-    local max_pieces=20000 max_opens=1000 max_bytes=131072
     local x w c pre wl off ch tl t tn j=0 k=0 n modes=0 value_ok=0 outside_opens=0
     # String state: inside a string, the stack depth where it opened, how many pieces it
     # spans so far, and whether any of them holds \u.
@@ -120,8 +115,6 @@ top_level_bypass() {
     local value_stage=0
     # Brackets open outside strings, innermost last. The object's `{` is the first one.
     local stk='' top want
-    # LC_ALL=C is set above, so ${#input} counts bytes.
-    if (( ${#input} > max_bytes )); then return 1; fi
     IFS='"' read -ra p -d '' <<< "$input"
     n=${#p[@]}
     if (( n > max_pieces )); then return 1; fi
@@ -173,7 +166,8 @@ top_level_bypass() {
             fi
             # Brackets are read from 256-character chunks: a substring copies the whole piece,
             # so one bracket at a time from the full piece would take quadratic time in bash 3.2.
-            wl=${#w}
+            wl=0
+            [[ "$w" == *[\{\[\}\]]* ]] && wl=${#w}
             for (( off = 0; off < wl; off += 256 )); do
                 c="${w:off:256}"
                 while [[ "$c" == *[\{\[\}\]]* ]]; do
@@ -218,6 +212,36 @@ top_level_bypass() {
         case "$ch" in ' '|$'\t'|$'\r'|$'\n') j=$(( j + 1 )) ;; *) break ;; esac
     done
     (( j < tn )) && [[ "${tl:tn-1-j:1}" == '}' ]]
+}
+
+top_level_bypass() {
+    [[ "$input" == *'"bypassPermissions"'* ]] || return 1
+
+    # Preserve duplicate keys so an ambiguous top-level mode keeps the prompt.
+    python3 -I -c '
+import json
+import sys
+
+class ObjectPairs(list):
+    pass
+
+def invalid_constant(value):
+    raise ValueError(value)
+
+try:
+    payload = json.load(sys.stdin.buffer, object_pairs_hook=ObjectPairs, parse_constant=invalid_constant)
+except (ValueError, RecursionError):
+    sys.exit(10)
+
+modes = [value for key, value in payload if key == "permission_mode"] if isinstance(payload, ObjectPairs) else []
+sys.exit(0 if modes == ["bypassPermissions"] else 10)
+' <<< "$input" 2>/dev/null
+    # Status 10 means Python checked the payload and the prompt still applies.
+    case $? in
+        0) return 0 ;;
+        10) return 1 ;;
+        *) bash_top_level_bypass ;;
+    esac
 }
 
 # Passes in normal mode; asks in fail-closed mode.
@@ -297,9 +321,7 @@ LC_ALL=C
 ws='([[:space:]]|\\[nrtf]|\\u000[bB]|['$'\x80''-'$'\xff'']'')'
 call_re="\"command\"[[:space:]]*:[[:space:]]*\"${ws}*call${ws}+((--[a-zA-Z-]+${ws}+)*)([a-zA-Z0-9_-]+)"
 
-# Bypass mode: the user chose to run without prompts (issue #246), so none of the
-# prompts below apply. Not in fail-closed mode: hooks/codex-gate-exec-write.sh:20-23
-# reads a silent gate as an approval.
+# Codex treats silence from this hook as read approval, so bypass is Claude-only.
 if (( ! fail_closed )) && top_level_bypass; then
     exit 0
 fi

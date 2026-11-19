@@ -10,11 +10,7 @@ permissions:
 
 jobs:
   tests:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -28,21 +24,46 @@ jobs:
       - name: Run Codex exec gate hook tests
         run: ./tests/test_codex_gate_exec_write.sh
 
-      - name: Run skill telemetry hook tests
-        run: ./tests/test_skill_invoked.sh
-
-      # Python steps stay on Linux: the macOS runner's pip is not checked here.
       - name: Install pytest
-        if: runner.os == 'Linux'
         run: python3 -m pip install --user pytest
 
       - name: Run Python tests
-        if: runner.os == 'Linux'
         run: python3 -m pytest tests/test_plugin_paths.py telemetry/tests/test_session_parser.py telemetry/tests/test_posthog_llma.py
 
       - name: Validate the Cursor manifest against Cursor's plugin schema
-        if: runner.os == 'Linux'
         run: pipx run check-jsonschema==0.38.2 --schemafile https://raw.githubusercontent.com/cursor/plugins/5229aad76c37451561c5b81a9b5072ae1c549a5b/schemas/plugin.schema.json .cursor-plugin/plugin.json
+
+  tests-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run gate-exec-write hook tests
+        run: /bin/bash ./tests/test_gate_exec_write.sh
+
+      - name: Run gate-exec-write hook tests without Python
+        run: POSTHOG_TEST_BASH_FALLBACK=1 /bin/bash ./tests/test_gate_exec_write.sh
+
+  claude-code:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@2.1.325
+
+      - name: Install pytest
+        run: python -m pip install pytest
+
+      - name: Install the plugin with Claude Code and check the header it sends
+        run: python -m pytest -rs tests/test_claude_code_plugin.py
 
   antigravity:
     runs-on: ubuntu-latest

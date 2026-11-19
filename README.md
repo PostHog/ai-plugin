@@ -41,9 +41,25 @@ Official PostHog plugin for AI clients. Access PostHog products directly from yo
 
     Both `POSTHOG_LLMA_CC_ENABLED=true` and `POSTHOG_API_KEY` are required. Sessions are sent when Claude Code exits. Set `POSTHOG_LLMA_PRIVACY_MODE=true` to redact prompt/output content. Add custom properties to all events with `POSTHOG_LLMA_CUSTOM_PROPERTIES` (JSON string, e.g. `'{"ai_product": "my-app"}'`). Set `POSTHOG_AI_PURPOSE` to declare what the session is doing relative to the repo — documented values are `authoring` and `review`, emitted as `$ai_purpose`. Useful when a harness wraps an agent it can't modify (e.g. a CI job running Claude Code as a reviewer); left unset the property is omitted.
 
+#### Write approval
+
+The plugin asks before sensitive PostHog writes, such as deletions.
+
+In Claude Code's `bypassPermissions` mode, the hook skips its prompt.
+
+Install `python3` to skip prompts for large or complex inputs.
+
+- `POSTHOG_MCP_EXEC_GATE_DISABLE=1` turns off the gate.
+- `POSTHOG_MCP_EXEC_GATE_DENY` replaces the default set. Use `*` for all writes.
+- `POSTHOG_MCP_EXEC_GATE_ALLOW` exempts matching tools and takes precedence.
+
+Both lists take comma-separated shell globs, such as `annotation-*`.
+
+Known reads pass through, and cross-project calls prompt while the gate is on.
+
 #### Session capture without the rest of the plugin
 
-To send Claude Code sessions to PostHog LLM analytics without the skills, the slash commands, or the MCP server, install the capture plugin on its own:
+To send Claude Code sessions to PostHog LLM analytics without the slash commands or the MCP server, install the capture plugin on its own:
 
 ```bash
 claude plugin marketplace add PostHog/ai-plugin
@@ -58,7 +74,7 @@ Install it instead of the `posthog` plugin, not alongside it. Both register the 
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace) or add manually in Cursor Settings > Plugins.
 
-The plugin installs the PostHog skills and the MCP server. Claude Code's session capture and the write-command gate don't run in Cursor.
+The plugin installs the PostHog MCP server. Claude Code's session capture and the write-command gate don't run in Cursor.
 
 In Cursor IDE, the MCP connection runs through Cursor's hosted service, so Cursor holds your PostHog sign-in and you may need to sign in again after updating the plugin.
 
@@ -95,7 +111,7 @@ Grok Bot (desktop and mobile) lists the same plugin from the Cursor Marketplace.
 
 2. Authenticate via OAuth: run `/mcp`, select `posthog_posthog`, and choose **Authenticate**. Open the link it shows, log into PostHog, and paste the authorization code back into Antigravity.
 
-The plugin installs the PostHog skills and the MCP server. Claude Code's session capture and the write-command gate don't run in Antigravity.
+The plugin installs the PostHog MCP server. Claude Code's session capture and the write-command gate don't run in Antigravity.
 
 ### Gemini CLI
 
@@ -136,9 +152,15 @@ gemini extensions install https://github.com/PostHog/ai-plugin
     ```
     Then follow the browser prompts to log into PostHog.
 
+Logos in `assets/` come from https://brand.posthog.com/logo. Refresh them from there.
+
+## Releasing
+
+See [RELEASING.md](RELEASING.md) for how a change reaches each AI client, and [.github/PLUGIN_SYNC.md](.github/PLUGIN_SYNC.md) for the daily sync job.
+
 ## Features
 
-This plugin provides access to 27+ PostHog tools across these categories:
+This plugin connects your AI client to the PostHog MCP server, which covers:
 
 - **Feature flags** - Create, update, and manage feature flags
 - **Experiments** - Run and analyze A/B tests
@@ -149,31 +171,7 @@ This plugin provides access to 27+ PostHog tools across these categories:
 - **Documentation** - Search PostHog docs
 - And more
 
-### Bundled skills
-
-The plugin also ships 30+ task-specific skills that your AI client loads on demand to follow PostHog best practices — covering HogQL query patterns, experiment creation and lifecycle, feature flags, data warehouse setup and troubleshooting, LLM analytics exploration, session replay diagnostics, and SDK instrumentation. Skills activate automatically when their description matches your request (e.g. "create an experiment", "why isn't my Stripe sync working?", "audit my feature flags"), so you generally don't need to invoke them by name.
-
-### Write gate
-
-A `PreToolUse` hook (`hooks/gate-exec-write.sh`) asks for approval before the PostHog MCP `exec` tool runs a sensitive write, such as a feature-flag change or any delete or destroy. It also asks for:
-
-- `posthog-connection-call` and `posthog-connection-forward`, whatever `POSTHOG_MCP_EXEC_GATE_ALLOW` and `POSTHOG_MCP_EXEC_GATE_DENY` say;
-- an `exec` input with more than one `command` field;
-- a `command` whose check fails to evaluate.
-
-Outside the Codex approval hook (below), the script passes silently, leaving the normal permission flow, for a `tool_name` it cannot read, a missing or `null` `command`, and a verb other than `call` (such as `tools` or `search`). Known reads, third-party gateway tools and writes outside the default set pass silently too.
-
-In Claude Code's `bypassPermissions` mode the hook never asks, provided the input has exactly one top-level `permission_mode` member and its value is `bypassPermissions`. A `permission_mode` inside `tool_input` is ignored. A repeated top-level `permission_mode` member, or a top-level key spelled with `\u` escapes, keeps the normal prompts. So does an input over 131,072 bytes (128 KB), one with more than 1,000 `{` or `[` opened outside strings, one with more than 20,000 pieces, or one with a string ending in 64 or more backslashes (size caps that keep the hook inside its timeout); a few-KB call never reaches them. Malformed input also keeps the prompts: text after the object's closing `}`, a backslash that does not start a JSON escape (such as `\q`), or nesting deeper than 64 levels.
-
-On Codex the `PreToolUse` hook is skipped. The Codex approval hook (`hooks/codex-hooks.json`, `hooks/codex-gate-exec-write.sh`) stays active: it approves only known reads, ignores `permission_mode` and the variables below, and leaves every other command to Codex's own prompt.
-
-Three environment variables tune the Claude Code hook:
-
-- `POSTHOG_MCP_EXEC_GATE_DISABLE`: set to a non-empty value other than `0` to turn the gate off, connection calls included. `0` leaves the gate on.
-- `POSTHOG_MCP_EXEC_GATE_DENY`: comma-separated globs of PostHog tool names that prompt. Overrides the default set; `*` prompts on every write. Tools in `hooks/read-tools.txt` never prompt, and connection calls prompt whatever it says.
-- `POSTHOG_MCP_EXEC_GATE_ALLOW`: comma-separated globs of tools that never prompt. Wins over the deny set, except that connection calls still prompt.
-
-For example, `POSTHOG_MCP_EXEC_GATE_ALLOW="annotation-create"`. See `hooks/gate-exec-write.sh` for the default set.
+The plugin bundles no skills. The PostHog MCP server provides them, and your agent loads one when it needs it through the server's `learn` command.
 
 ## Example usage
 
@@ -199,31 +197,6 @@ For example, `POSTHOG_MCP_EXEC_GATE_ALLOW="annotation-create"`. See `hooks/gate-
 > What's my most triggered event?
 > Show me the top 10 pages by pageviews
 ```
-
-## Plugin usage telemetry
-
-In Claude Code, the plugin sends one anonymous `plugin skill invoked` event to PostHog Cloud each time one of this plugin's skills runs, whether Claude invokes it or you type `/posthog:<skill>`. Skills from other plugins and your own skills aren't counted. Each event contains only:
-
-- `skill`: the skill's name, such as `querying-posthog-data`
-- `invocation`: `model` when Claude invoked the skill, `user` when you typed it as a slash command
-- `args_present`: whether the skill was invoked with arguments, never the arguments themselves
-- `plugin_version`: the installed plugin version
-- `permission_mode`: Claude Code's permission mode, such as `default` or `plan`
-- `os`: the operating system name from `uname -s`, such as `Darwin` or `Linux`
-- `distinct_id`: a random UUID generated once per install and stored in the plugin's data directory
-- `$lib`: always `posthog-ai-plugin`
-- `$process_person_profile`, `$geoip_disable`, and `$ip`: fixed values (`false`, `true`, and `127.0.0.1`) so PostHog creates no person profile and runs no GeoIP lookup, and the stored event carries no client IP address. The request still reaches PostHog's capture endpoint from your IP, as any HTTPS request does
-
-No event is sent when `POSTHOG_MCP_URL` or `POSTHOG_HOST` points anywhere other than `posthog.com`, so self-hosted users don't report to PostHog Cloud. Like Claude Code's own telemetry, it's also off when Claude Code runs on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or Claude Platform on AWS (`CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`, or `CLAUDE_CODE_USE_ANTHROPIC_AWS` set to `1`, `true`, `yes`, or `on`). To turn it off, set any of these in your shell or the `env` block of `~/.claude/settings.json`:
-
-```bash
-export DO_NOT_TRACK=1
-export POSTHOG_PLUGIN_TELEMETRY_DISABLED=1
-export DISABLE_TELEMETRY=1
-export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
-```
-
-`DO_NOT_TRACK` and `DISABLE_TELEMETRY` turn off Claude Code's own telemetry too, and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` turns off all of Claude Code's nonessential traffic. `POSTHOG_PLUGIN_TELEMETRY_DISABLED` turns off only this plugin's telemetry.
 
 ## Self-hosted
 

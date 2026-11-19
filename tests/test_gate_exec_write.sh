@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Tests for hooks/gate-exec-write.sh.
 #
-# Plain bash, no dependencies. Run from anywhere:
+# Run from anywhere with bash and Python 3. Set POSTHOG_TEST_BASH_FALLBACK=1
+# to cover hosts without a working Python interpreter.
 #
 #     ./tests/test_gate_exec_write.sh
 #
@@ -19,6 +20,16 @@ READ_TOOLS="$HERE/../hooks/read-tools.txt"
 # on what the daily sync generates.
 fixture_dir="$(mktemp -d)"
 trap 'rm -rf "$fixture_dir"' EXIT
+
+parsed_bypass=silent
+if [[ "${POSTHOG_TEST_BASH_FALLBACK:-}" == 1 ]]; then
+    mkdir "$fixture_dir/no-python"
+    printf '#!/bin/bash\nexit 127\n' > "$fixture_dir/no-python/python3"
+    chmod +x "$fixture_dir/no-python/python3"
+    PATH="$fixture_dir/no-python:$PATH"
+    parsed_bypass=prompt
+fi
+
 cp "$HERE/../hooks/gate-exec-write.sh" "$fixture_dir/"
 HOOK="$fixture_dir/gate-exec-write.sh"
 cat > "$fixture_dir/read-tools.txt" <<'LIST'
@@ -307,16 +318,14 @@ run_case "top-level escaped bypassPermissions value still prompts" \
     '{"tool_name":"mcp__posthog__exec","permission_mode":"\u0062ypassPermissions","tool_input":{"command":"call insight-delete {}"}}' \
     prompt insight-delete
 
-# Size cap in top_level_bypass: a realistic-size body with a top-level bypass is
-# still allowed; a body past the 20,000-piece cap asks even with a top-level bypass.
-# The body names bypassPermissions, so the guard lets the walk (or the cap) run.
+# The Bash fallback limits the number of string pieces.
 run_case "top-level bypassPermissions with a 3 KB escaped body is silent" \
     "$(escaped_quote_payload 3 bypassPermissions)" \
     silent
 
-run_case "top-level bypassPermissions with a 100 KB escaped body (over the piece cap) prompts" \
+run_case "top-level bypassPermissions with a 100 KB escaped body" \
     "$(escaped_quote_payload 100 bypassPermissions)" \
-    prompt insight-delete
+    "$parsed_bypass" insight-delete
 
 # Payload with $1 non-root outside opens (tool_input {, data [, a number array [, and $1 - 3
 # shallow [] items) and a top-level bypassPermissions. $2 pads the number array to that many
@@ -339,15 +348,12 @@ outside_opens_payload() {
     printf '%s%s%s' "$pre" "$nums" "$post"
 }
 
-# One past the outside-open cap (max_opens in hooks/gate-exec-write.sh, 1,000) asks even
-# with a top-level bypass. The body is small, so only the open count can send it to the prompt.
-run_case "top-level bypassPermissions with 1,001 outside opens prompts" \
+# The Bash fallback limits the number of brackets outside strings.
+run_case "top-level bypassPermissions with 1,001 outside opens" \
     "$(outside_opens_payload 1001 0)" \
-    prompt insight-delete
+    "$parsed_bypass" insight-delete
 
-# Malformed input with a top-level bypassPermissions must prompt (fail closed). Each row
-# is one of: text after the final `}`, a JSON escape that does not exist, or nesting past
-# 64 levels.
+# Both parsers keep the prompt for malformed input.
 run_case "top-level bypassPermissions with trailing text after the object prompts" \
     '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"}} garbage' \
     prompt insight-delete
@@ -365,9 +371,9 @@ run_case "top-level bypassPermissions with 80 trailing spaces is silent" \
     "$(trailing_ws_payload 80)" \
     silent
 
-run_case "top-level bypassPermissions with 5000 trailing spaces prompts" \
+run_case "top-level bypassPermissions with 5000 trailing spaces" \
     "$(trailing_ws_payload 5000)" \
-    prompt insight-delete
+    "$parsed_bypass" insight-delete
 
 run_case "top-level bypassPermissions with a [ closed by } inside a value prompts" \
     '{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}"},"note":[1}}' \
@@ -380,12 +386,11 @@ deep_bypass_payload() {
     printf '%s' '}'
 }
 
-run_case "top-level bypassPermissions with 100 levels of nesting prompts" \
+run_case "top-level bypassPermissions with 100 levels of nesting" \
     "$(deep_bypass_payload 100)" \
-    prompt insight-delete
+    "$parsed_bypass" insight-delete
 
-# Byte cap (max_bytes in hooks/gate-exec-write.sh, 131,072). One long string of exactly $1
-# bytes. It has few pieces, so only the byte cap can send it to the prompt.
+# Payload with one long string to isolate the Bash fallback's byte limit.
 sized_payload() {
     local open_part='{"tool_name":"mcp__posthog__exec","permission_mode":"bypassPermissions","tool_input":{"command":"call insight-delete {}","pad":"'
     local close_part='"}}'
@@ -394,13 +399,17 @@ sized_payload() {
     printf '%s' "$close_part"
 }
 
-run_case "top-level bypassPermissions with a 131,073-byte body (one long string) prompts" \
+run_case "top-level bypassPermissions with a 131,073-byte body (one long string)" \
     "$(sized_payload 131073)" \
-    prompt insight-delete
+    "$parsed_bypass" insight-delete
 
-run_case "top-level bypassPermissions with a 131,072-byte body (one long string) is silent" \
-    "$(sized_payload 131072)" \
+run_case "top-level bypassPermissions with a 65,536-byte body (one long string) is silent" \
+    "$(sized_payload 65536)" \
     silent
+
+run_case "top-level bypassPermissions with a 65,537-byte body (one long string)" \
+    "$(sized_payload 65537)" \
+    "$parsed_bypass" insight-delete
 
 # Odd backslash run: a 3-backslash run before a quote escapes it, so the string goes on.
 # The piece holds 73 characters, so the last-64-characters count is exercised.
@@ -727,11 +736,8 @@ done
 # --- speed: a large body stays fast under stock bash ---
 #
 # macOS ships bash 3.2, where indexing an array costs time in proportion to the
-# index. The permission_mode walk once did that per piece, which took about 14 s on
-# a 500 KB body. The size cap in top_level_bypass keeps bodies this large off the walk.
-# This runs the hook under /bin/bash on a 500 KB and a 2 MB body, and fails past 3 s
-# or unless each one asks. The two backslash rows hold a 40,000-byte run in one string,
-# with and without a top-level bypass: the run check must answer before it walks the run.
+# index. Exercise the hook within its timeout under /bin/bash with long strings,
+# large arrays, and both permission modes.
 
 # %R prints seconds with three decimals, e.g. 1.361; convert to whole milliseconds.
 # Each payload is built before timing, so the clock covers only the hook run.
@@ -778,8 +784,7 @@ number_array_payload() {
     printf '%s' '1]}}'
 }
 
-# Payload with $1 non-root outside opens, $2 total bytes, and $3 empty "" strings: the worst valid
-# input by pieces (19,999 at 1,000 opens and 9,991 strings). Same layout as outside_opens_payload.
+# Payload with $1 non-root outside opens, $2 total bytes, and $3 empty "" strings.
 pieces_payload() {
     local items='' pre post avail nums
     items="$(printf '[],%.0s' $(seq 1 $(( $1 - 3 ))))$(printf '"",%.0s' $(seq 1 "$3"))"
@@ -804,19 +809,19 @@ number_array_payload 120 bypassPermissions > "$fixture_dir/array-120-bypass.json
 
 speed_check "500 KB escaped body (bypassPermissions inside)" "$fixture_dir/speed-500.json"
 speed_check "2000 KB escaped body (bypassPermissions inside)" "$fixture_dir/speed-2000.json"
-speed_check "40,000-backslash string with top-level bypassPermissions" "$fixture_dir/backslash-bypass.json"
+speed_check "40,000-backslash string with top-level bypassPermissions" "$fixture_dir/backslash-bypass.json" "$parsed_bypass"
 speed_check "40,000-backslash string in default mode" "$fixture_dir/backslash-default.json"
-speed_check "200 KB number array with top-level bypassPermissions (over the 128 KB cap) asks" "$fixture_dir/array-200-bypass.json"
+speed_check "200 KB number array with top-level bypassPermissions" "$fixture_dir/array-200-bypass.json" "$parsed_bypass"
 speed_check "200 KB number array in default mode" "$fixture_dir/array-200-default.json"
-speed_check "120 KB number array with top-level bypassPermissions is silent" "$fixture_dir/array-120-bypass.json" silent
+speed_check "120 KB number array with top-level bypassPermissions" "$fixture_dir/array-120-bypass.json" "$parsed_bypass"
 
-# Exactly the outside-open cap (1,000) in a 131,072-byte body is still decided: silent, under the
-# 3 s limit (headroom for shared CI runners, still under the 5 s hook timeout). The worst valid
-# input the caps admit is 1,000 opens with 19,999 pieces in the same size.
+# Exercise both parsers near their Bash fallback limits and with larger inputs.
 outside_opens_payload 1000 131072 > "$fixture_dir/opens-cap-131072.json"
-speed_check "1,000 outside opens in a 131,072-byte body is silent" "$fixture_dir/opens-cap-131072.json" silent
+speed_check "1,000 outside opens in a 131,072-byte body" "$fixture_dir/opens-cap-131072.json" "$parsed_bypass"
 pieces_payload 1000 131072 9991 > "$fixture_dir/pieces-cap-131072.json"
-speed_check "1,000 outside opens and 19,999 pieces in a 131,072-byte body is silent" "$fixture_dir/pieces-cap-131072.json" silent
+speed_check "1,000 outside opens and 19,999 pieces in a 131,072-byte body" "$fixture_dir/pieces-cap-131072.json" "$parsed_bypass"
+pieces_payload 1000 65536 1991 > "$fixture_dir/pieces-cap-65536.json"
+speed_check "1,000 outside opens and 3,999 pieces in a 65,536-byte body is silent" "$fixture_dir/pieces-cap-65536.json" silent
 
 # --- summary ---
 

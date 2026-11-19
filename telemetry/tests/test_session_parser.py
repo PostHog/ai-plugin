@@ -4,6 +4,8 @@ import json
 import os
 import sys
 import tempfile
+import time
+import urllib.error
 
 import pytest
 
@@ -12,6 +14,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from posthog_llma.parser import parse_session, find_session_log
 from posthog_llma.event_builder import build_events, parse_git_remote_url
+import posthog_llma.sent_events as sent_events_mod
+from posthog_llma.sent_events import send_new_events
 from posthog_llma.config import load_config
 from posthog_llma.trace_naming import find_trace_name, clean_trace_name
 
@@ -981,8 +985,9 @@ class TestBuildEvents:
             os.unlink(path)
 
     def test_insert_id_stable_across_reparses(self):
-        """Same JSONL parsed twice yields identical $insert_ids, so PostHog
-        dedupes — even though span_ids are regenerated each parse."""
+        """Same JSONL parsed twice yields identical events, span IDs
+        included, so PostHog dedupes them and the sender can skip the
+        ones it already sent."""
         path = _write_jsonl(_make_session([{"prompt": "run ls", "tools": ["Bash"]}]))
         try:
             events_a = build_events(parse_session(path, DEFAULT_CONFIG), DEFAULT_CONFIG)
@@ -991,6 +996,7 @@ class TestBuildEvents:
             ids_a = sorted(e["properties"]["$insert_id"] for e in events_a)
             ids_b = sorted(e["properties"]["$insert_id"] for e in events_b)
             assert ids_a == ids_b
+            assert events_a == events_b
         finally:
             os.unlink(path)
 
@@ -1004,6 +1010,7 @@ class TestBuildEvents:
             ids_a = sorted(e["properties"]["$insert_id"] for e in events_a)
             ids_b = sorted(e["properties"]["$insert_id"] for e in events_b)
             assert ids_a == ids_b
+            assert events_a == events_b
         finally:
             os.unlink(path)
 
@@ -1074,6 +1081,98 @@ class TestBuildEvents:
             assert gen_a["properties"]["$insert_id"] != gen_b["properties"]["$insert_id"]
         finally:
             os.unlink(path)
+
+
+# ---------------------------------------------------------------------------
+# send_new_events
+# ---------------------------------------------------------------------------
+
+
+class _FakeResponse:
+    status = 200
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+
+
+class _FakePostHog:
+    def __init__(self):
+        self.batches = []
+        self.fail = False
+
+    def urlopen(self, req, timeout=None):
+        if self.fail:
+            raise urllib.error.HTTPError(req.full_url, 503, "unavailable", {}, None)
+        self.batches.append(json.loads(req.data.decode("utf-8"))["batch"])
+        return _FakeResponse()
+
+    def end_session(self, entries):
+        path = _write_jsonl(entries)
+        try:
+            events = build_events(parse_session(path, DEFAULT_CONFIG), DEFAULT_CONFIG)
+        finally:
+            os.unlink(path)
+        return send_new_events(events, session_id="test-session-id", api_key="phc_test", distinct_id="user")
+
+
+@pytest.fixture
+def posthog(monkeypatch, tmp_path):
+    fake = _FakePostHog()
+    monkeypatch.setattr(sent_events_mod, "SENT_DIR", str(tmp_path))
+    monkeypatch.setattr("urllib.request.urlopen", fake.urlopen)
+    return fake
+
+
+class TestSendNewEvents:
+    def test_session_end_sends_only_new_and_changed_events(self, posthog):
+        first = _make_session([{"prompt": "run ls", "tools": ["Bash"]}])
+        resumed = _make_session([{"prompt": "run ls", "tools": ["Bash"]}, {"prompt": "hello", "tools": []}])
+
+        posthog.end_session(first)
+        assert posthog.end_session(first)["sent"] == 0
+        posthog.end_session(resumed)
+
+        first_batch, resumed_batch = posthog.batches
+        assert sorted(e["event"] for e in first_batch) == ["$ai_generation", "$ai_generation", "$ai_span", "$ai_trace"]
+        assert sorted(e["event"] for e in resumed_batch) == ["$ai_generation", "$ai_trace"]
+        first_uuids = {e["uuid"]: e["event"] for e in first_batch}
+        assert [first_uuids.get(e["uuid"]) for e in resumed_batch if e["event"] == "$ai_trace"] == ["$ai_trace"]
+        assert all(e["uuid"] not in first_uuids for e in resumed_batch if e["event"] == "$ai_generation")
+
+    def test_span_sent_again_with_its_result_keeps_its_parent(self, posthog):
+        full = _make_session([{"prompt": "run ls", "tools": ["Bash"]}])
+        # The session ends before the tool result and the reply after it.
+        before_result = full[:-2]
+
+        posthog.end_session(before_result)
+        posthog.end_session(full)
+
+        first_batch, second_batch = posthog.batches
+        generation = next(e for e in first_batch if e["event"] == "$ai_generation")
+        span = next(e for e in second_batch if e["event"] == "$ai_span")
+        assert span["properties"]["$ai_output_state"] == "tool output here"
+        assert span["properties"]["$ai_parent_id"] == generation["properties"]["$ai_span_id"]
+        assert generation["uuid"] not in {e["uuid"] for e in second_batch}
+
+    def test_failed_send_is_sent_again_at_the_next_session_end(self, posthog):
+        session = _make_session([{"prompt": "hello", "tools": []}])
+
+        posthog.fail = True
+        assert posthog.end_session(session)["status"] == "error"
+        posthog.fail = False
+        posthog.end_session(session)
+
+        assert sorted(e["event"] for e in posthog.batches[0]) == ["$ai_generation", "$ai_trace"]
+
+    def test_records_of_expired_sessions_are_removed(self, posthog, tmp_path):
+        expired = tmp_path / "expired-session.json"
+        expired.write_text("{}")
+        old = time.time() - sent_events_mod.RETENTION_SECONDS - 60
+        os.utime(expired, (old, old))
+
+        posthog.end_session(_make_session([{"prompt": "hello", "tools": []}]))
+
+        assert not expired.exists()
+        assert (tmp_path / "test-session-id.json").exists()
 
 
 # ---------------------------------------------------------------------------

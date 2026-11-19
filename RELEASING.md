@@ -1,0 +1,58 @@
+# Releasing the PostHog AI plugin
+
+Merging to `main` is not always enough. Some AI clients install the plugin straight from this repo. Others serve their own copy, and someone has to ask them to update it.
+
+| Who | What they run | After a merge |
+| --- | --- | --- |
+| People who installed from this repo with the README's commands (Claude Code, Claude Cowork, Codex CLI, Gemini CLI, Antigravity, Grok) | This repo. They get a change when their client next updates the plugin. | Nothing |
+| People who installed from Anthropic (the Claude Code marketplace or the directory on claude.ai) | A commit of this repo that Anthropic chose | [Ask Anthropic](#anthropic) |
+| People who installed from the Cursor Marketplace | Cursor's copy | [Email Cursor](#cursor) |
+
+## Changing the plugin
+
+1. If the change needs a PostHog MCP server change, ship the server change first.
+2. Bump the version if people who already have the plugin need the change. Claude Code keeps an installed plugin on its version until the version changes.
+   - Use a minor bump, such as 1.2.0 to 1.3.0, in every manifest that has a `version` and in `.claude-plugin/marketplace.json`.
+   - Patch bumps belong to the daily sync job. See [`.github/PLUGIN_SYNC.md`](.github/PLUGIN_SYNC.md).
+3. Update your branch from `main` right before you merge. The sync job changes the version lines, so an old branch conflicts.
+4. Run `python3 -m pytest tests/test_plugin_paths.py`.
+5. Merge, then update each copy below that needs the change.
+
+## Anthropic
+
+Anthropic manages its listings of the plugin. PostHog cannot change them. To get a new version out, ask in `#ext-posthog-anthropic` (PostHog Slack).
+
+There are two listings, and they can be on different versions:
+
+- The Claude Code marketplace, [`anthropics/claude-plugins-official`](https://github.com/anthropics/claude-plugins-official). It pins the plugin to one commit of this repo. Their bot opens a PR to move the pin, and their staff merge it.
+- The directory on claude.ai, which also serves Claude Cowork. It has its own commit and does not follow the pin.
+
+1. Check [the pin](https://github.com/anthropics/claude-plugins-official/blob/main/.claude-plugin/marketplace.json) (search for `posthog`) and any [open bump PR](https://github.com/anthropics/claude-plugins-official/pulls?q=is%3Apr+is%3Aopen+posthog).
+2. Ask in the channel. Give the commit you want, and ask for both listings.
+3. If an old bump PR is still open, ask them to close it. Their bot does not open a new one while an old one is open.
+4. Done when the pin shows your commit and the plugin's page on claude.ai shows the new version.
+
+## Cursor
+
+The Cursor Marketplace serves its own copy and re-indexes it on request.
+
+1. Email `marketplace-publishing@cursor.com` with the plugin name (PostHog), the repo (`PostHog/ai-plugin`) and the commit. Ask for a re-index.
+2. Done when they confirm.
+
+To do: we are asking Cursor whether the listing can update automatically. Not decided yet.
+
+## Not this plugin: the PostHog listing in ChatGPT and Codex
+
+OpenAI's plugin directory also lists PostHog. That listing is not this plugin. It is a small bundle that points ChatGPT and Codex at the PostHog MCP server, uploaded by hand on OpenAI's platform. Nothing in this repo feeds it, and a merge here never changes it.
+
+Codex users who follow the README install this plugin from this repo. That is a different thing from the directory listing.
+
+The steps are here because the listing has no repo of its own. Use them only when the listing itself changes, such as its description, logo or MCP server URL. Questions go to `#ext-posthog-openai` (PostHog Slack).
+
+1. On OpenAI's platform, open Plugins, then PostHog, and download the zip of the published version.
+2. Unzip it, make the change, and raise `version` in the zip's own `.codex-plugin/plugin.json`. Do not copy files from this repo into it.
+3. Zip it from a terminal so the hidden files are included: `zip -r posthog-<version>.zip .codex-plugin .mcp.json assets`.
+4. Select "Create draft from ZIP" and upload it.
+5. Select "Submit for review" and wait for "Approved". Version 2.0.3 took one night.
+6. Select "Publish plugin". Approval does not publish.
+7. Install it in ChatGPT or Codex and ask one PostHog question.
