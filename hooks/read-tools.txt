@@ -14,6 +14,7 @@ access-control-roles-list
 account-notes-list
 account-relationship-definitions-list
 account-relationship-definitions-retrieve
+accounts-custom-property-values-history
 accounts-custom-property-values-list
 accounts-list
 accounts-meetings-list
@@ -461,6 +462,7 @@ notebooks-list
 notebooks-list-frames
 notebooks-run-cell-result
 notebooks-widget-status
+oauth-applications-list
 opt-outs-list
 org-member-get-github-login
 org-members-list
@@ -523,6 +525,9 @@ query-web-overview
 query-web-stats
 query-web-vitals
 read-data-schema
+release-get
+releases-list
+releases-suggest-for-flag
 reminder-get
 reminders-list
 reusable-widgets-list
