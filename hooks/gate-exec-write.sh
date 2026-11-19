@@ -42,9 +42,8 @@
 # `posthog-connection-forward` prompt regardless of DENY and ALLOW, as does any
 # input the hook can't read reliably.
 #
-# Pure bash; no jq or other third-party tools required. Relies on the fact
-# that PostHog tool names are kebab-case alphanumerics, so a narrow regex on
-# the raw JSON payload is safe.
+# Tool matching uses bash and relies on PostHog tool names being kebab-case
+# alphanumerics, so a narrow regex on the raw JSON payload is safe.
 
 # `--fail-closed` is for hooks/codex-gate-exec-write.sh, which approves every
 # call this script passes silently. In that mode the script passes only known
@@ -126,6 +125,14 @@ fi
 DEFAULT_DENY='*feature-flag*,*delete*,*destroy*,experiment-launch,experiment-ship-variant,experiment-reset,survey-launch,workflows-enable'
 
 input="$(cat)"
+
+# Claude Code supplies permission_mode at the top level. Parse the JSON so
+# tool_input cannot opt out, and preserve Codex's fail-closed read approval.
+if (( ! fail_closed )) && [[ "$input" == *'"bypassPermissions"'* ]] &&
+    python3 -I -c 'import json, sys; sys.exit(json.load(sys.stdin.buffer).get("permission_mode") != "bypassPermissions")' \
+        <<< "$input" 2>/dev/null; then
+    exit 0
+fi
 
 # Extract `tool_name` — simple identifier, no escaping inside the value.
 tool_name=""

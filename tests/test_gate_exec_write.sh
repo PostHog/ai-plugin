@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Tests for hooks/gate-exec-write.sh.
 #
-# Plain bash, no dependencies. Run from anywhere:
+# Run from anywhere with bash and Python 3:
 #
 #     ./tests/test_gate_exec_write.sh
 #
@@ -106,6 +106,30 @@ run_case "read-only call with allowlist set is still silent" \
     "$(exec_call experiment-get)" \
     silent "" \
     POSTHOG_MCP_EXEC_GATE_ALLOW="llma-skill-*"
+
+# --- Claude Code permission mode ---
+
+run_case "bypassPermissions skips the write gate" \
+    '{"hook_event_name":"PreToolUse","permission_mode":"bypassPermissions","tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}"}}' \
+    silent
+
+run_case "bypassPermissions skips the gate even with DENY set to *" \
+    '{"hook_event_name":"PreToolUse","tool_name":"mcp__posthog__exec","tool_input":{"command":"call dashboard-update {}"},"permission_mode":"bypassPermissions"}' \
+    silent "" \
+    POSTHOG_MCP_EXEC_GATE_DENY="*"
+
+run_case "default permission mode still prompts" \
+    '{"hook_event_name":"PreToolUse","permission_mode":"default","tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
+run_case "a nested permission_mode cannot skip the gate" \
+    '{"hook_event_name":"PreToolUse","tool_name":"mcp__posthog__exec","tool_input":{"permission_mode":"bypassPermissions","command":"call insight-delete {}"}}' \
+    prompt insight-delete
+
+run_case "bypassPermissions accepts Unicode with an ASCII Python environment" \
+    '{"hook_event_name":"PreToolUse","permission_mode":"bypassPermissions","tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {\"name\":\"café\"}"}}' \
+    silent "" \
+    PYTHONIOENCODING=ascii
 
 # --- default deny set: sensitive writes prompt, other writes are silent ---
 

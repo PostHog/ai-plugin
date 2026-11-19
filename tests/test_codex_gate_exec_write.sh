@@ -79,6 +79,8 @@ run_case "--confirm before a listed read is allowed" allow "$(exec_payload 'call
 # --- every other call prompts, whatever its name ---
 
 run_case "sensitive write prompts" prompt "$(exec_payload 'call delete-feature-flag {\"id\":1}')"
+run_case "Claude Code bypassPermissions does not approve a Codex write" prompt \
+    '{"hook_event_name":"PermissionRequest","permission_mode":"bypassPermissions","tool_name":"mcp__posthog__exec","tool_input":{"command":"call insight-delete {}"}}'
 run_case "sensitive write with --json prompts" prompt "$(exec_payload 'call --json notebooks-destroy {}')"
 run_case "--confirm before a sensitive write prompts" prompt "$(exec_payload 'call --confirm delete-feature-flag {}')"
 run_case "write outside the default deny set prompts (experiment-update)" prompt "$(exec_payload 'call experiment-update {}')"
