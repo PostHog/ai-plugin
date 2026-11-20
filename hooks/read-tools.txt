@@ -50,7 +50,6 @@ aeo-prompts-topics-list
 aeo-prompts-versions-list
 aeo-setup-context-get
 aeo-setup-get
-agent-feedback
 alert-get
 alerts-list
 annotation-retrieve
@@ -237,6 +236,7 @@ error-tracking-suppression-rules-list
 error-tracking-symbol-sets-download-retrieve
 error-tracking-symbol-sets-list
 error-tracking-symbol-sets-retrieve
+error-tracking-tag-rules-list
 event-definition-get
 event-streams-list
 events-retention-deletion-count
@@ -269,13 +269,10 @@ external-data-destinations-delivery-failures
 external-data-destinations-list
 external-data-destinations-retrieve
 external-data-schemas-destinations-retrieve
-external-data-schemas-incremental-fields-create
 external-data-schemas-list
 external-data-schemas-retrieve
 external-data-sources-cdc-status-retrieve
-external-data-sources-check-cdc-prerequisites-create
 external-data-sources-connections-list
-external-data-sources-db-schema
 external-data-sources-destinations-retrieve
 external-data-sources-jobs
 external-data-sources-list
@@ -554,7 +551,6 @@ scout-runs-list
 scout-runs-recent-emissions
 scout-runs-retrieve
 scout-scratchpad-search
-scout-trial-get
 scout-trial-list
 scout-trial-report
 scout-trial-setup
@@ -592,7 +588,6 @@ survey-stats
 surveys-get-all
 surveys-global-stats
 surveys-responses-list
-surveys-summarize-responses-create
 task-context-wiki-channel-resolve
 task-context-wiki-page-retrieve
 tasks-artifacts-list
@@ -676,6 +671,9 @@ wizard-install-status
 workflow-health
 workflows-blast-radius
 workflows-data-suggestions-get
+workflows-email-activity
+workflows-email-get
+workflows-emails-list
 workflows-get
 workflows-get-email-template
 workflows-get-invocation
