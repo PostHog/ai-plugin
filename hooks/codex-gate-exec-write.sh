@@ -4,8 +4,9 @@
 # Codex hooks cannot return "ask", so the plugin sets the posthog MCP server's
 # `default_tools_approval_mode` to `prompt` (codex-mcp.json): every `exec` call
 # reaches Codex's approval flow, and this hook runs first. It approves only
-# known reads: exec's read-only verbs and `call`s of tools on read-tools.txt, as
-# passed by `gate-exec-write.sh --fail-closed`. Every other command, including
+# known reads: exec's read-only verbs, `call`s of tools on read-tools.txt and
+# every `exec-read` command (the server refuses writes there), as passed by
+# `gate-exec-write.sh --fail-closed`. Every other command, including
 # any write, gets no verdict, so Codex prompts. The POSTHOG_MCP_EXEC_GATE_*
 # variables never approve a write here.
 #

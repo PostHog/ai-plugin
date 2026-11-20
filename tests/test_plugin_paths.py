@@ -296,3 +296,31 @@ def test_plugin_ships_no_skills():
         assert not (plugin_root / "skills").exists(), f"{name}: {plugin_root / 'skills'} would ship bundled skills"
     declaring = [path for path in PLUGIN_MANIFESTS if "skills" in json.loads((REPO_ROOT / path).read_text())]
     assert declaring == [], f"{declaring} declare a skills path"
+
+
+def _gate_matchers(hooks_file, event):
+    return [entry["matcher"] for entry in json.loads(hooks_file.read_text())["hooks"][event]]
+
+
+# Claude Code and Codex search the tool name with the matcher as an unanchored regex.
+@pytest.mark.parametrize(
+    "hooks_file,event,tool_names",
+    [
+        (
+            "hooks.json",
+            "PreToolUse",
+            ["mcp__posthog__exec", "mcp__posthog__exec-read", "mcp__plugin_posthog_posthog__exec-write"],
+        ),
+        ("codex-hooks.json", "PermissionRequest", ["mcp__posthog__exec", "mcp__posthog__exec-read", "mcp__posthog__exec-write"]),
+    ],
+)
+def test_exec_gate_matches_every_exec_tool(hooks_file, event, tool_names):
+    (matcher,) = _gate_matchers(REPO_ROOT / "hooks" / hooks_file, event)
+    assert [name for name in tool_names if not re.search(matcher, name)] == []
+
+
+@pytest.mark.parametrize("hooks_file,event", [("hooks.json", "PreToolUse"), ("codex-hooks.json", "PermissionRequest")])
+def test_exec_gate_skips_other_tools(hooks_file, event):
+    (matcher,) = _gate_matchers(REPO_ROOT / "hooks" / hooks_file, event)
+    others = ["mcp__posthog__exec-other", "mcp__posthog__executor", "mcp__posthog__render-ui"]
+    assert [name for name in others if re.search(matcher, name)] == []
