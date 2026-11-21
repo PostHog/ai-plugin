@@ -453,6 +453,7 @@ metric-describe
 metric-list
 metric-names-list
 metrics-dashboard-panels-validate
+notebooks-app-get
 notebooks-compute-options
 notebooks-get
 notebooks-list
