@@ -1308,7 +1308,7 @@ def test_session_end_captures_subagent_usage(tmp_path):
     """E2E coverage for #166: the hook also sends generations from
     <project>/<session_id>/subagents/agent-*.jsonl in the same batch."""
     session = "55555555-5555-5555-5555-555555555555"
-    cwd = "/Users/test/myproject"
+    cwd = "/tmp/myproject"
     project = tmp_path / ".claude" / "projects" / cwd.replace("/", "-")
     subagents = project / session / "subagents"
     subagents.mkdir(parents=True)
