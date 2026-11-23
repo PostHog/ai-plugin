@@ -6,6 +6,7 @@ events to PostHog LLM Analytics. No-op unless POSTHOG_LLMA_CC_ENABLED
 is set to true and POSTHOG_API_KEY is set.
 """
 
+import glob
 import json
 import os
 import subprocess
@@ -55,6 +56,21 @@ def _run():
         sys.exit(0)
 
     parsed = parse_session(jsonl_path, config)
+
+    # Subagent transcripts live beside the session log at
+    # <session_id>/subagents/agent-*.jsonl. Their generations and tool
+    # uses belong in the same batch; their prompts are internal Task
+    # calls, not user prompts, so they are not merged in.
+    pattern = os.path.join(
+        os.path.dirname(jsonl_path), session_id, "subagents", "agent-*.jsonl")
+    for path in sorted(glob.glob(pattern)):
+        try:
+            sub = parse_session(path, config)
+        except OSError:
+            continue
+        parsed["generations"].extend(sub["generations"])
+        parsed["tool_uses"].extend(sub["tool_uses"])
+
     if not parsed["generations"]:
         sys.exit(0)
 

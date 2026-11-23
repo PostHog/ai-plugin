@@ -1,9 +1,12 @@
 """Tests for the Claude Code session JSONL parser and event builder."""
 
+import http.server
 import json
 import os
+import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.error
 
@@ -1294,3 +1297,66 @@ class TestParseGitRemoteUrl:
     ])
     def test_parse(self, url, expected):
         assert parse_git_remote_url(url) == expected
+
+
+# ---------------------------------------------------------------------------
+# SessionEnd hook
+# ---------------------------------------------------------------------------
+
+
+def test_session_end_captures_subagent_usage(tmp_path):
+    """E2E coverage for #166: the hook also sends generations from
+    <project>/<session_id>/subagents/agent-*.jsonl in the same batch."""
+    session = "55555555-5555-5555-5555-555555555555"
+    cwd = "/Users/test/myproject"
+    project = tmp_path / ".claude" / "projects" / cwd.replace("/", "-")
+    subagents = project / session / "subagents"
+    subagents.mkdir(parents=True)
+
+    def asst(uuid, msg_id, text):
+        return {
+            "type": "assistant", "uuid": uuid, "parentUuid": "u-1",
+            "sessionId": session, "timestamp": "2026-04-12T10:00:01.000Z",
+            "message": {"role": "assistant", "id": msg_id, "model": "claude-opus-4-6",
+                        "stop_reason": "end_turn", "usage": {"output_tokens": 5},
+                        "content": [{"type": "text", "text": text}]},
+        }
+
+    user = {
+        "type": "user", "uuid": "u-1", "parentUuid": None, "promptId": "p-1",
+        "sessionId": session, "timestamp": "2026-04-12T10:00:00.000Z",
+        "message": {"role": "user", "content": "go"},
+    }
+    (project / f"{session}.jsonl").write_text(
+        "".join(json.dumps(e) + "\n" for e in [user, asst("a-1", "m-1", "main reply")]))
+    (subagents / "agent-1.jsonl").write_text(
+        json.dumps(asst("a-2", "m-2", "subagent reply")) + "\n")
+
+    bodies = []
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            bodies.append(self.rfile.read(int(self.headers.get("Content-Length", 0))))
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"{}")
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        hook = os.path.join(os.path.dirname(__file__), "..", "hooks", "session-end-llma.py")
+        env = {"PATH": os.environ.get("PATH", ""), "HOME": str(tmp_path),
+               "POSTHOG_LLMA_CC_ENABLED": "true", "POSTHOG_API_KEY": "phc_test",
+               "POSTHOG_HOST": f"http://127.0.0.1:{server.server_address[1]}"}
+        subprocess.run([sys.executable, hook],
+                       input=json.dumps({"session_id": session, "cwd": cwd}),
+                       text=True, env=env, timeout=60, check=True)
+    finally:
+        server.shutdown()
+
+    sent = b"\n".join(bodies).decode("utf-8", "replace")
+    assert "main reply" in sent
+    assert "subagent reply" in sent
