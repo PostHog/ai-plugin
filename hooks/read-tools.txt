@@ -403,7 +403,6 @@ llma-skill-file-get
 llma-skill-get
 llma-skill-list
 llma-tagger-list
-llma-tagger-test-hog
 llma-trace-review-get
 llma-trace-review-list
 logs-alerts-events-list
