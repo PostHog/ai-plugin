@@ -66,7 +66,9 @@ def _run():
     for path in sorted(glob.glob(pattern)):
         try:
             sub = parse_session(path, config)
-        except OSError:
+        except (OSError, ValueError, AttributeError):
+            # One unreadable subagent file (a cut multi-byte character,
+            # a line that is not a JSON object) must not drop the batch.
             continue
         parsed["generations"].extend(sub["generations"])
         parsed["tool_uses"].extend(sub["tool_uses"])

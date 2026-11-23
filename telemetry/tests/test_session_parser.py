@@ -1304,9 +1304,11 @@ class TestParseGitRemoteUrl:
 # ---------------------------------------------------------------------------
 
 
-def test_session_end_captures_subagent_usage(tmp_path):
+@pytest.mark.parametrize("bad_subagent", [None, b"\xff\n", b"null\n"])
+def test_session_end_captures_subagent_usage(tmp_path, bad_subagent):
     """E2E coverage for #166: the hook also sends generations from
-    <project>/<session_id>/subagents/agent-*.jsonl in the same batch."""
+    <project>/<session_id>/subagents/agent-*.jsonl in the same batch.
+    An unreadable subagent file is skipped; the rest still goes out."""
     session = "55555555-5555-5555-5555-555555555555"
     cwd = "/tmp/myproject"
     project = tmp_path / ".claude" / "projects" / cwd.replace("/", "-")
@@ -1331,6 +1333,8 @@ def test_session_end_captures_subagent_usage(tmp_path):
         "".join(json.dumps(e) + "\n" for e in [user, asst("a-1", "m-1", "main reply")]))
     (subagents / "agent-1.jsonl").write_text(
         json.dumps(asst("a-2", "m-2", "subagent reply")) + "\n")
+    if bad_subagent is not None:
+        (subagents / "agent-0.jsonl").write_bytes(bad_subagent)
 
     bodies = []
 
