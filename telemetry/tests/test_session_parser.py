@@ -1304,11 +1304,12 @@ class TestParseGitRemoteUrl:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("bad_subagent", [None, b"\xff\n", b"null\n"])
+@pytest.mark.parametrize("bad_subagent", [None, "non-utf8", "null-line", "odd-content", "duplicate"])
 def test_session_end_captures_subagent_usage(tmp_path, bad_subagent):
     """E2E coverage for #166: the hook also sends generations from
     <project>/<session_id>/subagents/agent-*.jsonl in the same batch.
-    An unreadable subagent file is skipped; the rest still goes out."""
+    A malformed subagent file is skipped and a reply already sent is not
+    sent twice; the rest of the batch still goes out."""
     session = "55555555-5555-5555-5555-555555555555"
     cwd = "/tmp/myproject"
     project = tmp_path / ".claude" / "projects" / cwd.replace("/", "-")
@@ -1333,8 +1334,15 @@ def test_session_end_captures_subagent_usage(tmp_path, bad_subagent):
         "".join(json.dumps(e) + "\n" for e in [user, asst("a-1", "m-1", "main reply")]))
     (subagents / "agent-1.jsonl").write_text(
         json.dumps(asst("a-2", "m-2", "subagent reply")) + "\n")
-    if bad_subagent is not None:
-        (subagents / "agent-0.jsonl").write_bytes(bad_subagent)
+    extra = {
+        "non-utf8": b"\xff\n",
+        "null-line": b"null\n",
+        "odd-content": (json.dumps({**asst("a-3", "m-3", "x"), "message": {
+            **asst("a-3", "m-3", "x")["message"], "content": [{"type": []}]}}) + "\n").encode(),
+        "duplicate": (json.dumps(asst("a-2", "m-2", "subagent reply")) + "\n").encode(),
+    }.get(bad_subagent)
+    if extra is not None:
+        (subagents / "agent-0.jsonl").write_bytes(extra)
 
     bodies = []
 
@@ -1363,4 +1371,4 @@ def test_session_end_captures_subagent_usage(tmp_path, bad_subagent):
 
     sent = b"\n".join(bodies).decode("utf-8", "replace")
     assert "main reply" in sent
-    assert "subagent reply" in sent
+    assert sent.count("subagent reply") == 1

@@ -63,15 +63,24 @@ def _run():
     # calls, not user prompts, so they are not merged in.
     pattern = os.path.join(
         os.path.dirname(jsonl_path), session_id, "subagents", "agent-*.jsonl")
+    seen = {g["msg_id"] for g in parsed["generations"] if g.get("msg_id")}
     for path in sorted(glob.glob(pattern)):
         try:
             sub = parse_session(path, config)
-        except (OSError, ValueError, AttributeError):
-            # One unreadable subagent file (a cut multi-byte character,
-            # a line that is not a JSON object) must not drop the batch.
+        except Exception:
+            # One malformed subagent file (a cut multi-byte character, a
+            # line of an unexpected shape) must not drop the whole batch.
             continue
-        parsed["generations"].extend(sub["generations"])
-        parsed["tool_uses"].extend(sub["tool_uses"])
+        dup_spans = set()
+        for gen in sub["generations"]:
+            if gen.get("msg_id") and gen["msg_id"] in seen:
+                dup_spans.add(gen["span_id"])
+                continue
+            seen.add(gen.get("msg_id"))
+            parsed["generations"].append(gen)
+        parsed["tool_uses"].extend(
+            tu for tu in sub["tool_uses"]
+            if tu.get("generation_span_id") not in dup_spans)
 
     if not parsed["generations"]:
         sys.exit(0)
