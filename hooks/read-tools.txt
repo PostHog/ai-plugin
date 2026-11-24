@@ -402,7 +402,6 @@ llma-score-definition-version-list
 llma-skill-file-get
 llma-skill-get
 llma-skill-list
-llma-tagger-list
 llma-trace-review-get
 llma-trace-review-list
 logs-alerts-events-list
