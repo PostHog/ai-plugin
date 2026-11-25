@@ -305,6 +305,9 @@ file-download-batch-exports-retrieve
 file-system-list
 generate-app-url
 get-llm-total-costs-for-project
+groups-find
+groups-list
+groups-types-list
 health-issues-get
 health-issues-list
 health-issues-summary
@@ -347,6 +350,7 @@ insights-list
 insights-trending-retrieve
 integration-get
 integrations-channels-retrieve
+integrations-domain-connect-check-retrieve
 integrations-email-status-retrieve
 integrations-github-repos-retrieve
 integrations-jira-projects-retrieve
