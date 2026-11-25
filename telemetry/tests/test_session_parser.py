@@ -15,9 +15,11 @@ import pytest
 # Add plugin root to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from posthog_llma.parser import parse_session, find_session_log
+from posthog_llma.parser import parse_session, parse_session_with_subagents, find_session_log
 from posthog_llma.event_builder import build_events, parse_git_remote_url
+import posthog_llma.sender as sender_mod
 import posthog_llma.sent_events as sent_events_mod
+from posthog_llma.sender import chunk_events
 from posthog_llma.sent_events import send_new_events
 from posthog_llma.config import load_config
 from posthog_llma.trace_naming import find_trace_name, clean_trace_name
@@ -1100,11 +1102,17 @@ class _FakeResponse:
 class _FakePostHog:
     def __init__(self):
         self.batches = []
+        self.bodies = []
         self.fail = False
+        # 1-based numbers of the POST calls that fail.
+        self.fail_on = set()
+        self.calls = 0
 
     def urlopen(self, req, timeout=None):
-        if self.fail:
+        self.calls += 1
+        if self.fail or self.calls in self.fail_on:
             raise urllib.error.HTTPError(req.full_url, 503, "unavailable", {}, None)
+        self.bodies.append(req.data)
         self.batches.append(json.loads(req.data.decode("utf-8"))["batch"])
         return _FakeResponse()
 
@@ -1176,6 +1184,134 @@ class TestSendNewEvents:
 
         assert not expired.exists()
         assert (tmp_path / "test-session-id.json").exists()
+
+
+class TestChunkedSend:
+    def _events(self, count):
+        session = _make_session([{"prompt": f"prompt {i}", "tools": ["Bash"]} for i in range(count)])
+        path = _write_jsonl(session)
+        try:
+            return build_events(parse_session(path, DEFAULT_CONFIG), DEFAULT_CONFIG)
+        finally:
+            os.unlink(path)
+
+    def _send(self, events, **kwargs):
+        return send_new_events(events, session_id="test-session-id", api_key="phc_test", distinct_id="user", **kwargs)
+
+    def test_chunk_events_splits_in_order_within_limit(self):
+        events = self._events(12)
+        max_bytes = 3000
+        chunks = chunk_events(events, distinct_id="user", max_bytes=max_bytes)
+
+        assert len(chunks) > 1
+        assert [e["uuid"] for c in chunks for e in c] == [e["uuid"] for e in events]
+        for chunk in chunks:
+            entries = [sender_mod._batch_entry(e, "user", "2026-01-01T00:00:00+00:00") for e in chunk]
+            body = json.dumps({"api_key": "phc_test", "batch": entries}).encode("utf-8")
+            assert len(body) <= max_bytes or len(chunk) == 1
+
+    def test_chunk_events_empty_list(self):
+        assert chunk_events([], distinct_id="user") == []
+
+    def test_oversize_event_goes_alone(self):
+        events = self._events(3)
+        chunks = chunk_events(events, distinct_id="user", max_bytes=1)
+        assert len(chunks) == len(events)
+        assert all(len(c) == 1 for c in chunks)
+        assert [c[0]["uuid"] for c in chunks] == [e["uuid"] for e in events]
+
+    def test_every_request_body_stays_under_the_limit(self, posthog, monkeypatch):
+        monkeypatch.setattr(sender_mod, "MAX_BATCH_BYTES", 3000)
+        events = self._events(12)
+        result = self._send(events)
+
+        assert result["status"] == "ok"
+        assert len(posthog.bodies) > 1
+        assert all(len(body) <= 3000 for body in posthog.bodies)
+        sent_uuids = [e["uuid"] for batch in posthog.batches for e in batch]
+        assert sorted(sent_uuids) == sorted(e["uuid"] for e in events)
+        assert result["sent"] == len(events)
+
+    def test_failed_chunk_is_recorded_once_and_the_rest_resumes(self, posthog, monkeypatch):
+        monkeypatch.setattr(sender_mod, "MAX_BATCH_BYTES", 3000)
+        events = self._events(12)
+        chunks = chunk_events(events, distinct_id="user")
+        assert len(chunks) > 2
+        first_chunk = chunks[0]
+        first_uuids = {e["uuid"] for e in first_chunk}
+
+        posthog.fail_on = {2}
+        result = self._send(events)
+        assert result["status"] == "error"
+        assert result["sent"] == len(first_chunk)
+        assert [e["uuid"] for e in posthog.batches[0]] == [e["uuid"] for e in first_chunk]
+
+        posthog.fail_on = set()
+        result = self._send(events)
+        assert result["status"] == "ok"
+        resent = [e["uuid"] for batch in posthog.batches[1:] for e in batch]
+        assert not first_uuids & set(resent)
+        assert sorted(resent) == sorted(e["uuid"] for e in events if e["uuid"] not in first_uuids)
+
+    def test_deadline_passed_sends_nothing_and_records_nothing(self, posthog, tmp_path):
+        events = self._events(3)
+        result = self._send(events, deadline=time.monotonic() - 1)
+
+        assert result["status"] == "error"
+        assert result["sent"] == 0
+        assert posthog.batches == []
+        assert not (tmp_path / "test-session-id.json").exists()
+
+    def test_in_flight_post_is_cut_off_at_the_deadline(self, monkeypatch):
+        monkeypatch.setattr(sender_mod, "MAX_BATCH_BYTES", 3000)
+
+        class SlowHandler(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):
+                length = int(self.headers.get("Content-Length", 0))
+                self.rfile.read(length)
+                time.sleep(3)
+                try:
+                    self.send_response(200)
+                    self.end_headers()
+                    self.wfile.write(b"{}")
+                except OSError:
+                    pass
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SlowHandler)
+        server.daemon_threads = True
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            host = f"http://127.0.0.1:{server.server_address[1]}"
+            events = self._events(12)
+            start = time.monotonic()
+            result = sender_mod.send_chunks(
+                events,
+                api_key="phc_test",
+                host=host,
+                distinct_id="user",
+                max_bytes=3000,
+                deadline=start + 2.5,
+            )
+            elapsed = time.monotonic() - start
+        finally:
+            server.shutdown()
+            server.server_close()
+
+        assert result["status"] == "error"
+        assert elapsed < 3.5
+        assert result["sent"] == 0
+
+    def test_deadline_with_less_than_min_post_seconds_sends_nothing(self, posthog):
+        events = self._events(3)
+        result = self._send(events, deadline=time.monotonic() + sender_mod.MIN_POST_SECONDS - 1)
+
+        assert result["status"] == "error"
+        assert result["sent"] == 0
+        assert posthog.batches == []
 
 
 # ---------------------------------------------------------------------------
@@ -1304,7 +1440,20 @@ class TestParseGitRemoteUrl:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("bad_subagent", [None, "non-utf8", "null-line", "odd-content", "duplicate"])
+def _subagent_asst(uuid, msg_id, content):
+    return {
+        "type": "assistant", "uuid": uuid, "parentUuid": "u-1",
+        "sessionId": "55555555-5555-5555-5555-555555555555",
+        "timestamp": "2026-04-12T10:00:01.000Z",
+        "message": {"role": "assistant", "id": msg_id, "model": "claude-opus-4-6",
+                    "stop_reason": "end_turn", "usage": {"output_tokens": 5},
+                    "content": content},
+    }
+
+
+@pytest.mark.parametrize("bad_subagent", [
+    None, "non-utf8", "null-line", "odd-content", "duplicate", "tool-use", "repeats-main",
+])
 def test_session_end_captures_subagent_usage(tmp_path, bad_subagent):
     """E2E coverage for #166: the hook also sends generations from
     <project>/<session_id>/subagents/agent-*.jsonl in the same batch.
@@ -1317,13 +1466,18 @@ def test_session_end_captures_subagent_usage(tmp_path, bad_subagent):
     subagents.mkdir(parents=True)
 
     def asst(uuid, msg_id, text):
-        return {
-            "type": "assistant", "uuid": uuid, "parentUuid": "u-1",
-            "sessionId": session, "timestamp": "2026-04-12T10:00:01.000Z",
-            "message": {"role": "assistant", "id": msg_id, "model": "claude-opus-4-6",
-                        "stop_reason": "end_turn", "usage": {"output_tokens": 5},
-                        "content": [{"type": "text", "text": text}]},
-        }
+        return _subagent_asst(uuid, msg_id, [{"type": "text", "text": text}])
+
+    # A subagent reply that calls a tool. Its tool name must reach PostHog
+    # once as a $ai_span and once in the generation's output.
+    tool_entry = _subagent_asst("a-4", "m-4", [
+        {"type": "tool_use", "id": "tu-4", "name": "SubagentOnlyTool", "input": {}}])
+    tool_entry["message"]["stop_reason"] = "tool_use"
+    # A second tool reply seen only once. An inverted dup_spans filter would
+    # keep the repeated copy above and drop this one.
+    other_tool_entry = _subagent_asst("a-5", "m-5", [
+        {"type": "tool_use", "id": "tu-5", "name": "SecondSubagentTool", "input": {}}])
+    other_tool_entry["message"]["stop_reason"] = "tool_use"
 
     user = {
         "type": "user", "uuid": "u-1", "parentUuid": None, "promptId": "p-1",
@@ -1332,14 +1486,22 @@ def test_session_end_captures_subagent_usage(tmp_path, bad_subagent):
     }
     (project / f"{session}.jsonl").write_text(
         "".join(json.dumps(e) + "\n" for e in [user, asst("a-1", "m-1", "main reply")]))
-    (subagents / "agent-1.jsonl").write_text(
-        json.dumps(asst("a-2", "m-2", "subagent reply")) + "\n")
+    agent1 = json.dumps(asst("a-2", "m-2", "subagent reply")) + "\n"
+    if bad_subagent == "tool-use":
+        # The same tool reply in a second subagent file: the dup_spans filter
+        # must drop this copy's tool use, or the tool name is counted twice.
+        agent1 += json.dumps(tool_entry) + "\n"
+        agent1 += json.dumps(other_tool_entry) + "\n"
+    (subagents / "agent-1.jsonl").write_text(agent1)
     extra = {
         "non-utf8": b"\xff\n",
         "null-line": b"null\n",
         "odd-content": (json.dumps({**asst("a-3", "m-3", "x"), "message": {
             **asst("a-3", "m-3", "x")["message"], "content": [{"type": []}]}}) + "\n").encode(),
         "duplicate": (json.dumps(asst("a-2", "m-2", "subagent reply")) + "\n").encode(),
+        # The tool reply twice in one file: parse merges the repeat, so one tool use.
+        "tool-use": ((json.dumps(tool_entry) + "\n") * 2).encode(),
+        "repeats-main": (json.dumps(asst("a-1", "m-1", "main reply")) + "\n").encode(),
     }.get(bad_subagent)
     if extra is not None:
         (subagents / "agent-0.jsonl").write_bytes(extra)
@@ -1372,3 +1534,40 @@ def test_session_end_captures_subagent_usage(tmp_path, bad_subagent):
     sent = b"\n".join(bodies).decode("utf-8", "replace")
     assert "main reply" in sent
     assert sent.count("subagent reply") == 1
+    if bad_subagent == "repeats-main":
+        assert sent.count("main reply") == 1
+    if bad_subagent == "tool-use":
+        # 1 from the $ai_span event, 1 from the generation's output tool_use block.
+        assert sent.count("SubagentOnlyTool") == 2
+        assert sent.count("SecondSubagentTool") == 2
+    else:
+        assert "SubagentOnlyTool" not in sent
+        assert "SecondSubagentTool" not in sent
+
+
+def test_parse_session_with_subagents_merges_subagent_files(tmp_path):
+    session = "66666666-6666-6666-6666-666666666666"
+    project = tmp_path / "proj"
+    subagents = project / session / "subagents"
+    subagents.mkdir(parents=True)
+
+    def asst(uuid, msg_id, text):
+        return _subagent_asst(uuid, msg_id, [{"type": "text", "text": text}])
+
+    user = {
+        "type": "user", "uuid": "u-1", "parentUuid": None, "promptId": "p-1",
+        "sessionId": session, "timestamp": "2026-04-12T10:00:00.000Z",
+        "message": {"role": "user", "content": "go"},
+    }
+    main = project / f"{session}.jsonl"
+    main.write_text(
+        "".join(json.dumps(e) + "\n" for e in [user, asst("a-1", "m-1", "main reply")]))
+    # agent-0 holds a new subagent reply and a repeat of the main reply.
+    (subagents / "agent-0.jsonl").write_text(
+        json.dumps(asst("a-2", "m-2", "subagent reply")) + "\n"
+        + json.dumps(asst("a-1", "m-1", "main reply")) + "\n")
+
+    parsed = parse_session_with_subagents(str(main), DEFAULT_CONFIG)
+    msg_ids = [g["msg_id"] for g in parsed["generations"]]
+    assert "m-2" in msg_ids
+    assert msg_ids.count("m-1") == 1

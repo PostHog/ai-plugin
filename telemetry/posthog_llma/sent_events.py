@@ -9,8 +9,9 @@ import hashlib
 import json
 import os
 import time
+from typing import Optional
 
-from posthog_llma.sender import DEFAULT_HOST, send_batch
+from posthog_llma.sender import DEFAULT_HOST, send_chunks
 
 SENT_DIR = os.path.expanduser("~/.claude/posthog-llma-sent")
 # Claude Code keeps session logs for `cleanupPeriodDays`, 30 days by
@@ -26,20 +27,30 @@ def send_new_events(
     api_key: str,
     host: str = DEFAULT_HOST,
     distinct_id: str,
+    deadline: Optional[float] = None,
 ) -> dict:
     """Send the events that this session has not sent before in the same form.
 
-    Records the sent events only when PostHog accepts the batch, so a failed
-    send is tried again when the session next ends. Returns the result of
-    `send_batch`.
+    Sends in size-bounded chunks. Records each chunk once PostHog accepts it,
+    so a failed or cut-off send resumes from the first unsent chunk at the
+    next session end. `deadline` is passed to `send_chunks`. Returns the
+    result of `send_chunks`.
     """
     sent = _load(session_id)
     unsent = [event for event in events if not event.get("uuid") or sent.get(event["uuid"]) != _fingerprint(event)]
-    result = send_batch(unsent, api_key=api_key, host=host, distinct_id=distinct_id)
-    if result.get("status") == "ok":
-        sent.update({event["uuid"]: _fingerprint(event) for event in unsent if event.get("uuid")})
+
+    def record(chunk: list[dict]) -> None:
+        sent.update({event["uuid"]: _fingerprint(event) for event in chunk if event.get("uuid")})
         _save(session_id, sent)
-    return result
+
+    return send_chunks(
+        unsent,
+        api_key=api_key,
+        host=host,
+        distinct_id=distinct_id,
+        deadline=deadline,
+        on_sent=record,
+    )
 
 
 def _fingerprint(event: dict) -> str:

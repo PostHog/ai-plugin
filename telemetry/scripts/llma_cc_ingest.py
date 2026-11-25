@@ -20,9 +20,9 @@ PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PLUGIN_ROOT)
 
 from posthog_llma import (  # noqa: E402
-    parse_session,
+    parse_session_with_subagents,
     build_events,
-    send_batch,
+    send_chunks,
     DEFAULT_HOST,
 )
 
@@ -135,7 +135,7 @@ def ingest(jsonl_path: str) -> dict:
         "custom_properties": custom_props,
     }
 
-    parsed = parse_session(jsonl_path, config)
+    parsed = parse_session_with_subagents(jsonl_path, config)
     if not parsed["generations"]:
         return {"status": "error", "error": "No generations found in session log"}
 
@@ -157,7 +157,7 @@ def ingest(jsonl_path: str) -> dict:
     if not distinct_id:
         distinct_id = f"claude-code:{parsed['session_id']}"
 
-    result = send_batch(
+    result = send_chunks(
         events,
         api_key=api_key,
         host=host,

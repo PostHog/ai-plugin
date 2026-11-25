@@ -6,11 +6,11 @@ events to PostHog LLM Analytics. No-op unless POSTHOG_LLMA_CC_ENABLED
 is set to true and POSTHOG_API_KEY is set.
 """
 
-import glob
 import json
 import os
 import subprocess
 import sys
+import time
 
 # Resolved from __file__, never from CLAUDE_PLUGIN_ROOT: the package sits
 # beside this hooks/ directory in both plugins, while CLAUDE_PLUGIN_ROOT
@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from posthog_llma import (  # noqa: E402
     load_config,
     find_session_log,
-    parse_session,
+    parse_session_with_subagents,
     build_events,
     send_new_events,
     write_status,
@@ -37,6 +37,7 @@ def main():
 
 
 def _run():
+    start = time.monotonic()
     config = load_config()
     if not config["enabled"] or not config["api_key"]:
         sys.exit(0)
@@ -55,32 +56,7 @@ def _run():
     if not jsonl_path:
         sys.exit(0)
 
-    parsed = parse_session(jsonl_path, config)
-
-    # Subagent transcripts live beside the session log at
-    # <session_id>/subagents/agent-*.jsonl. Their generations and tool
-    # uses belong in the same batch; their prompts are internal Task
-    # calls, not user prompts, so they are not merged in.
-    pattern = os.path.join(
-        os.path.dirname(jsonl_path), session_id, "subagents", "agent-*.jsonl")
-    seen = {g["msg_id"] for g in parsed["generations"] if g.get("msg_id")}
-    for path in sorted(glob.glob(pattern)):
-        try:
-            sub = parse_session(path, config)
-        except Exception:
-            # One malformed subagent file (a cut multi-byte character, a
-            # line of an unexpected shape) must not drop the whole batch.
-            continue
-        dup_spans = set()
-        for gen in sub["generations"]:
-            if gen.get("msg_id") and gen["msg_id"] in seen:
-                dup_spans.add(gen["span_id"])
-                continue
-            seen.add(gen.get("msg_id"))
-            parsed["generations"].append(gen)
-        parsed["tool_uses"].extend(
-            tu for tu in sub["tool_uses"]
-            if tu.get("generation_span_id") not in dup_spans)
+    parsed = parse_session_with_subagents(jsonl_path, config)
 
     if not parsed["generations"]:
         sys.exit(0)
@@ -104,12 +80,15 @@ def _run():
     if not distinct_id:
         distinct_id = f"claude-code:{session_id}"
 
+    # The SessionEnd hook timeout in hooks.json is 30 s. Stop sending at 25 s
+    # so the status file is still written; the rest goes at the next end.
     result = send_new_events(
         events,
         session_id=session_id,
         api_key=config["api_key"],
         host=config["host"],
         distinct_id=distinct_id,
+        deadline=start + 25,
     )
 
     write_status({
