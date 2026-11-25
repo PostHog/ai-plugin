@@ -202,11 +202,23 @@ The plugin bundles no skills. The PostHog MCP server provides them, and your age
 
 ## Self-hosted
 
-For self-hosted PostHog instances, set the `POSTHOG_MCP_URL` environment variable to point to your instance:
+**Claude Code and Gemini CLI** read `POSTHOG_MCP_URL` from the environment. Set it before launching the client to point to your self-hosted MCP endpoint:
 
 ```bash
 export POSTHOG_MCP_URL="https://mcp.your-posthog-instance.com/mcp"
 ```
+
+When the variable is unset, these clients use `https://mcp.posthog.com/mcp`. In Claude Code, an empty value (`POSTHOG_MCP_URL=""`) produces an empty, invalid URL; use `unset POSTHOG_MCP_URL` to restore the cloud default.
+
+**Cursor, Codex, and Antigravity** ship with the cloud URL and do not read `POSTHOG_MCP_URL` automatically. For self-hosted instances, change the PostHog server's URL in your client's local MCP configuration:
+
+| Client | Local MCP configuration | Field to change |
+| --- | --- | --- |
+| Cursor | `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global) | `mcpServers.posthog.url` |
+| Codex | `.codex/config.toml` (project) or `~/.codex/config.toml` (global) | `url` under `[mcp_servers.posthog]` |
+| Antigravity | `mcp_config.json`, opened via **MCP Servers → Manage MCP Servers → View raw config** | `mcpServers.posthog.serverUrl` |
+
+Use your self-hosted MCP endpoint as the URL. Cursor also supports [`${env:POSTHOG_MCP_URL}`](https://cursor.com/docs/mcp#config-interpolation) in your local `url` field if you set the variable before launching Cursor, but it does not support the `${POSTHOG_MCP_URL:-default}` fallback used by Claude Code and Gemini CLI.
 
 ## Documentation
 
