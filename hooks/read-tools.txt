@@ -198,6 +198,7 @@ data-catalog-relationship-reject-prepare
 data-quality-check-results
 data-quality-check-types
 data-quality-subjects
+data-warehouse-data-health-issues-retrieve
 data-warehouse-source-connect-link
 data-warehouse-stored-credentials-list
 debug-mcp-ui-apps
