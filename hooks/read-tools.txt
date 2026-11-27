@@ -387,6 +387,7 @@ llma-offline-experiment-item-result-list
 llma-offline-experiment-list
 llma-offline-experiment-result-cells
 llma-offline-experiment-result-payload-get
+llma-offline-experiment-score-preview
 llma-offline-experiment-scorer-summary-list
 llma-offline-scorer-history
 llma-parser-recipe-reference
@@ -541,6 +542,7 @@ scheduled-changes-get
 scheduled-changes-list
 scout-config-list
 scout-config-precheck-test
+scout-config-retrieve
 scout-members-list
 scout-metadata-get
 scout-notes-list
