@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 # Resolved from __file__, never from CLAUDE_PLUGIN_ROOT: the package sits
 # beside this hooks/ directory in both plugins, while CLAUDE_PLUGIN_ROOT
@@ -19,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from posthog_llma import (  # noqa: E402
     load_config,
     find_session_log,
-    parse_session,
+    parse_session_with_subagents,
     build_events,
     send_new_events,
     write_status,
@@ -36,6 +37,7 @@ def main():
 
 
 def _run():
+    start = time.monotonic()
     config = load_config()
     if not config["enabled"] or not config["api_key"]:
         sys.exit(0)
@@ -54,7 +56,8 @@ def _run():
     if not jsonl_path:
         sys.exit(0)
 
-    parsed = parse_session(jsonl_path, config)
+    parsed = parse_session_with_subagents(jsonl_path, config)
+
     if not parsed["generations"]:
         sys.exit(0)
 
@@ -77,12 +80,15 @@ def _run():
     if not distinct_id:
         distinct_id = f"claude-code:{session_id}"
 
+    # The SessionEnd hook timeout in hooks.json is 30 s. Stop sending at 25 s
+    # so the status file is still written; the rest goes at the next end.
     result = send_new_events(
         events,
         session_id=session_id,
         api_key=config["api_key"],
         host=config["host"],
         distinct_id=distinct_id,
+        deadline=start + 25,
     )
 
     write_status({

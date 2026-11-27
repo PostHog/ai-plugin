@@ -272,12 +272,15 @@ def build_events(parsed: dict, config: dict) -> list[dict]:
         ))
 
     # -- $ai_trace events --
+    # Trace events go first so a deadline or mid-send failure drops
+    # generation/span chunks rather than trace names and token totals.
+    trace_events = []
     if trace_grouping == "session":
-        _build_session_trace(events, parsed, all_generations, session_trace_id, session_id, project_name, custom_properties, git_properties)
+        _build_session_trace(trace_events, parsed, all_generations, session_trace_id, session_id, project_name, custom_properties, git_properties)
     else:
-        _build_message_traces(events, parsed, all_generations, session_id, project_name, fallback_trace_ids, custom_properties, git_properties)
+        _build_message_traces(trace_events, parsed, all_generations, session_id, project_name, fallback_trace_ids, custom_properties, git_properties)
 
-    return events
+    return trace_events + events
 
 
 def _compute_latency(timestamps: list[str]) -> Optional[float]:

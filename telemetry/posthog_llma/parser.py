@@ -4,8 +4,11 @@ Reads a Claude Code session log and extracts generations, tool uses,
 prompts, and metadata into a structured dict.
 """
 
+import glob
 import json
+import os
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -31,6 +34,20 @@ def find_session_log(session_id: str, cwd: str) -> Optional[str]:
     for candidate in base.glob(f"*/{session_id}.jsonl"):
         return str(candidate)
     return None
+
+
+def _iter_jsonl_entries(jsonl_path: str):
+    """Yield parsed dict entries line by line, skipping corrupt lines."""
+    with open(jsonl_path, "rb") as f:
+        for raw_line in f:
+            if not raw_line.strip():
+                continue
+            try:
+                entry = json.loads(raw_line.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                continue
+            if isinstance(entry, dict):
+                yield entry
 
 
 def parse_session(jsonl_path: str, config: dict) -> dict:
@@ -61,14 +78,8 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
     uuid_to_parent = {}     # uuid -> parentUuid
 
     # First pass: build UUID maps
-    with open(jsonl_path) as f:
-        for line in f:
-            if not line.strip():
-                continue
-            try:
-                entry = json.loads(line)
-            except json.JSONDecodeError:
-                continue
+    for entry in _iter_jsonl_entries(jsonl_path):
+        try:
             uid = entry.get("uuid", "")
             if uid:
                 parent = entry.get("parentUuid", "")
@@ -77,6 +88,8 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
                 prompt_id = entry.get("promptId", "")
                 if prompt_id:
                     uuid_to_prompt_id[uid] = prompt_id
+        except (AttributeError, TypeError, ValueError):
+            continue
 
     def resolve_prompt_id(entry_uuid: str) -> str:
         """Walk parentUuid chain to find the promptId."""
@@ -91,15 +104,8 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
         return ""
 
     # Second pass: extract data
-    with open(jsonl_path) as f:
-        for line in f:
-            if not line.strip():
-                continue
-            try:
-                entry = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-
+    for entry in _iter_jsonl_entries(jsonl_path):
+        try:
             entry_type = entry.get("type", "")
 
             # Session metadata. The Claude Code CLI emits a permission-mode
@@ -140,6 +146,10 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
                 metadata["cwd"] = entry.get("cwd", "")
             if not metadata.get("git_branch"):
                 metadata["git_branch"] = entry.get("gitBranch", "")
+        except (AttributeError, TypeError, ValueError):
+            # Skip entries of an unexpected shape rather than dropping
+            # every good entry in the file.
+            continue
 
     # Flatten merged per-msg_id states into generations + tool_uses
     generations = []
@@ -162,6 +172,59 @@ def parse_session(jsonl_path: str, config: dict) -> dict:
         "prompts": prompts,
         "metadata": metadata,
     }
+
+
+def _timestamp_sort_key(item: dict) -> tuple:
+    """Order entries by ISO timestamp; entries without a usable
+    timestamp sort last, keeping their file order via the stable sort."""
+    ts = item.get("timestamp")
+    if isinstance(ts, str) and ts:
+        try:
+            parsed = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return (0, parsed.timestamp(), ts)
+        except (ValueError, OverflowError, OSError):
+            return (1, 0.0, ts)
+    return (2, 0.0, "")
+
+
+def parse_session_with_subagents(jsonl_path: str, config: dict) -> dict:
+    """Parse a session log and merge in its subagent transcripts.
+
+    Subagent transcripts live beside the session log at
+    <dir>/<session stem>/subagents/agent-*.jsonl. Their generations and tool
+    uses belong in the same batch; their prompts are internal Task calls,
+    not user prompts, so they are not merged in.
+    """
+    parsed = parse_session(jsonl_path, config)
+
+    stem = Path(jsonl_path).stem
+    pattern = os.path.join(
+        os.path.dirname(jsonl_path), stem, "subagents", "agent-*.jsonl")
+    seen = {g["msg_id"] for g in parsed["generations"] if g.get("msg_id")}
+    for path in sorted(glob.glob(pattern)):
+        try:
+            sub = parse_session(path, config)
+        except OSError:
+            # One unreadable subagent file must not drop the whole batch.
+            continue
+        dup_spans = set()
+        for gen in sub["generations"]:
+            if gen.get("msg_id") and gen["msg_id"] in seen:
+                dup_spans.add(gen["span_id"])
+                continue
+            seen.add(gen.get("msg_id"))
+            parsed["generations"].append(gen)
+        parsed["tool_uses"].extend(
+            tu for tu in sub["tool_uses"]
+            if tu.get("generation_span_id") not in dup_spans)
+
+    # Subagent entries land after the main session's, so re-sort by
+    # timestamp: $ai_latency measures first-to-last in list order.
+    parsed["generations"].sort(key=_timestamp_sort_key)
+    parsed["tool_uses"].sort(key=_timestamp_sort_key)
+    return parsed
 
 
 def _process_user_entry(
@@ -257,6 +320,9 @@ def _process_assistant_entry(
 
     msg_id = msg.get("id", "")
     usage = msg.get("usage", {})
+    if usage is not None and not isinstance(usage, dict):
+        raise TypeError("usage must be a dict")
+    usage = usage or {}
     model = msg.get("model", "")
     stop_reason = msg.get("stop_reason")
     timestamp = entry.get("timestamp", "")
@@ -325,7 +391,11 @@ def _finalize_generation(state: dict) -> tuple[dict, list]:
     prompt_id = state["prompt_id"]
     timestamp = state["timestamp"]
     usage = state.get("usage") or {}
+    if not isinstance(usage, dict):
+        usage = {}
     cache_creation = usage.get("cache_creation") or {}
+    if not isinstance(cache_creation, dict):
+        cache_creation = {}
 
     blocks = state["blocks_by_type"]
     # Fall back to a sensible default order for older state dicts; new

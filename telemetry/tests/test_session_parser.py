@@ -1,9 +1,13 @@
 """Tests for the Claude Code session JSONL parser and event builder."""
 
+import http.server
 import json
 import os
+import socket
+import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.error
 
@@ -12,9 +16,11 @@ import pytest
 # Add plugin root to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from posthog_llma.parser import parse_session, find_session_log
+from posthog_llma.parser import parse_session, parse_session_with_subagents, find_session_log
 from posthog_llma.event_builder import build_events, parse_git_remote_url
+import posthog_llma.sender as sender_mod
 import posthog_llma.sent_events as sent_events_mod
+from posthog_llma.sender import chunk_events
 from posthog_llma.sent_events import send_new_events
 from posthog_llma.config import load_config
 from posthog_llma.trace_naming import find_trace_name, clean_trace_name
@@ -1097,11 +1103,17 @@ class _FakeResponse:
 class _FakePostHog:
     def __init__(self):
         self.batches = []
+        self.bodies = []
         self.fail = False
+        # 1-based numbers of the POST calls that fail.
+        self.fail_on = set()
+        self.calls = 0
 
     def urlopen(self, req, timeout=None):
-        if self.fail:
+        self.calls += 1
+        if self.fail or self.calls in self.fail_on:
             raise urllib.error.HTTPError(req.full_url, 503, "unavailable", {}, None)
+        self.bodies.append(req.data)
         self.batches.append(json.loads(req.data.decode("utf-8"))["batch"])
         return _FakeResponse()
 
@@ -1173,6 +1185,169 @@ class TestSendNewEvents:
 
         assert not expired.exists()
         assert (tmp_path / "test-session-id.json").exists()
+
+
+class TestChunkedSend:
+    def _events(self, count, config=DEFAULT_CONFIG):
+        session = _make_session([{"prompt": f"prompt {i}", "tools": ["Bash"]} for i in range(count)])
+        path = _write_jsonl(session)
+        try:
+            return build_events(parse_session(path, config), config)
+        finally:
+            os.unlink(path)
+
+    def _send(self, events, **kwargs):
+        return send_new_events(events, session_id="test-session-id", api_key="phc_test", distinct_id="user", **kwargs)
+
+    def test_chunk_events_splits_in_order_within_limit(self):
+        events = self._events(12)
+        max_bytes = 3000
+        chunks = chunk_events(events, distinct_id="user", max_bytes=max_bytes)
+
+        assert len(chunks) > 1
+        assert [e["uuid"] for c in chunks for e in c] == [e["uuid"] for e in events]
+        for chunk in chunks:
+            entries = [sender_mod._batch_entry(e, "user", "2026-01-01T00:00:00+00:00") for e in chunk]
+            body = json.dumps({"api_key": "phc_test", "batch": entries}, separators=(",", ":")).encode("utf-8")
+            assert len(body) <= max_bytes or len(chunk) == 1
+
+    def test_chunk_events_empty_list(self):
+        assert chunk_events([], distinct_id="user") == []
+
+    def test_oversize_event_goes_alone(self):
+        events = self._events(3)
+        chunks = chunk_events(events, distinct_id="user", max_bytes=1)
+        assert len(chunks) == len(events)
+        assert all(len(c) == 1 for c in chunks)
+        assert [c[0]["uuid"] for c in chunks] == [e["uuid"] for e in events]
+
+    def test_every_request_body_stays_under_the_limit(self, posthog, monkeypatch):
+        monkeypatch.setattr(sender_mod, "MAX_BATCH_BYTES", 3000)
+        events = self._events(12)
+        result = self._send(events)
+
+        assert result["status"] == "ok"
+        assert len(posthog.bodies) > 1
+        assert all(len(body) <= 3000 for body in posthog.bodies)
+        sent_uuids = [e["uuid"] for batch in posthog.batches for e in batch]
+        assert sorted(sent_uuids) == sorted(e["uuid"] for e in events)
+        assert result["sent"] == len(events)
+
+    def test_failed_chunk_is_recorded_once_and_the_rest_resumes(self, posthog, monkeypatch):
+        monkeypatch.setattr(sender_mod, "MAX_BATCH_BYTES", 3000)
+        events = self._events(12)
+        chunks = chunk_events(events, distinct_id="user")
+        assert len(chunks) > 2
+        first_chunk = chunks[0]
+        first_uuids = {e["uuid"] for e in first_chunk}
+
+        posthog.fail_on = {2}
+        result = self._send(events)
+        assert result["status"] == "error"
+        assert result["sent"] == len(first_chunk)
+        assert [e["uuid"] for e in posthog.batches[0]] == [e["uuid"] for e in first_chunk]
+
+        posthog.fail_on = set()
+        result = self._send(events)
+        assert result["status"] == "ok"
+        resent = [e["uuid"] for batch in posthog.batches[1:] for e in batch]
+        assert not first_uuids & set(resent)
+        assert sorted(resent) == sorted(e["uuid"] for e in events if e["uuid"] not in first_uuids)
+
+    def test_deadline_passed_sends_nothing_and_records_nothing(self, posthog, tmp_path):
+        events = self._events(3)
+        result = self._send(events, deadline=time.monotonic() - 1)
+
+        assert result["status"] == "error"
+        assert result["sent"] == 0
+        assert posthog.batches == []
+        assert not (tmp_path / "test-session-id.json").exists()
+
+    def test_in_flight_post_is_cut_off_at_the_deadline(self, monkeypatch):
+        timeouts = []
+
+        def fake_urlopen(req, timeout=None):
+            timeouts.append(timeout)
+            raise socket.timeout("timed out")
+
+        monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+        events = self._events(12)
+        result = sender_mod.send_chunks(
+            events,
+            api_key="phc_test",
+            host="http://posthog.test",
+            distinct_id="user",
+            max_bytes=3000,
+            deadline=time.monotonic() + 2.5,
+        )
+
+        assert result["status"] == "error"
+        assert result["sent"] == 0
+        assert len(timeouts) == 1
+        assert 0 < timeouts[0] <= 2.5
+
+    @pytest.mark.parametrize("trace_grouping", ["session", "message"])
+    def test_deadline_keeps_trace_events_in_first_chunk(self, posthog, monkeypatch, trace_grouping):
+        """$ai_trace events go out before generations and spans, so a
+        deadline that cuts the send later still delivers trace names and
+        token totals."""
+        monkeypatch.setattr(sender_mod, "MAX_BATCH_BYTES", 3000)
+        config = {**DEFAULT_CONFIG, "trace_grouping": trace_grouping}
+        events = self._events(12, config)
+
+        kinds = [e["event"] for e in events]
+        trace_idx = [i for i, k in enumerate(kinds) if k == "$ai_trace"]
+        other_idx = [i for i, k in enumerate(kinds) if k != "$ai_trace"]
+        assert trace_idx and other_idx and max(trace_idx) < min(other_idx)
+
+        clock = [1000.0]
+        monkeypatch.setattr(time, "monotonic", lambda: clock[0])
+        real_urlopen = posthog.urlopen
+
+        def urlopen_then_expire(req, timeout=None):
+            resp = real_urlopen(req, timeout=timeout)
+            clock[0] += 60
+            return resp
+
+        monkeypatch.setattr("urllib.request.urlopen", urlopen_then_expire)
+        result = self._send(events, deadline=clock[0] + 25)
+
+        assert result["status"] == "error"
+        assert len(posthog.batches) == 1
+        assert result["sent"] == len(posthog.batches[0])
+        sent_kinds = [e["event"] for e in posthog.batches[0]]
+        assert "$ai_trace" in sent_kinds
+        trace = next(e for e in posthog.batches[0] if e["event"] == "$ai_trace")
+        assert "$ai_trace_name" in trace["properties"]
+        assert "$ai_total_output_tokens" in trace["properties"]
+
+    def test_many_small_events_stay_within_max_bytes(self, posthog, monkeypatch):
+        monkeypatch.setattr(sender_mod, "MAX_BATCH_BYTES", 45_000)
+        events = [
+            {
+                "event": "$ai_span",
+                "uuid": f"ev-{i}",
+                "properties": {},
+                "timestamp": "2026-04-12T10:00:00Z",
+            }
+            for i in range(350)
+        ]
+        result = self._send(events)
+
+        assert result["status"] == "ok"
+        assert len(posthog.bodies) > 1
+        assert all(len(body) <= 45_000 for body in posthog.bodies)
+
+    def test_default_max_batch_bytes_is_one_megabyte(self):
+        assert sender_mod.MAX_BATCH_BYTES == 1024 * 1024
+
+    def test_deadline_with_less_than_min_post_seconds_sends_nothing(self, posthog):
+        events = self._events(3)
+        result = self._send(events, deadline=time.monotonic() + sender_mod.MIN_POST_SECONDS - 1)
+
+        assert result["status"] == "error"
+        assert result["sent"] == 0
+        assert posthog.batches == []
 
 
 # ---------------------------------------------------------------------------
@@ -1294,3 +1469,335 @@ class TestParseGitRemoteUrl:
     ])
     def test_parse(self, url, expected):
         assert parse_git_remote_url(url) == expected
+
+
+# ---------------------------------------------------------------------------
+# SessionEnd hook
+# ---------------------------------------------------------------------------
+
+
+def _main_user(uuid="u-1", prompt_id="p-1",
+               session="55555555-5555-5555-5555-555555555555",
+               timestamp="2026-04-12T10:00:00.000Z", text="go"):
+    return {
+        "type": "user", "uuid": uuid, "parentUuid": None, "promptId": prompt_id,
+        "sessionId": session, "timestamp": timestamp,
+        "message": {"role": "user", "content": text},
+    }
+
+
+def _subagent_user(uuid="su-1", prompt_id="p-1",
+                   session="55555555-5555-5555-5555-555555555555",
+                   timestamp="2026-04-12T10:00:00.500Z"):
+    """Real subagent transcripts open with an isSidechain user entry that
+    carries the parent prompt's promptId."""
+    return {
+        "type": "user", "isSidechain": True, "uuid": uuid, "parentUuid": None,
+        "promptId": prompt_id, "sessionId": session, "timestamp": timestamp,
+        "message": {"role": "user", "content": "subagent task"},
+    }
+
+
+def _subagent_asst(uuid, msg_id, content, *, parent_uuid="su-1",
+                   session="55555555-5555-5555-5555-555555555555",
+                   timestamp="2026-04-12T10:00:01.000Z", is_sidechain=True):
+    entry = {
+        "type": "assistant", "uuid": uuid, "parentUuid": parent_uuid,
+        "sessionId": session, "timestamp": timestamp,
+        "message": {"role": "assistant", "id": msg_id, "model": "claude-opus-4-6",
+                    "stop_reason": "end_turn", "usage": {"output_tokens": 5},
+                    "content": content},
+    }
+    if is_sidechain:
+        entry["isSidechain"] = True
+    return entry
+
+
+def _text_asst(uuid, msg_id, text, **kwargs):
+    return _subagent_asst(uuid, msg_id, [{"type": "text", "text": text}], **kwargs)
+
+
+def _write_subagent_project(tmp_path, session, main_entries, agents):
+    """Write proj/<session>.jsonl plus proj/<session>/subagents/agent-*.jsonl.
+    Returns the main log path."""
+    project = tmp_path / "proj"
+    subagents = project / session / "subagents"
+    subagents.mkdir(parents=True)
+    main = project / f"{session}.jsonl"
+    main.write_text("".join(json.dumps(e) + "\n" for e in main_entries))
+    for name, entries in agents.items():
+        (subagents / name).write_text("".join(json.dumps(e) + "\n" for e in entries))
+    return main
+
+
+def test_session_end_captures_subagent_usage(tmp_path):
+    """E2E coverage for #166: the hook also sends generations from
+    <project>/<session_id>/subagents/agent-*.jsonl in the same batch."""
+    session = "55555555-5555-5555-5555-555555555555"
+    cwd = "/tmp/myproject"
+    project = tmp_path / ".claude" / "projects" / cwd.replace("/", "-")
+    subagents = project / session / "subagents"
+    subagents.mkdir(parents=True)
+
+    (project / f"{session}.jsonl").write_text("".join(json.dumps(e) + "\n" for e in [
+        _main_user(session=session),
+        _text_asst("a-1", "m-1", "main reply", parent_uuid="u-1", is_sidechain=False),
+    ]))
+    (subagents / "agent-0.jsonl").write_text("".join(json.dumps(e) + "\n" for e in [
+        _subagent_user(session=session),
+        _text_asst("a-2", "m-2", "subagent reply"),
+    ]))
+
+    bodies = []
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            bodies.append(self.rfile.read(int(self.headers.get("Content-Length", 0))))
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"{}")
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        hook = os.path.join(os.path.dirname(__file__), "..", "hooks", "session-end-llma.py")
+        env = {"PATH": os.environ.get("PATH", ""), "HOME": str(tmp_path),
+               "POSTHOG_LLMA_CC_ENABLED": "true", "POSTHOG_API_KEY": "phc_test",
+               "POSTHOG_HOST": f"http://127.0.0.1:{server.server_address[1]}"}
+        subprocess.run([sys.executable, hook],
+                       input=json.dumps({"session_id": session, "cwd": cwd}),
+                       text=True, env=env, timeout=60, check=True)
+    finally:
+        server.shutdown()
+
+    sent = b"\n".join(bodies).decode("utf-8", "replace")
+    assert "main reply" in sent
+    assert sent.count("subagent reply") == 1
+
+
+def test_parse_session_with_subagents_merges_subagent_files(tmp_path):
+    session = "66666666-6666-6666-6666-666666666666"
+    main = _write_subagent_project(
+        tmp_path, session,
+        main_entries=[
+            _main_user(session=session),
+            _text_asst("a-1", "m-1", "main reply", parent_uuid="u-1", is_sidechain=False),
+        ],
+        # agent-0 holds a new subagent reply and a repeat of the main reply.
+        agents={"agent-0.jsonl": [
+            _subagent_user(session=session),
+            _text_asst("a-2", "m-2", "subagent reply"),
+            _text_asst("a-1", "m-1", "main reply"),
+        ]},
+    )
+
+    parsed = parse_session_with_subagents(str(main), DEFAULT_CONFIG)
+    msg_ids = [g["msg_id"] for g in parsed["generations"]]
+    assert "m-2" in msg_ids
+    assert msg_ids.count("m-1") == 1
+
+
+def test_parse_session_with_subagents_deduplicates_duplicate_subagent_files(tmp_path):
+    session = "77777777-7777-7777-7777-777777777777"
+    reply = [{"type": "text", "text": "subagent reply"}]
+    main = _write_subagent_project(
+        tmp_path, session,
+        main_entries=[
+            _main_user(session=session),
+            _text_asst("a-1", "m-1", "main reply", parent_uuid="u-1", is_sidechain=False),
+        ],
+        agents={
+            "agent-0.jsonl": [
+                _subagent_user(session=session),
+                _subagent_asst("a-2", "m-2", reply),
+            ],
+            "agent-1.jsonl": [
+                _subagent_user(session=session),
+                _subagent_asst("a-2", "m-2", reply),
+            ],
+        },
+    )
+
+    parsed = parse_session_with_subagents(str(main), DEFAULT_CONFIG)
+    msg_ids = [g["msg_id"] for g in parsed["generations"]]
+    assert msg_ids.count("m-2") == 1
+    assert "m-1" in msg_ids
+
+
+def test_parse_session_with_subagents_deduplicates_tool_uses_and_keeps_unique_ones(tmp_path):
+    session = "88888888-8888-8888-8888-888888888888"
+
+    def tool_asst(uuid, msg_id, tool_id, name):
+        entry = _subagent_asst(uuid, msg_id, [
+            {"type": "tool_use", "id": tool_id, "name": name, "input": {}},
+        ])
+        entry["message"]["stop_reason"] = "tool_use"
+        return entry
+
+    repeated = tool_asst("a-4", "m-4", "tu-4", "SubagentOnlyTool")
+    main = _write_subagent_project(
+        tmp_path, session,
+        main_entries=[
+            _main_user(session=session),
+            _text_asst("a-1", "m-1", "main reply", parent_uuid="u-1", is_sidechain=False),
+        ],
+        agents={
+            "agent-0.jsonl": [_subagent_user(session=session), repeated],
+            # The same tool reply in a second subagent file: the dup_spans
+            # filter must drop this copy's tool use, or the tool name is
+            # counted twice. The unique reply beside it must be kept.
+            "agent-1.jsonl": [
+                _subagent_user(session=session),
+                repeated,
+                tool_asst("a-5", "m-5", "tu-5", "SecondSubagentTool"),
+            ],
+        },
+    )
+
+    parsed = parse_session_with_subagents(str(main), DEFAULT_CONFIG)
+    msg_ids = [g["msg_id"] for g in parsed["generations"]]
+    assert msg_ids.count("m-4") == 1
+    assert "m-5" in msg_ids
+    names = [tu["name"] for tu in parsed["tool_uses"]]
+    assert names.count("SubagentOnlyTool") == 1
+    assert names.count("SecondSubagentTool") == 1
+
+
+def test_parse_session_with_subagents_sorts_by_timestamp_for_latency(tmp_path):
+    """Merging appends subagent entries after the main ones, so the merged
+    lists must be re-sorted or $ai_latency measures list order, not time."""
+    session = "99999999-9999-9999-9999-999999999999"
+
+    def tool_asst(uuid, msg_id, name, timestamp, **kwargs):
+        entry = _subagent_asst(uuid, msg_id, [
+            {"type": "tool_use", "id": f"tu-{msg_id}", "name": name, "input": {}},
+        ], timestamp=timestamp, **kwargs)
+        entry["message"]["stop_reason"] = "tool_use"
+        return entry
+
+    main = _write_subagent_project(
+        tmp_path, session,
+        main_entries=[
+            _main_user(session=session),
+            tool_asst("a-1", "m-1", "MainToolA", "2026-04-12T10:00:01.000Z",
+                      parent_uuid="u-1", is_sidechain=False),
+            tool_asst("a-2", "m-2", "MainToolB", "2026-04-12T10:05:00.000Z",
+                      parent_uuid="u-1", is_sidechain=False),
+        ],
+        agents={"agent-0.jsonl": [
+            _subagent_user(session=session),
+            tool_asst("a-3", "m-3", "SubTool", "2026-04-12T10:02:00.000Z"),
+        ]},
+    )
+
+    parsed = parse_session_with_subagents(str(main), DEFAULT_CONFIG)
+    expected = [
+        "2026-04-12T10:00:01.000Z",
+        "2026-04-12T10:02:00.000Z",
+        "2026-04-12T10:05:00.000Z",
+    ]
+    assert [g["timestamp"] for g in parsed["generations"]] == expected
+    assert [tu["timestamp"] for tu in parsed["tool_uses"]] == expected
+
+    events = build_events(parsed, DEFAULT_CONFIG)
+    trace = next(e for e in events if e["event"] == "$ai_trace")
+    assert trace["properties"]["$ai_latency"] == 299.0
+
+
+def test_subagent_generation_lands_in_parent_prompt_trace_in_message_mode(tmp_path):
+    session = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    sub_reply = _subagent_asst("a-2", "m-2", [
+        {"type": "tool_use", "id": "tu-2", "name": "SubTool", "input": {}},
+        {"type": "text", "text": "subagent reply"},
+    ])
+    sub_reply["message"]["usage"]["output_tokens"] = 7
+    sub_reply["message"]["stop_reason"] = "tool_use"
+    main = _write_subagent_project(
+        tmp_path, session,
+        main_entries=[
+            _main_user(session=session),
+            _text_asst("a-1", "m-1", "main reply", parent_uuid="u-1", is_sidechain=False),
+        ],
+        agents={"agent-0.jsonl": [
+            _subagent_user(session=session),
+            sub_reply,
+        ]},
+    )
+
+    config = {**DEFAULT_CONFIG, "trace_grouping": "message"}
+    parsed = parse_session_with_subagents(str(main), config)
+    sub_gen = next(g for g in parsed["generations"] if g["msg_id"] == "m-2")
+    assert sub_gen["prompt_id"] == "p-1"
+
+    events = build_events(parsed, config)
+    traces = [e for e in events if e["event"] == "$ai_trace"]
+    assert len(traces) == 1
+    props = traces[0]["properties"]
+    assert props["$ai_trace_id"] == "p-1"
+    assert props["$ai_trace_name"] == "go"
+    assert props["$ai_total_output_tokens"] == 12
+    for e in events:
+        if e["event"] in ("$ai_generation", "$ai_span"):
+            assert e["properties"]["$ai_trace_id"] == "p-1"
+
+
+_MALFORMED_JSONL_LINES = [
+    b"\xff\n",
+    b"null\n",
+    b'{"type":"assistant","message":null}\n',
+    (json.dumps(_subagent_asst(
+        "a-bad", "m-bad", [{"type": []}],
+        parent_uuid="u-1", is_sidechain=False)) + "\n").encode(),
+]
+
+
+@pytest.mark.parametrize("bad_line", _MALFORMED_JSONL_LINES)
+def test_parse_session_skips_malformed_lines_in_main_log(tmp_path, bad_line):
+    session = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    entries = [
+        _main_user(session=session),
+        _text_asst("a-1", "m-before", "before", parent_uuid="u-1", is_sidechain=False),
+    ]
+    path = tmp_path / f"{session}.jsonl"
+    path.write_bytes(
+        b"".join(json.dumps(e).encode() + b"\n" for e in entries)
+        + bad_line
+        + json.dumps(_text_asst("a-2", "m-after", "after",
+                                parent_uuid="u-1", is_sidechain=False)).encode() + b"\n")
+
+    parsed = parse_session(str(path), DEFAULT_CONFIG)
+    msg_ids = [g["msg_id"] for g in parsed["generations"]]
+    assert "m-before" in msg_ids
+    assert "m-after" in msg_ids
+
+
+@pytest.mark.parametrize("bad_line", _MALFORMED_JSONL_LINES)
+def test_parse_session_with_subagents_skips_malformed_lines_without_dropping_file(tmp_path, bad_line):
+    session = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+    project = tmp_path / "proj"
+    subagents = project / session / "subagents"
+    subagents.mkdir(parents=True)
+
+    main = project / f"{session}.jsonl"
+    main.write_text("".join(json.dumps(e) + "\n" for e in [
+        _main_user(session=session),
+        _text_asst("a-1", "m-main", "main reply", parent_uuid="u-1", is_sidechain=False),
+    ]))
+    good = [
+        _subagent_user(session=session),
+        _text_asst("a-2", "m-sub1", "sub one", timestamp="2026-04-12T10:00:02.000Z"),
+    ]
+    after = _text_asst("a-3", "m-sub2", "sub two", timestamp="2026-04-12T10:00:03.000Z")
+    (subagents / "agent-0.jsonl").write_bytes(
+        b"".join(json.dumps(e).encode() + b"\n" for e in good)
+        + bad_line
+        + json.dumps(after).encode() + b"\n")
+
+    parsed = parse_session_with_subagents(str(main), DEFAULT_CONFIG)
+    msg_ids = [g["msg_id"] for g in parsed["generations"]]
+    assert "m-main" in msg_ids
+    assert "m-sub1" in msg_ids
+    assert "m-sub2" in msg_ids
