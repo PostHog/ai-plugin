@@ -11,12 +11,17 @@ from typing import Callable, Optional
 DEFAULT_HOST = "https://us.i.posthog.com"
 STATUS_FILE = os.path.expanduser("~/.claude/posthog-llma-status.json")
 
-# PostHog's capture endpoint refuses request bodies over 20MB. 5MB leaves
-# room, and keeps each POST well inside the 10 s urlopen timeout.
-MAX_BATCH_BYTES = 5 * 1024 * 1024
+# PostHog's capture endpoint refuses request bodies over 20MB. 1MB keeps
+# each POST inside the 10 s urlopen timeout even on slow uploads: the
+# socket timeout covers the whole sendall.
+MAX_BATCH_BYTES = 1024 * 1024
 
 # Bytes reserved for the payload's api_key and JSON wrapper.
 _ENVELOPE_BYTES = 200
+
+# Compact separators make the per-entry byte count in chunk_events exact:
+# array items are then separated by a single comma, the +1 counted there.
+_JSON_SEPARATORS = (",", ":")
 
 # Too little time left for a POST to finish; send_chunks stops below this.
 MIN_POST_SECONDS = 2
@@ -66,7 +71,7 @@ def send_batch(
     payload = json.dumps({
         "api_key": api_key,
         "batch": batch,
-    }).encode("utf-8")
+    }, separators=_JSON_SEPARATORS).encode("utf-8")
 
     url = f"{host.rstrip('/')}/batch"
 
@@ -115,7 +120,7 @@ def chunk_events(
     for ev in events:
         entry = _batch_entry(ev, distinct_id, fallback_ts)
         # The +1 is the comma that separates entries in the JSON array.
-        entry_bytes = len(json.dumps(entry).encode("utf-8")) + 1
+        entry_bytes = len(json.dumps(entry, separators=_JSON_SEPARATORS).encode("utf-8")) + 1
         if current and size + entry_bytes > max_bytes:
             chunks.append(current)
             current = []
