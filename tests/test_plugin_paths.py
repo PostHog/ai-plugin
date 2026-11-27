@@ -168,11 +168,11 @@ def test_marketplace_versions_match_manifests():
 # The consumer value every client sends. The MCP server keys `learn` on it.
 CONSUMER_HEADERS = {"x-posthog-mcp-consumer": "plugin-learn"}
 
-# Claude Code keys a saved MCP sign-in on the server's type, url and static headers, so changing any of
-# them signs every Claude Code user out. These are the bytes on main before plugin-learn; the new value
-# comes from `headersHelper`, which is not part of that key and overrides a static header of the same name.
+# Claude Code keys a saved MCP sign-in on the server's type, expanded URL and static headers.
+# The URL still expands to the original cloud endpoint when POSTHOG_MCP_URL is unset. The consumer
+# value comes from `headersHelper`, which is not part of that key and overrides the static header.
 CLAUDE_CODE_SIGN_IN_FIELDS = """      "type": "http",
-      "url": "https://mcp.posthog.com/mcp",
+      "url": "${POSTHOG_MCP_URL:-https://mcp.posthog.com/mcp}",
       "headers": {
         "x-posthog-mcp-consumer": "plugin"
       }"""
@@ -182,10 +182,17 @@ def _claude_code_server():
     return json.loads((REPO_ROOT / ".mcp.json").read_text())["mcpServers"]["posthog"]
 
 
+def _claude_code_default_url():
+    # These clients cannot use Claude Code's fallback syntax; compare their literal URL to its default.
+    match = re.fullmatch(r"\$\{POSTHOG_MCP_URL:-([^}]+)\}", _claude_code_server()["url"])
+    assert match, "Claude Code must support POSTHOG_MCP_URL with a cloud default"
+    return match.group(1)
+
+
 def test_claude_code_sign_in_fields_are_unchanged():
     assert CLAUDE_CODE_SIGN_IN_FIELDS in (REPO_ROOT / ".mcp.json").read_text(), (
-        ".mcp.json no longer has the type, url and headers block from main. Changing them signs every "
-        "Claude Code user out; change the header through headersHelper instead."
+        ".mcp.json changed the type, default URL or static headers that preserve existing Claude Code "
+        "sign-ins; change the header through headersHelper instead."
     )
 
 
@@ -197,12 +204,12 @@ def test_claude_code_headers_file_carries_the_consumer_value():
 def test_antigravity_mcp_server_matches_claude_code():
     # Antigravity reads mcp_config.json and names the URL field serverUrl, so it is a second copy of .mcp.json.
     antigravity = json.loads((REPO_ROOT / "mcp_config.json").read_text())["mcpServers"]["posthog"]
-    assert (antigravity["serverUrl"], antigravity["headers"]) == (_claude_code_server()["url"], CONSUMER_HEADERS)
+    assert (antigravity["serverUrl"], antigravity["headers"]) == (_claude_code_default_url(), CONSUMER_HEADERS)
 
 
 def test_cursor_mcp_server_matches_claude_code():
     cursor = json.loads((REPO_ROOT / "mcp.json").read_text())["mcpServers"]["posthog"]
-    assert (cursor["url"], cursor["headers"]) == (_claude_code_server()["url"], CONSUMER_HEADERS)
+    assert (cursor["url"], cursor["headers"]) == (_claude_code_default_url(), CONSUMER_HEADERS)
 
 
 def test_cursor_mcp_server_is_hosted():
@@ -218,6 +225,7 @@ def test_codex_mcp_server_matches_claude_code():
     codex = json.loads((REPO_ROOT / "codex-mcp.json").read_text())["mcpServers"]["posthog"]
     expected = {k: v for k, v in _claude_code_server().items() if k not in ("headers", "headersHelper")}
     expected |= {
+        "url": _claude_code_default_url(),
         "http_headers": CONSUMER_HEADERS,
         "default_tools_approval_mode": "prompt",
         "tools": {"render-ui": {"approval_mode": "approve"}},
@@ -229,6 +237,11 @@ def test_gemini_mcp_server_sends_the_consumer_value():
     args = json.loads((REPO_ROOT / "gemini-extension.json").read_text())["mcpServers"]["posthog"]["args"]
     ((name, value),) = CONSUMER_HEADERS.items()
     assert args[args.index("--header") + 1] == f"{name}:{value}"
+
+
+def test_gemini_mcp_server_supports_the_same_url_override_as_claude_code():
+    args = json.loads((REPO_ROOT / "gemini-extension.json").read_text())["mcpServers"]["posthog"]["args"]
+    assert args[1] == _claude_code_server()["url"]
 
 
 # Cursor runs hooks/hooks.json, but the gate never matches its `MCP:exec` tool name, Cursor does not

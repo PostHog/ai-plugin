@@ -1,4 +1,4 @@
-"""Install the repository with the real Claude Code CLI and check the consumer header it sends.
+"""Install with the real Claude Code CLI and check URL expansion and the consumer header it sends.
 
 Claude Code runs `headersHelper` through `sh` on macOS and Linux and through cmd.exe on Windows. When
 the helper fails, Claude Code sends the static `plugin` header and reports no error, so only a real
@@ -69,16 +69,15 @@ def _claude(workdir, *args):
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-def test_installed_plugin_sends_the_plugin_learn_consumer(tmp_path):
+def test_installed_plugin_expands_url_and_sends_the_plugin_learn_consumer(tmp_path, monkeypatch):
     consumers = []
     server = _recording_server(consumers)
     threading.Thread(target=server.serve_forever, daemon=True).start()
 
     repo = tmp_path / "repo"
     shutil.copytree(REPO_ROOT, repo, ignore=shutil.ignore_patterns(".git", "__pycache__", ".pytest_cache"))
-    mcp_config = json.loads((repo / ".mcp.json").read_text())
-    mcp_config["mcpServers"]["posthog"]["url"] = f"http://127.0.0.1:{server.server_port}/mcp"
-    (repo / ".mcp.json").write_text(json.dumps(mcp_config))
+    # Leave the shipped .mcp.json untouched so the CLI itself must expand the override.
+    monkeypatch.setenv("POSTHOG_MCP_URL", f"http://127.0.0.1:{server.server_port}/mcp")
 
     try:
         _claude(tmp_path, "plugin", "marketplace", "add", "./repo")
